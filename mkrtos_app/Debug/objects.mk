@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lmkrtos_sdk
+LIBS :=
 
