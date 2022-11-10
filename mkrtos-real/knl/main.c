@@ -23,15 +23,21 @@ void thread_main(void *arg0, void *arg1) {
 	int ret;
 	setup();
 	const char * const argv[] = {
-			"/bin/app.bin"
+			"/bin/zh.bin"
 			,0
 	};
-	sys_execve("/bin/app.bin",argv);
+	sys_execve("/bin/zh.bin",argv);
 	kprint("done!\n");
 	while(1);
 }
-
+static void delay(void)
+{
+	for (int i=0;i<2000;i++) {
+		for (int j=0;j<10000;j++);
+	}
+}
 int main(void) {
+	delay();
 	extern int32_t bk_flash_init(void);
 	extern int32_t sp_mkfs(dev_t dev_no, int32_t inode_count);
 

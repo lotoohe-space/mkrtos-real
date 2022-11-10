@@ -5,20 +5,26 @@
 #ifndef UNTITLED1_STAT_H
 #define UNTITLED1_STAT_H
 
-//#ifdef __KERNEL__
-
+#include <sys/types.h>
 struct old_stat {
-	unsigned short st_dev;
-	unsigned short st_ino;
-	unsigned short st_mode;
-	unsigned short st_nlink;
-	unsigned short st_uid;
-	unsigned short st_gid;
-	unsigned short st_rdev;
-	unsigned long  st_size;
-	unsigned long  st_atime;
-	unsigned long  st_mtime;
-	unsigned long  st_ctime;
+	uint32_t	st_dev;
+	unsigned long	st_ino;
+	uint16_t	st_mode;
+	uint16_t	st_nlink;
+	uint16_t	st_uid;
+	uint16_t	st_gid;
+	uint32_t	st_rdev;
+	unsigned long	st_size;
+	unsigned long	st_blksize;
+	unsigned long	st_blocks;
+	time_t		st_atime;
+	unsigned long	st_atime_nsec;
+	time_t		st_mtime;
+	unsigned long	st_mtime_nsec;
+	time_t		st_ctime;
+	unsigned long	st_ctime_nsec;
+	unsigned long	__unused4;
+	unsigned long	__unused5;
 };
 struct new_stat {
 	unsigned long st_dev;

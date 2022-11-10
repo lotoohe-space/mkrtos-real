@@ -1313,7 +1313,7 @@ unsigned AnsiChar data[20808] = {
 #include <config.h>
 #include <fcntl.h>
 int app_init(void) {
-	int fd = sys_open("/bin/app.bin",O_CREAT | O_RDWR,0777);
+	int fd = sys_open("/bin/zh.bin",O_CREAT | O_RDWR,0777);
 	if (fd < 0){
 		DEBUG("fs",INFO,"open file fail. err:%d\n",fd);
 		return -1;
@@ -1327,7 +1327,7 @@ int app_init(void) {
 	}
 	sys_close(fd);
 
-	fd=sys_open("/bin/app.bin",O_RDWR,0777);
+	fd=sys_open("/bin/zh.bin",O_RDWR,0777);
 	if(fd<0){
 		DEBUG("fs",INFO,"open file fail. err:%d\n",fd);
 		return -1;

@@ -15,7 +15,7 @@ struct inode* sp_alloc_inode(struct inode *p_inode) {
 	sp_ino = p_inode->i_fs_priv_info;
 	p_inode->i_ops = &sp_dir_inode_operations;
 	mkrtos_memset(sp_ino, 0, sizeof(struct sp_inode));
-
+	//kprint("i_fs alloc:0x%x\n", p_inode->i_fs_priv_info);
 	return p_inode;
 }
 
@@ -26,6 +26,7 @@ int32_t sp_free_inode(struct inode *p_inode) {
 	if (atomic_read(&p_inode->i_used_count)) {
 		return -1;
 	}
+	//kprint("i_fs free:0x%x\n", p_inode->i_fs_priv_info);
 	free(p_inode->i_fs_priv_info);
 	return 0;
 }

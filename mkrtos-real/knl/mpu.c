@@ -72,33 +72,34 @@ void mpu_set(struct region_info* region_i, void* mem_start_addr, int size, int *
 		}
 	}
 	region_i[1].start_addr = mem_align_up_mem_addr;
-	region_i[1].size = mem_align_up_mem_addr - align_sub_size;
+	region_i[1].size = (mem_align_sub_mem_addr + align_sub_size) - mem_align_up_mem_addr;
 	region_i[1].block_size = ffs_t;
 	region_i[1].block_start_addr=mem_align_up_mem_addr;
 
 	*ret_align_size = sub_region_t;
 
-//	kprint("st:0x%x re:0x%x sub:0x%x\n region:[", region_i[0].block_start_addr, region_i[0].region , sub_region_t);
-//	for (int i = 0; i < 8; i++) {
-//		if (region_i[0].region & (1 << i)) {
-//			kprint("x");
-//		}
-//		else {
-//			kprint("o");
-//		}
-//	}
-//	kprint("]\n");
-//	kprint("st:0x%x re:0x%x sub:0x%x\n region:[", region_i[1].block_start_addr, region_i[1].region, sub_region_t);
-//	for (int i = 0; i < 8; i++) {
-//		if (region_i[1].region & (1 << i)) {
-//			kprint("x");
-//		}
-//		else {
-//			kprint("o");
-//		}
-//	}
-//	kprint("]\n");
-
+#if 0
+	kprint("st:0x%x re:0x%x sub:0x%x\n region:[", region_i[0].block_start_addr, region_i[0].region , sub_region_t);
+	for (int i = 0; i < 8; i++) {
+		if (region_i[0].region & (1 << i)) {
+			kprint("x");
+		}
+		else {
+			kprint("o");
+		}
+	}
+	kprint("]\n");
+	kprint("st:0x%x re:0x%x sub:0x%x\n region:[", region_i[1].block_start_addr, region_i[1].region, sub_region_t);
+	for (int i = 0; i < 8; i++) {
+		if (region_i[1].region & (1 << i)) {
+			kprint("x");
+		}
+		else {
+			kprint("o");
+		}
+	}
+	kprint("]\n");
+#endif
 	region_i[0].rbar = ARM_MPU_RBAR(0, region_i[0].block_start_addr);
 	region_i[0].rasr = ARM_MPU_RASR(0UL, ARM_MPU_AP_FULL, 0UL
 				, 0UL, 1UL, 1UL, region_i[0].region, ffs_t_ - 1);

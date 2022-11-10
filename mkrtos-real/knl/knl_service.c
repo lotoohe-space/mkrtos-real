@@ -22,7 +22,6 @@ static void mkrtos_mem_init(void){
 }
 INIT_LV1(mkrtos_mem_init);
 
-
 void *malloc(uint32_t size){
 	return mem_alloc(&knl_mem, size);
 }

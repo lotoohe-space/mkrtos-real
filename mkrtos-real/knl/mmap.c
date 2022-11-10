@@ -27,7 +27,7 @@ void* sys_mmap(void *start, size_t length, int prot, int flags,int fd, off_t off
     return res_mem;
 }
 void *sys_mmap2(void *start, size_t length, int prot, int flags,int fd, off_t offset) {
-	return sys_mmap(start,length,prot,flags,fd, offset<<12);
+	return sys_mmap(start,length,prot,flags,fd, offset<<8);
 }
 
 void sys_munmap(void *start, size_t length){

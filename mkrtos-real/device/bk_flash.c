@@ -8,8 +8,8 @@
 #include <gd32f10x.h>
 
 #define BK_SIZE 2048
-#define BK_COUNT 64
-#define FLASH_W_BASE_ADDR        (0x8000000 + 64*BK_SIZE)
+#define BK_COUNT 61
+#define FLASH_W_BASE_ADDR        (0x8000000 + 67*BK_SIZE)
 #define FLASH_BK_CACHE_LEN 2
 
 static int32_t read_bk(uint32_t bk_no, uint8_t *data) {
@@ -31,8 +31,9 @@ static int32_t write_bk(uint32_t bk_no, uint8_t *data) {
 	}
 
 	fmc_unlock();
-	fmc_flag_clear(
-			FMC_FLAG_BANK0_PGERR | FMC_FLAG_BANK0_WPERR | FMC_FLAG_BANK0_END);
+    fmc_flag_clear(FMC_FLAG_BANK0_END);
+    fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
+    fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
 	for (int i = 0; i < BK_SIZE / 4; i++) {
 		fmcstatus = fmc_word_program(
 				FLASH_W_BASE_ADDR + bk_no * BK_SIZE + (i << 2),
@@ -41,11 +42,12 @@ static int32_t write_bk(uint32_t bk_no, uint8_t *data) {
 			fmc_lock();
 			return -1;
 		}
-		fmc_flag_clear(
-				FMC_FLAG_BANK0_PGERR | FMC_FLAG_BANK0_WPERR
-						| FMC_FLAG_BANK0_END);
+	    fmc_flag_clear(FMC_FLAG_BANK0_END);
+	    fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
+	    fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
 	}
 	fmc_lock();
+	//kprint("w bk:%d.\n", bk_no);
 	return 0;
 }
 static int32_t erase_bk(uint32_t bk_no) {
@@ -55,14 +57,16 @@ static int32_t erase_bk(uint32_t bk_no) {
 	}
 	fmc_unlock();
 	fmcstatus = fmc_page_erase(FLASH_W_BASE_ADDR + (BK_SIZE * bk_no));
-	fmc_flag_clear(
-			FMC_FLAG_BANK0_PGERR | FMC_FLAG_BANK0_WPERR | FMC_FLAG_BANK0_END);
+    fmc_flag_clear(FMC_FLAG_BANK0_END);
+    fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
+    fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
 
 	if (fmcstatus != FMC_READY) {
 		fmc_lock();
 		return -1;
 	}
 	fmc_lock();
+	//kprint("e bk:%d.\n", bk_no);
 	return 0;
 }
 

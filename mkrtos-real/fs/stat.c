@@ -19,7 +19,7 @@ static void cp_new_stat(struct inode * inode, struct new_stat * statbuf)
     statbuf->st_ctime = 0;
     statbuf->st_blksize = inode->i_sb->s_bk_size;
 }
-int32_t sys_stat(char * filename, struct new_stat * statbuf)
+int32_t sys_stat(char * filename, struct old_stat * statbuf)
 {
     struct inode * inode;
     int res=0;
@@ -27,7 +27,13 @@ int32_t sys_stat(char * filename, struct new_stat * statbuf)
     if (res<0) {
         return res;
     }
-    cp_new_stat(inode,statbuf);
+    statbuf->st_dev = inode->i_sb->s_dev_no;
+    statbuf->st_ino = inode->i_no;
+    statbuf->st_mode = inode->i_type_mode;
+	statbuf->st_nlink = inode->i_hlink;
+	statbuf->st_rdev = inode->i_rdev_no;
+	statbuf->st_size = inode->i_file_size;
+	statbuf->st_blksize = inode->i_sb->s_bk_size;
     puti(inode);
     return 0;
 }

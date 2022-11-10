@@ -15,21 +15,26 @@ int sp_dir_read(struct inode * inode, struct file * filp, char * buf, int count)
 int sp_readdir(struct inode * inode, struct file * filp,
                   struct dirent * dirent, int count)
 {
-    struct dir_item di;
+    struct dir_item *di;
     int ret=0;
-
+    di = malloc(sizeof(struct dir_item));
+    if (!di) {
+    	return -1;
+    }
     again:
-    if((ret=sp_file_read(inode, filp,(uint8_t*)(&di), sizeof( struct dir_item)))<=0){
+    if((ret=sp_file_read(inode, filp,(uint8_t *)(di), sizeof( struct dir_item)))<=0){
+    	free(di);
         return ret;
     }
-    if(di.used==0){
+    if(di->used==0){
         goto again;
     }
 
-    mkrtos_strncpy(dirent->d_name,di.name,sizeof(di.name));
-    dirent->d_reclen=mkrtos_strlen(di.name);
-    dirent->d_ino=di.inode_no;
+    mkrtos_strncpy(dirent->d_name,di->name,sizeof(di->name));
+    dirent->d_reclen=sizeof(struct dirent);
+    dirent->d_ino=di->inode_no;
     dirent->d_off=filp->f_ofs-sizeof(struct dir_item);
+    free(di);
     return sizeof(di);
 }
 

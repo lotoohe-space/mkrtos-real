@@ -121,7 +121,7 @@ int sys_chdir(const char *filename) {
 	puti(get_current_task()->pwd_inode);
 	//ÉèÖÃĞÂµÄ
 	get_current_task()->pwd_inode = o_inode;
-	puti(o_inode);
+	//puti(o_inode);
 	//strncpy(get_current_task()->pwd_path,filename,sizeof(get_current_task()->pwd_path));
 
 	return 0;

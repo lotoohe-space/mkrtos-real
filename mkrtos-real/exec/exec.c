@@ -20,10 +20,8 @@
 
 static struct exec_file_info *exec_file_list[EXEC_FILE_NR];
 static struct atomic exec_file_atomic_ref[EXEC_FILE_NR];
-//static struct atomic exec_file_lock;
 
 int32_t exec_init(void) {
-//	exec_file_lock = ATOMIC_INIT(0);
 	for (int32_t i = 0; i < EXEC_FILE_NR; i++) {
 		exec_file_atomic_ref[i] = ATOMIC_INIT(0);
 	}
@@ -67,54 +65,6 @@ int32_t exec_put(int32_t i) {
 	return !ret;
 }
 
-///**
-// * @brief 从指定地址开始执行app
-// */
-//int32_t app_run_from_addr(void *addr, int argv, char **args) {
-//	struct exec_file_info *exec_fi;
-//	void *ram;
-//	static struct task_create_par tcp;
-//	int32_t pid;
-//	int32_t exec_id;
-//	MKRTOS_ASSERT(addr != NULL);
-//	MKRTOS_ASSERT(exec_fi != NULL);
-//
-//	exec_id = exec_alloc();
-//	if (exec_id < 0) {
-//		return -1;
-//	}
-//
-//	exec_fi = (struct exec_file_info*) addr;
-//	if (mkrtos_strcmp(exec_fi->magic, EXEC_MAGIC) != 0) {
-//		exec_put(exec_id);
-//		return -1;
-//	}
-//
-//	ram = malloc_align(exec_fi->i.ram_size, 8);
-//	if (!ram) {
-//		exec_put(exec_id);
-//		return -ENOMEM;
-//	}
-//
-//	tcp.task_fun = addr;
-//	tcp.arg0 = (void*) argv;
-//	tcp.arg1 = (void*) args;
-//	tcp.prio = 6;
-//	tcp.user_stack_size = 0;
-//	tcp.kernel_stack_size = 512;
-//	tcp.exec_id = exec_id;
-//	tcp.task_name = "none";
-//
-//	pid = task_create(&tcp);
-//	if (pid < 0) {
-//		exec_put(exec_id);
-//		return pid;
-//	}
-//
-//	exec_file_list[exec_id] = exec_fi;
-//
-//	return 0;
-//}
 /**
  * @brief 为args申请内存
  */
@@ -169,7 +119,7 @@ int sys_execve(const char *filename, char *const argv[], char *const envp[]) {
 	struct task *curr_task;
 	int argc_len = 0;
 	int argc_need_len = 0;
-
+	uint32_t t = 0;
 	curr_task = get_current_task();
 
 	argc_len = sys_args_alloc(argv, &argc_need_len);
@@ -189,7 +139,7 @@ int sys_execve(const char *filename, char *const argv[], char *const envp[]) {
 	sys_close(fp);
 	kprint("%s entry:0x%x.\n", filename, start_addr);
 
-	sche_lock();
+	t = dis_cpu_intr();
 
 	if (curr_task->exec_id >= 0) {
 		free_align(curr_task->user_ram);
@@ -199,7 +149,7 @@ int sys_execve(const char *filename, char *const argv[], char *const envp[]) {
 	exec_id = exec_alloc();
 	if (exec_id < 0) {
 		sys_close(fp);
-		sche_unlock();
+		restore_cpu_intr(t);
 		kprint("The maximum number of system executables has been reached.\n");
 		return -1;
 	}
@@ -209,7 +159,7 @@ int sys_execve(const char *filename, char *const argv[], char *const envp[]) {
 		 if (exec_fi->magic[i]!=EXEC_MAGIC[i]) {
 			exec_put(exec_id);
 			sys_close(fp);
-			sche_unlock();
+			restore_cpu_intr(t);
 			kprint("Executable file format error.\n");
 			return -1;
 		 }
@@ -220,7 +170,7 @@ int sys_execve(const char *filename, char *const argv[], char *const envp[]) {
 	if (!curr_task->mpu) {
 		exec_put(exec_id);
 		sys_close(fp);
-		sche_unlock();
+		restore_cpu_intr(t);
 		kprint("The system is low on memory.\n");
 		return -ENOMEM;
 	}
@@ -237,7 +187,7 @@ again_alloc:
 		}
 		kprint("The system is low on memory.\n");
 		knl_mem_trace();
-		sche_unlock();
+		restore_cpu_intr(t);
 		return -ENOMEM;
 	}
 
@@ -253,7 +203,7 @@ again_alloc:
 		if (curr_task->mpu) {
 			free(curr_task->mpu);
 		}
-		sche_unlock();
+		restore_cpu_intr(t);
 		kprint("The system is low on memory.\n");
 		return -ENOMEM;
 	}
@@ -289,7 +239,7 @@ again_alloc:
 	//uint32_t t;
 	//t=dis_cpu_intr();
 
-	curr_task->mem_low_stack = ((uint32_t)ram + exec_fi->i.stack_offset + exec_fi->i.stack_size - exec_fi->i.data_offset);
+	curr_task->mem_low_stack = ((uint32_t)ram + exec_fi->i.stack_offset - exec_fi->i.data_offset);
 	curr_task->user_stack_size = (uint32_t)(exec_fi->i.stack_size) >> 2;
 
 	curr_task->sk_info.user_stack =
@@ -332,7 +282,6 @@ again_alloc:
 	//设置为初次调度，这样不会保存当前的上下文信息
 	set_psp(0x0);
 	DEBUG("fs",INFO,"%s text:0x%x data:0x%x\n",filename,exec_fi,ram);
-	//restore_cpu_intr(t);
-	sche_unlock();
+	restore_cpu_intr(t);
 	return 0;
 }

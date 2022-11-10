@@ -17,7 +17,7 @@ int sp_ioctl(struct inode* ino, struct file* fd, unsigned int cmd, unsigned long
 	switch (cmd) {
 	case SP_FILE_GET_FLASH_ADDR:
 	{
-		*((uint32_t *)(arg)) = ino->i_sb->s_bk_size * sp_ino->_l.start_bk + 0x8020000;
+		*((uint32_t *)(arg)) = ino->i_sb->s_bk_size * sp_ino->_l.start_bk + 0x8020000+2048*3;
 	}
 	break;
 	case SP_FILE_CLR_ST_MODE_CMD:

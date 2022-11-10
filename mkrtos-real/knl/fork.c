@@ -398,7 +398,6 @@ int32_t sys_fork(void) {
     	}
 		new_ptb->mem_low_stack = ((uint32_t)new_ptb->user_ram
 				+ exec_info->i.stack_offset
-				+ exec_info->i.stack_size
 				- exec_info->i.data_offset);
 
 		mkrtos_memcpy(new_ptb->user_ram, ptb->user_ram, new_ptb->user_ram_size);

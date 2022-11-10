@@ -11,7 +11,7 @@
 #include <assert.h>
 
 void mem_init(mem_t *_this) {
-	_this->heap_end = NULL;
+	_this->heap_start = NULL;
 	_this->heap_end = NULL;
 	_this->l_heap = NULL;
 }
@@ -60,6 +60,7 @@ void mem_free(mem_t *_this, void* mem) {
 	m_mem = (struct mem_heap*)((ptr_t)mem - MEM_HEAP_STRUCT_SIZE);
 	MKRTOS_ASSERT(m_mem->magic == MAGIC_NUM);
 	if (!m_mem->used) {
+		sche_unlock();
 		return;
 	}
 	m_mem->used = 0;
