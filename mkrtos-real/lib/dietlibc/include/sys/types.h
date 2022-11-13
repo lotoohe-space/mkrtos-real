@@ -56,10 +56,10 @@ typedef unsigned long int clock_t;	/* Used for system times in
 //    typedef uint16_t nlink_t;
 //    typedef uint16_t uid_t;zhangzheng
     typedef uint32_t dev_t;
-    typedef uint32_t gid_t;
+    typedef uint16_t gid_t;
     typedef uint32_t mode_t;
-    typedef uint32_t nlink_t;
-    typedef uint32_t uid_t;
+    typedef uint16_t nlink_t;
+    typedef uint16_t uid_t;
 #elif defined(__hppa__)
     typedef uint32_t dev_t;
     typedef uint32_t gid_t;

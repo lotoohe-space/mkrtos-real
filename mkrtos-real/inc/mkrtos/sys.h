@@ -142,6 +142,9 @@ extern int sys_subscribe_msg();
 extern int sys_publish_msg();
 extern int sys_msgreturn();
 extern int sys_p2c_addr();
+extern int slot_reg(void);
+extern int fork_exec(void);
+
 const sys_call_func sys_call_table[] = {
         [0]=sys_setup,//实现
         [1]=sys_exit,//实现
@@ -282,7 +285,6 @@ const sys_call_func sys_call_table[] = {
         [296]=sys_sendmsg,
         [297]=sys_recvmsg,
 		[395]=sys_p2c_addr,
-//        [400]=sys_subscribe_msg,
-//        [401]=sys_publish_msg,
-//        [402]=sys_msgreturn
+		[396]=slot_reg,
+		[397]=fork_exec,
 };

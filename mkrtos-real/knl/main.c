@@ -67,7 +67,7 @@ int main(void) {
 	tcp.kernel_stack_size = 256;
 	tcp.task_name = "main";
 
-	pid = task_create(&tcp);
+	pid = task_create(&tcp, TRUE);
 	MKRTOS_ASSERT(pid >= 0);
 
 	sche_start();

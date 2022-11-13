@@ -53,6 +53,11 @@ void to_schedule(void);
  * @return
  */
 void* set_into_user_stack(void *callFunc,void *arg0,uint32_t *memStack,void* resAddr);
+
+uint32_t *os_task_set_reg1(uint32_t *mem_stack,
+		int32_t (*task_fun)(void *arg0, void *arg1), void *prg0, void *prg1,
+		void *prg2, void (*thread_exit_func)(void));
+
 /**
 * @brief Ìî³ä¼Ä´æÆ÷
 * @param mem Õ»ÄÚ´æ

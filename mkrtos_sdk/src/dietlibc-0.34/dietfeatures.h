@@ -11,7 +11,7 @@
  * running your program on an ancient kernel, you need the socketcall
  * version instead. */
 //#define WANT_I386_SOCKETCALL
-
+#define WANT_STRTOD_WITHOUT_LONG_DOUBLE
 //#define WANT_FLOATING_POINT_IN_PRINTF
 //#define WANT_FLOATING_POINT_IN_SCANF
 #define WANT_CHARACTER_CLASSES_IN_SCANF

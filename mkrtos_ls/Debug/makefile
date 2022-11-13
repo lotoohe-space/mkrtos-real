@@ -60,7 +60,7 @@ all: mkrtos_ls.elf secondary-outputs
 mkrtos_ls.elf: $(OBJS) $(USER_OBJS) makefile objects.mk $(OPTIONAL_TOOL_DEPS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GNU Arm Cross C Linker'
-	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -Os -ffunction-sections -fdata-sections -fno-builtin -fPIC -n -pie -fpie -fPIC -fpic -msingle-pic-base -mno-pic-data-is-text-relative -Wall  -g -T "D:\Project\MyProject1\mkrtos_real\mkrtos_ls\link.lds" -nostartfiles -nodefaultlibs -nostdlib -Xlinker --gc-sections -Wl,-Map,"mkrtos_ls.map" -Xlinker --cref -o "mkrtos_ls.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -Os -ffunction-sections -fdata-sections -fno-builtin -fPIC -n -pie -fpie -fPIC -fpic -msingle-pic-base -mno-pic-data-is-text-relative  -Wl,--gc-sections  -fdata-sections -ffunction-sections -Wall  -g -T "D:\Project\MyProject1\mkrtos_real\mkrtos_ls\link.lds" -nostartfiles -nodefaultlibs -nostdlib -Xlinker --gc-sections -Wl,-Map,"mkrtos_ls.map" -Xlinker --cref -o "mkrtos_ls.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build

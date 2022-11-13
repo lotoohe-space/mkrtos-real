@@ -15,7 +15,7 @@
 #include <mm.h>
 #include <mkrtos/mpu.h>
 #define NR_FILE 8
-#define THREAD_NAME_LEN 16
+#define THREAD_NAME_LEN 8
 
 /**
  * @brief 任务的状态
@@ -54,7 +54,7 @@ struct task_create_par {
 struct stack_info {
 	ptr_t user_stack;		//!<堆栈的栈顶指针
 	ptr_t knl_stack;		//!<内核的栈顶指针
-	uint16_t stack_type; 	//!<使用的是MSP还是PSP 0使用knl stack 1使用user 2内核线程模式
+	uint16_t stack_type; 	//!<使用的是MSP还是PSP 0使用knl stack 1使用user
 };
 
 struct sys_task_base_links;
@@ -65,7 +65,6 @@ struct mem_struct;
  * @brief	任务控制块
  */
 typedef struct task {
-//	struct object obj; 					//!<继承obj
 	struct sys_task_base_links *parent;	//!<父优优先级链表节点
 	struct task *parent_task; 			//!<父进程
 	struct task *next; 					//!<同优先级链表
@@ -82,7 +81,7 @@ typedef struct task {
 	uint32_t run_count; 				//!<运行时间计数
 	enum task_status status; 			//!<当前状态
 	uint8_t prio; 						//!<任务优先级
-	char task_name[THREAD_NAME_LEN]; 	// 任务名称
+	char task_name[THREAD_NAME_LEN]; 	//!<任务名称
 
 	uint32_t sig_bmp[_NSIG_WORDS]; 		//信号的位图
 	struct sigaction signals[_NSIG]; 	//信号处理
@@ -93,8 +92,8 @@ typedef struct task {
 	int32_t exit_code; 					//!<退出码
 
 	pid_t pid; 							//!<进程id
-	int32_t exec_id; 					//!<可执行文件信息
-	int32_t link_deep_cn; 				//!<文件连接深度计数
+	int16_t exec_id; 					//!<可执行文件信息
+	int16_t link_deep_cn; 				//!<文件连接深度计数
 	void *thread_exit_func;				//!<线程退出的函数
 	void *user_ram;						//!<用户态使用的内存
 	uint32_t user_ram_size;				//!<用户内存大小
@@ -103,18 +102,23 @@ typedef struct task {
 	mpu_t *mpu;							//!<mpu相关信息
 
 	int parent_ram_offset;				//!<父进程ram相对于子进程的偏移
-//	struct object object_list; 			//!<用户的obj list
 
-//	struct capability caps[32]; 		//!<用户的capbitlities
 	uid_t ruid; 						//!<真实user id
 	uid_t euid; 						//!<有效user id
 	uid_t suid; 						//!<保存的user id
 	uid_t rgid; 						//!<真实group id
-	int32_t pgid; 						//!<组ID
+	uid_t pgid; 						//!<组ID
 	uid_t egid; 						//!<有效组id
 	uid_t sgid; 						//!<保存的组id
 
 	int clone_flag; 					//!<克隆标志
+	struct task *helper;					//!<帮助通信的栈
+
+	void *helper_user_ram;						//!<用户态使用的内存
+	int32_t helper_exec_id;
+	mpu_t *helper_mpu;
+	void *helper_stack;
+	void *saving_user_stack;
 
 	mode_t mask; 						//!<创建文件时设置的mask
 	struct file files[NR_FILE]; 		//!<文件
@@ -133,7 +137,7 @@ struct sys_task_base_links {
 	/**
 	 * @brief 同优先级的任务链
 	 */
-	struct task *pSysTaskLinks;
+	struct task *sys_tasks_links;
 	/**
 	 * @brief 任务个数
 	 */
@@ -215,15 +219,26 @@ struct wait_queue {
 
 //sched.c
 extern struct sys_tasks sys_tasks_info;
+
+#define CUR_TASK sys_tasks_info.current_task
+
 /**
  * @brief 获取当前线程
  */
-static inline struct task* get_current_task(void) {
+static inline struct task* get_current_task(void)
+{
 	return sys_tasks_info.current_task;
+}
+static inline void set_current_task(struct task* tk)
+{
+	sys_tasks_info.current_task = tk;
 }
 struct sys_tasks* get_sys_tasks_info(void);
 struct task* get_current_task(void);
 void sys_tasks_cur_dec(void);
+void sys_tasks_dec(struct task *tk);
+void sys_tasks_cur_inc(void);
+void sys_tasks_inc(struct task *tk);
 struct task* task_find(int32_t pid);
 void task_unintr(void);
 void task_suspend(void);
@@ -237,12 +252,14 @@ void task_update_cur(void);
 void del_task(struct task **task_ls, struct task *del, int flag);
 int32_t add_task(struct task *p_task_block, uint32_t into_all_ls);
 void tasks_check(void);
+void set_helper(struct task *helper_task);
+void clear_helper(void);
 int32_t task_change_prio(struct task *tk, int32_t new_prio);
 struct stack_info* sys_task_sche(void *psp, void *msp, uint32_t sp_type);
 int32_t sys_alarm(uint32_t seconds);
 int32_t sys_pause(void);
 void wake_up(struct wait_queue *queue);
-int32_t task_create(struct task_create_par *tcp);
+int32_t task_create(struct task_create_par *tcp, int to_run);
 void sche_start(void);
 pid_t shutdown_task(struct task *ls);
 void init_sche(void);
@@ -277,4 +294,8 @@ void do_exit(int32_t exit_code);
 void kprint(const char *fmt, ...);
 void kfatal(const char *fmt, ...);
 void ktrace(const char *fmt, ...);
+
+//exec.c
+int sys_do_execve(struct task *s_task, const char *filename, char *const argv[], char *const envp[]);
+
 #endif //UNTITLED1_TASK_H

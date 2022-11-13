@@ -10,6 +10,7 @@
 #include <mkrtos/sched.h>
 #include <assert.h>
 #include <mpu_armv7.h>
+#include <mkrtos/mpu.h>
 
 uint32_t *MPUCR = (uint32_t *)0xE000ED94;
 
@@ -78,7 +79,7 @@ void mpu_set(struct region_info* region_i, void* mem_start_addr, int size, int *
 
 	*ret_align_size = sub_region_t;
 
-#if 0
+#if 1
 	kprint("st:0x%x re:0x%x sub:0x%x\n region:[", region_i[0].block_start_addr, region_i[0].region , sub_region_t);
 	for (int i = 0; i < 8; i++) {
 		if (region_i[0].region & (1 << i)) {
@@ -113,17 +114,13 @@ void mpu_set(struct region_info* region_i, void* mem_start_addr, int size, int *
 					, 0UL, 1UL, 1UL, 0x0/*TODO:*/, ffs(1024*1024) - 1/*TODO:*/);
 }
 
-
-void mpu_update(void){
-	struct task *curr_task;
-
-	curr_task = get_current_task();
-
+void mpu_update_to(struct task* tk)
+{
 	mpu_disable();
-	if(curr_task->mpu){
-		ARM_MPU_SetRegion(curr_task->mpu->mpu_info[0].rbar, curr_task->mpu->mpu_info[0].rasr);
-		ARM_MPU_SetRegion(curr_task->mpu->mpu_info[1].rbar, curr_task->mpu->mpu_info[1].rasr);
-		ARM_MPU_SetRegion(curr_task->mpu->mpu_info[2].rbar, curr_task->mpu->mpu_info[2].rasr);
+	if(tk->mpu){
+		ARM_MPU_SetRegion(tk->mpu->mpu_info[0].rbar, tk->mpu->mpu_info[0].rasr);
+		ARM_MPU_SetRegion(tk->mpu->mpu_info[1].rbar, tk->mpu->mpu_info[1].rasr);
+		ARM_MPU_SetRegion(tk->mpu->mpu_info[2].rbar, tk->mpu->mpu_info[2].rasr);
 	}else{
 		ARM_MPU_ClrRegion(0);
 		ARM_MPU_ClrRegion(1);
@@ -131,6 +128,9 @@ void mpu_update(void){
 	}
 
 	mpu_enable();
+}
+void mpu_update(void){
+	mpu_update_to(get_current_task());
 }
 
 

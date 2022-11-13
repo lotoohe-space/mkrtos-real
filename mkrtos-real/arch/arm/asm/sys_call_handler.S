@@ -42,6 +42,7 @@ syscall_ret_user:
 /*
 int syscall(int nr, ...)
 */
+/*
 .global syscall
 .type syscall, %function
 syscall:
@@ -55,6 +56,28 @@ syscall:
     svc 128
     pop {r4-r11}
     bx lr
+*/
+/**
+* 进入快速ipc
+*/
+.global enter_fchannel
+.type enter_fchannel, %function
+enter_fchannel:
+	push {r0-r1,lr}
+	mov r0, r1
+	bl slot_call
+	pop {r0-r1,lr}
+
+	bx lr
+
+.global exit_fchannel
+.type exit_fchannel, %function
+exit_fchannel:
+	push {r0,lr}
+	bl slot_exit_call
+	pop {r0,lr}
+	bx lr
+
 
 /**
 * void SVC_Handler(void);
@@ -75,14 +98,16 @@ SVC_Handler:
 	beq SYS_CALL
 	cmp r2,#1
 	beq TO_USER
+	cmp r2,#2
+	beq enter_fchannel
+	cmp r2,#3
+	beq exit_fchannel
 	b TO_END
 TO_USER:
 	B syscall_ret_user
 
 SYS_CALL:
-	//入栈r4-r11
-	//SUB R0, R0, #0x20
-	//STM R0, {R4-R11}
+	//获取堆栈地址
 	mov r0,r1
 	//放入之前的栈地址
 	mrs r1,CONTROL

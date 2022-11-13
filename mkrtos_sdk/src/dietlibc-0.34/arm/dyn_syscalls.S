@@ -287,7 +287,9 @@ FUNC_END	__unified_syscall4
 #include "../syscalls.s/getxattr.S"
 #include "../syscalls.s/lgetxattr.S"
 #include "../syscalls.s/fgetxattr.S"
-
+#include "../syscalls.s/p2c_addr.S"
+#include "../syscalls.s/slot_reg.S"
+#include "../syscalls.s/fork_exec.S"
 /* other asm-files w.o. changes ... */
 FUNC_START	__exit
 	svc	$__NR_exit

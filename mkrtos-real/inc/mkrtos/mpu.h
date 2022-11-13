@@ -26,9 +26,12 @@ typedef struct mpu {
 	} mpu_info[REGION_NUM];
 } mpu_t; 						//!<mpu相关的信息
 
+struct task;
+
 void mpu_disable(void);
 void mpu_enable(void);
 void mpu_set(struct region_info* region_i, void* mem_start_addr, int size, int *ret_align_size);
+void mpu_update_to(struct task* tk);
 void mpu_update(void);
 
 #endif /* INC_MKRTOS_MPU_H_ */

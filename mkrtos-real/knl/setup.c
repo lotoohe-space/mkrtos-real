@@ -27,9 +27,9 @@ int32_t setup(void) {
 		if (ret<0) {
 			kfatal("root file system make fail.\n");
 		}
-		ret = root_mount(get_current_task());
-		app_init();
-		app2_init();
+		//ret = root_mount(get_current_task());
+		//app_init();
+		//app2_init();
 	}
 #if IS_MKFS
 	fs_init();

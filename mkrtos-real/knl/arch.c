@@ -24,6 +24,23 @@ int32_t arch_init(void) {
 	return 0;
 }
 
+uint32_t *os_task_set_reg1(uint32_t *mem_stack,
+		int32_t (*task_fun)(void *arg0, void *arg1), void *prg0, void *prg1,
+		void *prg2, void (*thread_exit_func)(void))
+{
+	/* Registers stacked as if auto-saved on exception */
+	*(mem_stack) = (uint32_t) 0x01000000L; /* xPSR */
+	*(--mem_stack) = ((uint32_t) task_fun); /* Entry Point */
+	/* R14 (LR) (init value will cause fault if ever used)*/
+	*(--mem_stack) = (uint32_t) thread_exit_func;
+	*(--mem_stack) = (uint32_t) 0x12121212L; /* R12*/
+	*(--mem_stack) = (uint32_t) 0x03030303L; /* R3 */
+	*(--mem_stack) = (uint32_t) prg2; /* R2 */
+	*(--mem_stack) = (uint32_t) prg1; /* R1 */
+	*(--mem_stack) = (uint32_t) prg0; /* R0 : argument */
+
+	return mem_stack;
+}
 /**
  * @brief Ìî³ä¼Ä´æÆ÷
  * @param mem Õ»ÄÚ´æ

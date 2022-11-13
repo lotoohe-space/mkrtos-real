@@ -404,8 +404,9 @@
 #define __NR_copy_file_range		(__NR_SYSCALL_BASE+391)
 #define __NR_preadv2			(__NR_SYSCALL_BASE+392)
 #define __NR_pwritev2			(__NR_SYSCALL_BASE+393)
-
-
+#define __NR_p2c_addr			(__NR_SYSCALL_BASE+395)
+#define __NR_slot_reg			(__NR_SYSCALL_BASE+396)
+#define __NR_fork_exec			(__NR_SYSCALL_BASE+397)
 /*
  * The following SWIs are ARM private.
  */
@@ -833,18 +834,14 @@
 #define __ARGS_process_vm_writev	1
 #define __ARGS_kcmp			1
 #define __ARGS_finit_module		0
-
-
+#define __ARGS_p2c_addr		0
+#define __ARGS_fork_exec		0
+#define __ARGS_slot_reg 0
 #ifdef __ASSEMBLER__
 
 #include "arm-features.h"
 
-#define syscall_weak(name,wsym,sym) __syscall_weak __NR_##name, wsym, sym, __ARGS_##name
-.macro __syscall_weak name wsym sym typ
-FUNC_START_WEAK	\wsym
-__syscall	\name, \sym, \typ
-FUNC_END	\wsym
-.endm
+
 
 //#ifdef __ARM_EABI__
 //
@@ -870,10 +867,10 @@ FUNC_START	\sym
 	ldmia	ip, {r4, r5, r6}
 .endif
 	//swi	\name
-	push {r7};
+	push {r7,lr};
 	ldr r7,=\name
 	svc	128
-	pop {r7};
+	pop {r7,lr};
 .ifgt \typ
 	b	__unified_syscall4
 .else
@@ -882,6 +879,12 @@ FUNC_START	\sym
 FUNC_END	\sym
 .endm
 
+#define syscall_weak(name,wsym,sym) __syscall_weak __NR_##name, wsym, sym, __ARGS_##name
+.macro __syscall_weak name wsym sym typ
+FUNC_START_WEAK	\wsym
+__syscall	\name, \sym, \typ
+FUNC_END	\wsym
+.endm
 #endif
 //#endif
 

@@ -36,6 +36,7 @@ OF SUCH DAMAGE.
 */
 
 #include "gd32f10x_it.h"
+#include <mkrtos/sched.h>
 //#include "systick.h"
 
 /*!
@@ -68,7 +69,8 @@ void HardFault_Handler(void)
 	kprint("hard_fsr 0x%x\r\n",*hard_fsr);
 	kprint("dfsr 0x%x\r\n",*dfsr);
 	kprint("----------------------------------------\r\n");
-    /* if Hard Fault exception occurs, go to infinite loop */
+    kprint("kill pid is %d.\n", get_current_task()->pid);
+	/* if Hard Fault exception occurs, go to infinite loop */
 	do_exit(-1);
 }
 

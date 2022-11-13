@@ -93,14 +93,14 @@ C_DEPS += \
 src/dietlibc-0.34/libcompat/%.o: ../src/dietlibc-0.34/libcompat/%.c src/dietlibc-0.34/libcompat/subdir.mk
 	@echo 'Building file: $<'
 	@echo 'Invoking: GNU Arm Cross C Compiler'
-	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mthumb-interwork -O0 -ffunction-sections -fdata-sections -fno-builtin -fPIC -n -pie -fpie -fPIC -fpic -msingle-pic-base -mno-pic-data-is-text-relative -Wall  -g -D__dietlibc__ -D__arm__ -I"D:\Project\MyProject1\mkrtos_real\mkrtos_app3\src\dietlibc-0.34" -I"D:\Project\MyProject1\mkrtos_real\mkrtos_app3\src\dietlibc-0.34\include" -I"D:\Project\MyProject1\mkrtos_real\mkrtos_app3\src" -std=gnu11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" -c -o "$@" "$<"
+	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mthumb-interwork -O0 -ffunction-sections -fdata-sections -fno-builtin -fPIC -n -pie -fpie -fPIC -fpic -msingle-pic-base -mno-pic-data-is-text-relative -Wall  -g -D__dietlibc__ -D__arm__ -I"D:\Project\MyProject1\mkrtos_real\mkrtos_ym\src\dietlibc-0.34" -I"D:\Project\MyProject1\mkrtos_real\mkrtos_ym\src\dietlibc-0.34\include" -I"D:\Project\MyProject1\mkrtos_real\mkrtos_ym\src" -std=gnu11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" -c -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
 src/dietlibc-0.34/libcompat/%.o: ../src/dietlibc-0.34/libcompat/%.S src/dietlibc-0.34/libcompat/subdir.mk
 	@echo 'Building file: $<'
 	@echo 'Invoking: GNU Arm Cross Assembler'
-	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mthumb-interwork -O0 -ffunction-sections -fdata-sections -fno-builtin -fPIC -n -pie -fpie -fPIC -fpic -msingle-pic-base -mno-pic-data-is-text-relative -Wall  -g -x assembler-with-cpp -I"D:\Project\MyProject1\mkrtos_real\mkrtos_app3\src\dietlibc-0.34" -I"D:\Project\MyProject1\mkrtos_real\mkrtos_app3\src\dietlibc-0.34\include" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" -c -o "$@" "$<"
+	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mthumb-interwork -O0 -ffunction-sections -fdata-sections -fno-builtin -fPIC -n -pie -fpie -fPIC -fpic -msingle-pic-base -mno-pic-data-is-text-relative -Wall  -g -x assembler-with-cpp -I"D:\Project\MyProject1\mkrtos_real\mkrtos_ym\src\dietlibc-0.34" -I"D:\Project\MyProject1\mkrtos_real\mkrtos_ym\src\dietlibc-0.34\include" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" -c -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

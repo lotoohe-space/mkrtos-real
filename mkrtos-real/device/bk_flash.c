@@ -10,7 +10,7 @@
 #define BK_SIZE 2048
 #define BK_COUNT 61
 #define FLASH_W_BASE_ADDR        (0x8000000 + 67*BK_SIZE)
-#define FLASH_BK_CACHE_LEN 2
+#define FLASH_BK_CACHE_LEN 		2
 
 static int32_t read_bk(uint32_t bk_no, uint8_t *data) {
 	if (bk_no >= BK_COUNT) {

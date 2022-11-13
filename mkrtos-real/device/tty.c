@@ -122,6 +122,7 @@ static int tty_read(struct inode *ino, struct file *fp, char *buf, int count) {
 	}
 	cur_tty = &ttys[tty_dev_no];
 	if (!cur_tty->used_cn) {
+		kprint("tty is close.\n");
 		return -ENODEV;
 	}
 

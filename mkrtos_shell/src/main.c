@@ -97,35 +97,43 @@ int lsh_exit(char **args)
     return 0;
 }
 extern void *p2c_addr(void *addr);
+extern int fork_execvp(const char *file, char *const argv[]) ;
+extern int fork_exec(const char *filename, char *const argv[], char *const envp[]);
+
 /**
   @brief Launch a program and wait for it to terminate.
   @param args Null terminated list of arguments (including program).
   @return Always returns 1, to continue execution.
  */
-int lsh_launch(register char **args_)
+int lsh_launch(register char **args_, int pos)
 {
     register pid_t pid;
     int status;
 
-    pid = fork();
-    if (pid == 0) { //单地址空间，fork子进程再使用父进程内存就会自己死机
-        // Child process
-    	register char **args = p2c_addr(args_);
-    	((uint32_t*)args)[0] = p2c_addr(((uint32_t*)args)[0]);
-    	((uint32_t*)args)[1] = p2c_addr(((uint32_t*)args)[1]);
-    	((uint32_t*)args)[2] = p2c_addr(((uint32_t*)args)[2]);
-        if (execvp(args[0], args) == -1) {
-            perror("lsh");
-        }
-        exit(EXIT_FAILURE);
-    } else if (pid < 0) {
+    pid = fork_execvp(args_[0], args_);
+//    if (pid == 0) { //单地址空间，fork子进程再使用父进程内存就会自己死机
+//        // Child process
+//    	register char **args = p2c_addr(args_);
+//    	((uint32_t*)args)[0] = p2c_addr(((uint32_t*)args)[0]);
+//    	((uint32_t*)args)[1] = p2c_addr(((uint32_t*)args)[1]);
+//    	((uint32_t*)args)[2] = p2c_addr(((uint32_t*)args)[2]);
+//        if (execvp(args[0], args) == -1) {
+//            perror("lsh");
+//        }
+//        exit(EXIT_FAILURE);
+//    } else
+	if (pid < 0) {
         // Error forking
         perror("lsh");
     } else {
-        // Parent process
-        do {
-            waitpid(pid, &status, WUNTRACED);
-        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    	if (strcmp("&",args_[pos-1])) {
+    		// Parent process
+			do {
+				waitpid(pid, &status, WUNTRACED);
+			} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    	} else {
+    		sleep(1);
+    	}
     }
 
     return 1;
@@ -136,7 +144,7 @@ int lsh_launch(register char **args_)
    @param args Null terminated list of arguments.
    @return 1 if the shell should continue running, 0 if it should terminate
  */
-int lsh_execute(char **args)
+int lsh_execute(char **args, int pos)
 {
     int i;
 
@@ -151,7 +159,7 @@ int lsh_execute(char **args)
         }
     }
 
-    return lsh_launch(args);
+    return lsh_launch(args, pos);
 }
 
 /**
@@ -218,7 +226,7 @@ char *lsh_read_line(void)
    @param line The line.
    @return Null-terminated array of tokens.
  */
-char **lsh_split_line(char *line)
+char **lsh_split_line(char *line,int *pos)
 {
     int bufsize = LSH_TOK_BUFSIZE, position = 0;
     char **tokens = malloc(bufsize * sizeof(char*));
@@ -248,6 +256,7 @@ char **lsh_split_line(char *line)
         token = strtok(NULL, LSH_TOK_DELIM);
     }
     tokens[position] = NULL;
+    *pos = position;
     return tokens;
 }
 
@@ -256,19 +265,20 @@ char **lsh_split_line(char *line)
  */
 void lsh_loop(void)
 {
-    char *line;
-    char **args;
-    int status;
+	char *line;
+	char **args;
+	int status;
+	int pos;
 
-    do {
-        printf("> ");
-        line = lsh_read_line();
-        args = lsh_split_line(line);
-        status = lsh_execute(args);
+	do {
+		printf("> ");
+		line = lsh_read_line();
+		args = lsh_split_line(line, &pos);
+		status = lsh_execute(args, pos);
 
-        free(line);
-        free(args);
-    } while (status);
+		free(line);
+		free(args);
+	} while (status);
 }
 void put_start_info(void)
 {

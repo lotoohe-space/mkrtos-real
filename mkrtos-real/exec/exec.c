@@ -44,7 +44,7 @@ int32_t exec_alloc(void) {
  */
 struct exec_file_info *exec_get(int32_t i) {
 	if (i < 0 || i >= EXEC_FILE_NR) {
-		return -1;
+		return 0;
 	}
 	atomic_inc(&exec_file_atomic_ref[i]);
 	return exec_file_list[i];
@@ -108,7 +108,9 @@ static void sys_args_set(char* argv[], int arg_len, int arg_data_len,uint8_t *ar
 /**
  * @brief 执行一个文件
  */
-int sys_execve(const char *filename, char *const argv[], char *const envp[]) {
+
+int sys_do_execve(struct task *s_task, const char *filename, char *const argv[], char *const envp[])
+{
 
 	int fp;
 	uint32_t start_addr;
@@ -120,7 +122,8 @@ int sys_execve(const char *filename, char *const argv[], char *const envp[]) {
 	int argc_len = 0;
 	int argc_need_len = 0;
 	uint32_t t = 0;
-	curr_task = get_current_task();
+	struct task *c_task = get_current_task();
+	curr_task = s_task;
 
 	argc_len = sys_args_alloc(argv, &argc_need_len);
 
@@ -128,7 +131,7 @@ int sys_execve(const char *filename, char *const argv[], char *const envp[]) {
 	fp = sys_open(filename, O_RDONLY, 0777);
 	if (fp < 0) {
 		kprint("File open error.\n");
-		return -1;
+		return -ENOEXEC;
 	}
 	ret = sys_ioctl(fp, 3, &start_addr);
 	if (ret < 0) {
@@ -153,6 +156,7 @@ int sys_execve(const char *filename, char *const argv[], char *const envp[]) {
 		kprint("The maximum number of system executables has been reached.\n");
 		return -1;
 	}
+
 	exec_fi = (struct exec_file_info*) start_addr;
 
 	for(int i=0;i<sizeof(EXEC_MAGIC)-1;i++) {
@@ -161,7 +165,7 @@ int sys_execve(const char *filename, char *const argv[], char *const envp[]) {
 			sys_close(fp);
 			restore_cpu_intr(t);
 			kprint("Executable file format error.\n");
-			return -1;
+			return -ENOEXEC;
 		 }
 	}
 	if (!curr_task->mpu) {
@@ -181,7 +185,7 @@ again_alloc:
 	heap = knl_mem_get_free(exec_fi->i.ram_size + argc_need_len, &pre_alloc_addr);
 	if (!heap) {
 		exec_put(exec_id);
-		sys_close(fp);
+//		sys_close(fp);
 		if (curr_task->mpu) {
 			free(curr_task->mpu);
 		}
@@ -199,7 +203,7 @@ again_alloc:
 	ram = malloc_align(exec_fi->i.ram_size + argc_need_len, need_align);
 	if (!ram) {
 		exec_put(exec_id);
-		sys_close(fp);
+//		sys_close(fp);
 		if (curr_task->mpu) {
 			free(curr_task->mpu);
 		}
@@ -219,20 +223,49 @@ again_alloc:
 	if (curr_task->exec_id >= 0) {
 		exec_put(curr_task->exec_id);
 		for(int i=3;i<NR_FILE;i++){
-			if (get_current_task()->files[i].used) {
+			if (curr_task->files[i].used) {
 				sys_close(i);
 			}
 		}
 	} else {
-		sys_open("/dev/tty0",O_RDWR,0777);
-		sys_open("/dev/tty0",O_RDWR,0777);
-		sys_open("/dev/tty0",O_RDWR,0777);
+
+		if (c_task->files[0].used) {
+			curr_task->files[0] = get_current_task()->files[0];
+			atomic_inc(&(curr_task->files[0].f_inode->i_used_count));
+			curr_task->files[0].f_op->open(curr_task->files[0].f_inode,
+					&curr_task->files[0]);
+		} else {
+			sys_open("/dev/tty0",O_RDWR,0777);
+		}
+		if (c_task->files[1].used) {
+			curr_task->files[1] = get_current_task()->files[1];
+			atomic_inc(&(curr_task->files[1].f_inode->i_used_count));
+			curr_task->files[1].f_op->open(curr_task->files[1].f_inode,
+								&curr_task->files[1]);
+		} else {
+			sys_open("/dev/tty0",O_RDWR,0777);
+		}
+		if (c_task->files[2].used) {
+			curr_task->files[2] = get_current_task()->files[2];
+			atomic_inc(&(curr_task->files[2].f_inode->i_used_count));
+			curr_task->files[2].f_op->open(curr_task->files[2].f_inode,
+								&curr_task->files[2]);
+		} else {
+			sys_open("/dev/tty0",O_RDWR,0777);
+		}
+		atomic_inc(&get_current_task()->root_inode->i_used_count);
+		atomic_inc(&get_current_task()->pwd_inode->i_used_count);
+		curr_task->root_inode = get_current_task()->root_inode;
+		curr_task->pwd_inode = get_current_task()->pwd_inode;
+
+
+
 	}
 
 	//4.设置新的exec_id
 	curr_task->exec_id = exec_id;
-	get_current_task()->user_ram = ram;
-	get_current_task()->user_ram_size = exec_fi->i.ram_size + argc_need_len;
+	curr_task->user_ram = ram;
+	curr_task->user_ram_size = exec_fi->i.ram_size + argc_need_len;
 	exec_file_list[exec_id] = exec_fi;
 
 	//5.重新构造栈
@@ -254,7 +287,7 @@ again_alloc:
 	mkrtos_memset(ram, 0, exec_fi->i.ram_size);
 	//设置栈的初始化寄存器
 	curr_task->sk_info.user_stack = (ptr_t)os_task_set_reg(
-			curr_task->sk_info.user_stack, start_addr + 1, arg_data, 0, 0, 0, ram);
+			curr_task->sk_info.user_stack, start_addr | 0x1, arg_data, 0, 0, 0, ram);
 	//内核栈的内存不变
 	curr_task->sk_info.knl_stack =
 			(((ptr_t) (&(((uint32_t*) curr_task->knl_low_stack)[curr_task->kernel_stack_size - 1])))
@@ -270,18 +303,24 @@ again_alloc:
 		curr_task->signals[i]._u._sa_handler = SIG_DFL;
 	}
 
-	get_sys_tasks_info()->is_first = FALSE;
-	get_sys_tasks_info()->last_task = NULL;
-
 	//用户态内存管理
 	mem_init(&curr_task->user_head_alloc);
 	mem_heap_add(&curr_task->user_head_alloc, (char *)ram+exec_fi->i.heap_offset - exec_fi->i.data_offset,exec_fi->i.heap_size);
 
+	if (curr_task == c_task) {
+		get_sys_tasks_info()->is_first = FALSE;
+		get_sys_tasks_info()->last_task = NULL;
+
+		//设置为初次调度，这样不会保存当前的上下文信息
+		set_psp(0x0);
+	}
 	//直接进行调度，之后就不会在回来了
 	task_sche();
-	//设置为初次调度，这样不会保存当前的上下文信息
-	set_psp(0x0);
-	DEBUG("fs",INFO,"%s text:0x%x data:0x%x\n",filename,exec_fi,ram);
 	restore_cpu_intr(t);
+	DEBUG("fs",INFO,"%s text:0x%x data:0x%x\n",filename,exec_fi,ram);
 	return 0;
+}
+int sys_execve(const char *filename, char *const argv[], char *const envp[])
+{
+	return sys_do_execve(get_current_task(), filename, argv, envp);
 }

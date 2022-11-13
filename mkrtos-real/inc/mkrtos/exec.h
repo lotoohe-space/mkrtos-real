@@ -38,6 +38,6 @@ typedef struct exec_file_info {
 
 struct exec_file_info *exec_get(int32_t i);
 int32_t exec_put(int32_t i) ;
-int32_t app_run_from_addr(void *addr, int argv, char **args) ;
+
 
 #endif /* INC_MKRTOS_EXEC_H_ */

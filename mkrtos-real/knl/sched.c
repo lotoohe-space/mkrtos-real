@@ -9,8 +9,6 @@
 #include <mkrtos/sched.h>
 #include <mkrtos.h>
 
-#define CUR_TASK sys_tasks_info.current_task
-
 /**
  * @brief 系统任务表
  */
@@ -30,6 +28,28 @@ void sys_tasks_cur_dec(void) {
 	if (sys_tasks_info.current_max_task_node->task_ready_count == 0) {
 		//任务更新
 		task_update_cur();
+	}
+}
+void sys_tasks_dec(struct task *tk) {
+	tk->parent->task_ready_count--;
+	if (tk->parent->task_ready_count == 0) {
+		//任务更新
+		task_update_cur();
+	}
+}
+void sys_tasks_cur_inc(void)
+{
+	sys_tasks_info.current_task->parent->task_ready_count++;
+	if (sys_tasks_info.current_task->prio
+			> sys_tasks_info.current_max_task_node->task_priority) {
+			task_update_cur();
+	}
+}
+void sys_tasks_inc(struct task *tk) {
+	tk->parent->task_ready_count++;
+	if (tk->prio
+			> sys_tasks_info.current_max_task_node->task_priority) {
+			task_update_cur();
 	}
 }
 /**
@@ -132,7 +152,7 @@ void task_sche(void) {
 	t = dis_cpu_intr();
 
 	if (sys_tasks_info.is_first == FALSE) {
-		struct task *ptb = sys_tasks_info.current_max_task_node->pSysTaskLinks;
+		struct task *ptb = sys_tasks_info.current_max_task_node->sys_tasks_links;
 		while (ptb) {
 			if (ptb->status != TASK_RUNNING) {
 				ptb = ptb->next;
@@ -153,7 +173,7 @@ void task_sche(void) {
 			ptb = sys_tasks_info.current_task->next;
 			do {
 				if (ptb == NULL) {
-					ptb = sys_tasks_info.current_max_task_node->pSysTaskLinks;
+					ptb = sys_tasks_info.current_max_task_node->sys_tasks_links;
 				}
 				if (ptb->status == TASK_RUNNING) {
 					if (ptb != sys_tasks_info.current_task) {
@@ -234,7 +254,7 @@ static struct sys_task_base_links* add_links(uint8_t prio) {
 		return NULL;
 	}
 	p_sys_task_base_links->next = NULL;
-	p_sys_task_base_links->pSysTaskLinks = NULL;
+	p_sys_task_base_links->sys_tasks_links = NULL;
 	p_sys_task_base_links->task_count = 0;
 	p_sys_task_base_links->task_priority = prio;
 	p_sys_task_base_links->task_ready_count = 0;
@@ -259,7 +279,7 @@ void del_task(struct task **task_ls, struct task *del, int flag) {
 			restore_cpu_intr(t);
 			return;
 		}
-		task_ls = &(taskLinks->pSysTaskLinks);
+		task_ls = &(taskLinks->sys_tasks_links);
 	}
 	struct task *pTemp = *task_ls;
 	struct task *lastP = NULL;
@@ -311,17 +331,16 @@ int32_t add_task(struct task *p_task_block, uint32_t into_all_ls) {
 		}
 	}
 	taskLinks->task_count++;
-	taskLinks->task_ready_count++;
 
 	//放到同优先级任务链表里面
-	struct task *pstl = taskLinks->pSysTaskLinks;
+	struct task *pstl = taskLinks->sys_tasks_links;
 	if (pstl == NULL) {
 		p_task_block->next = NULL;
-		taskLinks->pSysTaskLinks = p_task_block;
+		taskLinks->sys_tasks_links = p_task_block;
 	} else {
 		/*放在链表最开头*/
 		p_task_block->next = pstl;
-		taskLinks->pSysTaskLinks = p_task_block;
+		taskLinks->sys_tasks_links = p_task_block;
 	}
 	p_task_block->parent = taskLinks;
 
@@ -340,11 +359,12 @@ int32_t add_task(struct task *p_task_block, uint32_t into_all_ls) {
 	restore_cpu_intr(t);
 
 	//更新优先级
-	if (sys_tasks_info.current_max_task_node != NULL
-			&& p_task_block->prio
-					> sys_tasks_info.current_max_task_node->task_priority) {
-		task_update_cur();
-	} else if (sys_tasks_info.current_max_task_node == NULL) {
+//	if (sys_tasks_info.current_max_task_node != NULL
+//			&& p_task_block->prio
+//					> sys_tasks_info.current_max_task_node->task_priority) {
+//		task_update_cur();
+//	} else
+	if (sys_tasks_info.current_max_task_node == NULL) {
 		task_update_cur();
 	}
 	return 0;
@@ -467,6 +487,30 @@ void wake_up(struct wait_queue *queue) {
 	}
 	restore_cpu_intr(t);
 }
+void set_helper(struct task *helper_task)
+{
+	struct task *curr_task = get_current_task();
+	curr_task->helper_user_ram = curr_task->user_ram;
+	curr_task->helper_exec_id = curr_task->exec_id;
+	curr_task->helper_mpu = curr_task->mpu;
+
+	//TODO:增加引用计数
+	curr_task->user_ram = helper_task->user_ram;
+	curr_task->exec_id = helper_task->exec_id;
+	curr_task->mpu = helper_task->mpu;
+	get_current_task()->helper = helper_task;
+}
+void clear_helper(void)
+{
+	struct task *curr_task = get_current_task();
+
+	if (curr_task->helper_user_ram) {
+		curr_task->user_ram=curr_task->helper_user_ram;
+	}
+	curr_task->exec_id=curr_task->helper_exec_id;
+	curr_task->mpu=curr_task->helper_mpu;
+	//TODO：减少引用计数
+}
 void wake_up_dont_lock(struct wait_queue *queue) {
 	while (queue) {
 		if (queue->task) {
@@ -575,7 +619,7 @@ void task_end(void) {
  * @param progInfo 任务的代码信息
  * @return
  */
-int32_t task_create(struct task_create_par *tcp) {
+int32_t task_create(struct task_create_par *tcp, int to_run) {
 	task_fun task_fun;
 	void *arg0;
 	void *arg1;
@@ -705,7 +749,12 @@ int32_t task_create(struct task_create_par *tcp) {
     }
 #endif
 	atomic_inc(&sys_tasks_info->pid_temp);
-	p_task_block->status = TASK_RUNNING;
+	if (to_run) {
+		p_task_block->status = TASK_RUNNING;
+		sys_tasks_inc(p_task_block);
+	} else {
+		p_task_block->status = TASK_SUSPEND;
+	}
 	err = 0;
 	return p_task_block->pid;
 }
@@ -768,11 +817,12 @@ int sys_setpriority(int which, int who, int prio) {
 }
 pid_t shutdown_task(struct task *ls) {
 	int32_t res_pid;
+	ls->parent->task_count--;
 	del_task(NULL, ls, 0);
 	del_task(&get_sys_tasks_info()->all_task_list, ls, 1);
 	res_pid = ls->pid;
 	free(ls);
-	knl_mem_trace();
+	//knl_mem_trace();
 	return res_pid;
 }
 void thread_idle(void *arg) {
@@ -814,7 +864,7 @@ void sche_start(void) {
 }
 // 调度程序的初始化子程序。
 void init_sche(void) {
-	static struct task_create_par tcp;
+	struct task_create_par tcp = {0};
 	int32_t pid;
 
 	/*OS是否调度初始化*/
@@ -832,7 +882,7 @@ void init_sche(void) {
 	tcp.kernel_stack_size = 128;
 	tcp.task_name = "idle";
 
-	pid = task_create(&tcp);
+	pid = task_create(&tcp, TRUE);
 	if (pid < 0) {
 		kfatal("idle thread create error.\n");
 	}

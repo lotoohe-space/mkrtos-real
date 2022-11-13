@@ -12,7 +12,7 @@ extern const char  __sys_err_unknown [];
 
 void  perror ( const char* prepend )
 {
-    register const char* message = __sys_err_unknown;
+    //register const char* message = __sys_err_unknown;
 
 #if 0//TODO:sys_errlist
     if ( (unsigned int) errno < (unsigned int) __SYS_NERR )
@@ -22,6 +22,6 @@ void  perror ( const char* prepend )
       write ( 2, prepend, strlen(prepend) );
       write ( 2, ": ", 2 );
     }
-    write ( 2, message, strlen(message) );
+    write ( 2, __sys_err_unknown, strlen(__sys_err_unknown) );
     write ( 2, "\n", 1 );
 }
