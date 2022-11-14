@@ -587,13 +587,6 @@ struct stat {
 #define S_ISFIFO(m)	(((m) & S_IFMT) == S_IFIFO)
 #define S_ISSOCK(m)	(((m) & S_IFMT) == S_IFSOCK)
 #else
-//#define IS_BK_FILE(a) (((a)>>16)==3)
-//#define IS_CHAR_FILE(a) (((a)>>16)==2)
-////是否为目录文件
-//#define IS_DIR_FILE(a) (((a)>>16)==1)
-////是否为普通文件
-//#define IS_FILE(a) (((a)>>16)==0)
-
 #define S_IFMT  0x0000ff00
 #define S_IFSOCK (6<<8) //套接字文件
 #define S_IFLNK	 (4<<8) //链接文件

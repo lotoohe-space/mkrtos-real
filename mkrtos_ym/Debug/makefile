@@ -8,14 +8,6 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include src/dietlibc-0.34/profiling/subdir.mk
--include src/dietlibc-0.34/libstdio/subdir.mk
--include src/dietlibc-0.34/libshell/subdir.mk
--include src/dietlibc-0.34/libm/subdir.mk
--include src/dietlibc-0.34/libcompat/subdir.mk
--include src/dietlibc-0.34/lib/subdir.mk
--include src/dietlibc-0.34/arm/subdir.mk
--include src/dietlibc-0.34/subdir.mk
 -include src/subdir.mk
 -include subdir.mk
 -include objects.mk
@@ -60,7 +52,7 @@ all: mkrtos_ym.elf secondary-outputs
 mkrtos_ym.elf: $(OBJS) $(USER_OBJS) makefile objects.mk $(OPTIONAL_TOOL_DEPS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GNU Arm Cross C Linker'
-	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mthumb-interwork -O0 -ffunction-sections -fdata-sections -fno-builtin -fPIC -n -pie -fpie -fPIC -fpic -msingle-pic-base -mno-pic-data-is-text-relative -Wall  -g -T "D:\Project\MyProject1\mkrtos_real\mkrtos_ym\link.lds" -nostartfiles -nodefaultlibs -nostdlib -Xlinker --gc-sections -L"D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug" -Wl,-Map,"mkrtos_ym.map" -Xlinker --cref -o "mkrtos_ym.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mthumb-interwork -Os -ffunction-sections -fdata-sections -fno-builtin -fPIC -n -pie -fpie -fPIC -fpic -msingle-pic-base -mno-pic-data-is-text-relative -Wall  -g -T "D:\Project\MyProject1\mkrtos_real\mkrtos_ym\link.lds" -nostartfiles -nodefaultlibs -nostdlib -Xlinker --gc-sections -L"D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug" -Wl,-Map,"mkrtos_ym.map" -Xlinker --cref -o "mkrtos_ym.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build

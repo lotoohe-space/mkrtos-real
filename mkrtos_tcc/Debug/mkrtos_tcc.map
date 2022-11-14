@@ -557,21 +557,21 @@ LOAD D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a
 LOAD D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a
                 0x00000100                _system_stack_size = 0x100
 
-.text           0x00000000    0x2d94c
+.text           0x00000000    0x2d974
                 0x00000000                . = ALIGN (0x4)
                 0x00000000                __text_start__ = .
  *(.first)
  .first         0x00000000       0xf4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(start.o)
                 0x00000000                _start_
  *(.text)
- .text          0x000000f4     0x1238 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(dyn_syscalls.o)
+ .text          0x000000f4     0x1260 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(dyn_syscalls.o)
                 0x000000f4                __unified_syscall4
                 0x000000f8                __unified_syscall
                 0x00000118                ftrylockfile
-                0x00000118                __you_tried_to_link_a_dietlibc_object_against_glibc
-                0x00000118                __nop
-                0x00000118                funlockfile
                 0x00000118                flockfile
+                0x00000118                __you_tried_to_link_a_dietlibc_object_against_glibc
+                0x00000118                funlockfile
+                0x00000118                __nop
                 0x00000118                __thread_doexit
                 0x0000011c                __libc_waitpid
                 0x0000011c                waitpid
@@ -579,8 +579,8 @@ LOAD D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-e
                 0x00000124                select
                 0x00000140                __libc_pread64
                 0x00000140                pread64
-                0x00000150                __libc_pwrite64
                 0x00000150                pwrite64
+                0x00000150                __libc_pwrite64
                 0x00000160                __reboot
                 0x00000170                access
                 0x00000180                adjtimex
@@ -597,16 +597,16 @@ LOAD D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-e
                 0x00000220                fchdir
                 0x00000230                fchmod
                 0x00000240                fchown
-                0x00000250                fcntl
                 0x00000250                __libc_fcntl
+                0x00000250                fcntl
                 0x00000260                flock
                 0x00000270                fork
                 0x00000270                __libc_fork
                 0x00000280                fstat
                 0x00000290                __dietlibc_fstat64
                 0x000002a0                fstatfs
-                0x000002b0                __libc_fsync
                 0x000002b0                fsync
+                0x000002b0                __libc_fsync
                 0x000002c0                ftruncate
                 0x000002d0                __syscall_getcwd
                 0x000002e0                getdents
@@ -634,8 +634,8 @@ LOAD D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-e
                 0x00000440                link
                 0x00000450                llseek
                 0x00000450                _llseek
-                0x0000046c                __libc_lseek
                 0x0000046c                lseek
+                0x0000046c                __libc_lseek
                 0x0000047c                lstat
                 0x0000048c                __dietlibc_lstat64
                 0x0000049c                mkdir
@@ -652,10 +652,10 @@ LOAD D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-e
                 0x00000554                __n_sigaction
                 0x00000564                __old_sigpending
                 0x00000564                __n_sigpending
-                0x00000574                __old_sigprocmask
                 0x00000574                __n_sigprocmask
-                0x00000584                __n_sigsuspend
+                0x00000574                __old_sigprocmask
                 0x00000584                __old_sigsuspend
+                0x00000584                __n_sigsuspend
                 0x00000594                __libc_nanosleep
                 0x00000594                nanosleep
                 0x000005a4                __libc_open
@@ -667,8 +667,8 @@ LOAD D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-e
                 0x000005e4                poll
                 0x000005f4                init_module
                 0x00000604                delete_module
-                0x00000614                read
                 0x00000614                __libc_read
+                0x00000614                read
                 0x00000624                readlink
                 0x00000634                readv
                 0x00000644                rename
@@ -708,8 +708,8 @@ LOAD D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-e
                 0x00000854                setrlimit
                 0x00000864                setsid
                 0x00000874                setuid
-                0x00000884                __sigaltstack
                 0x00000884                sigaltstack
+                0x00000884                __sigaltstack
                 0x00000894                stat
                 0x000008a4                __dietlibc_stat64
                 0x000008b4                statfs
@@ -730,8 +730,8 @@ LOAD D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-e
                 0x00000994                unlink
                 0x000009a4                vhangup
                 0x000009b4                wait4
-                0x000009c4                __libc_write
                 0x000009c4                write
+                0x000009c4                __libc_write
                 0x000009d4                writev
                 0x000009e4                __libc_msync
                 0x000009e4                msync
@@ -743,26 +743,26 @@ LOAD D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-e
                 0x00000a24                __libc_fchown32
                 0x00000a34                getegid32
                 0x00000a34                __libc_getegid32
-                0x00000a44                __libc_geteuid32
                 0x00000a44                geteuid32
+                0x00000a44                __libc_geteuid32
                 0x00000a54                getgid32
                 0x00000a54                __libc_getgid32
                 0x00000a64                __libc_getgroups32
                 0x00000a64                getgroups32
-                0x00000a74                getresgid32
                 0x00000a74                __libc_getresgid32
+                0x00000a74                getresgid32
                 0x00000a84                getuid32
                 0x00000a84                __libc_getuid32
                 0x00000a94                __libc_lchown32
                 0x00000a94                lchown32
-                0x00000aa4                __libc_setfsgid32
                 0x00000aa4                setfsgid32
-                0x00000ab4                __libc_setfsuid32
+                0x00000aa4                __libc_setfsgid32
                 0x00000ab4                setfsuid32
-                0x00000ac4                setgid32
+                0x00000ab4                __libc_setfsuid32
                 0x00000ac4                __libc_setgid32
-                0x00000ad4                setregid32
+                0x00000ac4                setgid32
                 0x00000ad4                __libc_setregid32
+                0x00000ad4                setregid32
                 0x00000ae4                __libc_setresgid32
                 0x00000ae4                setresgid32
                 0x00000af4                setreuid32
@@ -834,1134 +834,1136 @@ LOAD D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-e
                 0x00000f40                lgetxattr
                 0x00000f50                fgetxattr
                 0x00000f60                p2c_addr
-                0x00000f70                __exit
-                0x00000f7c                clone
-                0x00000f7c                __clone
-                0x00000f8c                __longjmp
-                0x00000fa4                __setjmp
-                0x00000fa4                setjmp
-                0x00000fa8                sigsetjmp
-                0x00000fa8                __sigsetjmp
- .text          0x0000132c       0x2c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(start.o)
-                0x0000132c                _start
-                0x0000134c                _exit
- .text          0x00001358       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(arm_set_tls.o)
-                0x00001358                __arm_set_tls
- .text          0x00001368       0x18 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_lshrdi3.o)
-                0x00001368                __lshrdi3
-                0x00001368                __aeabi_llsr
- .text          0x00001380       0x18 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_ashldi3.o)
-                0x00001380                __aeabi_llsl
-                0x00001380                __ashldi3
- .text          0x00001398      0x370 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_addsubdf3.o)
-                0x00001398                __aeabi_drsub
-                0x000013a0                __aeabi_dsub
-                0x000013a0                __subdf3
-                0x000013a4                __aeabi_dadd
-                0x000013a4                __adddf3
-                0x0000161c                __floatunsidf
-                0x0000161c                __aeabi_ui2d
-                0x0000163c                __floatsidf
-                0x0000163c                __aeabi_i2d
-                0x00001660                __aeabi_f2d
-                0x00001660                __extendsfdf2
-                0x0000169c                __floatundidf
-                0x0000169c                __aeabi_ul2d
-                0x000016ac                __floatdidf
-                0x000016ac                __aeabi_l2d
- .text          0x00001708      0x424 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_muldivdf3.o)
-                0x00001708                __aeabi_dmul
-                0x00001708                __muldf3
-                0x0000195c                __divdf3
-                0x0000195c                __aeabi_ddiv
- .text          0x00001b2c      0x110 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_cmpdf2.o)
-                0x00001b2c                __gtdf2
-                0x00001b2c                __gedf2
-                0x00001b34                __ltdf2
-                0x00001b34                __ledf2
-                0x00001b3c                __nedf2
-                0x00001b3c                __eqdf2
-                0x00001b3c                __cmpdf2
-                0x00001bb8                __aeabi_cdrcmple
-                0x00001bc8                __aeabi_cdcmpeq
-                0x00001bc8                __aeabi_cdcmple
-                0x00001bd8                __aeabi_dcmpeq
-                0x00001bec                __aeabi_dcmplt
-                0x00001c00                __aeabi_dcmple
-                0x00001c14                __aeabi_dcmpge
-                0x00001c28                __aeabi_dcmpgt
- .text          0x00001c3c       0xa0 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_truncdfsf2.o)
-                0x00001c3c                __truncdfsf2
-                0x00001c3c                __aeabi_d2f
- .text          0x00001cdc       0xec D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_cmpsf2.o)
-                0x00001cdc                __gesf2
-                0x00001cdc                __gtsf2
-                0x00001ce4                __lesf2
-                0x00001ce4                __ltsf2
-                0x00001cec                __nesf2
-                0x00001cec                __eqsf2
-                0x00001cec                __cmpsf2
-                0x00001d4c                __aeabi_cfrcmple
-                0x00001d54                __aeabi_cfcmpeq
-                0x00001d54                __aeabi_cfcmple
-                0x00001d64                __aeabi_fcmpeq
-                0x00001d78                __aeabi_fcmplt
-                0x00001d8c                __aeabi_fcmple
-                0x00001da0                __aeabi_fcmpge
-                0x00001db4                __aeabi_fcmpgt
- .text          0x00001dc8       0x2c D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_aeabi_uldivmod.o)
-                0x00001dc8                __aeabi_uldivmod
- .text          0x00001df4       0x48 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_fixunsdfdi.o)
-                0x00001df4                __fixunsdfdi
-                0x00001df4                __aeabi_d2ulz
- .text          0x00001e3c       0x60 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(bpabi.o)
-                0x00001e3c                __gnu_ldivmod_helper
-                0x00001e6c                __gnu_uldivmod_helper
- .text          0x00001e9c        0x4 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_dvmd_tls.o)
-                0x00001e9c                __aeabi_idiv0
-                0x00001e9c                __aeabi_ldiv0
- .text          0x00001ea0       0x40 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_fixunsdfsi.o)
-                0x00001ea0                __aeabi_d2uiz
-                0x00001ea0                __fixunsdfsi
- .text          0x00001ee0      0x2ac D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_divdi3.o)
-                0x00001ee0                __divdi3
- .text          0x0000218c      0x270 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_udivdi3.o)
-                0x0000218c                __udivdi3
+                0x00000f70                slot_reg
+                0x00000f80                fork_exec
+                0x00000f90                __exit
+                0x00000f9c                clone
+                0x00000f9c                __clone
+                0x00000fac                __longjmp
+                0x00000fc4                __setjmp
+                0x00000fc4                setjmp
+                0x00000fc8                __sigsetjmp
+                0x00000fc8                sigsetjmp
+ .text          0x00001354       0x2c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(start.o)
+                0x00001354                _start
+                0x00001374                _exit
+ .text          0x00001380       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(arm_set_tls.o)
+                0x00001380                __arm_set_tls
+ .text          0x00001390       0x18 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_lshrdi3.o)
+                0x00001390                __lshrdi3
+                0x00001390                __aeabi_llsr
+ .text          0x000013a8       0x18 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_ashldi3.o)
+                0x000013a8                __aeabi_llsl
+                0x000013a8                __ashldi3
+ .text          0x000013c0      0x370 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_addsubdf3.o)
+                0x000013c0                __aeabi_drsub
+                0x000013c8                __aeabi_dsub
+                0x000013c8                __subdf3
+                0x000013cc                __aeabi_dadd
+                0x000013cc                __adddf3
+                0x00001644                __floatunsidf
+                0x00001644                __aeabi_ui2d
+                0x00001664                __floatsidf
+                0x00001664                __aeabi_i2d
+                0x00001688                __aeabi_f2d
+                0x00001688                __extendsfdf2
+                0x000016c4                __floatundidf
+                0x000016c4                __aeabi_ul2d
+                0x000016d4                __floatdidf
+                0x000016d4                __aeabi_l2d
+ .text          0x00001730      0x424 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_muldivdf3.o)
+                0x00001730                __aeabi_dmul
+                0x00001730                __muldf3
+                0x00001984                __divdf3
+                0x00001984                __aeabi_ddiv
+ .text          0x00001b54      0x110 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_cmpdf2.o)
+                0x00001b54                __gtdf2
+                0x00001b54                __gedf2
+                0x00001b5c                __ltdf2
+                0x00001b5c                __ledf2
+                0x00001b64                __nedf2
+                0x00001b64                __eqdf2
+                0x00001b64                __cmpdf2
+                0x00001be0                __aeabi_cdrcmple
+                0x00001bf0                __aeabi_cdcmpeq
+                0x00001bf0                __aeabi_cdcmple
+                0x00001c00                __aeabi_dcmpeq
+                0x00001c14                __aeabi_dcmplt
+                0x00001c28                __aeabi_dcmple
+                0x00001c3c                __aeabi_dcmpge
+                0x00001c50                __aeabi_dcmpgt
+ .text          0x00001c64       0xa0 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_truncdfsf2.o)
+                0x00001c64                __truncdfsf2
+                0x00001c64                __aeabi_d2f
+ .text          0x00001d04       0xec D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_cmpsf2.o)
+                0x00001d04                __gesf2
+                0x00001d04                __gtsf2
+                0x00001d0c                __lesf2
+                0x00001d0c                __ltsf2
+                0x00001d14                __nesf2
+                0x00001d14                __eqsf2
+                0x00001d14                __cmpsf2
+                0x00001d74                __aeabi_cfrcmple
+                0x00001d7c                __aeabi_cfcmpeq
+                0x00001d7c                __aeabi_cfcmple
+                0x00001d8c                __aeabi_fcmpeq
+                0x00001da0                __aeabi_fcmplt
+                0x00001db4                __aeabi_fcmple
+                0x00001dc8                __aeabi_fcmpge
+                0x00001ddc                __aeabi_fcmpgt
+ .text          0x00001df0       0x2c D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_aeabi_uldivmod.o)
+                0x00001df0                __aeabi_uldivmod
+ .text          0x00001e1c       0x48 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_fixunsdfdi.o)
+                0x00001e1c                __fixunsdfdi
+                0x00001e1c                __aeabi_d2ulz
+ .text          0x00001e64       0x60 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(bpabi.o)
+                0x00001e64                __gnu_ldivmod_helper
+                0x00001e94                __gnu_uldivmod_helper
+ .text          0x00001ec4        0x4 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_dvmd_tls.o)
+                0x00001ec4                __aeabi_idiv0
+                0x00001ec4                __aeabi_ldiv0
+ .text          0x00001ec8       0x40 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_arm_fixunsdfsi.o)
+                0x00001ec8                __aeabi_d2uiz
+                0x00001ec8                __fixunsdfsi
+ .text          0x00001f08      0x2ac D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_divdi3.o)
+                0x00001f08                __divdi3
+ .text          0x000021b4      0x270 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_udivdi3.o)
+                0x000021b4                __udivdi3
  *(.text.*)
  .text.read32le
-                0x000023fc       0x16 ./src/tcc/tcc.o
+                0x00002424       0x16 ./src/tcc/tcc.o
  .text.write32le
-                0x00002412       0x12 ./src/tcc/tcc.o
+                0x0000243a       0x12 ./src/tcc/tcc.o
  .text.write64le
-                0x00002424       0x18 ./src/tcc/tcc.o
+                0x0000244c       0x18 ./src/tcc/tcc.o
  .text.begin_macro
-                0x0000243c       0x38 ./src/tcc/tcc.o
- .text.tok_get  0x00002474       0x70 ./src/tcc/tcc.o
+                0x00002464       0x38 ./src/tcc/tcc.o
+ .text.tok_get  0x0000249c       0x70 ./src/tcc/tcc.o
  .text.define_find
-                0x000024e4       0x30 ./src/tcc/tcc.o
+                0x0000250c       0x30 ./src/tcc/tcc.o
  .text.label_find
-                0x00002514       0x30 ./src/tcc/tcc.o
+                0x0000253c       0x30 ./src/tcc/tcc.o
  .text.is_float
-                0x00002544       0x1a ./src/tcc/tcc.o
+                0x0000256c       0x1a ./src/tcc/tcc.o
  .text.PUT_R_RET
-                0x0000255e       0x26 ./src/tcc/tcc.o
- .text.elfsym   0x00002584       0x20 ./src/tcc/tcc.o
+                0x00002586       0x26 ./src/tcc/tcc.o
+ .text.elfsym   0x000025ac       0x20 ./src/tcc/tcc.o
  .text.update_storage
-                0x000025a4       0x4c ./src/tcc/tcc.o
+                0x000025cc       0x4c ./src/tcc/tcc.o
  .text.sym_free
-                0x000025f0       0x14 ./src/tcc/tcc.o
+                0x00002618       0x14 ./src/tcc/tcc.o
  .text.sym_find2
-                0x00002604       0x16 ./src/tcc/tcc.o
- *fill*         0x0000261a        0x2 
+                0x0000262c       0x16 ./src/tcc/tcc.o
+ *fill*         0x00002642        0x2 
  .text.sym_find
-                0x0000261c       0x30 ./src/tcc/tcc.o
- .text.sym_pop  0x0000264c       0x60 ./src/tcc/tcc.o
+                0x00002644       0x30 ./src/tcc/tcc.o
+ .text.sym_pop  0x00002674       0x60 ./src/tcc/tcc.o
  .text.vset_VT_CMP
-                0x000026ac       0x1c ./src/tcc/tcc.o
+                0x000026d4       0x1c ./src/tcc/tcc.o
  .text.merge_symattr
-                0x000026c8       0x8a ./src/tcc/tcc.o
+                0x000026f0       0x8a ./src/tcc/tcc.o
  .text.merge_funcattr
-                0x00002752       0x64 ./src/tcc/tcc.o
- *fill*         0x000027b6        0x2 
- .text.gaddrof  0x000027b8       0x2c ./src/tcc/tcc.o
+                0x0000277a       0x64 ./src/tcc/tcc.o
+ *fill*         0x000027de        0x2 
+ .text.gaddrof  0x000027e0       0x2c ./src/tcc/tcc.o
  .text.type_size
-                0x000027e4       0x94 ./src/tcc/tcc.o
+                0x0000280c       0x94 ./src/tcc/tcc.o
  .text.case_cmpi
-                0x00002878       0x2c ./src/tcc/tcc.o
+                0x000028a0       0x2c ./src/tcc/tcc.o
  .text.case_cmpu
-                0x000028a4       0x28 ./src/tcc/tcc.o
+                0x000028cc       0x28 ./src/tcc/tcc.o
  .text.elf_hash
-                0x000028cc       0x20 ./src/tcc/tcc.o
+                0x000028f4       0x20 ./src/tcc/tcc.o
  .text.modify_reloctions_old_to_new
-                0x000028ec       0x48 ./src/tcc/tcc.o
+                0x00002914       0x48 ./src/tcc/tcc.o
  .text.stuff_const
-                0x00002934       0xd4 ./src/tcc/tcc.o
+                0x0000295c       0xd4 ./src/tcc/tcc.o
  .text.add_param_plan
-                0x00002a08       0x22 ./src/tcc/tcc.o
- *fill*         0x00002a2a        0x2 
- .text.is_zero  0x00002a2c       0x48 ./src/tcc/tcc.o
+                0x00002a30       0x22 ./src/tcc/tcc.o
+ *fill*         0x00002a52        0x2 
+ .text.is_zero  0x00002a54       0x48 ./src/tcc/tcc.o
  .text.asm_parse_regvar
-                0x00002a74       0x38 ./src/tcc/tcc.o
+                0x00002a9c       0x38 ./src/tcc/tcc.o
  .text.strstart
-                0x00002aac       0x20 ./src/tcc/tcc.o
+                0x00002ad4       0x20 ./src/tcc/tcc.o
  .text.link_option
-                0x00002acc       0x88 ./src/tcc/tcc.o
+                0x00002af4       0x88 ./src/tcc/tcc.o
  .text.cstr_new
-                0x00002b54        0x8 ./src/tcc/tcc.o
+                0x00002b7c        0x8 ./src/tcc/tcc.o
  .text.skip_linker_arg
-                0x00002b5c       0x24 ./src/tcc/tcc.o
+                0x00002b84       0x24 ./src/tcc/tcc.o
  .text.find_elf_sym
-                0x00002b80       0x4e ./src/tcc/tcc.o
- *fill*         0x00002bce        0x2 
+                0x00002ba8       0x4e ./src/tcc/tcc.o
+ *fill*         0x00002bf6        0x2 
  .text.set_flag
-                0x00002bd0       0xd8 ./src/tcc/tcc.o
+                0x00002bf8       0xd8 ./src/tcc/tcc.o
  .text._tcc_open
-                0x00002ca8       0x8c ./src/tcc/tcc.o
+                0x00002cd0       0x8c ./src/tcc/tcc.o
  .text.print_dirs
-                0x00002d34       0x54 ./src/tcc/tcc.o
+                0x00002d5c       0x54 ./src/tcc/tcc.o
  .text.full_read
-                0x00002d88       0x26 ./src/tcc/tcc.o
- *fill*         0x00002dae        0x2 
+                0x00002db0       0x26 ./src/tcc/tcc.o
+ *fill*         0x00002dd6        0x2 
  .text.tcc_object_type
-                0x00002db0       0x60 ./src/tcc/tcc.o
+                0x00002dd8       0x60 ./src/tcc/tcc.o
  .text.read_ar_header
-                0x00002e10       0x44 ./src/tcc/tcc.o
- .text.next_c   0x00002e54       0x78 ./src/tcc/tcc.o
- .text.pp_line  0x00002ecc       0xb4 ./src/tcc/tcc.o
+                0x00002e38       0x44 ./src/tcc/tcc.o
+ .text.next_c   0x00002e7c       0x78 ./src/tcc/tcc.o
+ .text.pp_line  0x00002ef4       0xb4 ./src/tcc/tcc.o
  .text.getclock_ms
-                0x00002f80       0x24 ./src/tcc/tcc.o
+                0x00002fa8       0x24 ./src/tcc/tcc.o
  .text.is_space
-                0x00002fa4       0x18 ./src/tcc/tcc.o
+                0x00002fcc       0x18 ./src/tcc/tcc.o
  .text.check_space
-                0x00002fbc       0x2c ./src/tcc/tcc.o
+                0x00002fe4       0x2c ./src/tcc/tcc.o
  .text.define_undef.isra.3
-                0x00002fe8       0x34 ./src/tcc/tcc.o
+                0x00003010       0x34 ./src/tcc/tcc.o
  .text.is_integer_btype
-                0x0000301c       0x14 ./src/tcc/tcc.o
+                0x00003044       0x14 ./src/tcc/tcc.o
  .text.btype_size
-                0x00003030       0x2a ./src/tcc/tcc.o
+                0x00003058       0x2a ./src/tcc/tcc.o
  .text.adjust_bf.isra.6
-                0x0000305a       0x28 ./src/tcc/tcc.o
+                0x00003082       0x28 ./src/tcc/tcc.o
  .text.is_null_pointer
-                0x00003082       0x4c ./src/tcc/tcc.o
+                0x000030aa       0x4c ./src/tcc/tcc.o
  .text.exact_log2p1
-                0x000030ce       0x2c ./src/tcc/tcc.o
+                0x000030f6       0x2c ./src/tcc/tcc.o
  .text.find_field.isra.11
-                0x000030fa       0x48 ./src/tcc/tcc.o
+                0x00003122       0x48 ./src/tcc/tcc.o
  .text.tcc_debug_remove.isra.13
-                0x00003142       0x3c ./src/tcc/tcc.o
- *fill*         0x0000317e        0x2 
+                0x0000316a       0x3c ./src/tcc/tcc.o
+ *fill*         0x000031a6        0x2 
  .text.tcc_tcov_block_end
-                0x00003180       0x78 ./src/tcc/tcc.o
+                0x000031a8       0x78 ./src/tcc/tcc.o
  .text.use_section1.isra.16
-                0x000031f8       0x2c ./src/tcc/tcc.o
+                0x00003220       0x2c ./src/tcc/tcc.o
  .text.is_hgen_float_aggr
-                0x00003224       0x4e ./src/tcc/tcc.o
- *fill*         0x00003272        0x2 
+                0x0000324c       0x4e ./src/tcc/tcc.o
+ *fill*         0x0000329a        0x2 
  .text.gfunc_sret
-                0x00003274       0x70 ./src/tcc/tcc.o
+                0x0000329c       0x70 ./src/tcc/tcc.o
  .text.pstrcpy.part.21
-                0x000032e4       0x1c ./src/tcc/tcc.o
+                0x0000330c       0x1c ./src/tcc/tcc.o
  .text.dwarf_file.isra.22
-                0x00003300       0xb4 ./src/tcc/tcc.o
- .text.ld_inp   0x000033b4       0x30 ./src/tcc/tcc.o
- .text.ld_next  0x000033e4       0xd4 ./src/tcc/tcc.o
+                0x00003328       0xb4 ./src/tcc/tcc.o
+ .text.ld_inp   0x000033dc       0x30 ./src/tcc/tcc.o
+ .text.ld_next  0x0000340c       0xd4 ./src/tcc/tcc.o
  .text.tcc_debug_putfile
-                0x000034b8       0x48 ./src/tcc/tcc.o
- .text.RC_RET   0x00003500       0x24 ./src/tcc/tcc.o
- .text.pstrcat  0x00003524       0x20 ./src/tcc/tcc.o
+                0x000034e0       0x48 ./src/tcc/tcc.o
+ .text.RC_RET   0x00003528       0x24 ./src/tcc/tcc.o
+ .text.pstrcat  0x0000354c       0x20 ./src/tcc/tcc.o
  .text.compare_types
-                0x00003544       0xf8 ./src/tcc/tcc.o
+                0x0000356c       0xf8 ./src/tcc/tcc.o
  .text.default_elfinterp
-                0x0000363c       0x1c ./src/tcc/tcc.o
-                0x0000363c                default_elfinterp
+                0x00003664       0x1c ./src/tcc/tcc.o
+                0x00003664                default_elfinterp
  .text.decbranch
-                0x00003658       0x28 ./src/tcc/tcc.o
-                0x00003658                decbranch
+                0x00003680       0x28 ./src/tcc/tcc.o
+                0x00003680                decbranch
  .text.assign_vfpreg
-                0x00003680       0x48 ./src/tcc/tcc.o
-                0x00003680                assign_vfpreg
+                0x000036a8       0x48 ./src/tcc/tcc.o
+                0x000036a8                assign_vfpreg
  .text.floats_in_core_regs
-                0x000036c8       0x26 ./src/tcc/tcc.o
-                0x000036c8                floats_in_core_regs
- *fill*         0x000036ee        0x2 
+                0x000036f0       0x26 ./src/tcc/tcc.o
+                0x000036f0                floats_in_core_regs
+ *fill*         0x00003716        0x2 
  .text.tcc_enter_state
-                0x000036f0       0x14 ./src/tcc/tcc.o
-                0x000036f0                tcc_enter_state
+                0x00003718       0x14 ./src/tcc/tcc.o
+                0x00003718                tcc_enter_state
  .text.tcc_exit_state
-                0x00003704       0x14 ./src/tcc/tcc.o
-                0x00003704                tcc_exit_state
+                0x0000372c       0x14 ./src/tcc/tcc.o
+                0x0000372c                tcc_exit_state
  .text.tcc_basename
-                0x00003718       0x1c ./src/tcc/tcc.o
-                0x00003718                tcc_basename
+                0x00003740       0x1c ./src/tcc/tcc.o
+                0x00003740                tcc_basename
  .text.tcc_fileextension
-                0x00003734       0x1e ./src/tcc/tcc.o
-                0x00003734                tcc_fileextension
+                0x0000375c       0x1e ./src/tcc/tcc.o
+                0x0000375c                tcc_fileextension
  .text.tcc_free
-                0x00003752        0x4 ./src/tcc/tcc.o
-                0x00003752                tcc_free
+                0x0000377a        0x4 ./src/tcc/tcc.o
+                0x0000377a                tcc_free
  .text.cstr_free
-                0x00003756       0x14 ./src/tcc/tcc.o
+                0x0000377e       0x14 ./src/tcc/tcc.o
  .text.dynarray_reset
-                0x0000376a       0x2a ./src/tcc/tcc.o
+                0x00003792       0x2a ./src/tcc/tcc.o
  .text.tcc_close
-                0x00003794       0x50 ./src/tcc/tcc.o
+                0x000037bc       0x50 ./src/tcc/tcc.o
  .text.tal_free_impl
-                0x000037e4       0x2c ./src/tcc/tcc.o
+                0x0000380c       0x2c ./src/tcc/tcc.o
  .text.tok_str_free_str
-                0x00003810       0x14 ./src/tcc/tcc.o
+                0x00003838       0x14 ./src/tcc/tcc.o
  .text.tok_str_free
-                0x00003824       0x20 ./src/tcc/tcc.o
+                0x0000384c       0x20 ./src/tcc/tcc.o
  .text.end_macro
-                0x00003844       0x44 ./src/tcc/tcc.o
+                0x0000386c       0x44 ./src/tcc/tcc.o
  .text.tal_delete
-                0x00003888       0x1a ./src/tcc/tcc.o
+                0x000038b0       0x1a ./src/tcc/tcc.o
  .text._tcc_error
-                0x000038a2       0x18 ./src/tcc/tcc.o
-                0x000038a2                _tcc_error
- *fill*         0x000038ba        0x2 
- .text.vfpr     0x000038bc       0x24 ./src/tcc/tcc.o
- .text.intr     0x000038e0       0x34 ./src/tcc/tcc.o
- .text.vpushv   0x00003914       0x48 ./src/tcc/tcc.o
- .text.vdup     0x0000395c       0x10 ./src/tcc/tcc.o
- .text.regmask  0x0000396c       0x34 ./src/tcc/tcc.o
+                0x000038ca       0x18 ./src/tcc/tcc.o
+                0x000038ca                _tcc_error
+ *fill*         0x000038e2        0x2 
+ .text.vfpr     0x000038e4       0x24 ./src/tcc/tcc.o
+ .text.intr     0x00003908       0x34 ./src/tcc/tcc.o
+ .text.vpushv   0x0000393c       0x48 ./src/tcc/tcc.o
+ .text.vdup     0x00003984       0x10 ./src/tcc/tcc.o
+ .text.regmask  0x00003994       0x34 ./src/tcc/tcc.o
  .text.init_assert
-                0x000039a0       0x70 ./src/tcc/tcc.o
- .text.mapcc    0x00003a10       0x78 ./src/tcc/tcc.o
+                0x000039c8       0x70 ./src/tcc/tcc.o
+ .text.mapcc    0x00003a38       0x78 ./src/tcc/tcc.o
  .text.two2mask
-                0x00003a88       0x40 ./src/tcc/tcc.o
+                0x00003ab0       0x40 ./src/tcc/tcc.o
  .text.get_sym_addr
-                0x00003ac8       0x68 ./src/tcc/tcc.o
- .text.expect   0x00003b30       0x18 ./src/tcc/tcc.o
+                0x00003af0       0x68 ./src/tcc/tcc.o
+ .text.expect   0x00003b58       0x18 ./src/tcc/tcc.o
  .text.condition_code_of_token
-                0x00003b48       0x2c ./src/tcc/tcc.o
+                0x00003b70       0x2c ./src/tcc/tcc.o
  .text.test_lvalue
-                0x00003b74       0x2c ./src/tcc/tcc.o
+                0x00003b9c       0x2c ./src/tcc/tcc.o
  .text.decl_design_flex.isra.29
-                0x00003ba0       0x30 ./src/tcc/tcc.o
+                0x00003bc8       0x30 ./src/tcc/tcc.o
  .text.asm_encode_shift
-                0x00003bd0       0x60 ./src/tcc/tcc.o
+                0x00003bf8       0x60 ./src/tcc/tcc.o
  .text.check_vstack
-                0x00003c30       0x3c ./src/tcc/tcc.o
+                0x00003c58       0x3c ./src/tcc/tcc.o
  .text.handle_stray_noerror
-                0x00003c6c       0x68 ./src/tcc/tcc.o
+                0x00003c94       0x68 ./src/tcc/tcc.o
  .text.handle_bs
-                0x00003cd4       0x24 ./src/tcc/tcc.o
+                0x00003cfc       0x24 ./src/tcc/tcc.o
  .text.parse_line_comment
-                0x00003cf8       0x3c ./src/tcc/tcc.o
+                0x00003d20       0x3c ./src/tcc/tcc.o
  .text.skip_spaces
-                0x00003d34       0x30 ./src/tcc/tcc.o
+                0x00003d5c       0x30 ./src/tcc/tcc.o
  .text.handle_stray
-                0x00003d64       0x38 ./src/tcc/tcc.o
+                0x00003d8c       0x38 ./src/tcc/tcc.o
  .text.parse_comment
-                0x00003d9c       0x8c ./src/tcc/tcc.o
+                0x00003dc4       0x8c ./src/tcc/tcc.o
  .text.encbranch
-                0x00003e28       0x40 ./src/tcc/tcc.o
-                0x00003e28                encbranch
+                0x00003e50       0x40 ./src/tcc/tcc.o
+                0x00003e50                encbranch
  .text.gsym_addr
-                0x00003e68       0x50 ./src/tcc/tcc.o
- .text.gsym     0x00003eb8       0x28 ./src/tcc/tcc.o
- .text.vpop     0x00003ee0       0x30 ./src/tcc/tcc.o
+                0x00003e90       0x50 ./src/tcc/tcc.o
+ .text.gsym     0x00003ee0       0x28 ./src/tcc/tcc.o
+ .text.vpop     0x00003f08       0x30 ./src/tcc/tcc.o
  .text.expr_type
-                0x00003f10       0x38 ./src/tcc/tcc.o
+                0x00003f38       0x38 ./src/tcc/tcc.o
  .text.tcc_malloc
-                0x00003f48       0x24 ./src/tcc/tcc.o
-                0x00003f48                tcc_malloc
+                0x00003f70       0x24 ./src/tcc/tcc.o
+                0x00003f70                tcc_malloc
  .text.load_data
-                0x00003f6c       0x28 ./src/tcc/tcc.o
+                0x00003f94       0x28 ./src/tcc/tcc.o
  .text.tcc_mallocz
-                0x00003f94       0x18 ./src/tcc/tcc.o
-                0x00003f94                tcc_mallocz
+                0x00003fbc       0x18 ./src/tcc/tcc.o
+                0x00003fbc                tcc_mallocz
  .text.tcc_open_bf.isra.37
-                0x00003fac       0x74 ./src/tcc/tcc.o
+                0x00003fd4       0x74 ./src/tcc/tcc.o
  .text.tcc_debug_stabn.part.38
-                0x00004020       0x34 ./src/tcc/tcc.o
+                0x00004048       0x34 ./src/tcc/tcc.o
  .text.new_scope
-                0x00004054       0xa0 ./src/tcc/tcc.o
- .text.tal_new  0x000040f4       0x26 ./src/tcc/tcc.o
+                0x0000407c       0xa0 ./src/tcc/tcc.o
+ .text.tal_new  0x0000411c       0x26 ./src/tcc/tcc.o
  .text.tcc_strdup
-                0x0000411a       0x1a ./src/tcc/tcc.o
-                0x0000411a                tcc_strdup
+                0x00004142       0x1a ./src/tcc/tcc.o
+                0x00004142                tcc_strdup
  .text.default_outputfile
-                0x00004134       0x94 ./src/tcc/tcc.o
+                0x0000415c       0x94 ./src/tcc/tcc.o
  .text.tcc_realloc
-                0x000041c8       0x24 ./src/tcc/tcc.o
-                0x000041c8                tcc_realloc
+                0x000041f0       0x24 ./src/tcc/tcc.o
+                0x000041f0                tcc_realloc
  .text.cstr_realloc
-                0x000041ec       0x22 ./src/tcc/tcc.o
+                0x00004214       0x22 ./src/tcc/tcc.o
  .text.cstr_ccat
-                0x0000420e       0x22 ./src/tcc/tcc.o
+                0x00004236       0x22 ./src/tcc/tcc.o
  .text.add_char
-                0x00004230       0x60 ./src/tcc/tcc.o
+                0x00004258       0x60 ./src/tcc/tcc.o
  .text.cstr_cat
-                0x00004290       0x38 ./src/tcc/tcc.o
+                0x000042b8       0x38 ./src/tcc/tcc.o
  .text.get_tok_str
-                0x000042c8      0x204 ./src/tcc/tcc.o
+                0x000042f0      0x204 ./src/tcc/tcc.o
  .text.type_to_str
-                0x000044cc      0x3c0 ./src/tcc/tcc.o
+                0x000044f4      0x3c0 ./src/tcc/tcc.o
  .text.define_print.isra.42
-                0x0000488c      0x130 ./src/tcc/tcc.o
+                0x000048b4      0x130 ./src/tcc/tcc.o
  .text.cstr_vprintf
-                0x000049bc       0x46 ./src/tcc/tcc.o
+                0x000049e4       0x46 ./src/tcc/tcc.o
  .text.cstr_printf
-                0x00004a02       0x1a ./src/tcc/tcc.o
- .text.putdef   0x00004a1c       0x40 ./src/tcc/tcc.o
- .text.putdefs  0x00004a5c       0x20 ./src/tcc/tcc.o
- .text.error1   0x00004a7c      0x1e4 ./src/tcc/tcc.o
+                0x00004a2a       0x1a ./src/tcc/tcc.o
+ .text.putdef   0x00004a44       0x40 ./src/tcc/tcc.o
+ .text.putdefs  0x00004a84       0x20 ./src/tcc/tcc.o
+ .text.error1   0x00004aa4      0x1e4 ./src/tcc/tcc.o
  .text._tcc_error_noabort
-                0x00004c60       0x1c ./src/tcc/tcc.o
-                0x00004c60                _tcc_error_noabort
+                0x00004c88       0x1c ./src/tcc/tcc.o
+                0x00004c88                _tcc_error_noabort
  .text.section_realloc
-                0x00004c7c       0x30 ./src/tcc/tcc.o
+                0x00004ca4       0x30 ./src/tcc/tcc.o
  .text.section_add
-                0x00004cac       0x34 ./src/tcc/tcc.o
+                0x00004cd4       0x34 ./src/tcc/tcc.o
  .text.section_ptr_add
-                0x00004ce0       0x10 ./src/tcc/tcc.o
+                0x00004d08       0x10 ./src/tcc/tcc.o
  .text.put_elf_str
-                0x00004cf0       0x24 ./src/tcc/tcc.o
+                0x00004d18       0x24 ./src/tcc/tcc.o
  .text.rebuild_hash
-                0x00004d14       0x86 ./src/tcc/tcc.o
+                0x00004d3c       0x86 ./src/tcc/tcc.o
  .text.put_elf_sym
-                0x00004d9a       0xb2 ./src/tcc/tcc.o
+                0x00004dc2       0xb2 ./src/tcc/tcc.o
  .text.set_elf_sym
-                0x00004e4c      0x154 ./src/tcc/tcc.o
+                0x00004e74      0x154 ./src/tcc/tcc.o
  .text.set_global_sym.isra.46
-                0x00004fa0       0x3e ./src/tcc/tcc.o
+                0x00004fc8       0x3e ./src/tcc/tcc.o
  .text.dwarf_get_section_sym
-                0x00004fde       0x20 ./src/tcc/tcc.o
+                0x00005006       0x20 ./src/tcc/tcc.o
  .text.dwarf_sleb128
-                0x00004ffe       0x5c ./src/tcc/tcc.o
+                0x00005026       0x5c ./src/tcc/tcc.o
  .text.dwarf_uleb128
-                0x0000505a       0x34 ./src/tcc/tcc.o
- .text.put_dt   0x0000508e       0x12 ./src/tcc/tcc.o
+                0x00005082       0x34 ./src/tcc/tcc.o
+ .text.put_dt   0x000050b6       0x12 ./src/tcc/tcc.o
  .text.put_stabs.isra.47.constprop.141
-                0x000050a0       0x64 ./src/tcc/tcc.o
+                0x000050c8       0x64 ./src/tcc/tcc.o
  .text.gen_le32
-                0x00005104       0x74 ./src/tcc/tcc.o
+                0x0000512c       0x74 ./src/tcc/tcc.o
  .text.asm_emit_opcode
-                0x00005178       0x14 ./src/tcc/tcc.o
+                0x000051a0       0x14 ./src/tcc/tcc.o
  .text.asm_emit_coprocessor_opcode
-                0x0000518c       0x40 ./src/tcc/tcc.o
- .text.g        0x000051cc       0x50 ./src/tcc/tcc.o
+                0x000051b4       0x40 ./src/tcc/tcc.o
+ .text.g        0x000051f4       0x50 ./src/tcc/tcc.o
  .text.dynarray_add
-                0x0000521c       0x2c ./src/tcc/tcc.o
+                0x00005244       0x2c ./src/tcc/tcc.o
  .text.__sym_malloc
-                0x00005248       0x50 ./src/tcc/tcc.o
+                0x00005270       0x50 ./src/tcc/tcc.o
  .text.sym_push2
-                0x00005298       0x48 ./src/tcc/tcc.o
+                0x000052c0       0x48 ./src/tcc/tcc.o
  .text.label_push
-                0x000052e0       0x54 ./src/tcc/tcc.o
+                0x00005308       0x54 ./src/tcc/tcc.o
  .text.global_identifier_push.constprop.137
-                0x00005334       0x5c ./src/tcc/tcc.o
+                0x0000535c       0x5c ./src/tcc/tcc.o
  .text.external_global_sym
-                0x00005390       0x48 ./src/tcc/tcc.o
+                0x000053b8       0x48 ./src/tcc/tcc.o
  .text.external_helper_sym
-                0x000053d8       0x18 ./src/tcc/tcc.o
+                0x00005400       0x18 ./src/tcc/tcc.o
  .text.sym_copy
-                0x000053f0       0x64 ./src/tcc/tcc.o
+                0x00005418       0x64 ./src/tcc/tcc.o
  .text.sym_copy_ref.constprop.129
-                0x00005454       0x48 ./src/tcc/tcc.o
+                0x0000547c       0x48 ./src/tcc/tcc.o
  .text.new_section
-                0x0000549c       0x7c ./src/tcc/tcc.o
+                0x000054c4       0x7c ./src/tcc/tcc.o
  .text.alloc_sec_names
-                0x00005518       0x78 ./src/tcc/tcc.o
+                0x00005540       0x78 ./src/tcc/tcc.o
  .text.find_section_create
-                0x00005590       0x4a ./src/tcc/tcc.o
- *fill*         0x000055da        0x2 
+                0x000055b8       0x4a ./src/tcc/tcc.o
+ *fill*         0x00005602        0x2 
  .text.add_init_array_defines
-                0x000055dc       0x80 ./src/tcc/tcc.o
+                0x00005604       0x80 ./src/tcc/tcc.o
  .text.fill_dynamic
-                0x0000565c      0x23c ./src/tcc/tcc.o
+                0x00005684      0x23c ./src/tcc/tcc.o
  .text.new_symtab
-                0x00005898       0x78 ./src/tcc/tcc.o
+                0x000058c0       0x78 ./src/tcc/tcc.o
  .text.build_got
-                0x00005910       0x54 ./src/tcc/tcc.o
+                0x00005938       0x54 ./src/tcc/tcc.o
  .text.put_elf_reloca.constprop.142
-                0x00005964       0x64 ./src/tcc/tcc.o
+                0x0000598c       0x64 ./src/tcc/tcc.o
  .text.dwarf_reloc.constprop.128
-                0x000059c8       0x1c ./src/tcc/tcc.o
+                0x000059f0       0x1c ./src/tcc/tcc.o
  .text.dwarf_string
-                0x000059e4       0x52 ./src/tcc/tcc.o
+                0x00005a0c       0x52 ./src/tcc/tcc.o
  .text.dwarf_strp
-                0x00005a36       0x18 ./src/tcc/tcc.o
+                0x00005a5e       0x18 ./src/tcc/tcc.o
  .text.dwarf_line_strp
-                0x00005a4e       0x18 ./src/tcc/tcc.o
+                0x00005a76       0x18 ./src/tcc/tcc.o
  .text.put_stabs_r.isra.55.constprop.140
-                0x00005a66       0x3e ./src/tcc/tcc.o
+                0x00005a8e       0x3e ./src/tcc/tcc.o
  .text.tcc_debug_finish
-                0x00005aa4      0x280 ./src/tcc/tcc.o
+                0x00005acc      0x280 ./src/tcc/tcc.o
  .text.put_new_file
-                0x00005d24       0x5c ./src/tcc/tcc.o
- .text.put_ptr  0x00005d80       0x36 ./src/tcc/tcc.o
+                0x00005d4c       0x5c ./src/tcc/tcc.o
+ .text.put_ptr  0x00005da8       0x36 ./src/tcc/tcc.o
  .text.add_array
-                0x00005db6       0x3e ./src/tcc/tcc.o
+                0x00005dde       0x3e ./src/tcc/tcc.o
  .text.tcc_add_dllref
-                0x00005df4       0x7c ./src/tcc/tcc.o
+                0x00005e1c       0x7c ./src/tcc/tcc.o
  .text.search_cached_include
-                0x00005e70       0x8e ./src/tcc/tcc.o
- *fill*         0x00005efe        0x2 
+                0x00005e98       0x8e ./src/tcc/tcc.o
+ *fill*         0x00005f26        0x2 
  .text.tcc_split_path.isra.58
-                0x00005f00       0xd8 ./src/tcc/tcc.o
+                0x00005f28       0xd8 ./src/tcc/tcc.o
  .text.args_parser_make_argv
-                0x00005fd8       0x8a ./src/tcc/tcc.o
+                0x00006000       0x8a ./src/tcc/tcc.o
  .text.args_parser_add_file
-                0x00006062       0x32 ./src/tcc/tcc.o
+                0x0000608a       0x32 ./src/tcc/tcc.o
  .text.tcc_debug_find.isra.59
-                0x00006094       0x80 ./src/tcc/tcc.o
+                0x000060bc       0x80 ./src/tcc/tcc.o
  .text.tcc_debug_add
-                0x00006114       0x42 ./src/tcc/tcc.o
+                0x0000613c       0x42 ./src/tcc/tcc.o
  .text.tcc_debug_check_anon.isra.60
-                0x00006156       0x6a ./src/tcc/tcc.o
+                0x0000617e       0x6a ./src/tcc/tcc.o
  .text.tcc_get_dwarf_info
-                0x000061c0      0x798 ./src/tcc/tcc.o
+                0x000061e8      0x798 ./src/tcc/tcc.o
  .text.tcc_debug_stabs
-                0x00006958       0x98 ./src/tcc/tcc.o
+                0x00006980       0x98 ./src/tcc/tcc.o
  .text.tcc_get_debug_info
-                0x000069f0      0x3a0 ./src/tcc/tcc.o
+                0x00006a18      0x3a0 ./src/tcc/tcc.o
  .text.put_extern_sym2.constprop.139
-                0x00006d90      0x26c ./src/tcc/tcc.o
+                0x00006db8      0x26c ./src/tcc/tcc.o
  .text.put_extern_sym
-                0x00006ffc       0x40 ./src/tcc/tcc.o
+                0x00007024       0x40 ./src/tcc/tcc.o
  .text.greloca.constprop.138
-                0x0000703c       0x58 ./src/tcc/tcc.o
+                0x00007064       0x58 ./src/tcc/tcc.o
  .text.pop_local_syms
-                0x00007094      0x188 ./src/tcc/tcc.o
+                0x000070bc      0x188 ./src/tcc/tcc.o
  .text.get_sym_attr
-                0x0000721c       0x54 ./src/tcc/tcc.o
+                0x00007244       0x54 ./src/tcc/tcc.o
  .text.tcc_load_object_file
-                0x00007270      0x524 ./src/tcc/tcc.o
+                0x00007298      0x524 ./src/tcc/tcc.o
  .text.tcc_load_alacarte
-                0x00007794      0x17c ./src/tcc/tcc.o
+                0x000077bc      0x17c ./src/tcc/tcc.o
  .text.set_ver_to_ver
-                0x00007910       0xc4 ./src/tcc/tcc.o
+                0x00007938       0xc4 ./src/tcc/tcc.o
  .text.tal_realloc_impl
-                0x000079d4       0xd4 ./src/tcc/tcc.o
+                0x000079fc       0xd4 ./src/tcc/tcc.o
  .text.tok_str_realloc
-                0x00007aa8       0x3c ./src/tcc/tcc.o
+                0x00007ad0       0x3c ./src/tcc/tcc.o
  .text.tok_str_add2
-                0x00007ae4       0xac ./src/tcc/tcc.o
+                0x00007b0c       0xac ./src/tcc/tcc.o
  .text.tok_str_add_tok
-                0x00007b90       0x4c ./src/tcc/tcc.o
+                0x00007bb8       0x4c ./src/tcc/tcc.o
  .text.tok_str_add
-                0x00007bdc       0x24 ./src/tcc/tcc.o
+                0x00007c04       0x24 ./src/tcc/tcc.o
  .text.tok_str_alloc
-                0x00007c00       0x30 ./src/tcc/tcc.o
+                0x00007c28       0x30 ./src/tcc/tcc.o
  .text.unget_tok
-                0x00007c30       0x40 ./src/tcc/tcc.o
+                0x00007c58       0x40 ./src/tcc/tcc.o
  .text.tcc_debug_bincl.part.74
-                0x00007c70      0x124 ./src/tcc/tcc.o
+                0x00007c98      0x124 ./src/tcc/tcc.o
  .text.dwarf_line_op.isra.75
-                0x00007d94       0x2c ./src/tcc/tcc.o
+                0x00007dbc       0x2c ./src/tcc/tcc.o
  .text.dwarf_uleb128_op
-                0x00007dc0       0x34 ./src/tcc/tcc.o
+                0x00007de8       0x34 ./src/tcc/tcc.o
  .text.tcc_debug_line
-                0x00007df4      0x190 ./src/tcc/tcc.o
+                0x00007e1c      0x190 ./src/tcc/tcc.o
  .text.tcc_debug_start
-                0x00007f84      0x524 ./src/tcc/tcc.o
+                0x00007fac      0x524 ./src/tcc/tcc.o
  .text.tcc_debug_end.part.77
-                0x000084a8      0x4c8 ./src/tcc/tcc.o
+                0x000084d0      0x4c8 ./src/tcc/tcc.o
  .text.copy_linker_arg
-                0x00008970       0x4c ./src/tcc/tcc.o
+                0x00008998       0x4c ./src/tcc/tcc.o
  .text.tcc_tool_ar.isra.78
-                0x000089bc      0x5d8 ./src/tcc/tcc.o
+                0x000089e4      0x5d8 ./src/tcc/tcc.o
  .text.parse_pp_string
-                0x00008f94       0xcc ./src/tcc/tcc.o
+                0x00008fbc       0xcc ./src/tcc/tcc.o
  .text.type_incompatibility_error
-                0x00009060       0x34 ./src/tcc/tcc.o
+                0x00009088       0x34 ./src/tcc/tcc.o
  .text.check_fields.isra.43
-                0x00009094       0x70 ./src/tcc/tcc.o
- .text.o        0x00009104       0x8c ./src/tcc/tcc.o
+                0x000090bc       0x70 ./src/tcc/tcc.o
+ .text.o        0x0000912c       0x8c ./src/tcc/tcc.o
  .text.gjmp_acs
-                0x00009190       0x3c ./src/tcc/tcc.o
+                0x000091b8       0x3c ./src/tcc/tcc.o
  .text.stuff_const_harder
-                0x000091cc      0x1d4 ./src/tcc/tcc.o
-                0x000091cc                stuff_const_harder
+                0x000091f4      0x1d4 ./src/tcc/tcc.o
+                0x000091f4                stuff_const_harder
  .text.calcaddr
-                0x000093a0       0x98 ./src/tcc/tcc.o
+                0x000093c8       0x98 ./src/tcc/tcc.o
  .text.load_value
-                0x00009438       0x54 ./src/tcc/tcc.o
+                0x00009460       0x54 ./src/tcc/tcc.o
  .text.gen_bounds_call
-                0x0000948c       0x38 ./src/tcc/tcc.o
+                0x000094b4       0x38 ./src/tcc/tcc.o
  .text.gjmp_addr_acs
-                0x000094c4       0x38 ./src/tcc/tcc.o
+                0x000094ec       0x38 ./src/tcc/tcc.o
  .text.asm_emit_coprocessor_data_transfer
-                0x000094fc       0xdc ./src/tcc/tcc.o
+                0x00009524       0xdc ./src/tcc/tcc.o
  .text.sym_push
-                0x000095d8       0xb4 ./src/tcc/tcc.o
+                0x00009600       0xb4 ./src/tcc/tcc.o
  .text.mk_pointer
-                0x0000968c       0x24 ./src/tcc/tcc.o
+                0x000096b4       0x24 ./src/tcc/tcc.o
  .text.convert_parameter_type
-                0x000096b0       0x16 ./src/tcc/tcc.o
+                0x000096d8       0x16 ./src/tcc/tcc.o
  .text.parse_btype_qualify
-                0x000096c6       0x2c ./src/tcc/tcc.o
- *fill*         0x000096f2        0x2 
+                0x000096ee       0x2c ./src/tcc/tcc.o
+ *fill*         0x0000971a        0x2 
  .text.get_sym_ref
-                0x000096f4       0x40 ./src/tcc/tcc.o
+                0x0000971c       0x40 ./src/tcc/tcc.o
  .text.tcc_write_elf_file
-                0x00009734      0x750 ./src/tcc/tcc.o
- .text.load     0x00009e84      0x328 ./src/tcc/tcc.o
+                0x0000975c      0x750 ./src/tcc/tcc.o
+ .text.load     0x00009eac      0x328 ./src/tcc/tcc.o
  .text.vla_restore
-                0x0000a1ac       0x26 ./src/tcc/tcc.o
- *fill*         0x0000a1d2        0x2 
+                0x0000a1d4       0x26 ./src/tcc/tcc.o
+ *fill*         0x0000a1fa        0x2 
  .text.vla_leave
-                0x0000a1d4       0x2c ./src/tcc/tcc.o
- .text.store    0x0000a200      0x150 ./src/tcc/tcc.o
+                0x0000a1fc       0x2c ./src/tcc/tcc.o
+ .text.store    0x0000a228      0x150 ./src/tcc/tcc.o
  .text.save_reg_upstack
-                0x0000a350      0x1ac ./src/tcc/tcc.o
- .text.get_reg  0x0000a4fc       0x98 ./src/tcc/tcc.o
+                0x0000a378      0x1ac ./src/tcc/tcc.o
+ .text.get_reg  0x0000a524       0x98 ./src/tcc/tcc.o
  .text.get_reg_ex
-                0x0000a594       0x60 ./src/tcc/tcc.o
+                0x0000a5bc       0x60 ./src/tcc/tcc.o
  .text.tcc_tcov_block_begin
-                0x0000a5f4      0x39c ./src/tcc/tcc.o
+                0x0000a61c      0x39c ./src/tcc/tcc.o
  .text.tcc_tcov_check_line
-                0x0000a990       0x48 ./src/tcc/tcc.o
- .text.gind     0x0000a9d8       0x44 ./src/tcc/tcc.o
+                0x0000a9b8       0x48 ./src/tcc/tcc.o
+ .text.gind     0x0000aa00       0x44 ./src/tcc/tcc.o
  .text.save_regs
-                0x0000aa1c       0x30 ./src/tcc/tcc.o
+                0x0000aa44       0x30 ./src/tcc/tcc.o
  .text.asm_gen_code
-                0x0000aa4c      0x1ac ./src/tcc/tcc.o
+                0x0000aa74      0x1ac ./src/tcc/tcc.o
  .text.build_got_entries
-                0x0000abf8      0x370 ./src/tcc/tcc.o
+                0x0000ac20      0x370 ./src/tcc/tcc.o
  .text.tok_alloc_new
-                0x0000af68       0xa4 ./src/tcc/tcc.o
+                0x0000af90       0xa4 ./src/tcc/tcc.o
  .text.tok_alloc
-                0x0000b00c       0x60 ./src/tcc/tcc.o
+                0x0000b034       0x60 ./src/tcc/tcc.o
  .text.tok_alloc_const
-                0x0000b06c       0x14 ./src/tcc/tcc.o
+                0x0000b094       0x14 ./src/tcc/tcc.o
  .text.asm2cname.part.67
-                0x0000b080       0x58 ./src/tcc/tcc.o
+                0x0000b0a8       0x58 ./src/tcc/tcc.o
  .text.asm_label_push
-                0x0000b0d8       0x34 ./src/tcc/tcc.o
+                0x0000b100       0x34 ./src/tcc/tcc.o
  .text.asm_label_find
-                0x0000b10c       0x3c ./src/tcc/tcc.o
+                0x0000b134       0x3c ./src/tcc/tcc.o
  .text.get_asm_sym
-                0x0000b148       0x1a ./src/tcc/tcc.o
+                0x0000b170       0x1a ./src/tcc/tcc.o
  .text.find_constraint
-                0x0000b162       0x86 ./src/tcc/tcc.o
+                0x0000b18a       0x86 ./src/tcc/tcc.o
  .text.asm_new_label1.isra.69
-                0x0000b1e8       0x8c ./src/tcc/tcc.o
+                0x0000b210       0x8c ./src/tcc/tcc.o
  .text.asm_new_label.isra.70
-                0x0000b274       0x24 ./src/tcc/tcc.o
+                0x0000b29c       0x24 ./src/tcc/tcc.o
  .text.gen_makedeps
-                0x0000b298      0x150 ./src/tcc/tcc.o
+                0x0000b2c0      0x150 ./src/tcc/tcc.o
  .text._tcc_warning
-                0x0000b3e8       0x1c ./src/tcc/tcc.o
-                0x0000b3e8                _tcc_warning
+                0x0000b410       0x1c ./src/tcc/tcc.o
+                0x0000b410                _tcc_warning
  .text.verify_assign_cast
-                0x0000b404      0x1c0 ./src/tcc/tcc.o
+                0x0000b42c      0x1c0 ./src/tcc/tcc.o
  .text.unlikely.type_incompatibility_warning
-                0x0000b5c4       0x3a ./src/tcc/tcc.o
- *fill*         0x0000b5fe        0x2 
+                0x0000b5ec       0x3a ./src/tcc/tcc.o
+ *fill*         0x0000b626        0x2 
  .text.combine_types
-                0x0000b600      0x29c ./src/tcc/tcc.o
+                0x0000b628      0x29c ./src/tcc/tcc.o
  .text.gen_cast
-                0x0000b89c      0x5f0 ./src/tcc/tcc.o
+                0x0000b8c4      0x5f0 ./src/tcc/tcc.o
  .text.gen_cast_s
-                0x0000be8c       0x14 ./src/tcc/tcc.o
+                0x0000beb4       0x14 ./src/tcc/tcc.o
  .text.force_charshort_cast
-                0x0000bea0       0x40 ./src/tcc/tcc.o
+                0x0000bec8       0x40 ./src/tcc/tcc.o
  .text.condition_3way
-                0x0000bee0       0x44 ./src/tcc/tcc.o
+                0x0000bf08       0x44 ./src/tcc/tcc.o
  .text.gen_assign_cast
-                0x0000bf24       0x12 ./src/tcc/tcc.o
- *fill*         0x0000bf36        0x2 
+                0x0000bf4c       0x12 ./src/tcc/tcc.o
+ *fill*         0x0000bf5e        0x2 
  .text.init_putv
-                0x0000bf38      0x26c ./src/tcc/tcc.o
- .text.gv       0x0000c1a4      0x3bc ./src/tcc/tcc.o
+                0x0000bf60      0x26c ./src/tcc/tcc.o
+ .text.gv       0x0000c1cc      0x3bc ./src/tcc/tcc.o
  .text.vcheck_cmp
-                0x0000c560       0x28 ./src/tcc/tcc.o
- .text.vsetc    0x0000c588       0x68 ./src/tcc/tcc.o
- .text.vpush64  0x0000c5f0       0x1c ./src/tcc/tcc.o
- .text.vpushi   0x0000c60c        0xa ./src/tcc/tcc.o
- .text.vpushs   0x0000c616        0xa ./src/tcc/tcc.o
+                0x0000c588       0x28 ./src/tcc/tcc.o
+ .text.vsetc    0x0000c5b0       0x68 ./src/tcc/tcc.o
+ .text.vpush64  0x0000c618       0x1c ./src/tcc/tcc.o
+ .text.vpushi   0x0000c634        0xa ./src/tcc/tcc.o
+ .text.vpushs   0x0000c63e        0xa ./src/tcc/tcc.o
  .text.vpushsym
-                0x0000c620       0x28 ./src/tcc/tcc.o
+                0x0000c648       0x28 ./src/tcc/tcc.o
  .text.vpush_helper_func
-                0x0000c648       0x20 ./src/tcc/tcc.o
+                0x0000c670       0x20 ./src/tcc/tcc.o
  .text.vpush_ref
-                0x0000c668       0x14 ./src/tcc/tcc.o
- .text.vset     0x0000c67c       0x14 ./src/tcc/tcc.o
+                0x0000c690       0x14 ./src/tcc/tcc.o
+ .text.vset     0x0000c6a4       0x14 ./src/tcc/tcc.o
  .text.vpush_type_size
-                0x0000c690       0x58 ./src/tcc/tcc.o
- .text.vpush    0x0000c6e8        0x8 ./src/tcc/tcc.o
- .text.vrotb    0x0000c6f0       0x60 ./src/tcc/tcc.o
- .text.vrott    0x0000c750       0x70 ./src/tcc/tcc.o
- .text.vswap    0x0000c7c0       0x4c ./src/tcc/tcc.o
+                0x0000c6b8       0x58 ./src/tcc/tcc.o
+ .text.vpush    0x0000c710        0x8 ./src/tcc/tcc.o
+ .text.vrotb    0x0000c718       0x60 ./src/tcc/tcc.o
+ .text.vrott    0x0000c778       0x70 ./src/tcc/tcc.o
+ .text.vswap    0x0000c7e8       0x4c ./src/tcc/tcc.o
  .text.gcall_or_jmp
-                0x0000c80c       0xd4 ./src/tcc/tcc.o
- .text.gv2      0x0000c8e0       0x80 ./src/tcc/tcc.o
- .text.lbuild   0x0000c960       0x2c ./src/tcc/tcc.o
- .text.lexpand  0x0000c98c       0x7c ./src/tcc/tcc.o
- .text.gv_dup   0x0000ca08       0x94 ./src/tcc/tcc.o
+                0x0000c834       0xd4 ./src/tcc/tcc.o
+ .text.gv2      0x0000c908       0x80 ./src/tcc/tcc.o
+ .text.lbuild   0x0000c988       0x2c ./src/tcc/tcc.o
+ .text.lexpand  0x0000c9b4       0x7c ./src/tcc/tcc.o
+ .text.gv_dup   0x0000ca30       0x94 ./src/tcc/tcc.o
  .text.gen_opic
-                0x0000ca9c      0xe78 ./src/tcc/tcc.o
- .text.gen_op   0x0000d914      0x26c ./src/tcc/tcc.o
+                0x0000cac4      0xe78 ./src/tcc/tcc.o
+ .text.gen_op   0x0000d93c      0x26c ./src/tcc/tcc.o
  .text.gvtst_set
-                0x0000db80       0x94 ./src/tcc/tcc.o
- .text.gvtst    0x0000dc14       0x80 ./src/tcc/tcc.o
+                0x0000dba8       0x94 ./src/tcc/tcc.o
+ .text.gvtst    0x0000dc3c       0x80 ./src/tcc/tcc.o
  .text.gtst_addr.constprop.131
-                0x0000dc94       0x16 ./src/tcc/tcc.o
- *fill*         0x0000dcaa        0x2 
+                0x0000dcbc       0x16 ./src/tcc/tcc.o
+ *fill*         0x0000dcd2        0x2 
  .text.incr_bf_adr
-                0x0000dcac       0x44 ./src/tcc/tcc.o
+                0x0000dcd4       0x44 ./src/tcc/tcc.o
  .text.gen_negf
-                0x0000dcf0       0x16 ./src/tcc/tcc.o
-                0x0000dcf0                gen_negf
- *fill*         0x0000dd06        0x2 
+                0x0000dd18       0x16 ./src/tcc/tcc.o
+                0x0000dd18                gen_negf
+ *fill*         0x0000dd2e        0x2 
  .text.gen_opif
-                0x0000dd08      0x3b8 ./src/tcc/tcc.o
- .text.vstore   0x0000e0c0      0x3d4 ./src/tcc/tcc.o
+                0x0000dd30      0x3b8 ./src/tcc/tcc.o
+ .text.vstore   0x0000e0e8      0x3d4 ./src/tcc/tcc.o
  .text.gfunc_call
-                0x0000e494      0x550 ./src/tcc/tcc.o
+                0x0000e4bc      0x550 ./src/tcc/tcc.o
  .text.gen_bounded_ptr_add
-                0x0000e9e4       0x80 ./src/tcc/tcc.o
- .text.gbound   0x0000ea64       0xd4 ./src/tcc/tcc.o
+                0x0000ea0c       0x80 ./src/tcc/tcc.o
+ .text.gbound   0x0000ea8c       0xd4 ./src/tcc/tcc.o
  .text.init_putz
-                0x0000eb38       0x40 ./src/tcc/tcc.o
+                0x0000eb60       0x40 ./src/tcc/tcc.o
  .text.try_call_scope_cleanup
-                0x0000eb78       0x50 ./src/tcc/tcc.o
+                0x0000eba0       0x50 ./src/tcc/tcc.o
  .text.leave_scope
-                0x0000ebc8       0x18 ./src/tcc/tcc.o
- .text.gcase    0x0000ebe0      0x134 ./src/tcc/tcc.o
- .text.indir    0x0000ed14       0x7c ./src/tcc/tcc.o
+                0x0000ebf0       0x18 ./src/tcc/tcc.o
+ .text.gcase    0x0000ec08      0x134 ./src/tcc/tcc.o
+ .text.indir    0x0000ed3c       0x7c ./src/tcc/tcc.o
  .text.gfunc_return.constprop.127
-                0x0000ed90      0x140 ./src/tcc/tcc.o
+                0x0000edb8      0x140 ./src/tcc/tcc.o
  .text.define_push
-                0x0000eed0      0x10c ./src/tcc/tcc.o
+                0x0000eef8      0x10c ./src/tcc/tcc.o
  .text.patch_storage
-                0x0000efdc      0x178 ./src/tcc/tcc.o
+                0x0000f004      0x178 ./src/tcc/tcc.o
  .text.external_sym
-                0x0000f154       0x74 ./src/tcc/tcc.o
+                0x0000f17c       0x74 ./src/tcc/tcc.o
  .text.label_pop
-                0x0000f1c8       0xc4 ./src/tcc/tcc.o
+                0x0000f1f0       0xc4 ./src/tcc/tcc.o
  .text.prev_scope
-                0x0000f28c      0x110 ./src/tcc/tcc.o
+                0x0000f2b4      0x110 ./src/tcc/tcc.o
  .text.parse_string
-                0x0000f39c      0x404 ./src/tcc/tcc.o
+                0x0000f3c4      0x404 ./src/tcc/tcc.o
  .text.tcc_define_symbol
-                0x0000f7a0       0x54 ./src/tcc/tcc.o
-                0x0000f7a0                tcc_define_symbol
+                0x0000f7c8       0x54 ./src/tcc/tcc.o
+                0x0000f7c8                tcc_define_symbol
  .text.tcc_undefine_symbol
-                0x0000f7f4       0x1c ./src/tcc/tcc.o
-                0x0000f7f4                tcc_undefine_symbol
+                0x0000f81c       0x1c ./src/tcc/tcc.o
+                0x0000f81c                tcc_undefine_symbol
  .text.tcc_delete
-                0x0000f810      0x160 ./src/tcc/tcc.o
-                0x0000f810                tcc_delete
+                0x0000f838      0x160 ./src/tcc/tcc.o
+                0x0000f838                tcc_delete
  .text.tcc_add_include_path
-                0x0000f970       0x16 ./src/tcc/tcc.o
-                0x0000f970                tcc_add_include_path
+                0x0000f998       0x16 ./src/tcc/tcc.o
+                0x0000f998                tcc_add_include_path
  .text.tcc_add_sysinclude_path
-                0x0000f986       0x16 ./src/tcc/tcc.o
-                0x0000f986                tcc_add_sysinclude_path
+                0x0000f9ae       0x16 ./src/tcc/tcc.o
+                0x0000f9ae                tcc_add_sysinclude_path
  .text.tcc_add_library_path
-                0x0000f99c       0x16 ./src/tcc/tcc.o
-                0x0000f99c                tcc_add_library_path
- *fill*         0x0000f9b2        0x2 
+                0x0000f9c4       0x16 ./src/tcc/tcc.o
+                0x0000f9c4                tcc_add_library_path
+ *fill*         0x0000f9da        0x2 
  .text.set_environment
-                0x0000f9b4       0x64 ./src/tcc/tcc.o
+                0x0000f9dc       0x64 ./src/tcc/tcc.o
  .text.tcc_set_lib_path
-                0x0000fa18       0x16 ./src/tcc/tcc.o
-                0x0000fa18                tcc_set_lib_path
- *fill*         0x0000fa2e        0x2 
- .text.tcc_new  0x0000fa30       0x60 ./src/tcc/tcc.o
-                0x0000fa30                tcc_new
+                0x0000fa40       0x16 ./src/tcc/tcc.o
+                0x0000fa40                tcc_set_lib_path
+ *fill*         0x0000fa56        0x2 
+ .text.tcc_new  0x0000fa58       0x60 ./src/tcc/tcc.o
+                0x0000fa58                tcc_new
  .text.tcc_parse_args
-                0x0000fa90      0xa08 ./src/tcc/tcc.o
-                0x0000fa90                tcc_parse_args
+                0x0000fab8      0xa08 ./src/tcc/tcc.o
+                0x0000fab8                tcc_parse_args
  .text.tcc_set_options
-                0x00010498       0x30 ./src/tcc/tcc.o
-                0x00010498                tcc_set_options
+                0x000104c0       0x30 ./src/tcc/tcc.o
+                0x000104c0                tcc_set_options
  .text.preprocess
-                0x000104c8      0xa24 ./src/tcc/tcc.o
+                0x000104f0      0xa24 ./src/tcc/tcc.o
  .text.next_nomacro1
-                0x00010eec      0x88c ./src/tcc/tcc.o
+                0x00010f14      0x88c ./src/tcc/tcc.o
  .text.next_nomacro
-                0x00011778       0x98 ./src/tcc/tcc.o
+                0x000117a0       0x98 ./src/tcc/tcc.o
  .text.next_argstream
-                0x00011810      0x11c ./src/tcc/tcc.o
+                0x00011838      0x11c ./src/tcc/tcc.o
  .text.macro_subst_tok
-                0x0001192c      0x81c ./src/tcc/tcc.o
- .text.next     0x00012148      0x51c ./src/tcc/tcc.o
+                0x00011954      0x81c ./src/tcc/tcc.o
+ .text.next     0x00012170      0x51c ./src/tcc/tcc.o
  .text.tcc_preprocess
-                0x00012664      0x28c ./src/tcc/tcc.o
+                0x0001268c      0x28c ./src/tcc/tcc.o
  .text.parse_include
-                0x000128f0      0x2a0 ./src/tcc/tcc.o
+                0x00012918      0x2a0 ./src/tcc/tcc.o
  .text.parse_mult_str
-                0x00012b90       0x50 ./src/tcc/tcc.o
+                0x00012bb8       0x50 ./src/tcc/tcc.o
  .text.asm_expr_logic.isra.89
-                0x00012be0       0x48 ./src/tcc/tcc.o
+                0x00012c08       0x48 ./src/tcc/tcc.o
  .text.asm_expr_sum.isra.90
-                0x00012c28       0xf8 ./src/tcc/tcc.o
+                0x00012c50       0xf8 ./src/tcc/tcc.o
  .text.asm_expr_cmp.isra.91
-                0x00012d20       0xc8 ./src/tcc/tcc.o
+                0x00012d48       0xc8 ./src/tcc/tcc.o
  .text.asm_int_expr.isra.93
-                0x00012de8       0x28 ./src/tcc/tcc.o
+                0x00012e10       0x28 ./src/tcc/tcc.o
  .text.set_symbol.isra.94
-                0x00012e10       0x44 ./src/tcc/tcc.o
+                0x00012e38       0x44 ./src/tcc/tcc.o
  .text.parse_operand.isra.95
-                0x00012e54      0x134 ./src/tcc/tcc.o
+                0x00012e7c      0x134 ./src/tcc/tcc.o
  .text.asm_parse_optional_shift.isra.100
-                0x00012f88       0x88 ./src/tcc/tcc.o
+                0x00012fb0       0x88 ./src/tcc/tcc.o
  .text.asm_coprocessor_opcode.isra.107
-                0x00013010      0x1f4 ./src/tcc/tcc.o
+                0x00013038      0x1f4 ./src/tcc/tcc.o
  .text.asm_coprocessor_data_transfer_opcode.isra.108
-                0x00013204      0x23c ./src/tcc/tcc.o
+                0x0001322c      0x23c ./src/tcc/tcc.o
  .text.asm_floating_point_data_processing_opcode.isra.111
-                0x00013440      0x6b8 ./src/tcc/tcc.o
+                0x00013468      0x6b8 ./src/tcc/tcc.o
  .text.skip_or_save_block
-                0x00013af8       0xac ./src/tcc/tcc.o
- .text.skip     0x00013ba4       0x48 ./src/tcc/tcc.o
+                0x00013b20       0xac ./src/tcc/tcc.o
+ .text.skip     0x00013bcc       0x48 ./src/tcc/tcc.o
  .text.parse_asm_str
-                0x00013bec       0x24 ./src/tcc/tcc.o
+                0x00013c14       0x24 ./src/tcc/tcc.o
  .text.tcc_assemble_internal
-                0x00013c10     0x1dc8 ./src/tcc/tcc.o
+                0x00013c38     0x1dc8 ./src/tcc/tcc.o
  .text.asm_parse_directive
-                0x000159d8      0x738 ./src/tcc/tcc.o
+                0x00015a00      0x738 ./src/tcc/tcc.o
  .text.tcc_assemble_inline
-                0x00016110       0x90 ./src/tcc/tcc.o
+                0x00016138       0x90 ./src/tcc/tcc.o
  .text.struct_decl
-                0x000161a0      0x944 ./src/tcc/tcc.o
+                0x000161c8      0x944 ./src/tcc/tcc.o
  .text.parse_btype
-                0x00016ae4      0x468 ./src/tcc/tcc.o
- .text.decl     0x00016f4c      0x68c ./src/tcc/tcc.o
- .text.block    0x000175d8      0x934 ./src/tcc/tcc.o
- .text.unary    0x00017f0c     0x1024 ./src/tcc/tcc.o
+                0x00016b0c      0x468 ./src/tcc/tcc.o
+ .text.decl     0x00016f74      0x68c ./src/tcc/tcc.o
+ .text.block    0x00017600      0x934 ./src/tcc/tcc.o
+ .text.unary    0x00017f34     0x1024 ./src/tcc/tcc.o
  .text.expr_infix
-                0x00018f30      0x108 ./src/tcc/tcc.o
+                0x00018f58      0x108 ./src/tcc/tcc.o
  .text.expr_cond
-                0x00019038      0x324 ./src/tcc/tcc.o
+                0x00019060      0x324 ./src/tcc/tcc.o
  .text.expr_const1
-                0x0001935c       0x38 ./src/tcc/tcc.o
+                0x00019384       0x38 ./src/tcc/tcc.o
  .text.expr_const64
-                0x00019394       0x44 ./src/tcc/tcc.o
+                0x000193bc       0x44 ./src/tcc/tcc.o
  .text.expr_const
-                0x000193d8       0x34 ./src/tcc/tcc.o
+                0x00019400       0x34 ./src/tcc/tcc.o
  .text.expr_preprocess
-                0x0001940c      0x1ec ./src/tcc/tcc.o
+                0x00019434      0x1ec ./src/tcc/tcc.o
  .text.parse_attribute
-                0x000195f8      0x3d8 ./src/tcc/tcc.o
- .text.expr_eq  0x000199d0       0x58 ./src/tcc/tcc.o
+                0x00019620      0x3d8 ./src/tcc/tcc.o
+ .text.expr_eq  0x000199f8       0x58 ./src/tcc/tcc.o
  .text.parse_init_elem
-                0x00019a28       0x6c ./src/tcc/tcc.o
+                0x00019a50       0x6c ./src/tcc/tcc.o
  .text.decl_initializer
-                0x00019a94      0x750 ./src/tcc/tcc.o
+                0x00019abc      0x750 ./src/tcc/tcc.o
  .text.decl_initializer_alloc
-                0x0001a1e4      0x570 ./src/tcc/tcc.o
- .text.gexpr    0x0001a754       0x24 ./src/tcc/tcc.o
+                0x0001a20c      0x570 ./src/tcc/tcc.o
+ .text.gexpr    0x0001a77c       0x24 ./src/tcc/tcc.o
  .text.post_type
-                0x0001a778      0x42c ./src/tcc/tcc.o
+                0x0001a7a0      0x42c ./src/tcc/tcc.o
  .text.type_decl
-                0x0001aba4      0x120 ./src/tcc/tcc.o
+                0x0001abcc      0x120 ./src/tcc/tcc.o
  .text.parse_expr_type
-                0x0001acc4       0x48 ./src/tcc/tcc.o
+                0x0001acec       0x48 ./src/tcc/tcc.o
  .text.parse_builtin_params
-                0x0001ad0c       0xf0 ./src/tcc/tcc.o
+                0x0001ad34       0xf0 ./src/tcc/tcc.o
  .text.func_vla_arg_code
-                0x0001adfc       0xa0 ./src/tcc/tcc.o
+                0x0001ae24       0xa0 ./src/tcc/tcc.o
  .text.parse_asm_operands
-                0x0001ae9c      0x110 ./src/tcc/tcc.o
+                0x0001aec4      0x110 ./src/tcc/tcc.o
  .text.asm_instr
-                0x0001afac      0x898 ./src/tcc/tcc.o
+                0x0001afd4      0x898 ./src/tcc/tcc.o
  .text.gen_function
-                0x0001b844      0x964 ./src/tcc/tcc.o
- .text.lblock   0x0001c1a8       0x44 ./src/tcc/tcc.o
+                0x0001b86c      0x964 ./src/tcc/tcc.o
+ .text.lblock   0x0001c1d0       0x44 ./src/tcc/tcc.o
  .text.tcc_compile
-                0x0001c1ec      0xcac ./src/tcc/tcc.o
+                0x0001c214      0xcac ./src/tcc/tcc.o
  .text.tcc_add_file_internal
-                0x0001ce98      0x544 ./src/tcc/tcc.o
+                0x0001cec0      0x544 ./src/tcc/tcc.o
  .text.tcc_add_library_internal
-                0x0001d3dc       0x50 ./src/tcc/tcc.o
+                0x0001d404       0x50 ./src/tcc/tcc.o
  .text.tcc_add_crt
-                0x0001d42c       0x50 ./src/tcc/tcc.o
+                0x0001d454       0x50 ./src/tcc/tcc.o
  .text.tcc_set_output_type
-                0x0001d47c      0x384 ./src/tcc/tcc.o
-                0x0001d47c                tcc_set_output_type
+                0x0001d4a4      0x384 ./src/tcc/tcc.o
+                0x0001d4a4                tcc_set_output_type
  .text.tcc_add_library
-                0x0001d800       0x48 ./src/tcc/tcc.o
-                0x0001d800                tcc_add_library
+                0x0001d828       0x48 ./src/tcc/tcc.o
+                0x0001d828                tcc_add_library
  .text.tcc_add_library_err
-                0x0001d848       0x30 ./src/tcc/tcc.o
-                0x0001d848                tcc_add_library_err
+                0x0001d870       0x30 ./src/tcc/tcc.o
+                0x0001d870                tcc_add_library_err
  .text.tcc_add_support
-                0x0001d878       0x50 ./src/tcc/tcc.o
+                0x0001d8a0       0x50 ./src/tcc/tcc.o
  .text.ld_add_file
-                0x0001d8c8       0x44 ./src/tcc/tcc.o
+                0x0001d8f0       0x44 ./src/tcc/tcc.o
  .text.ld_add_file_list
-                0x0001d90c      0x1ec ./src/tcc/tcc.o
+                0x0001d934      0x1ec ./src/tcc/tcc.o
  .text.tcc_load_ldscript
-                0x0001daf8       0xec ./src/tcc/tcc.o
+                0x0001db20       0xec ./src/tcc/tcc.o
  .text.tcc_add_file
-                0x0001dbe4       0xb0 ./src/tcc/tcc.o
-                0x0001dbe4                tcc_add_file
+                0x0001dc0c       0xb0 ./src/tcc/tcc.o
+                0x0001dc0c                tcc_add_file
  .text.tcc_compile_string
-                0x0001dc94        0xc ./src/tcc/tcc.o
-                0x0001dc94                tcc_compile_string
+                0x0001dcbc        0xc ./src/tcc/tcc.o
+                0x0001dcbc                tcc_compile_string
  .text.elf_output_file
-                0x0001dca0     0x1964 ./src/tcc/tcc.o
+                0x0001dcc8     0x1964 ./src/tcc/tcc.o
  .text.tcc_tcov_add_file
-                0x0001f604      0x10c ./src/tcc/tcc.o
+                0x0001f62c      0x10c ./src/tcc/tcc.o
  .text.tcc_output_file
-                0x0001f710       0x74 ./src/tcc/tcc.o
-                0x0001f710                tcc_output_file
+                0x0001f738       0x74 ./src/tcc/tcc.o
+                0x0001f738                tcc_output_file
  .text.macro_subst
-                0x0001f784      0x118 ./src/tcc/tcc.o
+                0x0001f7ac      0x118 ./src/tcc/tcc.o
  .text.tcc_print_stats
-                0x0001f89c       0x90 ./src/tcc/tcc.o
-                0x0001f89c                tcc_print_stats
+                0x0001f8c4       0x90 ./src/tcc/tcc.o
+                0x0001f8c4                tcc_print_stats
  .text.startup.main
-                0x0001f92c      0x3d0 ./src/tcc/tcc.o
-                0x0001f92c                main
+                0x0001f954      0x3d0 ./src/tcc/tcc.o
+                0x0001f954                main
  .text.localtime
-                0x0001fcfc       0x18 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(localtime.o)
-                0x0001fcfc                localtime
+                0x0001fd24       0x18 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(localtime.o)
+                0x0001fd24                localtime
  .text.localtime_r
-                0x0001fd14       0x28 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(localtime_r.o)
-                0x0001fd14                localtime_r
+                0x0001fd3c       0x28 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(localtime_r.o)
+                0x0001fd3c                localtime_r
  .text.__myntohl
-                0x0001fd3c       0x16 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
- *fill*         0x0001fd52        0x2 
+                0x0001fd64       0x16 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
+ *fill*         0x0001fd7a        0x2 
  .text.__maplocaltime
-                0x0001fd54       0x9c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
-                0x0001fd54                __maplocaltime
+                0x0001fd7c       0x9c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
+                0x0001fd7c                __maplocaltime
  .text.__tzfile_map
-                0x0001fdf0      0x104 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
-                0x0001fdf0                __tzfile_map
+                0x0001fe18      0x104 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
+                0x0001fe18                __tzfile_map
  .text.fclose_unlocked
-                0x0001fef4       0x50 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fclose.o)
-                0x0001fef4                fclose
-                0x0001fef4                fclose_unlocked
+                0x0001ff1c       0x50 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fclose.o)
+                0x0001ff1c                fclose
+                0x0001ff1c                fclose_unlocked
  .text.fdopen_unlocked
-                0x0001ff44       0x28 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fdopen.o)
-                0x0001ff44                fdopen
-                0x0001ff44                fdopen_unlocked
+                0x0001ff6c       0x28 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fdopen.o)
+                0x0001ff6c                fdopen
+                0x0001ff6c                fdopen_unlocked
  .text.fflush_unlocked
-                0x0001ff6c       0x84 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fflush.o)
-                0x0001ff6c                fflush_unlocked
-                0x0001ff6c                fflush
+                0x0001ff94       0x84 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fflush.o)
+                0x0001ff94                fflush_unlocked
+                0x0001ff94                fflush
  .text.__stdio_flushall
-                0x0001fff0        0xa D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fflush.o)
-                0x0001fff0                __stdio_flushall
- *fill*         0x0001fffa        0x2 
+                0x00020018        0xa D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fflush.o)
+                0x00020018                __stdio_flushall
+ *fill*         0x00020022        0x2 
  .text.__fflush4
-                0x0001fffc       0x64 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fflush.o)
-                0x0001fffc                __fflush4
+                0x00020024       0x64 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fflush.o)
+                0x00020024                __fflush4
  .text.__stdio_outs
-                0x00020060       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fflush.o)
-                0x00020060                __stdio_outs
+                0x00020088       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fflush.o)
+                0x00020088                __stdio_outs
  .text.fopen_unlocked
-                0x00020080       0x2c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fopen.o)
-                0x00020080                fopen
-                0x00020080                fopen_unlocked
- .text.fprintf  0x000200ac       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fprintf.o)
-                0x000200ac                fprintf
+                0x000200a8       0x2c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fopen.o)
+                0x000200a8                fopen
+                0x000200a8                fopen_unlocked
+ .text.fprintf  0x000200d4       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fprintf.o)
+                0x000200d4                fprintf
  .text.fputc_unlocked
-                0x000200c6       0x88 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fputc_unlocked.o)
-                0x000200c6                fputc_unlocked
-                0x000200c6                fputc
+                0x000200ee       0x88 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fputc_unlocked.o)
+                0x000200ee                fputc_unlocked
+                0x000200ee                fputc
  .text.fputs_unlocked
-                0x0002014e       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fputs.o)
-                0x0002014e                fputs
-                0x0002014e                fputs_unlocked
+                0x00020176       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fputs.o)
+                0x00020176                fputs
+                0x00020176                fputs_unlocked
  .text.fread_unlocked
-                0x00020168      0x116 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fread.o)
-                0x00020168                fread_unlocked
-                0x00020168                fread
+                0x00020190      0x116 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fread.o)
+                0x00020190                fread_unlocked
+                0x00020190                fread
  .text.fseek_unlocked
-                0x0002027e       0x34 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fseek.o)
-                0x0002027e                fseek
-                0x0002027e                fseek_unlocked
+                0x000202a6       0x34 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fseek.o)
+                0x000202a6                fseek
+                0x000202a6                fseek_unlocked
  .text.ftell_unlocked
-                0x000202b2       0x38 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(ftell.o)
-                0x000202b2                ftell_unlocked
-                0x000202b2                ftell
+                0x000202da       0x38 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(ftell.o)
+                0x000202da                ftell_unlocked
+                0x000202da                ftell
  .text.fwrite_unlocked
-                0x000202ea      0x124 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fwrite.o)
-                0x000202ea                fwrite
-                0x000202ea                fwrite_unlocked
- .text.printf   0x0002040e       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(printf.o)
-                0x0002040e                printf
+                0x00020312      0x124 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fwrite.o)
+                0x00020312                fwrite
+                0x00020312                fwrite_unlocked
+ .text.printf   0x00020436       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(printf.o)
+                0x00020436                printf
  .text.__fflush_stderr
-                0x00020428       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stderr.o)
-                0x00020428                __fflush_stderr
+                0x00020450       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stderr.o)
+                0x00020450                __fflush_stderr
  .text.__stdin_is_tty
-                0x00020438       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stdin.o)
-                0x00020438                __stdin_is_tty
+                0x00020460       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stdin.o)
+                0x00020460                __stdin_is_tty
  .text.__fflush_stdout
-                0x00020458       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stdout.o)
-                0x00020458                __fflush_stdout
+                0x00020480       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stdout.o)
+                0x00020480                __fflush_stdout
  .text.__fwrite
-                0x00020468       0x12 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vfprintf.o)
- *fill*         0x0002047a        0x2 
+                0x00020490       0x12 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vfprintf.o)
+ *fill*         0x000204a2        0x2 
  .text.vfprintf
-                0x0002047c       0x1c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vfprintf.o)
-                0x0002047c                vfprintf
- .text.vprintf  0x00020498       0x24 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vprintf.o)
-                0x00020498                vprintf
- .text.getcwd   0x000204bc       0x28 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__getcwd.o)
-                0x000204bc                getcwd
- .text.mmap     0x000204e4       0x26 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__mmap.o)
-                0x000204e4                mmap
- .text.time     0x0002050a       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__time.o)
-                0x0002050a                time
- *fill*         0x0002052a        0x2 
+                0x000204a4       0x1c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vfprintf.o)
+                0x000204a4                vfprintf
+ .text.vprintf  0x000204c0       0x24 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vprintf.o)
+                0x000204c0                vprintf
+ .text.getcwd   0x000204e4       0x28 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__getcwd.o)
+                0x000204e4                getcwd
+ .text.mmap     0x0002050c       0x26 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__mmap.o)
+                0x0002050c                mmap
+ .text.time     0x00020532       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__time.o)
+                0x00020532                time
+ *fill*         0x00020552        0x2 
  .text.write_pad
-                0x0002052c       0x7c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_printf.o)
+                0x00020554       0x7c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_printf.o)
  .text.__v_printf
-                0x000205a8      0x47c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_printf.o)
-                0x000205a8                __v_printf
+                0x000205d0      0x47c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_printf.o)
+                0x000205d0                __v_printf
  .text.get_index
-                0x00020a24       0x12 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(alloc.o)
- *fill*         0x00020a36        0x2 
+                0x00020a4c       0x12 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(alloc.o)
+ *fill*         0x00020a5e        0x2 
  .text._alloc_libc_free
-                0x00020a38       0x4c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(alloc.o)
-                0x00020a38                free
-                0x00020a38                __libc_free
+                0x00020a60       0x4c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(alloc.o)
+                0x00020a60                free
+                0x00020a60                __libc_free
  .text._alloc_libc_malloc
-                0x00020a84       0xb8 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(alloc.o)
-                0x00020a84                __libc_malloc
-                0x00020a84                malloc
+                0x00020aac       0xb8 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(alloc.o)
+                0x00020aac                __libc_malloc
+                0x00020aac                malloc
  .text.__libc_realloc
-                0x00020b3c       0xa4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(alloc.o)
-                0x00020b3c                realloc
-                0x00020b3c                __libc_realloc
- .text.atexit   0x00020be0       0x2c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(atexit.o)
-                0x00020be0                atexit
+                0x00020b64       0xa4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(alloc.o)
+                0x00020b64                realloc
+                0x00020b64                __libc_realloc
+ .text.atexit   0x00020c08       0x2c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(atexit.o)
+                0x00020c08                atexit
  .text.__libc_exit
-                0x00020c0c       0x30 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(atexit.o)
-                0x00020c0c                exit
-                0x00020c0c                __libc_exit
- .text.atol     0x00020c3c       0x4c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(atol.o)
-                0x00020c3c                atoi
-                0x00020c3c                atol
+                0x00020c34       0x30 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(atexit.o)
+                0x00020c34                exit
+                0x00020c34                __libc_exit
+ .text.atol     0x00020c64       0x4c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(atol.o)
+                0x00020c64                atoi
+                0x00020c64                atol
  .text.__errno_location
-                0x00020c88       0x14 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(errno_location.o)
-                0x00020c88                __errno_location
- .text.getenv   0x00020c9c       0x44 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(getenv.o)
-                0x00020c9c                getenv
- .text.htonl    0x00020ce0        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(htonl.o)
-                0x00020ce0                htonl
-                0x00020ce0                ntohl
- .text.isatty   0x00020ce4       0x2a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isatty.o)
-                0x00020ce4                isatty
+                0x00020cb0       0x14 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(errno_location.o)
+                0x00020cb0                __errno_location
+ .text.getenv   0x00020cc4       0x44 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(getenv.o)
+                0x00020cc4                getenv
+ .text.htonl    0x00020d08        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(htonl.o)
+                0x00020d08                htonl
+                0x00020d08                ntohl
+ .text.isatty   0x00020d0c       0x2a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isatty.o)
+                0x00020d0c                isatty
  .text.__libc_longjmp
-                0x00020d0e       0x26 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(longjmp.o)
-                0x00020d0e                __siglongjmp
-                0x00020d0e                siglongjmp
-                0x00020d0e                __libc_longjmp
-                0x00020d0e                longjmp
- .text.memcmp   0x00020d34       0x1c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memcmp.o)
-                0x00020d34                memcmp
-                0x00020d34                bcmp
- .text.memcpy   0x00020d50       0x80 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memcpy.o)
-                0x00020d50                memcpy
- .text.memmove  0x00020dd0       0x36 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memmove.o)
-                0x00020dd0                memmove
- .text.memset   0x00020e06       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memset.o)
-                0x00020e06                memset
- .text.exch     0x00020e16       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(qsort.o)
+                0x00020d36       0x26 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(longjmp.o)
+                0x00020d36                __siglongjmp
+                0x00020d36                siglongjmp
+                0x00020d36                __libc_longjmp
+                0x00020d36                longjmp
+ .text.memcmp   0x00020d5c       0x1c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memcmp.o)
+                0x00020d5c                memcmp
+                0x00020d5c                bcmp
+ .text.memcpy   0x00020d78       0x80 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memcpy.o)
+                0x00020d78                memcpy
+ .text.memmove  0x00020df8       0x36 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memmove.o)
+                0x00020df8                memmove
+ .text.memset   0x00020e2e       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memset.o)
+                0x00020e2e                memset
+ .text.exch     0x00020e3e       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(qsort.o)
  .text.quicksort
-                0x00020e36      0x136 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(qsort.o)
- .text.qsort    0x00020f6c       0x28 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(qsort.o)
-                0x00020f6c                qsort
- .text.rand     0x00020f94       0x18 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(rand.o)
-                0x00020f94                rand
-                0x00020f94                random
- .text.rand_r   0x00020fac       0x38 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(rand_r.o)
-                0x00020fac                rand_r
- .text.remove   0x00020fe4       0x24 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(remove.o)
-                0x00020fe4                remove
+                0x00020e5e      0x136 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(qsort.o)
+ .text.qsort    0x00020f94       0x28 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(qsort.o)
+                0x00020f94                qsort
+ .text.rand     0x00020fbc       0x18 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(rand.o)
+                0x00020fbc                rand
+                0x00020fbc                random
+ .text.rand_r   0x00020fd4       0x38 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(rand_r.o)
+                0x00020fd4                rand_r
+ .text.remove   0x0002100c       0x24 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(remove.o)
+                0x0002100c                remove
  .text.sigprocmask
-                0x00021008        0x6 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sigprocmask.o)
-                0x00021008                sigprocmask
+                0x00021030        0x6 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sigprocmask.o)
+                0x00021030                sigprocmask
  .text.snprintf
-                0x0002100e       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(snprintf.o)
-                0x0002100e                snprintf
- .text.sprintf  0x00021028       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sprintf.o)
-                0x00021028                sprintf
- .text.sscanf   0x00021042       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sscanf.o)
-                0x00021042                sscanf
- .text.strchr   0x0002105c       0x36 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strchr.o)
-                0x0002105c                strchr
-                0x0002105c                index
- *fill*         0x00021092        0x2 
- .text.strcmp   0x00021094       0xac D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strcmp.o)
-                0x00021094                strcmp
-                0x00021094                strcoll
- .text.strcpy   0x00021140       0x80 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strcpy.o)
-                0x00021140                strcpy
+                0x00021036       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(snprintf.o)
+                0x00021036                snprintf
+ .text.sprintf  0x00021050       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sprintf.o)
+                0x00021050                sprintf
+ .text.sscanf   0x0002106a       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sscanf.o)
+                0x0002106a                sscanf
+ .text.strchr   0x00021084       0x36 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strchr.o)
+                0x00021084                strchr
+                0x00021084                index
+ *fill*         0x000210ba        0x2 
+ .text.strcmp   0x000210bc       0xac D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strcmp.o)
+                0x000210bc                strcmp
+                0x000210bc                strcoll
+ .text.strcpy   0x00021168       0x80 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strcpy.o)
+                0x00021168                strcpy
  .text.strerror
-                0x000211c0       0x14 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strerror.o)
-                0x000211c0                strerror
- .text.strlen   0x000211d4       0x64 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strlen.o)
-                0x000211d4                strlen
- .text.strncmp  0x00021238       0x22 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strncmp.o)
-                0x00021238                strncmp
- .text.strncpy  0x0002125a       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strncpy.o)
-                0x0002125a                strncpy
- .text.strrchr  0x0002126a       0x34 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strrchr.o)
-                0x0002126a                rindex
-                0x0002126a                strrchr
- .text.strstr   0x0002129e       0x52 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strstr.o)
-                0x0002129e                strstr
- .text.strtol   0x000212f0       0x8c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strtol.o)
-                0x000212f0                strtol
- .text.strtoll  0x0002137c       0xa4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strtoll.o)
-                0x0002137c                strtoll
-                0x0002137c                strtoimax
- .text.strtoul  0x00021420      0x110 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strtoul.o)
-                0x00021420                strtoul
+                0x000211e8       0x14 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strerror.o)
+                0x000211e8                strerror
+ .text.strlen   0x000211fc       0x64 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strlen.o)
+                0x000211fc                strlen
+ .text.strncmp  0x00021260       0x22 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strncmp.o)
+                0x00021260                strncmp
+ .text.strncpy  0x00021282       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strncpy.o)
+                0x00021282                strncpy
+ .text.strrchr  0x00021292       0x34 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strrchr.o)
+                0x00021292                rindex
+                0x00021292                strrchr
+ .text.strstr   0x000212c6       0x52 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strstr.o)
+                0x000212c6                strstr
+ .text.strtol   0x00021318       0x8c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strtol.o)
+                0x00021318                strtol
+ .text.strtoll  0x000213a4       0xa4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strtoll.o)
+                0x000213a4                strtoll
+                0x000213a4                strtoimax
+ .text.strtoul  0x00021448      0x110 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strtoul.o)
+                0x00021448                strtoul
  .text.strtoull
-                0x00021530      0x150 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strtoull.o)
-                0x00021530                strtoull
-                0x00021530                strtouq
-                0x00021530                strtoumax
- .text.swrite   0x00021680       0x38 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsnprintf.o)
+                0x00021558      0x150 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(strtoull.o)
+                0x00021558                strtoull
+                0x00021558                strtouq
+                0x00021558                strtoumax
+ .text.swrite   0x000216a8       0x38 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsnprintf.o)
  .text.vsnprintf
-                0x000216b8       0x54 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsnprintf.o)
-                0x000216b8                vsnprintf
+                0x000216e0       0x54 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsnprintf.o)
+                0x000216e0                vsnprintf
  .text.vsprintf
-                0x0002170c       0x12 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsprintf.o)
-                0x0002170c                vsprintf
- .text.sgetc    0x0002171e       0x12 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsscanf.o)
- .text.sputc    0x00021730       0x14 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsscanf.o)
- .text.vsscanf  0x00021744       0x30 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsscanf.o)
-                0x00021744                vsscanf
+                0x00021734       0x12 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsprintf.o)
+                0x00021734                vsprintf
+ .text.sgetc    0x00021746       0x12 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsscanf.o)
+ .text.sputc    0x00021758       0x14 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsscanf.o)
+ .text.vsscanf  0x0002176c       0x30 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsscanf.o)
+                0x0002176c                vsscanf
  .text.find_in_auxvec
-                0x00021774       0x14 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stackgap-g.o)
+                0x0002179c       0x14 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stackgap-g.o)
  .text.__setup_tls
-                0x00021788       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stackgap-g.o)
-                0x00021788                __setup_tls
+                0x000217b0       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stackgap-g.o)
+                0x000217b0                __setup_tls
  .text.stackgap
-                0x000217a8      0x1cc D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stackgap-g.o)
-                0x000217a8                stackgap
+                0x000217d0      0x1cc D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stackgap-g.o)
+                0x000217d0                stackgap
  .text.gmtime_r
-                0x00021974       0xa8 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(gmtime_r.o)
-                0x00021974                gmtime_r
+                0x0002199c       0xa8 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(gmtime_r.o)
+                0x0002199c                gmtime_r
  .text.__isleap
-                0x00021a1c       0x2c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isleap.o)
-                0x00021a1c                __isleap
+                0x00021a44       0x2c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isleap.o)
+                0x00021a44                __isleap
  .text.__stdio_parse_mode
-                0x00021a48       0x3e D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fdglue.o)
-                0x00021a48                __stdio_parse_mode
- *fill*         0x00021a86        0x2 
+                0x00021a70       0x3e D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fdglue.o)
+                0x00021a70                __stdio_parse_mode
+ *fill*         0x00021aae        0x2 
  .text.__stdio_init_file
-                0x00021a88       0xcc D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fdglue2.o)
-                0x00021a88                __stdio_init_file_nothreads
-                0x00021a88                __stdio_init_file
+                0x00021ab0       0xcc D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fdglue2.o)
+                0x00021ab0                __stdio_init_file_nothreads
+                0x00021ab0                __stdio_init_file
  .text.fgetc_unlocked
-                0x00021b54       0x7e D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fgetc_unlocked.o)
-                0x00021b54                fgetc_unlocked
-                0x00021b54                fgetc
+                0x00021b7c       0x7e D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fgetc_unlocked.o)
+                0x00021b7c                fgetc_unlocked
+                0x00021b7c                fgetc
  .text.__ltostr
-                0x00021bd2       0x5e D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__ltostr.o)
-                0x00021bd2                __ltostr
+                0x00021bfa       0x5e D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__ltostr.o)
+                0x00021bfa                __ltostr
  .text.__v_scanf
-                0x00021c30      0x4e2 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_scanf.o)
-                0x00021c30                __v_scanf
- .text.isalnum  0x00022112       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isalnum.o)
-                0x00022112                isalnum
+                0x00021c58      0x4e2 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_scanf.o)
+                0x00021c58                __v_scanf
+ .text.isalnum  0x0002213a       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isalnum.o)
+                0x0002213a                isalnum
  .text.__isspace_ascii
-                0x0002212c       0x16 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isspace.o)
-                0x0002212c                __isspace_ascii
-                0x0002212c                isspace
+                0x00022154       0x16 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isspace.o)
+                0x00022154                __isspace_ascii
+                0x00022154                isspace
  .text.__isxdigit_ascii
-                0x00022142       0x1c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isxdigit.o)
-                0x00022142                __isxdigit_ascii
-                0x00022142                isxdigit
- .text.memccpy  0x0002215e       0x1c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memccpy.o)
-                0x0002215e                memccpy
+                0x0002216a       0x1c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isxdigit.o)
+                0x0002216a                __isxdigit_ascii
+                0x0002216a                isxdigit
+ .text.memccpy  0x00022186       0x1c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memccpy.o)
+                0x00022186                memccpy
  .text.__sigjmp_save
-                0x0002217a       0x24 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sigjmp.o)
-                0x0002217a                __sigjmp_save
- *fill*         0x0002219e        0x2 
- .text.__main   0x000221a0       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__main.o)
-                0x000221a0                __main
- .text.reloc    0x000221c0       0x84 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(reloc.o)
-                0x000221c0                reloc
+                0x000221a2       0x24 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sigjmp.o)
+                0x000221a2                __sigjmp_save
+ *fill*         0x000221c6        0x2 
+ .text.__main   0x000221c8       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__main.o)
+                0x000221c8                __main
+ .text.reloc    0x000221e8       0x84 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(reloc.o)
+                0x000221e8                reloc
  .text.feof_unlocked
-                0x00022244       0x12 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(feof.o)
-                0x00022244                feof_unlocked
-                0x00022244                feof
+                0x0002226c       0x12 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(feof.o)
+                0x0002226c                feof_unlocked
+                0x0002226c                feof
  *(.init)
  *(.fini)
  *crtbegin.o(.ctors)
@@ -1976,228 +1978,228 @@ LOAD D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-e
  *(.dtors)
  *(SORT(.rodata.*))
  .rodata.CSWTCH.1718
-                0x00022256       0x61 ./src/tcc/tcc.o
+                0x0002227e       0x61 ./src/tcc/tcc.o
  .rodata.CSWTCH.1723
-                0x000222b7        0x3 ./src/tcc/tcc.o
+                0x000222df        0x3 ./src/tcc/tcc.o
  .rodata.CSWTCH.2165
-                0x000222ba       0x15 ./src/tcc/tcc.o
+                0x000222e2       0x15 ./src/tcc/tcc.o
  .rodata.CSWTCH.2166
-                0x000222cf       0x15 ./src/tcc/tcc.o
+                0x000222f7       0x15 ./src/tcc/tcc.o
  .rodata.__FUNCTION__.14042
-                0x000222e4        0xc ./src/tcc/tcc.o
+                0x0002230c        0xc ./src/tcc/tcc.o
  .rodata.__FUNCTION__.18098
-                0x000222f0       0x12 ./src/tcc/tcc.o
- .rodata.__spm  0x00022302       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(time_table_spd.o)
-                0x00022302                __spm
+                0x00022318       0x12 ./src/tcc/tcc.o
+ .rodata.__spm  0x0002232a       0x1a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(time_table_spd.o)
+                0x0002232a                __spm
  .rodata.__sys_err_unknown
-                0x0002231c       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(errlistu.o)
-                0x0002231c                __sys_err_unknown
+                0x00022344       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(errlistu.o)
+                0x00022344                __sys_err_unknown
  .rodata.ab_month_name
-                0x0002232c       0x30 ./src/tcc/tcc.o
+                0x00022354       0x30 ./src/tcc/tcc.o
  .rodata.arhdr_init.18842
-                0x0002235c       0x3c ./src/tcc/tcc.o
+                0x00022384       0x3c ./src/tcc/tcc.o
  .rodata.arm_attr.16143
-                0x00022398       0x2d ./src/tcc/tcc.o
+                0x000223c0       0x2d ./src/tcc/tcc.o
  .rodata.dwarf_abbrev_init
-                0x000223c5      0x125 ./src/tcc/tcc.o
+                0x000223ed      0x125 ./src/tcc/tcc.o
  .rodata.dwarf_line_opcodes
-                0x000224ea        0xc ./src/tcc/tcc.o
- .rodata.help   0x000224f6      0x87a ./src/tcc/tcc.o
- .rodata.help2  0x00022d70      0xa30 ./src/tcc/tcc.o
+                0x00022512        0xc ./src/tcc/tcc.o
+ .rodata.help   0x0002251e      0x87a ./src/tcc/tcc.o
+ .rodata.help2  0x00022d98      0xa30 ./src/tcc/tcc.o
  .rodata.pad_line
-                0x000237a0       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_printf.o)
- .rodata.rdata  0x000237c0        0x9 ./src/tcc/tcc.o
- *fill*         0x000237c9        0x3 
+                0x000237c8       0x20 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_printf.o)
+ .rodata.rdata  0x000237e8        0x9 ./src/tcc/tcc.o
+ *fill*         0x000237f1        0x3 
  .rodata.reg_classes
-                0x000237cc       0x34 ./src/tcc/tcc.o
+                0x000237f4       0x34 ./src/tcc/tcc.o
  .rodata.reg_saved.18114
-                0x00023800        0x8 ./src/tcc/tcc.o
+                0x00023828        0x8 ./src/tcc/tcc.o
  .rodata.str1.1
-                0x00023808     0x3d75 ./src/tcc/tcc.o
+                0x00023830     0x3d75 ./src/tcc/tcc.o
                                0x3f46 (size before relaxing)
  .rodata.str1.1
-                0x0002757d       0x13 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
+                0x000275a5       0x13 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
  .rodata.str1.1
-                0x00027590        0x7 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_printf.o)
+                0x000275b8        0x7 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_printf.o)
  .rodata.str1.1
-                0x00027597       0x14 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stackgap-g.o)
+                0x000275bf       0x14 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stackgap-g.o)
  .rodata.tcc_keywords
-                0x000275ab     0x5ee6 ./src/tcc/tcc.o
+                0x000275d3     0x5ee6 ./src/tcc/tcc.o
  .rodata.tok_two_chars
-                0x0002d491       0x43 ./src/tcc/tcc.o
+                0x0002d4b9       0x43 ./src/tcc/tcc.o
  .rodata.version
-                0x0002d4d4       0x27 ./src/tcc/tcc.o
+                0x0002d4fc       0x27 ./src/tcc/tcc.o
  *(.rodata)
- .rodata        0x0002d4fb       0x86 ./src/tcc/tcc.o
+ .rodata        0x0002d523       0x86 ./src/tcc/tcc.o
  *(.eh_frame*)
-                0x0002d584                . = ALIGN (0x4)
- *fill*         0x0002d581        0x3 
-                0x0002d584                __rel_start__ = .
+                0x0002d5ac                . = ALIGN (0x4)
+ *fill*         0x0002d5a9        0x3 
+                0x0002d5ac                __rel_start__ = .
  *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)
  .rel.data.rel.ro.local.options_W
-                0x0002d584       0x30 ./src/tcc/tcc.o
+                0x0002d5ac       0x30 ./src/tcc/tcc.o
  .rel.data.rel.ro.local.options_f
-                0x0002d5b4       0x38 ./src/tcc/tcc.o
+                0x0002d5dc       0x38 ./src/tcc/tcc.o
  .rel.data.rel.ro.local.libs.18524
-                0x0002d5ec       0x10 ./src/tcc/tcc.o
+                0x0002d614       0x10 ./src/tcc/tcc.o
  .rel.data.rel.ro.local.options_m
-                0x0002d5fc        0x8 ./src/tcc/tcc.o
+                0x0002d624        0x8 ./src/tcc/tcc.o
  .rel.data.rel.ro.local.tcc_options
-                0x0002d604      0x1c8 ./src/tcc/tcc.o
+                0x0002d62c      0x1c8 ./src/tcc/tcc.o
  .rel.data.rel.ro.local.templates.13651
-                0x0002d7cc       0x80 ./src/tcc/tcc.o
+                0x0002d7f4       0x80 ./src/tcc/tcc.o
  .rel.data.rel.ro.local.default_debug
-                0x0002d84c       0xd8 ./src/tcc/tcc.o
+                0x0002d874       0xd8 ./src/tcc/tcc.o
  .rel.data.rel.local.tzname
-                0x0002d924       0x10 ./src/tcc/tcc.o
+                0x0002d94c       0x10 ./src/tcc/tcc.o
  .rel.data.rel.local.stderr
-                0x0002d934        0x8 ./src/tcc/tcc.o
+                0x0002d95c        0x8 ./src/tcc/tcc.o
  .rel.data.rel.local.__stdin
                 0x00000000        0x0 ./src/tcc/tcc.o
  .rel.data.rel.local.stdin
                 0x00000000        0x0 ./src/tcc/tcc.o
  .rel.data.rel.local.__stdout
-                0x0002d93c        0x8 ./src/tcc/tcc.o
+                0x0002d964        0x8 ./src/tcc/tcc.o
  .rel.data.rel.local.stdout
-                0x0002d944        0x8 ./src/tcc/tcc.o
-                0x0002d94c                __rel_end__ = .
+                0x0002d96c        0x8 ./src/tcc/tcc.o
+                0x0002d974                __rel_end__ = .
 
-.interp         0x0002d94c       0x11
- .interp        0x0002d94c       0x11 ./src/tcc/tcc.o
+.interp         0x0002d974       0x11
+ .interp        0x0002d974       0x11 ./src/tcc/tcc.o
 
-.gnu.version_d  0x0002d960        0x0
+.gnu.version_d  0x0002d988        0x0
  .gnu.version_d
                 0x00000000        0x0 ./src/tcc/tcc.o
 
-.gnu.version    0x0002d95e        0x0
+.gnu.version    0x0002d986        0x0
  .gnu.version   0x00000000        0x0 ./src/tcc/tcc.o
 
-.gnu.version_r  0x0002d960        0x0
+.gnu.version_r  0x0002d988        0x0
  .gnu.version_r
                 0x00000000        0x0 ./src/tcc/tcc.o
 
-.dynsym         0x0002d960      0x300
- .dynsym        0x0002d960      0x300 ./src/tcc/tcc.o
+.dynsym         0x0002d988      0x300
+ .dynsym        0x0002d988      0x300 ./src/tcc/tcc.o
 
-.dynstr         0x0002dc60      0x260
- .dynstr        0x0002dc60      0x260 ./src/tcc/tcc.o
+.dynstr         0x0002dc88      0x260
+ .dynstr        0x0002dc88      0x260 ./src/tcc/tcc.o
 
-.hash           0x0002dec0      0x15c
- .hash          0x0002dec0      0x15c ./src/tcc/tcc.o
+.hash           0x0002dee8      0x15c
+ .hash          0x0002dee8      0x15c ./src/tcc/tcc.o
 
-.glue_7         0x0002e01c        0x0
+.glue_7         0x0002e044        0x0
  .glue_7        0x00000000        0x0 linker stubs
 
-.glue_7t        0x0002e01c        0x0
+.glue_7t        0x0002e044        0x0
  .glue_7t       0x00000000        0x0 linker stubs
 
-.vfp11_veneer   0x0002e01c        0x0
+.vfp11_veneer   0x0002e044        0x0
  .vfp11_veneer  0x00000000        0x0 linker stubs
 
-.v4_bx          0x0002e01c        0x0
+.v4_bx          0x0002e044        0x0
  .v4_bx         0x00000000        0x0 linker stubs
 
-.plt            0x0002e01c        0x0
+.plt            0x0002e044        0x0
  .plt           0x00000000        0x0 ./src/tcc/tcc.o
 
-.iplt           0x0002e01c        0x0
+.iplt           0x0002e044        0x0
  .iplt          0x00000000        0x0 ./src/tcc/tcc.o
 
-.ARM.exidx      0x0002e01c        0x8
-                0x0002e01c                . = ALIGN (0x4)
-                0x0002e01c                __exdix_start = .
+.ARM.exidx      0x0002e044        0x8
+                0x0002e044                . = ALIGN (0x4)
+                0x0002e044                __exdix_start = .
  *(.ARM.exidx* .gnu.linkonce.armexidx.*)
- .ARM.exidx     0x0002e01c        0x8 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_divdi3.o)
- .ARM.exidx     0x0002e024        0x0 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_udivdi3.o)
+ .ARM.exidx     0x0002e044        0x8 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_divdi3.o)
+ .ARM.exidx     0x0002e04c        0x0 D:\Program Files (x86)\GNU Tools ARM Embedded\4.9 2014q4\lib\gcc\arm-none-eabi\4.9.3\armv7-m\libgcc.a(_udivdi3.o)
                                   0x8 (size before relaxing)
-                0x0002e024                __exdix_end = .
+                0x0002e04c                __exdix_end = .
 
-.rel.dyn        0x0002e024     0x1a30
- .rel.got       0x0002e024     0x1a28 ./src/tcc/tcc.o
+.rel.dyn        0x0002e04c     0x1a30
+ .rel.got       0x0002e04c     0x1a28 ./src/tcc/tcc.o
  .rel.plt       0x00000000        0x0 ./src/tcc/tcc.o
  .rel.iplt      0x00000000        0x0 ./src/tcc/tcc.o
- .rel.text      0x0002fa4c        0x8 ./src/tcc/tcc.o
+ .rel.text      0x0002fa74        0x8 ./src/tcc/tcc.o
 
 .permissions_table
-                0x0002fa54        0x0
-                0x0002fa54                . = ALIGN (0x4)
-                0x0002fa54                __permissions_table_start__ = .
+                0x0002fa7c        0x0
+                0x0002fa7c                . = ALIGN (0x4)
+                0x0002fa7c                __permissions_table_start__ = .
  *(.permissions_table)
-                0x0002fa54                __permissions_table_end__ = .
-                0x000145a4                PROVIDE (__ram_size__, (__bss_end__ - __data_start__))
+                0x0002fa7c                __permissions_table_end__ = .
+                0x0001457c                PROVIDE (__ram_size__, (__bss_end__ - __data_start__))
 
-.data           0x0002fa54     0x11ec
-                0x0002fa54                . = ALIGN (0x4)
-                0x0002fa54                __data_start__ = .
-                0x0002fa54                __got_start__ = .
+.data           0x0002fa7c     0x11ec
+                0x0002fa7c                . = ALIGN (0x4)
+                0x0002fa7c                __data_start__ = .
+                0x0002fa7c                __got_start__ = .
  *(.got)
- .got           0x0002fa54      0xd14 ./src/tcc/tcc.o
-                0x00030768                __got_end__ = .
-                0x00030768                . = ALIGN (0x4)
+ .got           0x0002fa7c      0xd14 ./src/tcc/tcc.o
+                0x00030790                __got_end__ = .
+                0x00030790                . = ALIGN (0x4)
  *(.data)
- .data          0x00030768        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(dyn_syscalls.o)
-                0x00030768                __guard
-                0x00030768                __stack_chk_guard
+ .data          0x00030790        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(dyn_syscalls.o)
+                0x00030790                __guard
+                0x00030790                __stack_chk_guard
  *(.data.*)
  .data.rel.ro.local.options_W
-                0x0003076c       0x38 ./src/tcc/tcc.o
+                0x00030794       0x38 ./src/tcc/tcc.o
  .data.rel.ro.local.options_f
-                0x000307a4       0x40 ./src/tcc/tcc.o
+                0x000307cc       0x40 ./src/tcc/tcc.o
  .data.rel.ro.local.libs.18524
-                0x000307e4        0xc ./src/tcc/tcc.o
+                0x0003080c        0xc ./src/tcc/tcc.o
  .data.rel.ro.local.options_m
-                0x000307f0       0x10 ./src/tcc/tcc.o
+                0x00030818       0x10 ./src/tcc/tcc.o
  .data.rel.ro.local.tcc_options
-                0x00030800      0x1d0 ./src/tcc/tcc.o
+                0x00030828      0x1d0 ./src/tcc/tcc.o
  .data.rel.ro.local.templates.13651
-                0x000309d0       0x40 ./src/tcc/tcc.o
+                0x000309f8       0x40 ./src/tcc/tcc.o
  .data.rel.ro.local.default_debug
-                0x00030a10      0x1b0 ./src/tcc/tcc.o
- .data.tzlen    0x00030bc0        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
+                0x00030a38      0x1b0 ./src/tcc/tcc.o
+ .data.tzlen    0x00030be8        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
  .data.rel.local.tzname
-                0x00030bc4        0x8 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
-                0x00030bc4                tzname
+                0x00030bec        0x8 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(tzfile.o)
+                0x00030bec                tzname
  .data.__stderr
-                0x00030bcc       0x34 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stderr.o)
+                0x00030bf4       0x34 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stderr.o)
  .data.rel.local.stderr
-                0x00030c00        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stderr.o)
-                0x00030c00                stderr
+                0x00030c28        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stderr.o)
+                0x00030c28                stderr
  .data.rel.local.__stdout
-                0x00030c04       0x34 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stdout.o)
+                0x00030c2c       0x34 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stdout.o)
  .data.rel.local.stdout
-                0x00030c38        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stdout.o)
-                0x00030c38                stdout
- .data.seed     0x00030c3c        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(rand.o)
+                0x00030c60        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stdout.o)
+                0x00030c60                stdout
+ .data.seed     0x00030c64        0x4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(rand.o)
  *(vtable)
  *(.data*)
-                0x00030c40                . = ALIGN (0x4)
-                0x00030c40                PROVIDE (__preinit_array_start, .)
+                0x00030c68                . = ALIGN (0x4)
+                0x00030c68                PROVIDE (__preinit_array_start, .)
  *(.preinit_array)
-                0x00030c40                PROVIDE (__preinit_array_end, .)
-                0x00030c40                . = ALIGN (0x4)
-                0x00030c40                PROVIDE (__init_array_start, .)
+                0x00030c68                PROVIDE (__preinit_array_end, .)
+                0x00030c68                . = ALIGN (0x4)
+                0x00030c68                PROVIDE (__init_array_start, .)
  *(SORT(.init_array.*))
  *(.init_array)
-                0x00030c40                PROVIDE (__init_array_end, .)
-                0x00030c40                . = ALIGN (0x4)
-                0x00030c40                PROVIDE (__fini_array_start, .)
+                0x00030c68                PROVIDE (__init_array_end, .)
+                0x00030c68                . = ALIGN (0x4)
+                0x00030c68                PROVIDE (__fini_array_start, .)
  *(SORT(.fini_array.*))
  *(.fini_array)
-                0x00030c40                PROVIDE (__fini_array_end, .)
-                0x00030c40                . = ALIGN (0x4)
-                0x00030c40                __data_end__ = .
+                0x00030c68                PROVIDE (__fini_array_end, .)
+                0x00030c68                . = ALIGN (0x4)
+                0x00030c68                __data_end__ = .
                 0x00000000                PROVIDE (__heap_size__, (__heap_end__ - __heap_start__))
                 0x00000000                PROVIDE (__stack_size__, (__stack_end__ - __stack_start__))
 
-.dynamic        0x00030c40       0x80
- .dynamic       0x00030c40       0x80 ./src/tcc/tcc.o
-                0x00030c40                _DYNAMIC
+.dynamic        0x00030c68       0x80
+ .dynamic       0x00030c68       0x80 ./src/tcc/tcc.o
+                0x00030c68                _DYNAMIC
 
-.got.plt        0x00030cc0        0xc
- .got.plt       0x00030cc0        0xc ./src/tcc/tcc.o
-                0x00030cc0                _GLOBAL_OFFSET_TABLE_
+.got.plt        0x00030ce8        0xc
+ .got.plt       0x00030ce8        0xc ./src/tcc/tcc.o
+                0x00030ce8                _GLOBAL_OFFSET_TABLE_
 
-.igot.plt       0x00030ccc        0x0
+.igot.plt       0x00030cf4        0x0
  .igot.plt      0x00000000        0x0 ./src/tcc/tcc.o
 
 .bss            0x00030d00    0x132f8
@@ -2890,7 +2892,7 @@ OUTPUT(mkrtos_tcc.elf elf32-littlearm)
  .debug_ranges  0x00002e30       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(reloc.o)
  .debug_ranges  0x00002e40       0x10 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(feof.o)
 
-.debug_line     0x00000000     0xed2e
+.debug_line     0x00000000     0xed5b
  .debug_line    0x00000000     0x8694 ./src/tcc/tcc.o
  .debug_line    0x00008694      0x10c D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(localtime.o)
  .debug_line    0x000087a0      0x110 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(localtime_r.o)
@@ -2952,29 +2954,29 @@ OUTPUT(mkrtos_tcc.elf elf32-littlearm)
  .debug_line    0x0000c46d      0x176 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsnprintf.o)
  .debug_line    0x0000c5e3       0xdb D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsprintf.o)
  .debug_line    0x0000c6be      0x12a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(vsscanf.o)
- .debug_line    0x0000c7e8     0x1363 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(dyn_syscalls.o)
- .debug_line    0x0000db4b       0x58 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(start.o)
- .debug_line    0x0000dba3      0x207 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stackgap-g.o)
- .debug_line    0x0000ddaa       0x6f D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(start.o)
- .debug_line    0x0000de19      0x135 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(gmtime_r.o)
- .debug_line    0x0000df4e       0x62 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isleap.o)
- .debug_line    0x0000dfb0       0x4e D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(time_table_spd.o)
- .debug_line    0x0000dffe       0x48 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(timezone.o)
- .debug_line    0x0000e046       0x61 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fdglue.o)
- .debug_line    0x0000e0a7      0x1c6 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fdglue2.o)
- .debug_line    0x0000e26d      0x193 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fgetc_unlocked.o)
- .debug_line    0x0000e400       0xd4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__ltostr.o)
- .debug_line    0x0000e4d4      0x343 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_scanf.o)
- .debug_line    0x0000e817       0x44 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(errlistu.o)
- .debug_line    0x0000e85b       0x5f D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isalnum.o)
- .debug_line    0x0000e8ba       0x5a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isspace.o)
- .debug_line    0x0000e914       0x60 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isxdigit.o)
- .debug_line    0x0000e974       0xa9 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memccpy.o)
- .debug_line    0x0000ea1d       0xb3 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sigjmp.o)
- .debug_line    0x0000ead0       0x5d D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(arm_set_tls.o)
- .debug_line    0x0000eb2d       0x44 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__main.o)
- .debug_line    0x0000eb71       0x56 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(reloc.o)
- .debug_line    0x0000ebc7      0x167 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(feof.o)
+ .debug_line    0x0000c7e8     0x1390 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(dyn_syscalls.o)
+ .debug_line    0x0000db78       0x58 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(start.o)
+ .debug_line    0x0000dbd0      0x207 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(stackgap-g.o)
+ .debug_line    0x0000ddd7       0x6f D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(start.o)
+ .debug_line    0x0000de46      0x135 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(gmtime_r.o)
+ .debug_line    0x0000df7b       0x62 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isleap.o)
+ .debug_line    0x0000dfdd       0x4e D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(time_table_spd.o)
+ .debug_line    0x0000e02b       0x48 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(timezone.o)
+ .debug_line    0x0000e073       0x61 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fdglue.o)
+ .debug_line    0x0000e0d4      0x1c6 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fdglue2.o)
+ .debug_line    0x0000e29a      0x193 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fgetc_unlocked.o)
+ .debug_line    0x0000e42d       0xd4 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__ltostr.o)
+ .debug_line    0x0000e501      0x343 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__v_scanf.o)
+ .debug_line    0x0000e844       0x44 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(errlistu.o)
+ .debug_line    0x0000e888       0x5f D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isalnum.o)
+ .debug_line    0x0000e8e7       0x5a D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isspace.o)
+ .debug_line    0x0000e941       0x60 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(isxdigit.o)
+ .debug_line    0x0000e9a1       0xa9 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(memccpy.o)
+ .debug_line    0x0000ea4a       0xb3 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sigjmp.o)
+ .debug_line    0x0000eafd       0x5d D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(arm_set_tls.o)
+ .debug_line    0x0000eb5a       0x44 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(__main.o)
+ .debug_line    0x0000eb9e       0x56 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(reloc.o)
+ .debug_line    0x0000ebf4      0x167 D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(feof.o)
 
 .debug_str      0x00000000    0x144d4
  .debug_str     0x00000000    0x12ef6 ./src/tcc/tcc.o
@@ -3888,6 +3890,7 @@ fopen                                             D:\Project\MyProject1\mkrtos_r
                                                   ./src/tcc/tcc.o
 fopen_unlocked                                    D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fopen.o)
 fork                                              D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(dyn_syscalls.o)
+fork_exec                                         D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(dyn_syscalls.o)
 fprintf                                           D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fprintf.o)
                                                   ./src/tcc/tcc.o
 fputc                                             D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(fputc_unlocked.o)
@@ -4157,6 +4160,7 @@ sigprocmask                                       D:\Project\MyProject1\mkrtos_r
                                                   D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sigjmp.o)
                                                   D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(longjmp.o)
 sigsetjmp                                         D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(dyn_syscalls.o)
+slot_reg                                          D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(dyn_syscalls.o)
 snprintf                                          D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(snprintf.o)
                                                   ./src/tcc/tcc.o
 sprintf                                           D:\Project\MyProject1\mkrtos_real\mkrtos_sdk\Debug\libmkrtos_sdk.a(sprintf.o)

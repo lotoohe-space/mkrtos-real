@@ -1,3 +1,0 @@
-CFLAGS+=-Os -fomit-frame-pointer -fstrict-aliasing
-VPATH:=aarch64:syscalls.s:$(VPATH)
-LIBOBJ+=$(OBJDIR)/__testandset.o $(OBJDIR)/__select.o

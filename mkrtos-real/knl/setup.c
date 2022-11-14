@@ -10,7 +10,7 @@
 extern int32_t sp_mkfs(dev_t dev_no, int32_t inode_count);
 extern void fs_init(void);
 
-#define IS_MKFS 0
+#define IS_MKFS 1
 
 int32_t setup(void) {
 	int ret;

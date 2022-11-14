@@ -18,12 +18,4 @@ C_DEPS :=
 # Every subdirectory with source files must be described here
 SUBDIRS := \
 src \
-src/dietlibc-0.34/arm \
-src/dietlibc-0.34 \
-src/dietlibc-0.34/lib \
-src/dietlibc-0.34/libcompat \
-src/dietlibc-0.34/libm \
-src/dietlibc-0.34/libshell \
-src/dietlibc-0.34/libstdio \
-src/dietlibc-0.34/profiling \
 

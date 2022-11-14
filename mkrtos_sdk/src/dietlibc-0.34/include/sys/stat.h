@@ -653,7 +653,8 @@ struct stat {
 
 #endif
 
-#define S_IFMT	       00170000
+#if 0
+#define S_IFMT	    00170000
 #define S_IFSOCK	0140000
 #define S_IFLNK		0120000
 #define S_IFREG		0100000
@@ -672,6 +673,30 @@ struct stat {
 #define S_ISBLK(m)	(((m) & S_IFMT) == S_IFBLK)
 #define S_ISFIFO(m)	(((m) & S_IFMT) == S_IFIFO)
 #define S_ISSOCK(m)	(((m) & S_IFMT) == S_IFSOCK)
+#else
+#define S_IFMT  0x0000ff00
+#define S_IFSOCK (6<<8) //套接字文件
+#define S_IFLNK	 (4<<8) //链接文件
+#define S_IFREG  (0<<8) //正常文件
+#define S_IFBLK  (3<<8) //块文件
+#define S_IFDIR  (1<<8) //目录文件
+#define S_IFCHR  (2<<8) //字符文件
+#define S_IFIFO  (5<<8) //有名管道文件
+#define S_ISUID  0004000		        /* u+s可以让用户在执行这个二进制程序的时候，
+								  * effective id变为这个文件的owner user
+								  */
+#define S_ISGID  0002000
+#define S_ISVTX  0001000
+
+#define S_ISLNK(m)	(((m) & S_IFMT) == S_IFLNK) /*链接文件*/
+#define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)  /* 是否一个常规文件 */
+#define S_ISDIR(m)	(((m) & S_IFMT) == S_IFDIR)    /* 是否一个目录 */
+#define S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)  /* 是否一个字符文件 */
+#define S_ISBLK(m)	(((m) & S_IFMT) == S_IFBLK)   /* 是否一个块文件 */
+/* 判断是否有名管道文件，有名管道的名字存在于文件系统当中，而内容存在于内存当中 */
+#define S_ISFIFO(m)	(((m) & S_IFMT) == S_IFIFO)
+#define S_ISSOCK(m)	(((m) & S_IFMT) == S_IFSOCK)
+#endif
 
 #define S_IRWXU 00700
 #define S_IRUSR 00400

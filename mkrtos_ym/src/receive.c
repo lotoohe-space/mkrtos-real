@@ -78,7 +78,7 @@ int ymodem_receive(const char *path, int fd) {
 	uint16_t crc;
 	uint16_t recv_crc;
 
-	fd_file = open(path, O_RDWR | O_CREAT, 0777);
+	fd_file = open(path, O_RDWR | O_CREAT |O_TRUNC, 0777);
 	if (fd_file < 0) {
 		perror("open() file");
 		return-1;

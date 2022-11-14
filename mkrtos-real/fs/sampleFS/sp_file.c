@@ -35,7 +35,7 @@ int sp_ioctl(struct inode* ino, struct file* fd, unsigned int cmd, unsigned long
 		pre_file_size = arg;
 		bk_num = ROUND_UP(pre_file_size,ino->i_sb->s_bk_size);
 
-		if(FILE_GET_ST_MODE(ino->i_type_mode)) {
+		if(FILE_GET_ST_MODE(ino->i_type_mode) && !sp_ino->_l.bk_num) {
 			sp_free_ct_bk(ino->i_sb,sp_ino->_l.start_bk,sp_ino->_l.bk_num);
 		}
 		int32_t res=sp_alloc_ct_bk(ino->i_sb,bk_num,&res_bk);
@@ -89,6 +89,6 @@ struct inode_operations sp_file_inode_operations = {
         NULL,			/* readlink */
         NULL,			/* follow_link */
         NULL,			/* bmap */
-        sp_truncate,		/* truncate */
+        .truncate = sp_truncate,		/* truncate */
         NULL			/* permission */
 };
