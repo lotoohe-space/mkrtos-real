@@ -14,6 +14,6 @@ int test_printf(void)
 int main(int argc, char *args[])
 {
     test_printf();
-    fcall(0, 0, 0, 0);
+    // fcall(0, 0, 0, 0);
     return 0;
 }
