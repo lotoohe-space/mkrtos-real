@@ -58,7 +58,7 @@ int lsh_cd(char **args)
     return 1;
 }
 /**
-   @brief Bultin command: Í¬²½ËùÓĞÎÄ¼ş
+   @brief Bultin command: åŒæ­¥æ‰€æœ‰æ–‡ä»¶
  */
 int lsh_sync(char **args)
 {
@@ -111,7 +111,7 @@ int lsh_launch(register char **args_, int pos)
     int status;
 
     pid = fork_execvp(args_[0], args_);
-//    if (pid == 0) { //µ¥µØÖ·¿Õ¼ä£¬fork×Ó½ø³ÌÔÙÊ¹ÓÃ¸¸½ø³ÌÄÚ´æ¾Í»á×Ô¼ºËÀ»ú
+//    if (pid == 0) { //å•åœ°å€ç©ºé—´ï¼Œforkå­è¿›ç¨‹å†ä½¿ç”¨çˆ¶è¿›ç¨‹å†…å­˜å°±ä¼šè‡ªå·±æ­»æœº
 //        // Child process
 //    	register char **args = p2c_addr(args_);
 //    	((uint32_t*)args)[0] = p2c_addr(((uint32_t*)args)[0]);
@@ -280,8 +280,10 @@ void lsh_loop(void)
 		free(args);
 	} while (status);
 }
+#define IS_PRINT_START_INFO 1
 void put_start_info(void)
 {
+    #if IS_PRINT_START_INFO
 	const char *start_info[] = {
 			" _____ ______   ___  __    ________  _________  ________  ________      \r\n",
 			"|\\   _ \\  _   \\|\\  \\|\\  \\ |\\   __  \\|\\___   ___\\\\   __  \\|\\   ____\\     \r\n",
@@ -297,6 +299,8 @@ void put_start_info(void)
 	for (int i = 0;i < sizeof(start_info) / sizeof(void *); i++) {
 		printf(start_info[i]);
 	}
+    #endif
+    // printf("test soft-float %f.\n", 1.1f);
 }
 /**
    @brief Main entry point.
@@ -306,6 +310,8 @@ void put_start_info(void)
  */
 int main(int argc, char **argv)
 {
+    // #include <mkrtos_su.h>
+    // slot_reg("put_start_info", put_start_info, fcall_exit);
 	put_start_info();
     // Load config files, if any.
 

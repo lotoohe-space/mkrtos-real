@@ -600,9 +600,9 @@ int stackgap(int argc,char* argv[],char* envp[]) {
 
 #ifdef WANT_TLS
   findtlsdata(auxvec);
-  if (__unlikely(__tmemsize+sizeof(tcbhead_t)<sizeof(tcbhead_t)) ||
-      __unlikely(__tmemsize>512*1024*1024) ||
-      __unlikely(__tmemsize<__tdatasize))
+  if ((__tmemsize+sizeof(tcbhead_t)<sizeof(tcbhead_t)) ||
+      (__tmemsize>512*1024*1024) ||
+      (__tmemsize<__tdatasize))
     return 111;
   tlsdata=alloca(__tmemsize+sizeof(tcbhead_t));
   memcpy(tlsdata,__tdataptr,__tdatasize);

@@ -7,7 +7,7 @@ char *strstr(const char *haystack, const char *needle) {
   size_t i;
   if (!nl) goto found;
   if (nl>hl) return 0;
-  for (i=hl-nl+1; __likely(i); --i) {
+  for (i=hl-nl+1; (i); --i) {
     if (*haystack==*needle && !memcmp(haystack,needle,nl))
 found:
       return (char*)haystack;

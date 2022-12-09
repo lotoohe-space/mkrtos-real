@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "syscalls.h": "c",
+        "fcntl.h": "c",
+        "_default_fcntl.h": "c",
+        "unistd.h": "c",
+        "_types.h": "c",
+        "stdlib.h": "c",
+        "_ansi.h": "c",
+        "config.h": "c",
+        "newlib.h": "c"
+    }
+}

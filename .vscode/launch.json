@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "(gdb) 启动",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/home/ubuntu/zhangzheng/mkrtos/build/mkrtos/mkrtos_real/mkrtos_real.elf",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "miDebuggerPath": "/home/ubuntu/zhangzheng/gcc-arm-none-eabi-4_9-2015q3/bin/arm-none-eabi-gdb",
+            "miDebuggerServerAddress": "127.0.0.1:3333",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing -exec add-symbol-file /home/zhangzheng/mkrtos/build/mkrtos/mkrtos_ls/mkrtos_ls.elf 0x8040074",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ],
+    "version": "2.0.0"
+}

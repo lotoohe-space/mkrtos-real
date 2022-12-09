@@ -1,3 +1,0 @@
-CFLAGS+=-Os
-VPATH:=mips64:mips:syscalls.s:$(VPATH)
-LIBOBJ+=$(OBJDIR)/__CAS.o $(OBJDIR)/__waitpid.o

@@ -7,13 +7,13 @@ size_t fwrite_unlocked(const void *ptr, size_t size, size_t nmemb, FILE *stream)
   ssize_t res;
   size_t len=size*nmemb;
   size_t i,done;
-  if (!__likely(stream->flags&CANWRITE) || __fflush4(stream,0)) {
+  if (!(stream->flags&CANWRITE) || __fflush4(stream,0)) {
 kaputt:
     stream->flags|=ERRORINDICATOR;
     return 0;
   }
   if (!nmemb || len/nmemb!=size) return 0; /* check for integer overflow */
-  if (__unlikely(len>stream->buflen || (stream->flags&NOBUF))) {
+  if ((len>stream->buflen || (stream->flags&NOBUF))) {
     if (fflush_unlocked(stream)) return 0;
     do {
       res=__libc_write(stream->fd,ptr,len);
@@ -27,7 +27,7 @@ again:
 
     if (todo) {
       if (stream->flags&BUFLINEWISE) {
-	if (__unlikely((stream->flags&CHECKLINEWISE)!=0)) {
+	if (((stream->flags&CHECKLINEWISE)!=0)) {
 	  stream->flags&=~CHECKLINEWISE;
 	  /* stdout is set to BUFLINEWISE|CHECKLINEWISE by default. */
 	  /* that means we should check whether it is connected to a

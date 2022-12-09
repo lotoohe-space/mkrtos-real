@@ -754,12 +754,11 @@ static void ls_dir(const char* name) {
 int main(int argc,char *argv[]) {
   int i,args;
   args=0;
-  time(&now);
 
+  time(&now);
 #ifdef SUPPORT_COLORS
   colors=getenv("LS_COLORS");
 #endif
-
   for (i=1; i<argc; ++i)
     if (argv[i][0]!='-') {
       ++args;

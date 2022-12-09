@@ -65,7 +65,7 @@ LoopCopyDataInit:
 
 /*
 /* initial stack */
-    mov     r0, #0x23232323
+    ldr     r0, =#0x23232323
     ldr     r1, = __data_start__
     ldr     r2, = __stack_start__
     sub     r2, r2, r1

@@ -5,10 +5,10 @@ char*strtok_r(char*s,const char*delim,char**ptrptr) {
 
   if (s==0) s=*ptrptr;
   s+=strspn(s,delim);		/* overread leading delimiter */
-  if (__likely(*s)) {
+  if ((*s)) {
     tmp=s;
     s+=strcspn(s,delim);
-    if (__likely(*s)) *s++=0;	/* not the end ? => terminate it */
+    if ((*s)) *s++=0;	/* not the end ? => terminate it */
   }
   *ptrptr=s;
   return tmp;

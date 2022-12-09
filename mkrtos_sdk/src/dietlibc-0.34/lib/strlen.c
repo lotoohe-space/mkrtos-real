@@ -6,8 +6,8 @@
 #ifdef WANT_SMALL_STRING_ROUTINES
 size_t strlen(const char *s) {
   register size_t i;
-  if (__unlikely(!s)) return 0;
-  for (i=0; __likely(*s); ++s) ++i;
+  if ((!s)) return 0;
+  for (i=0; (*s); ++s) ++i;
   return i;
 }
 #else
@@ -35,12 +35,12 @@ size_t strlen(const char *s)
   word_t	orig_word;
 #endif
 
-  if (__unlikely(!s)) return 0;
+  if ((!s)) return 0;
 
 #ifdef WANT_VALGRIND_SUPPORT
-  if (__unlikely(__valgrind)) {
+  if ((__valgrind)) {
     register size_t i;
-    for (i=0; __likely(*s); ++s) ++i;
+    for (i=0; (*s); ++s) ++i;
     return i;
   }
 #endif
@@ -57,7 +57,7 @@ size_t strlen(const char *s)
 #endif
     word = (word - magic) &~ word;
     word &= (magic << 7);
-  } while (__likely(word == 0));
+  } while ((word == 0));
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
   (void)mask;
@@ -88,8 +88,8 @@ size_t strlen(const char *s)
    * code thinking that _only_ NUL bytes are present in the remaining
    * word, resulting in strlen returning a value that's too small. This
    * is not a problem on little endian systems. */
-  if (__unlikely(orig_word < magic)) {
-    for (t -= sizeof(word); __unlikely(*t); t++);
+  if ((orig_word < magic)) {
+    for (t -= sizeof(word); (*t); t++);
     return t - s;
   }
 

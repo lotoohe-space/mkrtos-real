@@ -5,7 +5,7 @@
 extern int __syscall_getcwd(char* buf, size_t size);
 
 char *getcwd(char *buf, size_t size) {
-  if (__unlikely(!size)) {
+  if ((!size)) {
     errno=EINVAL;
     buf=0;
   } else {

@@ -6,18 +6,18 @@ char *strchr(register const char *t, int c) {
 
   ch = c;
   for (;;) {
-    if (__unlikely(*t == ch)) break; 
-				     if (__unlikely(!*t)) return 0;
+    if ((*t == ch)) break; 
+				     if ((!*t)) return 0;
 								    ++t;
 #ifndef WANT_SMALL_STRING_ROUTINES
-    if (__unlikely(*t == ch)) break; 
-				     if (__unlikely(!*t)) return 0;
+    if ((*t == ch)) break; 
+				     if ((!*t)) return 0;
 								    ++t;
-    if (__unlikely(*t == ch)) break; 
-				     if (__unlikely(!*t)) return 0;
+    if ((*t == ch)) break; 
+				     if ((!*t)) return 0;
 								    ++t;
-    if (__unlikely(*t == ch)) break; 
-				     if (__unlikely(!*t)) return 0;
+    if ((*t == ch)) break; 
+				     if ((!*t)) return 0;
 								    ++t;
 #endif
   }

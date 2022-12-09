@@ -366,8 +366,16 @@ num_printf:
       case 'g':
       case 'G':
 	{
-	  int flags=(((ch&0x5f)=='G') ? 0x01 : 0x00) | ((ch&0x20) ? 0x00 : 0x02);
-	  double d=va_arg(arg_ptr,double);
+	  int flags = (((ch&0x5f)=='G') ? 0x01 : 0x00) | ((ch&0x20) ? 0x00 : 0x02);
+	  va_arg(arg_ptr, int); //TODO:不知道为啥，这里需要多读
+	//   double d = va_arg(arg_ptr, double);
+		uint32_t d1 = va_arg(arg_ptr, uint32_t);
+	  uint32_t d2 = va_arg(arg_ptr, uint32_t);
+	  union {
+		uint32_t d[2];
+		double _d;
+	  } __u = {.d[0] = d1, .d[1] = d2};
+	  double d = __u._d;
 	  s=buf+1;
 	  if (width==0) width=1;
 	  if (!flag_dot) preci=6;

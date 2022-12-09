@@ -5,12 +5,12 @@ char *fgets_unlocked(char *s, int size, FILE *stream) {
   if (size<=0) return 0;
   for (l=0; l+1<size; ) {
     register int c;
-    if (l && __likely(stream->bm<stream->bs)) {
+    if (l && (stream->bm<stream->bs)) {
       /* try common case first */
       c=(unsigned char)stream->buf[stream->bm++];
     } else {
       c=fgetc_unlocked(stream);
-      if (__unlikely(c==EOF)) {
+      if ((c==EOF)) {
 	if (!l) return 0;
 	break;
       }

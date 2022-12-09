@@ -8,8 +8,8 @@ int memcmp(const void *dst, const void *src, size_t count) {
   register const unsigned char *d=dst;
   register const unsigned char *s=src;
   ++count;
-  while (__likely(--count)) {
-    if (__unlikely(r=(*d - *s)))
+  while ((--count)) {
+    if ((r=(*d - *s)))
       return r;
     ++d;
     ++s;

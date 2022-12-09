@@ -19,7 +19,7 @@ inval:
   }
   for (cur=0; (c=**src); ++*src) {
     size_t n;
-    char* s=__likely(len-cur>=MB_CUR_MAX)?(dest?dest+cur:NULL):buf;
+    char* s=(len-cur>=MB_CUR_MAX)?(dest?dest+cur:NULL):buf;
     n=wcrtomb(s,c,ps);
     if (n==(size_t)-1) return -1;
     if (dest && s==buf) {

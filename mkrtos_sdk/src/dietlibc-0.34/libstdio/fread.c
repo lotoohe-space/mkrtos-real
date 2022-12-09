@@ -12,7 +12,7 @@ size_t fread_unlocked(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     return 0;
   }
   if (!j || j/nmemb!=size) return 0;
-  if (__unlikely(stream->ungotten)) {
+  if ((stream->ungotten)) {
     stream->ungotten=0;
     *(char*)ptr=stream->ungetbuf;
     ++i;
@@ -21,7 +21,7 @@ size_t fread_unlocked(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 
 #ifdef WANT_FREAD_OPTIMIZATION
   size_t inbuf=stream->bs-stream->bm;
-  if (__unlikely(!inbuf)) {
+  if ((!inbuf)) {
     stream->bm=0;
     ssize_t res=__libc_read(stream->fd,stream->buf,stream->buflen);
     if (res<1) {

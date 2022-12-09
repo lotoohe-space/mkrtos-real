@@ -21,7 +21,7 @@ strcmp (const char *s1, const char *s2)
 
     if (UNALIGNED(s1, s2)
 #ifdef WANT_VALGRIND_SUPPORT
-        || __unlikely(__valgrind)
+        || (__valgrind)
 #endif
     ) {
         while (*s1 && *s1 == *s2) s1++, s2++;

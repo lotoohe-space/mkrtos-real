@@ -11,7 +11,7 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd,
   size_t pgsz = 4096;	/* TODO: fix for dynamic PAGESIZEs needed? */
   void *res;
 
-  if (__unlikely(offset & (pgsz - 1))) {
+  if ((offset & (pgsz - 1))) {
     errno = -EINVAL;
     res = MAP_FAILED;
   } else
