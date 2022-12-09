@@ -1,4 +1,4 @@
-set(CMAKE_TOOLCHAIN_PATH "/home/zhangzheng/gcc-arm-none-eabi-4_9-2015q3/bin/" CACHE STRING " " FORCE)
+set(CMAKE_TOOLCHAIN_PATH "${CMAKE_SOURCE_DIR}/toolchains/gcc-arm-none-eabi-5_4-2016q3/bin/" CACHE STRING " " FORCE)
 set(CROSS_COMPILE ${CMAKE_TOOLCHAIN_PATH}arm-none-eabi- CACHE PATH "" FORCE)
 
 set(CMAKE_INSTALL_PATH "${CMAKE_BINARY_DIR}deploy" CACHE PATH "" FORCE)
