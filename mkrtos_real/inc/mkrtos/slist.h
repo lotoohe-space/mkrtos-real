@@ -17,7 +17,7 @@ static inline void slist_init(slist_head_t *list)
     list->next = list;
 }
 /**
- * @brief is empty.
+ * @brief is empty
  */
 static inline int64_t slist_is_empty(slist_head_t *list)
 {
@@ -31,12 +31,12 @@ static inline void slist_add(slist_head_t *head, slist_head_t *item)
     head->next->prev = item;
     head->next = item;
 }
-static inline void slist_add_append(slist_head_t *head, slist_head_t *item)
-{
-    slist_head_t *tail = head->prev;
+// static inline void slist_add_append(slist_head_t *head, slist_head_t *item)
+// {
+//     slist_head_t *tail = head->prev;
 
-    return slist_add(head, tail);
-}
+//     return slist_add(head, tail);
+// }
 static inline void slist_del(slist_head_t *item)
 {
     item->prev->next = item->next;

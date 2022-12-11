@@ -45,7 +45,7 @@ int32_t sys_clone(int (*fn)(void*), void *child_stack, int flags, void *arg) {
 	mkrtos_memcpy(new_ptb, ptb, sizeof(struct task));
 	new_ptb->status = TASK_SUSPEND;
 	new_ptb->run_count = 0;
-	dlist_item_init(&new_ptb->_next);
+	slist_init(&new_ptb->next_node);
 	slist_init(&new_ptb->all_node);
 
 	new_ptb->mem_low_stack = NULL;
@@ -321,9 +321,8 @@ int32_t sys_fork(void) {
 	mkrtos_memcpy(new_ptb, ptb, sizeof(struct task));
 	new_ptb->status = TASK_SUSPEND;
 	new_ptb->run_count = 0;
-	dlist_item_init(&new_ptb->_next);
+	slist_init(&new_ptb->next_node);
 	slist_init(&new_ptb->all_node);
-	// dlist_item_init(&new_ptb->all_next);
 
 	// 申请内核栈
 	new_ptb->knl_low_stack = (void*) malloc_align(

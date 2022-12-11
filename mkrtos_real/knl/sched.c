@@ -153,7 +153,7 @@ void task_sche(void) {
 	if (sys_tasks_info.is_first == FALSE) {
 		struct task *ptb;
 		
-		dlist_foreach(&sys_tasks_info.current_max_task_node->tasks_links, ptb, task_t, _next) {
+		slist_foreach(ptb, &sys_tasks_info.current_max_task_node->tasks_links, next_node) {
 			if (ptb->status != TASK_RUNNING) {
 				continue;
 			}
@@ -169,14 +169,15 @@ void task_sche(void) {
 		if (CUR_TASK->status != TASK_UNINTR) {
 			/*之前分配过，直接找下一个有效的*/
 			struct task *ptb;
-			dlist_item_t *ditem = NULL;
+			slist_head_t *sitem = NULL;
 
-			ditem = sys_tasks_info.current_task->_next.next;
+			sitem = sys_tasks_info.current_task->next_node.next;
 			do {
-				if (ditem == NULL) {
-					ditem = sys_tasks_info.current_max_task_node->tasks_links.first;
+				if (sitem == &CUR_TASK->parent->tasks_links) {
+					sitem = sys_tasks_info.current_max_task_node->tasks_links.next;
 				}
-				ptb = dlist_entry(ditem, task_t, _next);
+				MKRTOS_ASSERT(!slist_is_empty(&sys_tasks_info.current_max_task_node->tasks_links));
+				ptb = slist_entry(sitem, task_t, next_node);
 				if (ptb->status == TASK_RUNNING) {
 					if (ptb != sys_tasks_info.current_task) {
 						need_sw = 1;
@@ -184,7 +185,7 @@ void task_sche(void) {
 					sys_tasks_info.current_task = ptb;
 					break;
 				}
-				ditem = ditem->next;
+				sitem = sitem->next;
 			} while (1);
 		}
 	}
@@ -252,7 +253,7 @@ static struct sys_task_base_links* add_links(uint8_t prio) {
 		return NULL;
 	}
 	slist_init(&p_sys_task_base_links->_next);
-	dlist_head_init(&p_sys_task_base_links->tasks_links);
+	slist_init(&p_sys_task_base_links->tasks_links);
 	p_sys_task_base_links->task_count = 0;
 	p_sys_task_base_links->task_priority = prio;
 	p_sys_task_base_links->task_ready_count = 0;
@@ -265,7 +266,7 @@ static struct sys_task_base_links* add_links(uint8_t prio) {
 void del_task_prio(struct task *del)
 {
 	struct sys_task_base_links *taskLinks;
-	dlist_head_t *task_head;
+	slist_head_t *task_head;
 	uint32_t t;
 
 	t = dis_cpu_intr();
@@ -275,7 +276,7 @@ void del_task_prio(struct task *del)
 		return;
 	}
 	task_head = &(taskLinks->tasks_links);
-	dlist_del(task_head, &del->_next);
+	slist_del(&del->next_node);
 	restore_cpu_intr(t);
 	task_update_cur();
 }
@@ -315,13 +316,12 @@ int32_t add_task(struct task *p_task_block, uint32_t into_all_ls) {
 	taskLinks->task_count++;
 
 	//放到同优先级任务链表里面
-	dlist_add_head(&taskLinks->tasks_links, &p_task_block->_next);
+	slist_add(&taskLinks->tasks_links, &p_task_block->next_node);
 	p_task_block->parent = taskLinks;
 
 	if (into_all_ls) {
 		//存到所有任务的链表中
 		slist_add(&sys_tasks_info.all_tk_list, &p_task_block->all_node);
-		// dlist_add_head(&sys_tasks_info.all_task, &p_task_block->all_next);
 	}
 	restore_cpu_intr(t);
 
@@ -657,9 +657,8 @@ int32_t task_create(struct task_create_par *tcp, int to_run) {
 	p_task_block->kernel_stack_size = kernel_size;
 	p_task_block->status = TASK_SUSPEND;
 	p_task_block->parent_task = p_task_block;
-	dlist_item_init(&p_task_block->_next);
+	slist_init(&p_task_block->next_node);
 	slist_init(&p_task_block->all_node);
-	// dlist_item_init(&p_task_block->all_next);
 	p_task_block->exec_id = tcp->exec_id;
 	p_task_block->mpu = NULL;
 	p_task_block->thread_exit_func =

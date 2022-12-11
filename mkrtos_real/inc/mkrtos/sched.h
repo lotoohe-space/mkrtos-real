@@ -69,7 +69,7 @@ struct mem_struct;
 typedef struct task {
 	struct sys_task_base_links *parent;	//!<父优优先级链表节点
 	struct task *parent_task; 			//!<父进程
-	dlist_item_t _next;					//!<同优先级链表
+	slist_head_t next_node;					//!<同优先级链表
 	slist_head_t all_node;// all_next;				//!<所有任务的链表节点
 	struct task *del_wait; 				//!<删除等待队列
 	struct wait_queue *close_wait; 		//!<关闭等待队列
@@ -139,12 +139,11 @@ typedef struct task {
  * @brief 系统任务基础链表，存储不同优先级的链表头
  */
 struct sys_task_base_links {
-	dlist_head_t tasks_links;
+	slist_head_t tasks_links;
 	uint16_t task_count; //!< 任务个数
 	uint16_t task_ready_count; //!< 就绪任务个数
 	uint8_t task_priority; //!< 任务的优先级
 	slist_head_t _next;
-	// struct sys_task_base_links *next; //!< 下一个任务头节点
 };
 
 /**

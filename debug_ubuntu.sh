@@ -5,8 +5,10 @@
 # 	exit
 # fi
 
-/home/ubuntu/qemu-7.2.0-rc1/build/qemu-system-arm -machine\
+export MYDIR=$PWD
+
+$PWD/tools/qemu-7.2.0-rc1/qemu-system-arm -machine\
  	netduino2 -cpu cortex-m3\
   	-nographic -m size=2\
-   	-kernel /home/ubuntu/zhangzheng/mkrtos/build/bin/kernel.img\
+   	-kernel $PWD/build/bin/kernel.img\
     -S -gdb tcp::$1
