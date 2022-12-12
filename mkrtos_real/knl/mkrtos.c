@@ -19,6 +19,7 @@ extern ptr_t _mkrtos_init_start,_mkrtos_init_end;
 static void mkrtos_init(void){
 	ptr_t* func_start=(ptr_t*)(&_mkrtos_init_start);
 	ptr_t* func_stop=(ptr_t*)(&_mkrtos_init_end);
+
 	for(;func_start<func_stop;func_start++){
 		((init_func)(*func_start))();
 	}
@@ -29,7 +30,7 @@ static void mkrtos_init(void){
  */
 void _start(void){
 	mkrtos_init();
-	console_reg(0);
+	
 	extern int main(void);
 	main();
 }

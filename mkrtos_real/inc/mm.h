@@ -39,6 +39,7 @@ int mem_heap_add(mem_t *_this, void* mem, uint32_t size);
 void* mem_split(void* mem, uint32_t size);
 void* mem_alloc_align(mem_t *_this, uint32_t size, uint32_t align);
 void mem_free_align(mem_t *_this, void* f_mem);
+size_t mem_get_free_size(mem_t *_this);
 struct mem_heap* mem_get_free(mem_t *_this, struct mem_heap* next,
 	int32_t hope_size, uint32_t *ret_addr);
 

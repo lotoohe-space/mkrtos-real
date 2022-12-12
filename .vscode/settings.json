@@ -63,7 +63,9 @@
         "type_traits": "c",
         "utility": "c",
         "arch.h": "c",
-        "list.h": "c"
+        "list.h": "c",
+        "typeindex": "c",
+        "mm.h": "c"
     },
     "cortex-debug.showRTOS": false
 }

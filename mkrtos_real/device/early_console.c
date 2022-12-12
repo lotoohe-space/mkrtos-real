@@ -3,6 +3,7 @@
 
 #include <mkrtos/tty.h>
 #include <mkrtos/early_console.h>
+#include <config.h>
 
 struct tty_struct *cons_tty = NULL;
 
@@ -73,3 +74,10 @@ int console_write(char *data, int len)
 
 	return ret;
 }
+
+static int reg_early_console(void)
+{
+	console_reg(0);
+	return 0;
+}
+INIT_REG(reg_early_console, INIT_TEST_REG);
