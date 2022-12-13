@@ -312,7 +312,7 @@ int main(int argc, char **argv)
 {
     // #include <mkrtos_su.h>
     // slot_reg("put_start_info", put_start_info, fcall_exit);
-	put_start_info();
+	// put_start_info();
     // Load config files, if any.
 
     // Run command loop.

@@ -29,6 +29,10 @@ void *malloc(uint32_t size){
 void free(void* mem){
 	mem_free(&knl_mem, mem);
 }
+size_t free_size(void)
+{
+	return mem_get_free_size(&knl_mem);
+}
 void *malloc_align(uint32_t size,uint32_t align){
 	return mem_alloc_align(&knl_mem, size,align);
 }

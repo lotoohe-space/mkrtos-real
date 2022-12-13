@@ -4,12 +4,10 @@
 #define __LIBRARY__
 #include <unistd.h>
 #include <arch/arch.h>
-//#include "stdlib.h"
 #include <mkrtos/sched.h>
 #include <knl_service.h>
 #include <mkrtos/fs.h>
 #include <mkrtos/exec.h>
-//#include <loader.h>
 
 /**
  * @brief 在系统中删除当前执行的任务，该删除只是设置为僵尸进程

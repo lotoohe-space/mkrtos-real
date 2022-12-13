@@ -130,7 +130,7 @@ void sche_unlock(void) {
 /**
  * 获取调度器的锁计数
  */
-uint32_t get_sche_lock_cn(void) {
+uint32_t sche_lock_cn_get(void) {
 	return atomic_read(&(sys_tasks_info.sche_lock));
 }
 

@@ -1,7 +1,7 @@
 /*
  * config.h
  *
- *  Created on: 2022Äê7ÔÂ23ÈÕ
+ *  Created on: 2022å¹´7æœˆ23æ—¥
  *      Author: Administrator
  */
 
@@ -17,8 +17,8 @@
 #define SYS_DOMAINNAME SYS_NAME
 #define SYS_MACHINE "cortex-m3 open"
 
-#define MKRTOS_USED_NET 0 //!<Ê¹ÓÃÊ¹ÓÃÍøÂç½Ó¿Ú
-#define MKRTOS_USED_M_PIPE 1 //!<Ê¹ÓÃÄäÃûpipe
+#define MKRTOS_USED_NET 0       //!<ä½¿ç”¨ä½¿ç”¨ç½‘ç»œæŽ¥å£
+#define MKRTOS_USED_M_PIPE 1    //!<ä½¿ç”¨åŒ¿åpipe
 
 #define SECTION(x)	__attribute__((section(x)))
 
@@ -26,6 +26,13 @@
 #define INIT_LV1(name)  const init_func mkrtos_init_func_##name SECTION(".mkrtos.init.1") = name
 #define INIT_LV2(name)  const init_func mkrtos_init_func_##name SECTION(".mkrtos.init.2") = name
 #define INIT_LV3(name)  const init_func mkrtos_init_func_##name SECTION(".mkrtos.init.3") = name
+
+#define INIT_REG(name, LVL)\
+    const init_func mkrtos_init_func_##name SECTION(".mkrtos.init."LVL) = name
+
+#define INIT_TEST_REG "3"
+#define INIT_TEST_LVL "4"
+
 
 #define ARCH_INIT() arch_init()
 

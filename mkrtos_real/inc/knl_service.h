@@ -1,7 +1,7 @@
 /*
  * knl_service.h
  *
- *  Created on: 2022��8��6��
+ *  Created on: 
  *      Author: Administrator
  */
 
@@ -12,6 +12,7 @@
 
 void *malloc(uint32_t size);
 void free(void* mem);
+size_t free_size(void);
 void *malloc_align(uint32_t size,uint32_t align);
 void free_align(void *mem);
 void *user_malloc(uint32_t size,const char* name);

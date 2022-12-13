@@ -3,7 +3,7 @@
 #include <type.h>
 
 /**
- * @breif Ô­×Ó²Ù×÷µÄ±äÁ¿
+ * @breif åŸå­æ“ä½œçš„å˜é‡
  */
 typedef struct atomic {
 	volatile int32_t counter;
@@ -12,64 +12,64 @@ typedef struct atomic {
 #define ATOMIC_INIT(a)	((struct atomic){(a)})
 
 /**
- * @breif Ô­×Ó±äÁ¿×Ô¼Ó
+ * @breif åŸå­å˜é‡è‡ªåŠ 
  */
 uint32_t atomic_inc(volatile atomic_t *val);
 /**
- * @breif Ô­×Ó±äÁ¿×Ô¼õ
+ * @breif åŸå­å˜é‡è‡ªå‡
  */
 uint32_t atomic_dec(volatile atomic_t *val);
 /**
- * @breif ÉèÖÃÔ­×Ó±äÁ¿µÄÖµ
+ * @breif è®¾ç½®åŸå­å˜é‡çš„å€¼
  */
 void atomic_set(volatile atomic_t *val, uint32_t i);
 /**
- * ÉèÖÃÖµ£¬²¢·µ»ØÖ®Ç°µÄÖµ
+ * è®¾ç½®å€¼ï¼Œå¹¶è¿”å›ä¹‹å‰çš„å€¼
  */
 uint32_t atomic_ret_set(volatile atomic_t *val, uint32_t i);
 /**
- * @breif ¶ÁÈ¡Ô­×Ó±äÁ¿µÄÖµ
+ * @breif è¯»å–åŸå­å˜é‡çš„å€¼
  */
 uint32_t atomic_read(volatile atomic_t *val);
 /**
- * @breif ¼ÓÉÏÒ»¸öÊı
+ * @breif åŠ ä¸Šä¸€ä¸ªæ•°
  */
 void atomic_add(volatile atomic_t *a, uint32_t val);
 /**
- * @breif ¼õÈ¥Ò»¸öÊı
+ * @breif å‡å»ä¸€ä¸ªæ•°
  */
 void AtomicSub(volatile atomic_t *a, uint32_t val);
 uint32_t atomic_test(volatile atomic_t *a, uint32_t val);
 /**
- * @breif ²âÊÔµÈÓÚ0£¬Ôò½øĞĞ¸³Öµ£¬²¢·µ»Ø²âÊÔµÄ½á¹û
- * @return 1µÈÓÚ0 £¬0²»µÈÓÚ0
+ * @breif æµ‹è¯•ç­‰äº0ï¼Œåˆ™è¿›è¡Œèµ‹å€¼ï¼Œå¹¶è¿”å›æµ‹è¯•çš„ç»“æœ
+ * @return 1ç­‰äº0 ï¼Œ0ä¸ç­‰äº0
  */
 uint32_t atomic_test_set(volatile atomic_t *a, uint32_t val);
 /**
- * ÉèÖÃval;²¢ÉèÖÃÖ®Ç°µÄ½á¹û£¬Èç¹û¼ÓÖ®Ç°ÊÇ0£¬Ôò·µ»Ø1£¬·ñÔò·µ»Ø0
+ * è®¾ç½®val;å¹¶è®¾ç½®ä¹‹å‰çš„ç»“æœï¼Œå¦‚æœåŠ ä¹‹å‰æ˜¯0ï¼Œåˆ™è¿”å›1ï¼Œå¦åˆ™è¿”å›0
  * @param a
  * @param val
  * @return
  */
 uint32_t atomic_set_test(volatile atomic_t *a, uint32_t val);
 /**
- * ×Ô¼Ó1¡£²¢·µ»Ø¼ÓÖ®Ç°µÄ½á¹û£¬Èç¹û¼ÓÖ®Ç°ÊÇ0£¬Ôò·µ»Ø1£¬·ñÔò·µ»Ø0
+ * è‡ªåŠ 1ã€‚å¹¶è¿”å›åŠ ä¹‹å‰çš„ç»“æœï¼Œå¦‚æœåŠ ä¹‹å‰æ˜¯0ï¼Œåˆ™è¿”å›1ï¼Œå¦åˆ™è¿”å›0
  * @param a
  * @return
  */
 uint32_t atomic_inc_test(volatile atomic_t *a);
 /**
- * @breif ²âÊÔµÈÓÚ0£¬Ôò½øĞĞ+1£¬²¢·µ»Ø²âÊÔµÄ½á¹û£»·ñÔò£¬²»+1
- * @return 1µÈÓÚ0 £¬0²»µÈÓÚ0
+ * @breif æµ‹è¯•ç­‰äº0ï¼Œåˆ™è¿›è¡Œ+1ï¼Œå¹¶è¿”å›æµ‹è¯•çš„ç»“æœï¼›å¦åˆ™ï¼Œä¸+1
+ * @return 1ç­‰äº0 ï¼Œ0ä¸ç­‰äº0
  */
 uint32_t atomic_test_inc(volatile atomic_t *a);
 /**
- * @breif ²âÊÔ´óÓÚ0£¬Ôò¼õ1;·´Ö®²»¶¯;
- * @return 1£ºµÈÓÚ0 £¬0£º²»µÈÓÚ0
+ * @breif æµ‹è¯•å¤§äº0ï¼Œåˆ™å‡1;åä¹‹ä¸åŠ¨;
+ * @return 1ï¼šç­‰äº0 ï¼Œ0ï¼šä¸ç­‰äº0
  */
 uint32_t atomic_test_dec_nq(volatile atomic_t *a);
 /**
- * @brief ±È½Ïa£¬bµÄ´óĞ¡,Èç¹ûb<=a a+=1£¬²¢ÇÒb<=a·µ»Ø1£¬·ñÔò0
+ * @brief æ¯”è¾ƒaï¼Œbçš„å¤§å°,å¦‚æœb<=a a+=1ï¼Œå¹¶ä¸”b<=aè¿”å›1ï¼Œå¦åˆ™0
  *
  * @param a
  * @param b
@@ -78,7 +78,7 @@ uint32_t atomic_test_dec_nq(volatile atomic_t *a);
 uint32_t atomic_cmp_hi_inc(volatile atomic_t *a, volatile uint32_t b);
 
 /**
- * @brief ±È½Ïa£¬bµÄ´óĞ¡,Èç¹ûa<=b a+=1£¬²¢ÇÒa<=b·µ»Ø1£¬·ñÔò0
+ * @brief æ¯”è¾ƒaï¼Œbçš„å¤§å°,å¦‚æœa<=b a+=1ï¼Œå¹¶ä¸”a<=bè¿”å›1ï¼Œå¦åˆ™0
  *
  * @param a
  * @param b

@@ -60,6 +60,7 @@ add_subdirectory(ipc)
 add_subdirectory(knl)
 add_subdirectory(lib)
 add_subdirectory(start)
+add_subdirectory(test)
 
 set(CMAKE_GEN_ELF ${CMAKE_PROJECT_NAME}_real.elf)
 file(GLOB deps *.c *.S)
@@ -79,6 +80,7 @@ target_link_libraries(
     kernel_knl
     kernel_lib
     $<TARGET_OBJECTS:kernel_start>
+    $<TARGET_OBJECTS:kernel_test>
 )
 
 # message("LINK_FLAGS:${LINK_FLAGS}")

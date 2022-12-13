@@ -249,6 +249,21 @@ int mem_heap_add(mem_t *_this, void* mem, uint32_t size) {
 	sche_unlock();
 	return 0;
 }
+size_t mem_get_free_size(mem_t *_this)
+{
+	size_t size = 0;
+	struct mem_heap* mem;
+
+	sche_lock();
+	for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next) {
+		MKRTOS_ASSERT(mem->magic == MAGIC_NUM);
+		if (!mem->used) {
+			size += mem->size;
+		}
+	}
+	sche_unlock();
+	return size;
+}
 /**
  * 获取内存中空余的块
  */
