@@ -16,8 +16,8 @@
 #include <mkrtos/dlist.h>
 #include <mkrtos/slist.h>
 
-#define NR_FILE 8
-#define THREAD_NAME_LEN 8
+#define NR_FILE 8	//!<最大文件描述符数量
+#define THREAD_NAME_LEN 8 //!<最大线程名长度
 
 /**
  * @brief 任务的状态
@@ -61,7 +61,7 @@ struct stack_info {
 
 struct sys_task_base_links;
 struct sigaction;
-struct mem_struct;
+// struct mem_struct;
 //struct tty_struct;
 /**
  * @brief	任务控制块
@@ -157,7 +157,7 @@ struct sys_tasks {
 	struct task *current_task; //!< 当前工作的任务节点
 	struct task *last_task; //!< 上次运行的线程
 	atomic_t sche_lock; //!< 是否允许系统进行任务调度
-	slist_head_t all_tk_list;// all_task; //!< 所有的任务链表
+	slist_head_t all_tk_list; //!< 所有的任务链表
 	atomic_t pid_temp; //!< 创建任务分配任务ID使用
 	uint16_t tasks_count; //!< 系统任务数
 	uint8_t is_first; //!< 是否首次,是为0，不是为1
@@ -173,15 +173,23 @@ struct wait_queue {
 //sched.c
 extern struct sys_tasks sys_tasks_info;
 
+//! 获取当前的进程
 #define CUR_TASK sys_tasks_info.current_task
 
 /**
- * @brief 获取当前线程
+ * @brief Get the current task object
+ * 
+ * @return struct task* 
  */
 static inline struct task* get_current_task(void)
 {
 	return sys_tasks_info.current_task;
 }
+/**
+ * @brief Set the current task
+ * 
+ * @param tk 
+ */
 static inline void set_current_task(struct task* tk)
 {
 	sys_tasks_info.current_task = tk;
@@ -199,10 +207,9 @@ void task_run(void);
 void task_run_1(struct task *tk);
 void sche_lock(void);
 void sche_unlock(void);
-uint32_t get_sche_lock_cn(void);
+uint32_t sche_lock_cn_get(void);
 void task_sche(void);
 void task_update_cur(void);
-// void del_task(struct task **task_ls, struct task *del, int flag);
 int32_t add_task(struct task *p_task_block, uint32_t into_all_ls);
 void tasks_check(void);
 void set_helper(struct task *helper_task);

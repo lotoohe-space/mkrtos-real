@@ -65,7 +65,10 @@
         "arch.h": "c",
         "list.h": "c",
         "typeindex": "c",
-        "mm.h": "c"
+        "mm.h": "c",
+        "atomic.h": "c",
+        "slist.h": "c",
+        "exec.h": "c"
     },
     "cortex-debug.showRTOS": false
 }

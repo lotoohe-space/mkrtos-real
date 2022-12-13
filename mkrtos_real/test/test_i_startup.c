@@ -38,6 +38,7 @@ int test_mem(void)
     }
     MKRTOS_ASSERT(m_free_size == free_size());
 
+
 // void *user_malloc(uint32_t size,const char* name);
 // void user_free(void *mem);
 // void knl_mem_trace(void);
