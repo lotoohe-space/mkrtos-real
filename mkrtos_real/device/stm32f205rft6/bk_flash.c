@@ -11,7 +11,7 @@
 
 static uint8_t *bk_cache = (uint8_t *)0x20010000;
 
-#define BK_SIZE 512
+#define BK_SIZE 256
 #define BK_COUNT (BK_CACHE_SIZE/BK_SIZE)
 #define FLASH_BK_CACHE_LEN 		2
 

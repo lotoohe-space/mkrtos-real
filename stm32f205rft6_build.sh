@@ -2,8 +2,8 @@
 
 export MYDIR=$PWD
 export APP=mkrtos
-export CMAKE_SIZE=$MYDIR/toolchains/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-size
-export CMAKE_OBJCOPY=$MYDIR/toolchains/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-objcopy
+export CMAKE_SIZE=$MYDIR/toolchains/gcc-arm-none-eabi-4_9-2014q4/bin/arm-none-eabi-size
+export CMAKE_OBJCOPY=$MYDIR/toolchains/gcc-arm-none-eabi-4_9-2014q4/bin/arm-none-eabi-objcopy
 
 set -e
 sudo rm -f build/bin/*

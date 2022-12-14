@@ -20,6 +20,8 @@ void user_free(void *mem);
 void knl_mem_trace(void);
 struct mem_heap *knl_mem_get_free(struct mem_heap *next,
 	int32_t hope_size, uint32_t *ret_addr);
+int knl_check_user_ram_mem(void *start_addr, int size);
+void knl_check_user_ram_access_exit(void *start_addr, int size, int is_unlock, int is_check);
 
 //
 void mkrtos_memcpy(void *dst,void *src,int len);

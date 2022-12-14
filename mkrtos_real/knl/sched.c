@@ -126,9 +126,9 @@ void sche_lock(void) {
  */
 void sche_unlock(void) {
 	atomic_dec(&(sys_tasks_info.sche_lock));
-	if (atomic_read(&(sys_tasks_info.sche_lock)) == 0 && sys_tasks_info.is_run) {
-		task_sche();
-	}
+	// if (atomic_read(&(sys_tasks_info.sche_lock)) == 0 && sys_tasks_info.is_run) {
+	// 	task_sche();
+	// }
 }
 /**
  * 获取调度器的锁计数
@@ -293,6 +293,7 @@ void del_task_all(struct task *del)
 	restore_cpu_intr(t);
 	task_update_cur();
 }
+
 /**
  * @brief 通过优先级添加任务，如果这个优先级不存在，则创建该优先级的任务节点
  * @param pSysTasks 任务管理对象
@@ -784,14 +785,29 @@ int sys_setpriority(int which, int who, int prio) {
 	end: restore_cpu_intr(t);
 	return ret;
 }
+static void prio_list_del(struct sys_task_base_links *del_prio_list)
+{
+	uint32_t t = dis_cpu_intr();
+
+	if (del_prio_list->task_count == 0) {
+		slist_del(&del_prio_list->_next);
+		free(del_prio_list);
+	}
+	restore_cpu_intr(t);
+}
 pid_t shutdown_task(struct task *ls) {
 	int32_t res_pid;
+	struct sys_task_base_links *tmp;
+
+	tmp = ls->parent;
 	ls->parent->task_count--;
 	del_task_prio(ls);
 	del_task_all(ls);
+	prio_list_del(tmp);
 	res_pid = ls->pid;
 	free(ls);
 	//knl_mem_trace();
+	// kprint("\nfree size:%dB\n", free_size());
 	return res_pid;
 }
 void thread_idle(void *arg) {

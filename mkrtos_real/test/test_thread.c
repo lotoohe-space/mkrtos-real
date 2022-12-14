@@ -20,6 +20,7 @@ static void test_thread_prio(int arg0, int arg1)
     cur_task = get_current_task();
     MKRTOS_ASSERT(arg0 == 1);
     MKRTOS_ASSERT(arg1 == 2);
+    sleep_ms(50);
     kprint("pid:%d prio:%d\n", cur_task->pid, cur_task->prio);
 }
 static int test_thread(void)
@@ -69,7 +70,7 @@ static int test_thread(void)
     while(atomic_read(&sys_tasks_info.wait_r)!=0) {
         sleep_ms(500);
     }
-    sleep_ms(500);
+    sleep_ms(1000);
     knl_mem_trace();
     kprint("=======end sched mem\n");
     return 0;

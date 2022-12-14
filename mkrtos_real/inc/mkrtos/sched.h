@@ -139,7 +139,7 @@ typedef struct task {
  * @brief 系统任务基础链表，存储不同优先级的链表头
  */
 struct sys_task_base_links {
-	slist_head_t tasks_links;
+	slist_head_t tasks_links; //!<任务的链表
 	uint16_t task_count; //!< 任务个数
 	uint16_t task_ready_count; //!< 就绪任务个数
 	uint8_t task_priority; //!< 任务的优先级

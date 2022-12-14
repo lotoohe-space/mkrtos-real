@@ -42,7 +42,6 @@ int syscall_none(void){
 	return -ENOSYS;
 }
 
-
 static const int syscall_func_number=sizeof(sys_call_table)/sizeof(sys_call_func);
 
 void* get_syscall_handler(void* sp,int32_t call_num){

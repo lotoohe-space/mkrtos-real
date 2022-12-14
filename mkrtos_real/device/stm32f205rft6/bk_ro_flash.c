@@ -51,7 +51,6 @@ static struct file_operations bk_ops = { .open = bk_file_open, .read =
 
 static int32_t ro_bk_flash_init(void) {
 	if (request_bk_no(BK_RO_FLASH) < 0) {
-		
 		return -1;
 	}
 

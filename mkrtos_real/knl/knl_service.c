@@ -54,14 +54,34 @@ struct mem_heap *knl_mem_get_free(struct mem_heap *next,
  * @param op 0 读写 1 读
  * @return int 0 正确，失败
  */
-int knl_check_user_mem(void *start_addr, int size, int op)
+int knl_check_user_ram_mem(void *start_addr, int size)
 {
 	task_t * curr_task = get_current_task();
 	
-	mword_t u_addr = TASK_USER_RAM_ADDR(curr_task);
-	mword_t k_addr = TASK_USER_RAM_SIZE(curr_task);
+	mword_t s_addr = TASK_USER_RAM_ADDR(curr_task);
+	mword_t e_addr = s_addr + TASK_USER_RAM_SIZE(curr_task);
 
-	
+	if ( (mword_t)start_addr >= s_addr && (mword_t)start_addr < e_addr
+		&& ((mword_t)start_addr + size) >= s_addr && ((mword_t)start_addr + size) < e_addr
+	) {
+		return 0;
+	}
+
+	return -1;
+}
+void knl_check_user_ram_access_exit(void *start_addr, int size, int is_unlock, int is_check)
+{
+	if (!is_check) {
+		return;
+	}
+	int ret = knl_check_user_ram_mem(start_addr, size);
+
+	if (ret < 0) {
+		if (is_unlock) {
+			sche_unlock();
+		}
+		do_exit(-1);
+	}
 }
 
 // void *user_malloc(uint32_t size,const char* name){
