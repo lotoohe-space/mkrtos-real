@@ -19,14 +19,20 @@
 //4.应用程序直接加载bin文件执行
 void thread_main(void *arg0, void *arg1) {
 	int ret;
+	sys_tasks_info.is_run = TRUE;
+	mkrtos_test();
+	// #if 0
 	setup();
  	const char * const argv[] = {
 			"/bin/zh"
 			,0
 	};
 	sys_execve("/bin/zh",argv);
+	// #endif
 	kprint("done!\n");
-	while(1);
+	while(1) {
+		sleep_ms(1000);
+	}
 }
 // static void delay(void)
 // {
@@ -36,9 +42,9 @@ void thread_main(void *arg0, void *arg1) {
 // }
 #include <stm32f2xx.h>
 int main(void) {
-	//delay();
-	extern int32_t bk_flash_init(void);
-	extern int32_t sp_mkfs(dev_t dev_no, int32_t inode_count);
+	static struct task_create_par tcp;
+	int32_t pid;
+	extern int32_t bk_flash_init(void); 
 	__enable_irq();
 //	//TODO:增加栈8字节对齐
  	((uint8_t *)(0xE000E008))[0] |= 0x6;
@@ -46,14 +52,6 @@ int main(void) {
 //	((uint8_t *)(0xE000ED14))[0] |= 0x200;
 	//初始化默认的磁盘设备
 	root_dev_no = bk_flash_init();
-
-//	//在这里格式化文件系统
-//	if (sp_mkfs(root_dev_no, 30) < 0) {
-//		kfatal("根文件系统创建失败！\r\n");
-//	}
-
-	static struct task_create_par tcp;
-	int32_t pid;
 
 	init_sche();
 

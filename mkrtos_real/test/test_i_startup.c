@@ -48,4 +48,4 @@ int test_mem(void)
     return 0;
 }
 
-INIT_REG(test_mem, INIT_TEST_LVL);
+INIT_TEST_REG(test_mem, INIT_TEST_LVL);

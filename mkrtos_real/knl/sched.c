@@ -125,7 +125,10 @@ void sche_lock(void) {
  * 调度器解锁
  */
 void sche_unlock(void) {
-	atomic_test_dec_nq(&(sys_tasks_info.sche_lock));
+	atomic_dec(&(sys_tasks_info.sche_lock));
+	// if (atomic_read(&(sys_tasks_info.sche_lock)) == 0 && sys_tasks_info.is_run) {
+	// 	task_sche();
+	// }
 }
 /**
  * 获取调度器的锁计数
@@ -145,7 +148,7 @@ void task_sche(void) {
 		return;
 	}
 	//监测是否可以调度
-	if (atomic_test(&(sys_tasks_info.sche_lock), FALSE)) {
+	if (!atomic_test(&(sys_tasks_info.sche_lock), 0)) {
 		return;
 	}
 	t = dis_cpu_intr();
@@ -290,6 +293,7 @@ void del_task_all(struct task *del)
 	restore_cpu_intr(t);
 	task_update_cur();
 }
+
 /**
  * @brief 通过优先级添加任务，如果这个优先级不存在，则创建该优先级的任务节点
  * @param pSysTasks 任务管理对象
@@ -562,13 +566,22 @@ int32_t sys_nice(int32_t increment) {
 	return 0;
 }
 
+// /**
+//  * 结束时系统将会调用这函数
+//  * 非内核线程时，这个函数属于用户态
+//  * 内核线程时，这个函数删除线程
+//  */
+// void task_end(void) {
+// 	sys_exit(0);
+// 	task_sche();
+// }
 /**
  * 结束时系统将会调用这函数
  * 非内核线程时，这个函数属于用户态
  * 内核线程时，这个函数删除线程
  */
 void task_end(void) {
-	sys_exit(0);
+	do_exit(0);
 }
 /**
  * @brief 创建任务
@@ -772,24 +785,37 @@ int sys_setpriority(int which, int who, int prio) {
 	end: restore_cpu_intr(t);
 	return ret;
 }
+static void prio_list_del(struct sys_task_base_links *del_prio_list)
+{
+	uint32_t t = dis_cpu_intr();
+
+	if (del_prio_list->task_count == 0) {
+		slist_del(&del_prio_list->_next);
+		free(del_prio_list);
+	}
+	restore_cpu_intr(t);
+}
 pid_t shutdown_task(struct task *ls) {
 	int32_t res_pid;
+	struct sys_task_base_links *tmp;
+
+	tmp = ls->parent;
 	ls->parent->task_count--;
 	del_task_prio(ls);
 	del_task_all(ls);
+	prio_list_del(tmp);
 	res_pid = ls->pid;
 	free(ls);
 	//knl_mem_trace();
+	// kprint("\nfree size:%dB\n", free_size());
 	return res_pid;
 }
 void thread_idle(void *arg) {
 	int last_r_cn = 0;
 	while (1) {
-		//TODO:
-		if (sys_tasks_info.wait_r) {
+		if (!atomic_test_dec_nq(&sys_tasks_info.wait_r)) {
 			struct task *all;
 
-			sys_tasks_info.wait_r--;
 			sche_lock();
 			again:
 			slist_foreach(all, &sys_tasks_info.all_tk_list, all_node) {
@@ -826,7 +852,7 @@ void init_sche(void) {
 	slist_init(&sys_tasks_info.all_tk_list);
 	slist_init(&sys_tasks_info.prio_head_task_list);
 	/*OS是否调度初始化*/
-	atomic_set(&sys_tasks_info.sche_lock, 1);
+	atomic_set(&sys_tasks_info.sche_lock, 0);
 	/*进程pid分配变量*/
 	atomic_set(&sys_tasks_info.pid_temp, 1);
 	sys_tasks_info.current_max_task_node = NULL;

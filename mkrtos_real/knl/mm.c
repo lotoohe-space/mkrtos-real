@@ -9,11 +9,13 @@
 #include <mkrtos/sched.h>
 #include <mkrtos.h>
 #include <assert.h>
+#include <knl_service.h>
 
-void mem_init(mem_t *_this) {
+void mem_init(mem_t *_this, int is_user) {
 	_this->heap_start = NULL;
 	_this->heap_end = NULL;
 	_this->l_heap = NULL;
+	_this->blong_user = is_user;
 }
 /**
  * @brief 合并空闲的内存
@@ -23,9 +25,11 @@ static void mem_merge(mem_t *_this, struct mem_heap* mem) {
 	struct mem_heap* prev_mem;
 	struct mem_heap* t_mem;
 
+	knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
 	_this->l_heap = mem;
 	prev_mem = mem->prev;
 	for (t_mem = mem; t_mem != _this->heap_end; t_mem = t_mem->next) {
+		knl_check_user_ram_access_exit(t_mem, sizeof(struct mem_heap), 1, _this->blong_user);
 		if (prev_mem && prev_mem->used == 0) {
 			//如果当前没有使用，并且上一个的下一个位置等于当前，则上一个和当前合并
 			if (t_mem->used == 0 && ((ptr_t)prev_mem + prev_mem->size
@@ -58,6 +62,7 @@ void mem_free(mem_t *_this, void* mem) {
 //#endif
 	sche_lock();
 	m_mem = (struct mem_heap*)((ptr_t)mem - MEM_HEAP_STRUCT_SIZE);
+	knl_check_user_ram_access_exit(m_mem, sizeof(struct mem_heap), 1, _this->blong_user);
 	MKRTOS_ASSERT(m_mem->magic == MAGIC_NUM);
 	if (!m_mem->used) {
 		sche_unlock();
@@ -73,7 +78,7 @@ void mem_free(mem_t *_this, void* mem) {
 /**
  * @brief 划分内存
  */
-void* mem_split(void* mem, uint32_t size) {
+void* mem_split(mem_t *_this, void* mem, uint32_t size) {
 	struct mem_heap* t_mem;
 	struct mem_heap* r_mem;
 	if (!mem) {
@@ -81,12 +86,14 @@ void* mem_split(void* mem, uint32_t size) {
 	}
 	sche_lock();
 	t_mem = (struct mem_heap*)((ptr_t)mem - MEM_HEAP_STRUCT_SIZE);
+	knl_check_user_ram_access_exit(t_mem, sizeof(struct mem_heap), 1, _this->blong_user);
 	if (t_mem->used==0 || t_mem->size < MEM_HEAP_STRUCT_SIZE || t_mem->size < size || size< MEM_HEAP_STRUCT_SIZE) {
 		sche_unlock();
 		return NULL;
 	}
 
 	r_mem = (struct mem_heap*)((ptr_t)t_mem + size);
+	knl_check_user_ram_access_exit(r_mem, sizeof(struct mem_heap), 1, _this->blong_user);
 	r_mem->used = 1;
 	r_mem->size = t_mem->size - size;
 	r_mem->next = t_mem->next;
@@ -116,7 +123,7 @@ again_alloc:
 	align_ptr = (void*)ALIGN((ptr_t)mem, align);
 	if (align_ptr == mem) {
 		if (alloc_size - size >= align && align > MEM_HEAP_STRUCT_SIZE) {
-			void* split_addr = mem_split(mem, alloc_size- (size- MEM_HEAP_STRUCT_SIZE));
+			void* split_addr = mem_split(_this, mem, alloc_size- (size- MEM_HEAP_STRUCT_SIZE));
 			if (!split_addr) {
 				mem_free(_this, split_addr);
 			}
@@ -125,7 +132,7 @@ again_alloc:
 		return mem;
 	}
 	else {
-		void* split_addr = mem_split(mem, (ptr_t)align_ptr - (ptr_t)mem);
+		void* split_addr = mem_split(_this, mem, (ptr_t)align_ptr - (ptr_t)mem);
 		if (split_addr == NULL) {
 			*(((uint32_t*)(align_ptr)) - 1) = (uint32_t)mem;
 			return align_ptr;
@@ -148,12 +155,16 @@ again_alloc:
 void mem_free_align(mem_t *_this, void* f_mem) {
 	struct mem_heap* mem;
 	void* real_mem;
+
+	sche_lock();
 	for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next) {
+		knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
 		MKRTOS_ASSERT(mem->magic == MAGIC_NUM);
 		if ((ptr_t)mem == (ptr_t)f_mem- MEM_HEAP_STRUCT_SIZE) {
 			break;
 		}
 	}
+	sche_unlock();
 	if (mem == _this->heap_end) {
 		real_mem = (void*)(*(((uint32_t*)(f_mem)) - 1));
 		mem_free(_this, real_mem);
@@ -177,11 +188,13 @@ void* mem_alloc(mem_t *_this, uint32_t size) {
 	size = ALIGN(size, 4);
 	sche_lock();
 	for (mem = _this->l_heap; mem != _this->heap_end; mem = mem->next) {
+		knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
 		MKRTOS_ASSERT(mem->magic == MAGIC_NUM);
 		if (mem->used == 0 && mem->size > size) {
 			if (mem->size - size > MEM_HEAP_STRUCT_SIZE) {
 				struct mem_heap* mem_temp = NULL;
 				mem_temp = (struct mem_heap*)((ptr_t)mem + MEM_HEAP_STRUCT_SIZE + size);
+				knl_check_user_ram_access_exit(mem_temp, sizeof(struct mem_heap), 1, _this->blong_user);
 				mem_temp->next = mem->next;
 				mem_temp->prev = mem;
 				mem_temp->used = 0;
@@ -210,7 +223,6 @@ int mem_heap_add(mem_t *_this, void* mem, uint32_t size) {
 	if (size < (MEM_HEAP_STRUCT_SIZE << 1)) {
 		return -1;
 	}
-
 	mem = (void*)(ALIGN((ptr_t)mem, 4));
 	size -= 4;
 
@@ -256,6 +268,7 @@ size_t mem_get_free_size(mem_t *_this)
 
 	sche_lock();
 	for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next) {
+		knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
 		MKRTOS_ASSERT(mem->magic == MAGIC_NUM);
 		if (!mem->used) {
 			size += mem->size;
@@ -278,7 +291,9 @@ struct mem_heap* mem_get_free(mem_t *_this, struct mem_heap* next,
 	}
 
 	sche_lock();
+	knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
 	for (; mem != _this->heap_end; mem = mem->next) {
+		knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
 		MKRTOS_ASSERT(mem->magic == MAGIC_NUM);
 		if (hope_size > 0 && !mem->used && mem->size >= hope_size) {
 			*ret_addr = (ptr_t)mem + MEM_HEAP_STRUCT_SIZE;
@@ -303,6 +318,7 @@ void mem_trace(mem_t *_this) {
 	kprint("end heap:0x%x.\n",_this->heap_end);
 
 	for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next) {
+		knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
 		kprint("%d [0x%x-] %dB\n",mem->used,mem,mem->size);
 	}
 }

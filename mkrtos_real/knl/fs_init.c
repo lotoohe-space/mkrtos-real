@@ -9,21 +9,13 @@
 #include <mkrtos/stat.h>
 #include <paths.h>
 
-//导入外部的两个函数
-extern int sys_mknod(const char * filename, int mode, dev_t dev);
-extern int sys_mkdir(const char * pathname, int mode);
-int32_t sys_open(const char* path,int32_t flags,int32_t mode);
-int sys_write (int fd,uint8_t *buf,uint32_t len);
-int sys_readdir(unsigned int fd, struct dirent * dirent, uint32_t count);
-void sys_close(int fp);
-int sys_read (int fd,uint8_t *buf,uint32_t len);
-
 void fs_init(void){
     //创建设备目录
     sys_mkdir("/dev",0777);
     sys_mkdir("/mnt",0777);
     sys_mkdir("/bin",0777);
     sys_mkdir("/etc",0777);
+    sys_mkdir("/tmp",0777);
     //null设备
     sys_mknod(_PATH_DEVNULL,MK_MODE(S_IFCHR,0777),MKDEV(NULL_MAJOR,0));
     sys_mknod("/dev/ro_flash", MK_MODE(S_IFBLK, 0777), MKDEV(BK_RO_FLASH, 0));

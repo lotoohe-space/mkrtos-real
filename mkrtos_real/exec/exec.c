@@ -284,7 +284,7 @@ again_alloc:
 		curr_task->signals[i]._u._sa_handler = SIG_DFL;
 	}
 
-	mem_init(&curr_task->user_head_alloc);
+	mem_init(&curr_task->user_head_alloc, 1);
 	mem_heap_add(&curr_task->user_head_alloc, (char *)ram+exec_fi->i.heap_offset - exec_fi->i.data_offset,exec_fi->i.heap_size);
 
 	if (curr_task == c_task) {

@@ -16,11 +16,13 @@
 
 typedef struct mem_heap {
 	uint32_t magic;
-	char name[MEM_HEAP_NAME];
+	union {
+		char name[MEM_HEAP_NAME];
+		pid_t pid;
+	};
 	struct mem_heap* next;
 	struct mem_heap* prev;
 	uint32_t size;
-	uint16_t blong_user; //!< 属于用户
 	uint16_t used;
 } mem_heap_t;
 
@@ -30,13 +32,14 @@ typedef struct mem {
 	struct mem_heap* heap_start; //!< 开始位置
 	struct mem_heap* heap_end; //!< 结束位置
 	struct mem_heap* l_heap; //!< 空闲位置
+	uint16_t blong_user; //!< 属于用户
 } mem_t;
 
-void mem_init(mem_t *_this);
+void mem_init(mem_t *_this, int is_user);
 void mem_free(mem_t *_this, void* mem);
 void* mem_alloc(mem_t *_this, uint32_t size);
 int mem_heap_add(mem_t *_this, void* mem, uint32_t size);
-void* mem_split(void* mem, uint32_t size);
+void* mem_split(mem_t *_this, void* mem, uint32_t size);
 void* mem_alloc_align(mem_t *_this, uint32_t size, uint32_t align);
 void mem_free_align(mem_t *_this, void* f_mem);
 size_t mem_get_free_size(mem_t *_this);

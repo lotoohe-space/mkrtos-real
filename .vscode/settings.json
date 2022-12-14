@@ -68,7 +68,8 @@
         "mm.h": "c",
         "atomic.h": "c",
         "slist.h": "c",
-        "exec.h": "c"
+        "exec.h": "c",
+        "bitset": "c"
     },
     "cortex-debug.showRTOS": false
 }
