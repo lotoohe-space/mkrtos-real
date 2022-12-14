@@ -80,4 +80,4 @@ static int reg_early_console(void)
 	console_reg(0);
 	return 0;
 }
-INIT_REG(reg_early_console, INIT_TEST_REG);
+INIT_REG(reg_early_console, INIT_FUNC_REG);

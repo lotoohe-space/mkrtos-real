@@ -160,8 +160,9 @@ struct sys_tasks {
 	slist_head_t all_tk_list; //!< 所有的任务链表
 	atomic_t pid_temp; //!< 创建任务分配任务ID使用
 	uint16_t tasks_count; //!< 系统任务数
+	atomic_t wait_r; //!< 是否有进程等待释放
 	uint8_t is_first; //!< 是否首次,是为0，不是为1
-	uint8_t wait_r; //!< 是否有进程等待释放
+	uint8_t is_run; //!< 系统是否启动完成
 };
 
 //等待链表

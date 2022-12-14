@@ -15,7 +15,7 @@
 void do_exit(int32_t exitCode) {
 	//关所有中断
 	uint32_t t;
-	kprint("kill pid is %d.\n", get_current_task()->pid);
+	//kprint("kill pid is %d.\n", get_current_task()->pid);
 	if (get_current_task()->status == TASK_CLOSED) {
 		return;
 	}
@@ -81,7 +81,7 @@ void do_exit(int32_t exitCode) {
 //	#if MEM_TRACE
 //	knl_mem_trace();
 //	#endif
-	get_sys_tasks_info()->wait_r++;
+	atomic_inc(&get_sys_tasks_info()->wait_r);
 	restore_cpu_intr(t);
 }
 ///**

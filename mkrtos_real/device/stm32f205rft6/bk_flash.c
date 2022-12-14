@@ -50,7 +50,7 @@ static struct file_operations bk_ops = { .open = bk_file_open, .read =
 dev_t used_dev_no = BK_FLASH;
 #define DEV_NAME "flash"
 /**
- * 注册设备驱动，注册成功返回设备驱动号
+ * 娉ㄥ唽璁惧椹卞姩锛屾敞鍐屾垚鍔熻繑鍥炶澶囬┍鍔ㄥ彿
  * @return
  */
 int32_t bk_flash_init(void) {

@@ -24,4 +24,4 @@ static int test_sched(void)
     return 0;
 }
 
-INIT_REG(test_sched, INIT_TEST_LVL);
+INIT_TEST_REG(test_sched, INIT_TEST_LVL);

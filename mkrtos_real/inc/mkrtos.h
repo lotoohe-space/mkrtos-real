@@ -88,7 +88,7 @@ static inline int is_power_of_2(int num){
 	\
 	}while(0)
 
-typedef int (*init_func)(void); 		//!< 初始化函数
+
 typedef int (*sys_call_func)(void); 	//!< 系统调用函数
 
 #endif /* INC_MKRTOS_H_ */
