@@ -1,10 +1,9 @@
 //
 // Created by Administrator on 2022/3/27.
 //
-//内核里面使用的msg，不兼容posix，只是为了提高速度
 
 #include "ipc/knl_msg.h"
-
+#include <knl_service.h>
 #include <errno.h>
 #include <string.h>
 
@@ -114,24 +113,21 @@ int msg_get(struct msg_hdl*msg,uint8_t *data,uint32_t wait){
             times.tv_sec=wait/1000;
             times.tv_nsec=(wait%1000)*1000*1000;
             again_sleep:
-            //获取休眠
             ret=do_nanosleep(&msg->get_slp,&times,&rem,&(msg->is_empty),1);
             if(ret==-EINTR){
-                //这里需要重新设定延时
                 times.tv_nsec=rem.tv_nsec;
                 times.tv_sec=rem.tv_sec;
                 rem.tv_sec=0;
                 rem.tv_nsec=0;
                 goto again_sleep;
             }
-            //剩余的时间放到wait中
             wait=rem.tv_sec*1000+rem.tv_nsec/1000/1000;
             goto again;
         }
     }else{
         spin_lock(&(msg->slh));
         msg->front=(msg->front+1)%msg->max_len;
-        memcpy(data,
+        mkrtos_memcpy(data,
                msg->msg+ msg->front * msg->msg_size
                 ,msg->msg_size);
         if(msg_is_empty(msg)){
@@ -155,7 +151,6 @@ int msg_put(struct msg_hdl *msg,uint8_t *data,uint32_t wait){
     old_wait=wait;
     again:
     if(atomic_test(&msg->is_full,1)){
-        /*满了，放入失败，挂起任务，休眠并等待释放*/
         if(wait==0){
             return -1;
         }else{
@@ -166,25 +161,21 @@ int msg_put(struct msg_hdl *msg,uint8_t *data,uint32_t wait){
             int ret;
 
             again_sleep:
-            //获取休眠
             ret=do_nanosleep(&msg->put_slp,&times,&rem,&(msg->is_full),1);
             if(ret==-EINTR){
-                //这里需要重新设定延时
                 times.tv_nsec=rem.tv_nsec;
                 times.tv_sec=rem.tv_sec;
                 rem.tv_sec=0;
                 rem.tv_nsec=0;
                 goto again_sleep;
             }
-            //剩余的时间放到wait中
             wait=rem.tv_sec*1000+rem.tv_nsec/1000/1000;
             goto again;
         }
     }else{
         spin_lock(&msg->slh);
         msg->rear=(msg->rear+1)%msg->max_len ;
-        memcpy(
-                /*拷贝的开始地址*/
+        mkrtos_memcpy(
                 msg->msg+ msg->rear * msg->msg_size
                 ,data
                 ,msg->msg_size

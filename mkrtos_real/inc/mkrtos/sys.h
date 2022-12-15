@@ -87,56 +87,57 @@ extern int sys_symlink();      // 83 - 建立符号链接。             (fs/nam
 extern int sys_lstat();        // 84 - 取符号链接文件状态。       (fs/stat.c，47)
 extern int sys_readlink();     // 85 - 读取符号链接文件信息。     (fs/stat.c，69)
 extern int sys_uselib();       // 86 - 选择共享库。
-extern int sys_mmap();       // 90 - 选择共享库。
-extern int sys_munmap();    //91
-extern int sys_truncate();//92
-extern int sys_ftruncate();//93
-extern int sys_fchown();//95
-extern int sys_getpriority(); //96
-extern int sys_setpriority(); //97
+extern int sys_reboot();       // 88 - 重启系统
+extern int sys_mmap();         // 90 - 选择共享库。
+extern int sys_munmap();       // 91
+extern int sys_truncate();     // 92
+extern int sys_ftruncate();    // 93
+extern int sys_fchown();       // 95
+extern int sys_getpriority();  // 96
+extern int sys_setpriority();  // 97
 extern int sys_socketcall();
-extern int sys_wait4();     //114-wait4
-extern int sys_ipc();       //117
+extern int sys_wait4(); // 114-wait4
+extern int sys_ipc();   // 117
 extern int sys_fsync();
 extern int sys_getdents();
-extern int sys_clone(); //120
+extern int sys_clone(); // 120
 extern int sys_sigprocmask();
-extern int sys_sched_yield();//158
-extern int sys_nanosleep(); //162
-extern int sys_mremap();//163
-extern int sys_poll();//168
-extern int sys_rt_sigaction(); //174
+extern int sys_sched_yield();  // 158
+extern int sys_nanosleep();    // 162
+extern int sys_mremap();       // 163
+extern int sys_poll();         // 168
+extern int sys_rt_sigaction(); // 174
 extern int sys_rt_sigprocmask();
-extern int sys_rt_sigsuspend();//179
-extern int sys_getcwd();//183
+extern int sys_rt_sigsuspend(); // 179
+extern int sys_getcwd();        // 183
 extern int sys_getenv();
 
-extern int sys_rt_sigreturn(void* psp);
+extern int sys_rt_sigreturn(void *psp);
 extern int sys_mmap2();
 extern int sys_readdir();
 int sys_fchmod(unsigned int fd, mode_t mode);
 extern int sys_fchdir();
-int sys_statfs(const char * path, struct statfs * buf);
-int sys_fstatfs(unsigned int fd, struct statfs * buf);
+int sys_statfs(const char *path, struct statfs *buf);
+int sys_fstatfs(unsigned int fd, struct statfs *buf);
 extern int sys_sigreturn();
 
-extern int sys_socket();//281
-extern int sys_bind();//282
-extern int sys_connect();//283
-extern int sys_listen();//284
-extern int sys_accept();//285
-extern int sys_getsockname();//286
-extern int sys_getpeername();//287
-extern int sys_socketpair();//288
-extern int sys_send();//289
-extern int sys_sendto();//290
-extern int sys_recv();//291
-extern int sys_recvfrom();//292
-extern int sys_shutdown();//293
-extern int sys_setsockopt();//294
-extern int sys_getsockopt();//295
-extern int sys_sendmsg();//296
-extern int sys_recvmsg();//297
+extern int sys_socket();      // 281
+extern int sys_bind();        // 282
+extern int sys_connect();     // 283
+extern int sys_listen();      // 284
+extern int sys_accept();      // 285
+extern int sys_getsockname(); // 286
+extern int sys_getpeername(); // 287
+extern int sys_socketpair();  // 288
+extern int sys_send();        // 289
+extern int sys_sendto();      // 290
+extern int sys_recv();        // 291
+extern int sys_recvfrom();    // 292
+extern int sys_shutdown();    // 293
+extern int sys_setsockopt();  // 294
+extern int sys_getsockopt();  // 295
+extern int sys_sendmsg();     // 296
+extern int sys_recvmsg();     // 297
 
 extern int sys_subscribe_msg();
 extern int sys_publish_msg();
@@ -146,145 +147,146 @@ extern int slot_reg(void);
 extern int fork_exec(void);
 
 const sys_call_func sys_call_table[] = {
-        [0]=sys_setup,//实现
-        [1]=sys_exit,//实现
-        [2]=sys_fork,//实现
-        [3]=sys_read,//实现
-        [4]=sys_write,//实现
-        [5]=sys_open,//实现
-        [6]=sys_close,//实现
-        [7]=sys_waitpid,//实现
-        [8]= sys_creat,//实现
-        [9]=sys_link,//实现
-        [10]=sys_unlink,//实现
-        [11]=sys_execve,
-        [12]=sys_chdir,//实现
-        [13]=sys_time,//
-        [14]=sys_mknod,
-        [15]=sys_chmod,
-        [16]= NULL,//sys_chown
-        [17]=sys_break,
-        [18]=sys_stat,
-        [19]=sys_lseek,
-        [20]=sys_getpid,
-        [21]=sys_mount,
-        [22]=NULL,//sys_umount,
-        [23]=sys_setuid,
-        [24]=sys_getuid,
-        [25]=sys_stime,
-        [26]=sys_ptrace,
-        [27]=sys_alarm,
-        [28]=sys_fstat,
-        [29]=sys_pause,
-        [30]=sys_utime,
-        [31]=sys_stty,
-        [32]=sys_gtty,
-        [33]=sys_access,
-        [34]=sys_nice,
-        [35]=sys_ftime,
-        [36]=sys_sync,
-        [37]=sys_kill,
-        [38]=sys_rename,
-        [39]=sys_mkdir,
-        [40]=sys_rmdir,
-        [41]=sys_dup,
-        [42]=sys_pipe,
-        [43]=sys_times,
-        [44]=sys_prof,
-        [45]=sys_brk,
-        [46]=sys_setgid,
-        [47]=sys_getgid,
-        [48]=sys_signal,
-        [49]=sys_geteuid,
-        [50]=sys_getegid,
-        [51]=sys_acct,
-        [52]NULL,//sys_phys,
-        [53]=sys_lock,
-        [54]=sys_ioctl,
-        [55]=sys_fcntl,
-        [56]=sys_mpx,
-        [57]=sys_setpgid,
-        [58]=sys_ulimit,
-        [59]=sys_uname,
-        [60]=sys_umask,
-        [61]=sys_chroot,
-        [62]=sys_ustat,
-        [63]=sys_dup2,
-        [64]=sys_getppid,
-        [65]=sys_getpgrp,
-        [66]=sys_setsid,
-        [67]=sys_sigaction,
-        [68]=sys_sgetmask,
-        [69]=sys_ssetmask,
-        [70]=sys_setreuid,
-        [71]=sys_setregid,
-        [72]=sys_sigsuspend,
-//                           sys_sigpending,
-//                           sys_sethostname,
-//                           sys_setrlimit,
-//                           sys_getrlimit,
-//                           sys_getrusage,
-       [78]=sys_gettimeofday,
-       [79]=sys_settimeofday,
-//                           sys_getgroups,
-//                           sys_setgroups,
-        [82]=sys_select,
-        [83]=sys_symlink,
-        [84]=sys_lstat,
-//                           sys_readlink,
-//                           sys_uselib,
-        [89]=sys_readdir,
-        [90]=sys_mmap,
-        [91]=sys_munmap,
-        [92]=sys_truncate,
-        [93]=sys_ftruncate,
-        [94]=sys_fchmod,
-        [95]=sys_fchown,
-        [96]=sys_getpriority,
-        [97]=sys_setpriority,
-        [99]=sys_statfs,
-        [100]=sys_fstatfs,
-        [102]=sys_socketcall,
-        [106]=sys_stat,
-        [107]=sys_lstat,
-        [114]=sys_wait4,
-        [117]=sys_ipc,
-        [118]=sys_fsync,
-        [119]=sys_sigreturn,
-        [120]=sys_clone,
-        [122]=sys_uname,
-        [126]=sys_sigprocmask,
-        [133]=sys_fchdir,
-        [141]=sys_getdents,
-        [158]=sys_sched_yield,
-        [162]=sys_nanosleep,
-        [163]=NULL,//sys_mremap,
-        [168]=sys_poll,
-        [173]=sys_rt_sigreturn,
-        [174]=sys_rt_sigaction,
-        [175]=sys_rt_sigprocmask,
-        [179]=sys_rt_sigsuspend,
-        [182]=sys_chown,
-        [183]=sys_getcwd,
-		[192]=sys_mmap2,
-        [281]=sys_socket,
-        [282]=sys_bind,
-        [283]=sys_connect,
-        [284]=sys_listen,
-        [285]=sys_accept,
-        [286]=sys_getsockname,
-        [287]=sys_getpeername,
-        [288]=sys_socketpair,
-        [289]=sys_send,
-        [290]=sys_sendto,
-        [291]=sys_recv,
-        [292]=sys_recvfrom,
-        [293]=sys_shutdown,
-        [294]=sys_setsockopt,
-        [295]=sys_getsockopt,
-        [296]=sys_sendmsg,
-        [297]=sys_recvmsg,
-		[395]=sys_p2c_addr,
-		[396]=slot_reg,
-		[397]=fork_exec,
+    [0] = sys_setup,   // 实现
+    [1] = sys_exit,    // 实现
+    [2] = sys_fork,    // 实现
+    [3] = sys_read,    // 实现
+    [4] = sys_write,   // 实现
+    [5] = sys_open,    // 实现
+    [6] = sys_close,   // 实现
+    [7] = sys_waitpid, // 实现
+    [8] = sys_creat,   // 实现
+    [9] = sys_link,    // 实现
+    [10] = sys_unlink, // 实现
+    [11] = sys_execve,
+    [12] = sys_chdir, // 实现
+    [13] = sys_time,  //
+    [14] = sys_mknod,
+    [15] = sys_chmod,
+    [16] = NULL, // sys_chown
+    [17] = sys_break,
+    [18] = sys_stat,
+    [19] = sys_lseek,
+    [20] = sys_getpid,
+    [21] = sys_mount,
+    [22] = NULL, // sys_umount,
+    [23] = sys_setuid,
+    [24] = sys_getuid,
+    [25] = sys_stime,
+    [26] = sys_ptrace,
+    [27] = sys_alarm,
+    [28] = sys_fstat,
+    [29] = sys_pause,
+    [30] = sys_utime,
+    [31] = sys_stty,
+    [32] = sys_gtty,
+    [33] = sys_access,
+    [34] = sys_nice,
+    [35] = sys_ftime,
+    [36] = sys_sync,
+    [37] = sys_kill,
+    [38] = sys_rename,
+    [39] = sys_mkdir,
+    [40] = sys_rmdir,
+    [41] = sys_dup,
+    [42] = sys_pipe,
+    [43] = sys_times,
+    [44] = sys_prof,
+    [45] = sys_brk,
+    [46] = sys_setgid,
+    [47] = sys_getgid,
+    [48] = sys_signal,
+    [49] = sys_geteuid,
+    [50] = sys_getegid,
+    [51] = sys_acct,
+    [52] NULL, // sys_phys,
+    [53] = sys_lock,
+    [54] = sys_ioctl,
+    [55] = sys_fcntl,
+    [56] = sys_mpx,
+    [57] = sys_setpgid,
+    [58] = sys_ulimit,
+    [59] = sys_uname,
+    [60] = sys_umask,
+    [61] = sys_chroot,
+    [62] = sys_ustat,
+    [63] = sys_dup2,
+    [64] = sys_getppid,
+    [65] = sys_getpgrp,
+    [66] = sys_setsid,
+    [67] = sys_sigaction,
+    [68] = sys_sgetmask,
+    [69] = sys_ssetmask,
+    [70] = sys_setreuid,
+    [71] = sys_setregid,
+    [72] = sys_sigsuspend,
+    //                           sys_sigpending,
+    //                           sys_sethostname,
+    //                           sys_setrlimit,
+    //                           sys_getrlimit,
+    //                           sys_getrusage,
+    [78] = sys_gettimeofday,
+    [79] = sys_settimeofday,
+    //                           sys_getgroups,
+    //                           sys_setgroups,
+    [82] = sys_select,
+    [83] = sys_symlink,
+    [84] = sys_lstat,
+    //                           sys_readlink,
+    //                           sys_uselib,
+    [88] = sys_reboot,
+    [89] = sys_readdir,
+    [90] = sys_mmap,
+    [91] = sys_munmap,
+    [92] = sys_truncate,
+    [93] = sys_ftruncate,
+    [94] = sys_fchmod,
+    [95] = sys_fchown,
+    [96] = sys_getpriority,
+    [97] = sys_setpriority,
+    [99] = sys_statfs,
+    [100] = sys_fstatfs,
+    [102] = sys_socketcall,
+    [106] = sys_stat,
+    [107] = sys_lstat,
+    [114] = sys_wait4,
+    [117] = sys_ipc,
+    [118] = sys_fsync,
+    [119] = sys_sigreturn,
+    [120] = sys_clone,
+    [122] = sys_uname,
+    [126] = sys_sigprocmask,
+    [133] = sys_fchdir,
+    [141] = sys_getdents,
+    [158] = sys_sched_yield,
+    [162] = sys_nanosleep,
+    [163] = NULL, // sys_mremap,
+    [168] = sys_poll,
+    [173] = sys_rt_sigreturn,
+    [174] = sys_rt_sigaction,
+    [175] = sys_rt_sigprocmask,
+    [179] = sys_rt_sigsuspend,
+    [182] = sys_chown,
+    [183] = sys_getcwd,
+    [192] = sys_mmap2,
+    [281] = sys_socket,
+    [282] = sys_bind,
+    [283] = sys_connect,
+    [284] = sys_listen,
+    [285] = sys_accept,
+    [286] = sys_getsockname,
+    [287] = sys_getpeername,
+    [288] = sys_socketpair,
+    [289] = sys_send,
+    [290] = sys_sendto,
+    [291] = sys_recv,
+    [292] = sys_recvfrom,
+    [293] = sys_shutdown,
+    [294] = sys_setsockopt,
+    [295] = sys_getsockopt,
+    [296] = sys_sendmsg,
+    [297] = sys_recvmsg,
+    [395] = sys_p2c_addr,
+    [396] = slot_reg,
+    [397] = fork_exec,
 };

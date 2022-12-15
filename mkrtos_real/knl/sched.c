@@ -132,13 +132,14 @@ void sche_unlock(void) {
 }
 /**
  * 获取调度器的锁计数
+ * @return 调度器锁，等于零代表解锁
  */
 uint32_t sche_lock_cn_get(void) {
 	return atomic_read(&(sys_tasks_info.sche_lock));
 }
 
 /**
- * @brief 任务调度，如果调度关闭，则调用无效
+ * @brief 任务调度，如果调度关闭，则无法调度
  */
 void task_sche(void) {
 	uint32_t t;
@@ -341,13 +342,14 @@ int32_t add_task(struct task *p_task_block, uint32_t into_all_ls) {
  */
 void tasks_check(void) {
 	struct task *ptb;
+
 	sys_tasks_info.sys_run_count++;
     //检测所有的定时器信号
 	slist_foreach(ptb, &sys_tasks_info.all_tk_list, all_node) {
 		if(ptb->status==TASK_RUNNING
         && ptb->alarm){
             //时间到了
-            if(ptb->alarm<sys_tasks_info.sys_run_count){
+            if(ptb->alarm < sys_tasks_info.sys_run_count){
                 //发送指定信号
                 inner_set_sig(SIGALRM);
                 ptb->alarm = 0;

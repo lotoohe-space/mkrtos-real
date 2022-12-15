@@ -37,6 +37,7 @@ add_subdirectory(mkrtos_ls)
 add_subdirectory(mkrtos_ym)
 add_subdirectory(mkrtos_shell)
 add_subdirectory(mkrtos_test)
+add_subdirectory(mkrtos_reboot)
 # add_custom_target(
 #     gen_system_cpio
 #     ALL
