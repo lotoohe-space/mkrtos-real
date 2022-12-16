@@ -36,13 +36,18 @@ $CMAKE_SIZE build/mkrtos/$TEST_NAME/$TEST_NAME.elf
 $CMAKE_OBJCOPY -O binary build/mkrtos/$TEST_NAME/$TEST_NAME.elf build/mkrtos/$TEST_NAME/test
 sudo cp build/mkrtos/$TEST_NAME/test build/bin/
 
+export REBOOT_NAME=reboot
+$CMAKE_SIZE build/mkrtos/mkrtos_$REBOOT_NAME/mkrtos_$REBOOT_NAME.elf
+$CMAKE_OBJCOPY -O binary build/mkrtos/mkrtos_$REBOOT_NAME/mkrtos_$REBOOT_NAME.elf build/mkrtos/mkrtos_$REBOOT_NAME/$REBOOT_NAME
+sudo cp build/mkrtos/mkrtos_$REBOOT_NAME/$REBOOT_NAME build/bin/
+
 $CMAKE_SIZE build/mkrtos/mkrtos_real/mkrtos_real.elf
 $CMAKE_OBJCOPY -O binary build/mkrtos/mkrtos_real/mkrtos_real.elf build/mkrtos/mkrtos_real/kernel.bin
 sudo cp build/mkrtos/mkrtos_real/kernel.bin build/bin
 
 cd build/bin
 # cpio的文件名长度必须要是n*4+2，文件的长度必须是4的整数倍
-ls zh ls ym test | cpio -H newc -o > rootfs.cpio
+ls zh ls ym test reboot | cpio -H newc -o > rootfs.cpio
 srec_cat -output  kernel.img -binary \
         mkrtos_bootstrap.bin -binary\
         kernel.bin -binary -offset 0x00004000\

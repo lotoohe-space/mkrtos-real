@@ -12,226 +12,270 @@
 #include <sys/times.h>
 #include <sys/resource.h>
 
-char* sys_getenv(char *key) {
+#include <sys/reboot.h>
+
+char *sys_getenv(char *key)
+{
 	return NULL;
 }
-int sys_vhangup(void) {
+int sys_vhangup(void)
+{
 	return -ENOSYS;
 }
-// ·ÏÆúÁË
-int sys_ftime() {
-	return -ENOSYS;
-}
-
-//·ÏÆúÁË
-int sys_break() {
+// åºŸå¼ƒäº†
+int sys_ftime()
+{
 	return -ENOSYS;
 }
 
-// ÓÃÓÚµ±Ç°½ø³Ì¶Ô×Ó½ø³Ì½øÐÐµ÷ÊÔ(degugging)¡£
-int sys_ptrace(int request, int pid, int addr, int data) {
+// åºŸå¼ƒäº†
+int sys_break()
+{
 	return -ENOSYS;
 }
 
-// ¸Ä±ä²¢´òÓ¡ÖÕ¶ËÐÐÉèÖÃ¡£
-int sys_stty() {
+// ç”¨äºŽå½“å‰è¿›ç¨‹å¯¹å­è¿›ç¨‹è¿›è¡Œè°ƒè¯•(degugging)ã€‚
+int sys_ptrace(int request, int pid, int addr, int data)
+{
 	return -ENOSYS;
 }
 
-// È¡ÖÕ¶ËÐÐÉèÖÃÐÅÏ¢¡£
-int sys_gtty() {
+// æ”¹å˜å¹¶æ‰“å°ç»ˆç«¯è¡Œè®¾ç½®ã€‚
+int sys_stty()
+{
 	return -ENOSYS;
 }
 
-int sys_prof() {
+// å–ç»ˆç«¯è¡Œè®¾ç½®ä¿¡æ¯ã€‚
+int sys_gtty()
+{
 	return -ENOSYS;
 }
-int sys_setregid(int rgid, int egid) {
+
+int sys_prof()
+{
 	return -ENOSYS;
 }
-// ÉèÖÃ½ø³Ì×éºÅ(gid)¡£Èç¹ûÈÎÎñÃ»ÓÐ³¬¼¶ÓÃ»§ÌØÈ¨£¬Ëü¿ÉÒÔÊ¹ÓÃsetgid()½«ÆäÓÐÐ§gid
-// £¨effective gid£©ÉèÖÃÎª³ÉÆä±£Áôgid(saved gid)»òÆäÊµ¼Êgid(real gid)¡£Èç¹ûÈÎÎñÓÐ
-// ³¬¼¶ÓÃ»§ÌØÈ¨£¬ÔòÊµ¼Êgid¡¢ÓÐÐ§gid ºÍ±£Áôgid ¶¼±»ÉèÖÃ³É²ÎÊýÖ¸¶¨µÄgid¡£
-int sys_setgid(gid_t gid) {
-//	if (get_current_task()->is_s_user) {
-//		get_current_task()->egid = gid;
-//		get_current_task()->rgid = gid;
-//		get_current_task()->sgid = gid;
-//	} else
+int sys_setregid(int rgid, int egid)
+{
+	return -ENOSYS;
+}
+// è®¾ç½®è¿›ç¨‹ç»„å·(gid)ã€‚å¦‚æžœä»»åŠ¡æ²¡æœ‰è¶…çº§ç”¨æˆ·ç‰¹æƒï¼Œå®ƒå¯ä»¥ä½¿ç”¨setgid()å°†å…¶æœ‰æ•ˆgid
+// ï¼ˆeffective gidï¼‰è®¾ç½®ä¸ºæˆå…¶ä¿ç•™gid(saved gid)æˆ–å…¶å®žé™…gid(real gid)ã€‚å¦‚æžœä»»åŠ¡æœ‰
+// è¶…çº§ç”¨æˆ·ç‰¹æƒï¼Œåˆ™å®žé™…gidã€æœ‰æ•ˆgid å’Œä¿ç•™gid éƒ½è¢«è®¾ç½®æˆå‚æ•°æŒ‡å®šçš„gidã€‚
+int sys_setgid(gid_t gid)
+{
+	//	if (get_current_task()->is_s_user) {
+	//		get_current_task()->egid = gid;
+	//		get_current_task()->rgid = gid;
+	//		get_current_task()->sgid = gid;
+	//	} else
 	{
-		if (gid == get_current_task()->rgid
-				|| gid == get_current_task()->sgid) {
+		if (gid == get_current_task()->rgid || gid == get_current_task()->sgid)
+		{
 			get_current_task()->egid = gid;
-		} else {
+		}
+		else
+		{
 			return -EPERM;
 		}
 	}
 	return 0;
 }
 
-// ´ò¿ª»ò¹Ø±Õ½ø³Ì¼ÆÕÊ¹¦ÄÜ¡£
-int sys_acct() {
+// æ‰“å¼€æˆ–å…³é—­è¿›ç¨‹è®¡å¸åŠŸèƒ½ã€‚
+int sys_acct()
+{
 	return -ENOSYS;
 }
 
-// Ó³ÉäÈÎÒâÎïÀíÄÚ´æµ½½ø³ÌµÄÐéÄâµØÖ·¿Õ¼ä¡£
-int sys_phys() {
+// æ˜ å°„ä»»æ„ç‰©ç†å†…å­˜åˆ°è¿›ç¨‹çš„è™šæ‹Ÿåœ°å€ç©ºé—´ã€‚
+int sys_phys()
+{
 	return -ENOSYS;
 }
 
-int sys_lock() {
+int sys_lock()
+{
 	return -ENOSYS;
 }
 
-int sys_mpx() {
+int sys_mpx()
+{
 	return -ENOSYS;
 }
 
-int sys_ulimit() {
+int sys_ulimit()
+{
 	return -ENOSYS;
 }
-//extern uint32_t rtc_set_tick(uint32_t tick);
-//extern uint32_t rtc_get_tick(void);
-//extern uint32_t rtc_get_msofsec(void);
-// ·µ»Ø´Ó1970 Äê1 ÔÂ1 ÈÕ00:00:00 GMT ¿ªÊ¼¼ÆÊ±µÄÊ±¼äÖµ£¨Ãë£©¡£Èç¹ûtloc ²»Îªnull£¬ÔòÊ±¼äÖµ
-// Ò²´æ´¢ÔÚÄÇÀï¡£
-int sys_time(time_t *tloc) {
+// extern uint32_t rtc_set_tick(uint32_t tick);
+// extern uint32_t rtc_get_tick(void);
+// extern uint32_t rtc_get_msofsec(void);
+//  è¿”å›žä»Ž1970 å¹´1 æœˆ1 æ—¥00:00:00 GMT å¼€å§‹è®¡æ—¶çš„æ—¶é—´å€¼ï¼ˆç§’ï¼‰ã€‚å¦‚æžœtloc ä¸ä¸ºnullï¼Œåˆ™æ—¶é—´å€¼
+//  ä¹Ÿå­˜å‚¨åœ¨é‚£é‡Œã€‚
+int sys_time(time_t *tloc)
+{
 	time_t tick = 0;
-	//ºóÃæÓ¦¸ÃÊ¹ÓÃrtcÇý¶¯Éè±¸£¬µ«ÊÇÕâÑùÊÇ×î¿ìµÄrtc.c
+	// åŽé¢åº”è¯¥ä½¿ç”¨rtcé©±åŠ¨è®¾å¤‡ï¼Œä½†æ˜¯è¿™æ ·æ˜¯æœ€å¿«çš„rtc.c
 
-//	tick = rtc_get_tick();
-//	if (tloc) {
-//		*tloc = tick;
-//	}
+	//	tick = rtc_get_tick();
+	//	if (tloc) {
+	//		*tloc = tick;
+	//	}
 	return tick;
 }
-int sys_setreuid(uid_t ruid, uid_t euid) {
+int sys_setreuid(uid_t ruid, uid_t euid)
+{
 
-	if (ruid != -1) {
+	if (ruid != -1)
+	{
 		get_current_task()->ruid = ruid;
 	}
-	if (euid != -1) {
+	if (euid != -1)
+	{
 		get_current_task()->euid = euid;
 	}
 
 	return -ENOSYS;
 }
-//ÉèÖÃÓÃ»§id
-int sys_setuid(uid_t uid) {
-//	if (get_current_task()->is_s_user) {
-//		get_current_task()->euid = uid;
-//		get_current_task()->ruid = uid;
-//		get_current_task()->suid = uid;
-//	} else
+// è®¾ç½®ç”¨æˆ·id
+int sys_setuid(uid_t uid)
+{
+	//	if (get_current_task()->is_s_user) {
+	//		get_current_task()->euid = uid;
+	//		get_current_task()->ruid = uid;
+	//		get_current_task()->suid = uid;
+	//	} else
 	{
-		if (uid == get_current_task()->ruid
-				|| uid == get_current_task()->suid) {
+		if (uid == get_current_task()->ruid || uid == get_current_task()->suid)
+		{
 			get_current_task()->euid = uid;
-		} else {
+		}
+		else
+		{
 			return -EPERM;
 		}
 	}
 	return 0;
 }
-int sys_stime(time_t *tptr) {
-	if (!tptr) {
+int sys_stime(time_t *tptr)
+{
+	if (!tptr)
+	{
 		return -EINVAL;
 	}
-//	if (!get_current_task()->is_s_user) {
-//		return -EPERM;
-//	}
-	//rtc.c
-//	extern uint32_t rtc_set_tick(uint32_t tick);
-//	rtc_set_tick(*tptr);
+	//	if (!get_current_task()->is_s_user) {
+	//		return -EPERM;
+	//	}
+	// rtc.c
+	//	extern uint32_t rtc_set_tick(uint32_t tick);
+	//	rtc_set_tick(*tptr);
 	return -ENOSYS;
 }
-// »ñÈ¡µ±Ç°ÈÎÎñÊ±¼ä¡£tms ½á¹¹ÖÐ°üÀ¨ÓÃ»§Ê±¼ä¡¢ÏµÍ³Ê±¼ä¡¢×Ó½ø³ÌÓÃ»§Ê±¼ä¡¢×Ó½ø³ÌÏµÍ³Ê±¼ä¡£
-int sys_times(struct tms *tbuf) {
-	if (!tbuf) {
+// èŽ·å–å½“å‰ä»»åŠ¡æ—¶é—´ã€‚tms ç»“æž„ä¸­åŒ…æ‹¬ç”¨æˆ·æ—¶é—´ã€ç³»ç»Ÿæ—¶é—´ã€å­è¿›ç¨‹ç”¨æˆ·æ—¶é—´ã€å­è¿›ç¨‹ç³»ç»Ÿæ—¶é—´ã€‚
+int sys_times(struct tms *tbuf)
+{
+	if (!tbuf)
+	{
 		return -EINVAL;
 	}
 	tbuf->tms_utime = get_current_task()->run_count;
-	//ÏÂÃæÈý¸öºóÃæÔÙËµ°É£¬ÏÖÔÚºÃÏñÃ»É¶ÓÃ
+	// ä¸‹é¢ä¸‰ä¸ªåŽé¢å†è¯´å§ï¼ŒçŽ°åœ¨å¥½åƒæ²¡å•¥ç”¨
 	tbuf->tms_cstime = 0;
 	tbuf->tms_cutime = 0;
 	tbuf->tms_stime = 0;
 	return -ENOSYS;
 }
-int sys_settimeofday(struct timeval *tv, struct timezone *tz) {
-	if (!tv) {
+int sys_settimeofday(struct timeval *tv, struct timezone *tz)
+{
+	if (!tv)
+	{
 		return -EINVAL;
 	}
-//	if (!get_current_task()->is_s_user) {
-//		return -EPERM;
-//	}
+	//	if (!get_current_task()->is_s_user) {
+	//		return -EPERM;
+	//	}
 
-//	rtc_set_tick(tv->tv_sec + tv->tv_usec / 1000 / 1000);
+	//	rtc_set_tick(tv->tv_sec + tv->tv_usec / 1000 / 1000);
 
 	return 0;
 }
-int sys_gettimeofday(struct timeval *tv, struct timezone *tz) {
+int sys_gettimeofday(struct timeval *tv, struct timezone *tz)
+{
 
-	if (!tv) {
+	if (!tv)
+	{
 		return -EINVAL;
 	}
-	time_t r_tim = { 0 };
-//	r_tim = rtc_get_tick();
+	time_t r_tim = {0};
+	//	r_tim = rtc_get_tick();
 	tv->tv_sec = r_tim;
-	//tv->tv_usec = rtc_get_msofsec() * 1000;
-//    DST_NONE     /* not on DST */
-//    DST_USA      /* USA style DST */
-//    DST_AUST     /* Australian style DST */
-//    DST_WET      /* Western European DST */
-//    DST_MET      /* Middle European DST */
-//    DST_EET      /* Eastern European DST */
-//    DST_CAN      /* Canada */
-//    DST_GB       /* Great Britain and Eire */
-//    DST_RUM      /* Romania */
-//    DST_TUR      /* Turkey */
-//    DST_AUSTALT  /* Australian style with shift in 1986 */
-	if (tz) {
+	// tv->tv_usec = rtc_get_msofsec() * 1000;
+	//    DST_NONE     /* not on DST */
+	//    DST_USA      /* USA style DST */
+	//    DST_AUST     /* Australian style DST */
+	//    DST_WET      /* Western European DST */
+	//    DST_MET      /* Middle European DST */
+	//    DST_EET      /* Eastern European DST */
+	//    DST_CAN      /* Canada */
+	//    DST_GB       /* Great Britain and Eire */
+	//    DST_RUM      /* Romania */
+	//    DST_TUR      /* Turkey */
+	//    DST_AUSTALT  /* Australian style with shift in 1986 */
+	if (tz)
+	{
 		tz->tz_dsttime = 0;
 		tz->tz_minuteswest = -480;
 	}
 
 	return -ENOSYS;
 }
-// µ±²ÎÊýend_data_seg ÊýÖµºÏÀí£¬²¢ÇÒÏµÍ³È·ÊµÓÐ×ã¹»µÄÄÚ´æ£¬¶øÇÒ½ø³ÌÃ»ÓÐ³¬Ô½Æä×î´óÊý¾Ý¶Î´óÐ¡
-// Ê±£¬¸Ãº¯ÊýÉèÖÃÊý¾Ý¶ÎÄ©Î²Îªend_data_seg Ö¸¶¨µÄÖµ¡£¸ÃÖµ±ØÐë´óÓÚ´úÂë½áÎ²²¢ÇÒÒªÐ¡ÓÚ¶ÑÕ»
-// ½áÎ²16KB¡£·µ»ØÖµÊÇÊý¾Ý¶ÎµÄÐÂ½áÎ²Öµ£¨Èç¹û·µ»ØÖµÓëÒªÇóÖµ²»Í¬£¬Ôò±íÃ÷ÓÐ´í·¢Éú£©¡£
-// ¸Ãº¯Êý²¢²»±»ÓÃ»§Ö±½Óµ÷ÓÃ£¬¶øÓÉlibc ¿âº¯Êý½øÐÐ°ü×°£¬²¢ÇÒ·µ»ØÖµÒ²²»Ò»Ñù¡£
-int sys_brk(unsigned long end_data_seg) {
-	//Ã»ÓÐÐéÄâÄÚ´æµÄ¸ÅÄî£¬Ö±½Ó·µ»Ø³É¹¦
+// å½“å‚æ•°end_data_seg æ•°å€¼åˆç†ï¼Œå¹¶ä¸”ç³»ç»Ÿç¡®å®žæœ‰è¶³å¤Ÿçš„å†…å­˜ï¼Œè€Œä¸”è¿›ç¨‹æ²¡æœ‰è¶…è¶Šå…¶æœ€å¤§æ•°æ®æ®µå¤§å°
+// æ—¶ï¼Œè¯¥å‡½æ•°è®¾ç½®æ•°æ®æ®µæœ«å°¾ä¸ºend_data_seg æŒ‡å®šçš„å€¼ã€‚è¯¥å€¼å¿…é¡»å¤§äºŽä»£ç ç»“å°¾å¹¶ä¸”è¦å°äºŽå †æ ˆ
+// ç»“å°¾16KBã€‚è¿”å›žå€¼æ˜¯æ•°æ®æ®µçš„æ–°ç»“å°¾å€¼ï¼ˆå¦‚æžœè¿”å›žå€¼ä¸Žè¦æ±‚å€¼ä¸åŒï¼Œåˆ™è¡¨æ˜Žæœ‰é”™å‘ç”Ÿï¼‰ã€‚
+// è¯¥å‡½æ•°å¹¶ä¸è¢«ç”¨æˆ·ç›´æŽ¥è°ƒç”¨ï¼Œè€Œç”±libc åº“å‡½æ•°è¿›è¡ŒåŒ…è£…ï¼Œå¹¶ä¸”è¿”å›žå€¼ä¹Ÿä¸ä¸€æ ·ã€‚
+int sys_brk(unsigned long end_data_seg)
+{
+	// æ²¡æœ‰è™šæ‹Ÿå†…å­˜çš„æ¦‚å¿µï¼Œç›´æŽ¥è¿”å›žæˆåŠŸ
 	return 0;
 }
 /**
- * ÉèÖÃ×éID
+ * è®¾ç½®ç»„ID
  * @param pid
  * @param pgid
  * @return
  */
-int32_t sys_setpgid(int32_t pid, int32_t pgid) {
+int32_t sys_setpgid(int32_t pid, int32_t pgid)
+{
 	uint32_t t;
 	struct task *md_task;
 	t = dis_cpu_intr();
 	md_task = task_find(pid);
-	if (!pgid) {
+	if (!pgid)
+	{
 		md_task->pgid = md_task->pid;
-	} else {
+	}
+	else
+	{
 		md_task->pgid = pgid;
 	}
 	restore_cpu_intr(t);
 	return -ENOSYS;
 }
-int sys_getpgrp(void) {
+int sys_getpgrp(void)
+{
 	return -ENOSYS;
 }
-int sys_setsid(void) {
+int sys_setsid(void)
+{
 	return -ENOSYS;
 }
 
-int sys_uname(struct utsname *name) {
-	if (!name) {
+int sys_uname(struct utsname *name)
+{
+	if (!name)
+	{
 		return -1;
 	}
 	mkrtos_strncpy(name->sysname, SYS_NAME, _UTSNAME_LENGTH);
@@ -243,78 +287,114 @@ int sys_uname(struct utsname *name) {
 	return -ENOSYS;
 }
 /**
- * ÔÚ½ø³Ì´´½¨Ò»¸öÐÂÎÄ¼þ»òÐÂÄ¿Â¼Ê±£¬¾ÍÒ»¶¨»áÊ¹ÓÃÎÄ¼þ·½Ê½´´½¨ÆÁ±Î×Ö (»ØÒä3 . 3ºÍ3 . 4½Ú£¬
- * ÔÚÄÇÀïÎÒÃÇËµÃ÷ÁË o p e nºÍc r e a tº¯Êý¡£ÕâÁ½¸öº¯Êý¶¼ÓÐÒ»¸ö²ÎÊý m o d e£¬ËüÖ¸¶¨ÁËÐÂÎÄ¼þµÄ´æÈ¡
- * Ðí¿ÉÈ¨Î»)¡£ÎÒÃÇ½«ÔÚ4 . 2 0½ÚËµÃ÷ÈçºÎ´´½¨Ò»¸öÐÂÄ¿Â¼£¬ÔÚÎÄ¼þ·½Ê½´´½¨ÆÁ±Î×ÖÖÐÎª 1µÄÎ»£¬ÔÚ
- * ÎÄ¼þm o d eÖÐµÄÏàÓ¦Î»ÔòÒ»¶¨±»×ª³É0¡£
+ * åœ¨è¿›ç¨‹åˆ›å»ºä¸€ä¸ªæ–°æ–‡ä»¶æˆ–æ–°ç›®å½•æ—¶ï¼Œå°±ä¸€å®šä¼šä½¿ç”¨æ–‡ä»¶æ–¹å¼åˆ›å»ºå±è”½å­— (å›žå¿†3 . 3å’Œ3 . 4èŠ‚ï¼Œ
+ * åœ¨é‚£é‡Œæˆ‘ä»¬è¯´æ˜Žäº† o p e nå’Œc r e a tå‡½æ•°ã€‚è¿™ä¸¤ä¸ªå‡½æ•°éƒ½æœ‰ä¸€ä¸ªå‚æ•° m o d eï¼Œå®ƒæŒ‡å®šäº†æ–°æ–‡ä»¶çš„å­˜å–
+ * è®¸å¯æƒä½)ã€‚æˆ‘ä»¬å°†åœ¨4 . 2 0èŠ‚è¯´æ˜Žå¦‚ä½•åˆ›å»ºä¸€ä¸ªæ–°ç›®å½•ï¼Œåœ¨æ–‡ä»¶æ–¹å¼åˆ›å»ºå±è”½å­—ä¸­ä¸º 1çš„ä½ï¼Œåœ¨
+ * æ–‡ä»¶m o d eä¸­çš„ç›¸åº”ä½åˆ™ä¸€å®šè¢«è½¬æˆ0ã€‚
  */
-mode_t sys_umask(mode_t mask) {
+mode_t sys_umask(mode_t mask)
+{
 	mode_t old_mask;
 	old_mask = get_current_task()->mask;
 	get_current_task()->mask = mask;
 	return old_mask;
 }
 
-int sys_seteuid(uid_t uid) {
-//	if (get_current_task()->is_s_user) {
-//		get_current_task()->euid = uid;
-//	} else
+int sys_seteuid(uid_t uid)
+{
+	//	if (get_current_task()->is_s_user) {
+	//		get_current_task()->euid = uid;
+	//	} else
 	{
-		if (uid == get_current_task()->ruid
-				|| uid == get_current_task()->suid) {
+		if (uid == get_current_task()->ruid || uid == get_current_task()->suid)
+		{
 			get_current_task()->euid = uid;
-		} else {
+		}
+		else
+		{
 			return -EPERM;
 		}
 	}
 	return 0;
 }
-int sys_setegid(gid_t gid) {
-//	if (get_current_task()->is_s_user) {
-//		get_current_task()->egid = gid;
-//	} else
+int sys_setegid(gid_t gid)
+{
+	//	if (get_current_task()->is_s_user) {
+	//		get_current_task()->egid = gid;
+	//	} else
 	{
-		if (gid == get_current_task()->ruid
-				|| gid == get_current_task()->egid) {
+		if (gid == get_current_task()->ruid || gid == get_current_task()->egid)
+		{
 			get_current_task()->euid = gid;
-		} else {
+		}
+		else
+		{
 			return -EPERM;
 		}
 	}
 	return 0;
 }
 
-// È¡µ±Ç°½ø³ÌºÅpid¡£
-int32_t sys_getpid(void) {
+// å–å½“å‰è¿›ç¨‹å·pidã€‚
+int32_t sys_getpid(void)
+{
 	return get_current_task()->pid;
 }
 
-// È¡¸¸½ø³ÌºÅppid¡£
-int32_t sys_getppid(void) {
-	if (get_current_task()->parent_task) {
+// å–çˆ¶è¿›ç¨‹å·ppidã€‚
+int32_t sys_getppid(void)
+{
+	if (get_current_task()->parent_task)
+	{
 		return get_current_task()->parent_task->pid;
-	} else {
+	}
+	else
+	{
 		return -1;
 	}
 }
 
-// È¡ÓÃ»§ºÅuid¡£
-int32_t sys_getuid(void) {
+// å–ç”¨æˆ·å·uidã€‚
+int32_t sys_getuid(void)
+{
 	return get_current_task()->ruid;
 }
 
-// È¡euid¡£
-int32_t sys_geteuid(void) {
+// å–euidã€‚
+int32_t sys_geteuid(void)
+{
 	return get_current_task()->euid;
 }
 
-// È¡×éºÅgid¡£
-int32_t sys_getgid(void) {
+// å–ç»„å·gidã€‚
+int32_t sys_getgid(void)
+{
 	return get_current_task()->rgid;
 }
 
-// È¡egid¡£
-int32_t sys_getegid(void) {
+// å–egidã€‚
+int32_t sys_getegid(void)
+{
 	return get_current_task()->egid;
 }
-
+int32_t sys_reboot(uint32_t magic1, uint32_t magic2, uint32_t cmd)
+{
+	int32_t ret = -EINVAL;
+	if (magic1 != LINUX_REBOOT_MAGIC1 || magic2 != LINUX_REBOOT_MAGIC2)
+	{
+		goto end;
+	}
+	switch (cmd)
+	{
+	case LINUX_REBOOT_CMD_RESTART:
+		kprint("reboot sys\n");
+		arch_reboot();
+		ret = 0;
+		break;
+	default:
+		ret = -ENOSYS;
+		break;
+	}
+end:
+	return ret;
+}

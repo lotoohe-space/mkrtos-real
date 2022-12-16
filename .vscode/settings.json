@@ -69,7 +69,12 @@
         "atomic.h": "c",
         "slist.h": "c",
         "exec.h": "c",
-        "bitset": "c"
+        "bitset": "c",
+        "knl_mutex.h": "c",
+        "knl_msg.h": "c",
+        "msg.h": "c",
+        "reboot.h": "c"
     },
-    "cortex-debug.showRTOS": false
+    "cortex-debug.showRTOS": false,
+    "editor.formatOnSave": true
 }
