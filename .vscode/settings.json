@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        ".*": ".cc",
         "debug.h": "c",
         "mpu_armv7.h": "c",
         "core_cm3.h": "c",
@@ -73,7 +74,29 @@
         "knl_mutex.h": "c",
         "knl_msg.h": "c",
         "msg.h": "c",
-        "reboot.h": "c"
+        "reboot.h": "c",
+        "random": "cpp",
+        "util.h": "c",
+        "factory.h": "c",
+        "prot.h": "c",
+        "ram_limit.h": "c",
+        "task.h": "c",
+        "mm_wrap.h": "c",
+        "ctype.h": "c",
+        "kobject.h": "c",
+        "misc.h": "c",
+        "cpulock.h": "c",
+        "init.h": "c",
+        "uart.h": "c",
+        "stdarg.h": "c",
+        "xprintf.h": "c",
+        "globals.h": "c",
+        "thread.h": "c",
+        "chrono": "c",
+        "ratio": "c",
+        "log.h": "c",
+        "syscall.h": "c",
+        "scheduler.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "editor.formatOnSave": true
