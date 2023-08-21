@@ -4,12 +4,14 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Werror \
 -D__MPU_PRESENT=1 -DUSE_STDPERIPH_DRIVER=1 \
 -DKNL_OFFSET=$ENV{KEN_OFFSET} \
+-DKNL_TEXT=$ENV{KNL_TEXT} \
+-DINIT_OFFSET=$ENV{INIT_OFFSET} \
 -DSMP=1 \
 -Wno-unused-parameter \
 -Wno-unused-function \
 -Wno-unused-variable \
 ")
-
+set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
 message(编译参数：${CMAKE_C_FLAGS})
 add_subdirectory(arch)
 add_subdirectory(drivers)
@@ -23,11 +25,16 @@ add_executable(mkrtos.elf
 target_link_libraries(
     mkrtos.elf
     PUBLIC
-    $<TARGET_OBJECTS:arch>
-    $<TARGET_OBJECTS:drv>
-    $<TARGET_OBJECTS:knl>
-    $<TARGET_OBJECTS:lib>
+    knl
+    arch
+    drv
+    lib
 )
+add_dependencies(mkrtos.elf arch)
+add_dependencies(mkrtos.elf drv)
+add_dependencies(mkrtos.elf knl)
+add_dependencies(mkrtos.elf lib)
+
 set_target_properties(mkrtos.elf PROPERTIES 
 LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/stm32f205rft6_link.lds -z max-page-size=0x1000")
 

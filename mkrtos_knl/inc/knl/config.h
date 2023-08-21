@@ -1,3 +1,3 @@
 #pragma once
 
-#define SYS_SCHE_HZ 1000 //!< 系统调度频率
+#define SYS_SCHE_HZ 100 //!< 系统调度频率

@@ -28,3 +28,25 @@ void mm_limit_free(ram_limit_t *limit, void *mem)
     mem_free(mm_get_global(), (char *)mem - sizeof(size_t));
     ram_limit_free(limit, size);
 }
+void *mm_limit_alloc_align(ram_limit_t *limit, size_t size, size_t align)
+{
+    if (ram_limit_alloc(limit, size) == FALSE)
+    {
+        return NULL;
+    }
+    void *new_mem = mem_alloc_align(mm_get_global(), size + sizeof(size_t), align);
+
+    if (!new_mem)
+    {
+        ram_limit_free(limit, size);
+        return NULL;
+    }
+
+    return (char *)new_mem;
+}
+void mm_limit_free_align(ram_limit_t *limit, void *mem, size_t size)
+{
+
+    mem_free_align(mm_get_global(), (char *)mem - sizeof(size_t));
+    ram_limit_free(limit, size);
+}

@@ -2,7 +2,7 @@
 .cpu cortex-m3
 .thumb
 
-
+.global syscall_handler_get
 /**
 * @brief syscall结束时到这儿
 */
@@ -75,7 +75,7 @@ SYS_CALL:
 	mov r1, r7
 	//获得需要调用的syscall函数的地址
 	push {r0-r2,lr}
-	blx	get_syscall_handler
+	blx	syscall_handler_get
 	mov r3,r0
 	pop {r0-r2,lr}
 

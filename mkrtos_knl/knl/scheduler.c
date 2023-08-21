@@ -18,39 +18,59 @@ scheduler_t *scheduler_get_current(void)
     return &scheduler;
 }
 
-INIT_HIGH_HAD void scheduler_init(void)
+void scheduler_init(void)
 {
     for (int i = 0; i < PRIO_MAX; i++)
     {
         slist_init(&scheduler.prio_list[i]);
     }
 }
-void scheduler_add(scheduler_t *sched, sched_t *node)
+INIT_HIGH_HAD(scheduler_init);
+void scheduler_add(sched_t *node)
 {
+    scheduler_t *sched = scheduler_get_current();
     assert(node->prio >= 0);
     assert(node->prio < PRIO_MAX);
+
+    if (node->prio != sched->max_prio)
+    {
+        sched->max_prio = node->prio;
+    }
 
     slist_add(&sched->prio_list[node->prio], &node->node);
 }
 void scheduler_del(sched_t *node)
 {
+    scheduler_t *sched = scheduler_get_current();
     assert(node->prio >= 0);
     assert(node->prio < PRIO_MAX);
     slist_del(&node->node);
+    if (slist_is_empty(&sched->prio_list[node->prio]))
+    {
+        /*TODO:更新最大优先级，这里可以用位图优化*/
+        for (mword_t i = node->prio - 1; i >= 0; i--)
+        {
+            if (slist_is_empty(&sched->prio_list[i]))
+            {
+                sched->max_prio = i;
+                break;
+            }
+        }
+    }
 }
-sched_t *scheduler_next(sched_t *cur)
+sched_t *scheduler_next(void)
 {
     scheduler_t *sche = scheduler_get_current();
     sched_t *next_sch = NULL;
     slist_head_t *next = NULL;
 
-    if (cur == NULL)
+    if (sche->cur_sche == NULL)
     {
         next = slist_first(&sche->prio_list[sche->max_prio]);
     }
     else
     {
-        next = cur->node.next;
+        next = sche->cur_sche->node.next;
         if (next == &sche->prio_list[sche->max_prio])
         {
             next = slist_first(&sche->prio_list[sche->max_prio]);

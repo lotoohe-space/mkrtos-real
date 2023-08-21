@@ -33,6 +33,6 @@ typedef struct scheduler
 
 scheduler_t *scheduler_get_current(void);
 void scheduler_init(void);
-sched_t *scheduler_next(sched_t *cur);
-void scheduler_add(scheduler_t *sched, sched_t *node);
+sched_t *scheduler_next(void);
+void scheduler_add(sched_t *node);
 void scheduler_del(sched_t *node);

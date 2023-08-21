@@ -39,7 +39,7 @@ void task_init(task_t *task, ram_limit_t *ram)
     obj_space_init(&task->obj_space, ram);
 }
 
-static task_t *task_create(ram_limit_t *lim)
+task_t *task_create(ram_limit_t *lim)
 {
     task_t *tk = mm_limit_alloc(lim, sizeof(task_t));
 
@@ -74,7 +74,8 @@ static kobject_t *task_create_func(ram_limit_t *lim, umword_t arg0, umword_t arg
  * @brief 工厂注册函数 TODO:
  *
  */
-INIT_KOBJ void task_factory_register(void)
+void task_factory_register(void)
 {
     factory_register(task_create_func, TASK_PROT);
 }
+INIT_KOBJ(task_factory_register);

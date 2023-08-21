@@ -38,7 +38,8 @@ void sys_startup(void)
     // 初始化systick时钟
     SysTick_Config(SystemCoreClock / SYS_SCHE_HZ);
 }
-INIT_LOW_HARD void arch_init(void)
+void arch_init(void)
 {
     SystemInit();
 }
+INIT_LOW_HARD(arch_init);

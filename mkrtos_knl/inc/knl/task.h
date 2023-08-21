@@ -15,3 +15,4 @@ typedef struct task
 
 task_t *thread_get_current_task(void);
 void task_init(task_t *task, ram_limit_t *ram);
+task_t *task_create(ram_limit_t *lim);

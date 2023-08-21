@@ -96,7 +96,10 @@
         "ratio": "c",
         "log.h": "c",
         "syscall.h": "c",
-        "scheduler.h": "c"
+        "scheduler.h": "c",
+        "thread_armv7m.h": "c",
+        "printk.h": "c",
+        "obj_space.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "editor.formatOnSave": true

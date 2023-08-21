@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 file(GLOB_RECURSE deps *.c *.S)
 
-add_library(arch OBJECT ${deps})
+add_library(arch STATIC ${deps})
 target_include_directories(
     arch
     PUBLIC

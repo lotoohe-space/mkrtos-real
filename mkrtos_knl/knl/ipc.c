@@ -143,7 +143,8 @@ static kobject_t *ipc_create_func(ram_limit_t *lim, umword_t arg0, umword_t arg1
  * @brief 工厂注册函数
  *
  */
-INIT_KOBJ static void ipc_factory_register(void)
+static void ipc_factory_register(void)
 {
     factory_register(ipc_create_func, IPC_PROT);
 }
+INIT_KOBJ(ipc_factory_register);

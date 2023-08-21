@@ -1,6 +1,7 @@
     .syntax unified
     .section .first, #execinstr
-
+    
+    .globl reloc
     .align 2
     .globl    _start_
     .type    _start_, %function
@@ -81,13 +82,13 @@ LoopInitStack:
     mov     r0, r12
     push    {r0, r4}
 
-    ldr     r0, = __stack_end__
-    mov     sp, r0
+    //ldr     r0, = __stack_end__
+    //mov     sp, r0
 
     mov     r0, r9
     adr     r1, _start_
     bic     r1, r1, #1
-    bl      reloc
+    bl      _reloc
 
 	pop     {r0, r12}
     adr		r1, _start_

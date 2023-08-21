@@ -832,7 +832,8 @@ static void xprintf_putc(int c)
 {
 	uart_putc(uart_get_global(), c);
 }
-INIT_HIGH_HAD static void init_xprintf(void)
+static void init_xprintf(void)
 {
 	xdev_out(xprintf_putc);
 }
+INIT_HIGH_HAD(init_xprintf);

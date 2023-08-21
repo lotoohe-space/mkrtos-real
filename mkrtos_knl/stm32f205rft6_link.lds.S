@@ -9,7 +9,7 @@ MEMORY
   RAM (xrw)      : ORIGIN = KNL_DATA, LENGTH = KNL_DATA_SIZE
   /* RAM1 (xrw)      : ORIGIN = 0x68000000, LENGTH = 1M */
   /* RAM2 (xrw)      : ORIGIN = 0x2001C000, LENGTH = 16K */
-  FLASH (rx)      : ORIGIN = KNL_TEXT + KNL_OFFSET, LENGTH = 128K
+  FLASH (rx)      : ORIGIN = KNL_TEXT + KNL_OFFSET, LENGTH = 64K
 }
 
 /* Define output sections */

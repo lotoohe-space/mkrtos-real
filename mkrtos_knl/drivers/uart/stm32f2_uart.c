@@ -122,12 +122,13 @@ static void uart_hardware_flow_rts(USART_TypeDef *USARTx, uint16_t flow)
     /* Write to USART CR3 */
     USARTx->CR3 = (uint16_t)tmpreg;
 }
-static uart_t uart;
+static uart_t uart = {
+    .baud = 115200};
 uart_t *uart_get_global(void)
 {
     return &uart;
 }
-INIT_HIGH_HAD void uart_init(uart_t *uart)
+void uart_init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
@@ -158,7 +159,7 @@ INIT_HIGH_HAD void uart_init(uart_t *uart)
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    USART_InitStructure.USART_BaudRate = uart->baud;
+    USART_InitStructure.USART_BaudRate = uart.baud;
     USART_InitStructure.USART_WordLength = USART_WordLength_8b /*TODO:*/;
     USART_InitStructure.USART_StopBits = USART_StopBits_1 /*TODO:*/;
     USART_InitStructure.USART_Parity = USART_Parity_No /*TODO:*/;
@@ -167,9 +168,9 @@ INIT_HIGH_HAD void uart_init(uart_t *uart)
     USART_Init(USART1, &USART_InitStructure);
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
     USART_Cmd(USART1, ENABLE);
-
-    // reg_isr_func(USART1_IRQHandler, USART1_IRQn + 1, 0);
 }
+INIT_HIGH_HAD(uart_init);
+
 void uart_set(uart_t *uart)
 {
     uart_set_baud(USART1, uart->baud);

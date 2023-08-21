@@ -22,11 +22,11 @@ static factory_func factory_func_list[FACTORY_FUNC_MAX];
  * @brief 在系统初始化时调用
  *
  */
-INIT_KOBJ_MEM void factory_mem_init(void)
+void factory_mem_init(void)
 {
     // Nothing.
 }
-
+INIT_KOBJ_MEM(factory_mem_init);
 void factory_register(factory_func func, int inx)
 {
     assert(inx >= 0);
@@ -135,11 +135,12 @@ static kobject_t *factory_create_func(ram_limit_t *lim, umword_t arg0, umword_t 
 
     return &kobj->kobj;
 }
-INIT_KOBJ static void root_factory_init(void)
+static void root_factory_init(void)
 {
     factory_init(&root_factory, 0);
     global_reg_kobj(&root_factory.kobj, FACTORY_PROT);
 }
+INIT_KOBJ(root_factory_init);
 factory_t *root_factory_get(void)
 {
     return &root_factory;
@@ -148,7 +149,8 @@ factory_t *root_factory_get(void)
  * @brief 工厂注册函数
  *
  */
-INIT_KOBJ static void factory_factory_register(void)
+static void factory_factory_register(void)
 {
     factory_register(factory_create_func, FACTORY_PROT);
 }
+INIT_KOBJ(factory_factory_register);

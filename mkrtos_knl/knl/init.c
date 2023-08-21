@@ -9,5 +9,5 @@ void sys_call_init(void)
     uintptr_t a = (uintptr_t)&__init_array_start;
 
     for (; a < (uintptr_t)&__init_array_end; a += sizeof(void (*)()))
-        (*(void (**)(void))a)();
+        ((init_func)(*(uintptr_t *)a))();
 }

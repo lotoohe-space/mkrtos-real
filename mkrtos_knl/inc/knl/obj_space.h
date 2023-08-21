@@ -25,6 +25,8 @@ typedef struct obj_map_entry
     slist_head_t node;
 } obj_map_entry_t;
 
+#define obj_map_kobj_get(kobj) ((kobject_t *)((((umword_t)(kobj)) >> 2) << 2))
+
 static inline void obj_map_entry_init(obj_map_entry_t *entry, kobject_t *obj)
 {
     slist_init(&entry->node);

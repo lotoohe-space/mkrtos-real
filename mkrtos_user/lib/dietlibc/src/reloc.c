@@ -8,7 +8,7 @@ extern int __rel_end__;
 /*
  * @brief gbase ram的开始地址,tbase text的开始地址
  */
-void reloc(unsigned int *gbase, unsigned int tbase)
+void _reloc(unsigned int *gbase, unsigned int tbase)
 {
     int i;
     unsigned int s;

@@ -23,14 +23,22 @@ void global_reg_kobj(kobject_t *kobj, int inx)
     assert(inx < FACTORY_FUNC_MAX);
     kobj_ls[inx - 1] = kobj;
 }
+kobject_t *global_get_kobj(int inx)
+{
+    assert(inx >= 0);
+    assert(inx < FACTORY_FUNC_MAX);
+    return kobj_ls[inx - 1];
+}
 
 mem_t *mm_get_global(void)
 {
     return &global_mem;
 }
-
-INIT_MEM static void mem_sys_init(umword_t st_addr, size_t size)
+extern void log_dump(void);
+static void mem_sys_init(void)
 {
+    log_dump();
     mem_init(&global_mem);
     mem_heap_add(mm_get_global(), mem_block, sizeof(mem_block));
 }
+INIT_MEM(mem_sys_init);

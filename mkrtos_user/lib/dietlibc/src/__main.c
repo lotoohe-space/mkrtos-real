@@ -10,5 +10,5 @@ void __main(int *args, int start_addr)
     __app_start_addr__ = start_addr;
     ret = main(args[0], (char **)&args[1]);
 
-    exit(ret);
+    // exit(ret);
 }

@@ -9,6 +9,7 @@ target_link_libraries(init.elf
     PUBLIC
     diet
 )
+add_dependencies(init.elf diet)
 set_target_properties(init.elf PROPERTIES LINK_FLAGS
 "-T ${CMAKE_CURRENT_SOURCE_DIR}/link.lds")
 

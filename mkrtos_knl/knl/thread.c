@@ -71,7 +71,7 @@ void thread_suspend(thread_t *th)
  */
 void thread_sched(void)
 {
-    sched_t *next_sche = scheduler_next(NULL);
+    sched_t *next_sche = scheduler_next();
 
     if (next_sche == &thread_get_current()->sche)
     {
@@ -87,7 +87,7 @@ void thread_sched(void)
 void thread_ready(thread_t *th, bool_t is_sche)
 {
     assert(!slist_in_list(&th->sche.node));
-    scheduler_add(scheduler_get_current(), &th->sche);
+    scheduler_add(&th->sche);
     th->status = THREAD_READY;
     if (is_sche)
     {
@@ -102,7 +102,7 @@ void thread_ready(thread_t *th, bool_t is_sche)
  */
 thread_t *thread_create(ram_limit_t *ram)
 {
-    thread_t *th = mm_limit_alloc(ram, THREAD_BLOCK_SIZE);
+    thread_t *th = mm_limit_alloc_align(ram, THREAD_BLOCK_SIZE, THREAD_BLOCK_SIZE);
 
     if (!th)
     {
@@ -138,10 +138,11 @@ static kobject_t *thread_create_func(ram_limit_t *lim, umword_t arg0, umword_t a
  * @brief 工厂注册函数
  *
  */
-INIT_KOBJ void thread_factory_register(void)
+void thread_factory_register(void)
 {
     factory_register(thread_create_func, THREAD_PROT);
 }
+INIT_KOBJ(thread_factory_register);
 /**
  * @brief 获取当前的task
  *

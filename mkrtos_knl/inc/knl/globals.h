@@ -14,3 +14,4 @@
 
 mem_t *mm_get_global(void);
 void global_reg_kobj(kobject_t *kobj, int inx);
+kobject_t *global_get_kobj(int inx);

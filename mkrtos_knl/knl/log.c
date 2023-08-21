@@ -10,8 +10,8 @@
 #include "log.h"
 #include "factory.h"
 #include "kobject.h"
-#include "init.h"
 #include "globals.h"
+#include "init.h"
 #include "printk.h"
 static log_t log;
 
@@ -24,12 +24,13 @@ enum log_op
 static msg_tag_t
 log_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f);
 
-INIT_KOBJ static void log_reg(void)
+static void log_reg(void)
 {
     kobject_init(&log.kobj);
     log.kobj.invoke_func = log_syscall;
     global_reg_kobj(&log.kobj, LOG_PROT);
 }
+INIT_KOBJ(log_reg);
 static msg_tag_t log_write_data(log_t *log, const char *data, int len)
 {
     for (int i = 0; i < len; i++)
@@ -64,4 +65,8 @@ log_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
     }
 
     return tag;
+}
+
+void log_dump(void)
+{
 }

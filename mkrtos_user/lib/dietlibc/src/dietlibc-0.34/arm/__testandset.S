@@ -1,4 +1,7 @@
 #include "arm-features.h"
+.syntax unified
+.cpu cortex-m3
+.thumb
 
 FUNC_START	__testandset
 	mov	r2, r0

@@ -1,11 +1,20 @@
 #pragma once
 
+typedef void (*init_func)(void);
+
 void sys_call_init(void);
 
-#define INIT_LOW_HARD __attribute__((constructor(101)))
-#define INIT_HIGH_HAD __attribute__((constructor(102)))
-#define INIT_MEM __attribute__((constructor(103)))
-#define INIT_KOBJ_MEM __attribute__((constructor(104)))
-#define INIT_KOBJ __attribute__((constructor(105)))
-#define INIT_STAGE1 __attribute__((constructor(106)))
-#define INIT_STAGE2 __attribute__((constructor(107)))
+#define INIT_LOW_HARD(f) __attribute__((__section__(".init_array." \
+                                                    "102"))) init_func init_##f = f
+#define INIT_HIGH_HAD(f) __attribute__((__section__(".init_array." \
+                                                    "103"))) init_func init_##f = f
+#define INIT_MEM(f) __attribute__((__section__(".init_array." \
+                                               "104"))) init_func init_##f = f
+#define INIT_KOBJ_MEM(f) __attribute__((__section__(".init_array." \
+                                                    "105"))) init_func init_##f = f
+#define INIT_KOBJ(f) __attribute__((__section__(".init_array." \
+                                                "106"))) init_func init_##f = f
+#define INIT_STAGE1(f) __attribute__((__section__(".init_array." \
+                                                  "107"))) init_func init_##f = f
+#define INIT_STAGE2(f) __attribute__((__section__(".init_array." \
+                                                  "108"))) init_func init_##f = f
