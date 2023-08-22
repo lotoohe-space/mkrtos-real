@@ -208,8 +208,8 @@ g_pfnVectors:
    .weak      BusFault_Handler
    .thumb_set BusFault_Handler,Default_Handler
 
-   .weak      UsageFault_Handler
-   .thumb_set UsageFault_Handler,Default_Handler
+  @  .weak      UsageFault_Handler
+  @  .thumb_set UsageFault_Handler,Default_Handler
 
   @  .weak      SVC_Handler
   @  .thumb_set SVC_Handler,Default_Handler

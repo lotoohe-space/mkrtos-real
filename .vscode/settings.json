@@ -99,8 +99,16 @@
         "scheduler.h": "c",
         "thread_armv7m.h": "c",
         "printk.h": "c",
-        "obj_space.h": "c"
+        "obj_space.h": "c",
+        "u_types.h": "c",
+        "u_log.h": "c",
+        "u_prot.h": "c",
+        "u_arch.h": "c",
+        "errno.h": "c",
+        "crt_arch.h": "c",
+        "stdio_impl.h": "c",
+        "uio.h": "c",
+        "fs_backend.h": "c"
     },
     "cortex-debug.showRTOS": false,
-    "editor.formatOnSave": true
 }

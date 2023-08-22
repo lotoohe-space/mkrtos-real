@@ -101,6 +101,7 @@ void BusFault_Handler(void)
  */
 void UsageFault_Handler(void)
 {
+  printk("UsageFault_Handler\n");
   /* Go to infinite loop when Usage Fault exception occurs */
   while (1)
   {

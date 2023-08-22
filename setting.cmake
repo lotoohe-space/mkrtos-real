@@ -1,5 +1,6 @@
-set(CMAKE_TOOLCHAIN_PATH "/home/zhangzheng/gcc-arm-none-eabi-4_9-2014q4/bin/" CACHE STRING " " FORCE)
+set(CMAKE_TOOLCHAIN_PATH "/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/bin/" CACHE STRING " " FORCE)
 set(CROSS_COMPILE ${CMAKE_TOOLCHAIN_PATH}arm-none-eabi- CACHE PATH "" FORCE)
+set(GCC_LIB_PATH "/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/")
 
 set(CMAKE_INSTALL_PATH "${CMAKE_BINARY_DIR}deploy" CACHE PATH "" FORCE)
 set(CMAKE_C_COMPILER "${CROSS_COMPILE}gcc" CACHE PATH "" FORCE)
@@ -12,12 +13,15 @@ set(CMAKE_STRIP "${CROSS_COMPILE}strip" CACHE PATH "" FORCE)
 set(CMAKE_OBJCOPY "${CROSS_COMPILE}objcopy" CACHE PATH "" FORCE)
 set(CMAKE_OBJDUMP "${CROSS_COMPILE}objdump" CACHE PATH "" FORCE)
 set(CMAKE_READELF "${CROSS_COMPILE}readelf" CACHE PATH "" FORCE)
+set(CMAKE_SIZE "${CROSS_COMPILE}size" CACHE PATH "" FORCE)
 set(CMAKE_NM "${CROSS_COMPILE}nm" CACHE PATH "" FORCE)
 set(CMAKE_AR "${CROSS_COMPILE}ar" CACHE PATH "" FORCE)
 set(CMAKE_SIZE "${CROSS_COMPILE}size" CACHE PATH "" FORCE)
 
-set(CMAKE_C_FLAGS "-mcpu=cortex-m3 -mthumb -O0 -g -mfloat-abi=soft -lc -lrdimon \
--u _printf_float -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
+
+# -mfloat-abi=soft  -u _printf_float 
+set(CMAKE_C_FLAGS "-mcpu=cortex-m3 -mthumb -O0 -g -lc -lrdimon \
+-std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker --gc-sections -fno-stack-protector \
 " CACHE STRING "" FORCE)
 

@@ -135,7 +135,7 @@ void perror(const char *s) __THROW;
 
 #define EOF (-1)
 
-#define BUFSIZ 1024
+#define BUFSIZ 64 //TODO:1024
 
 #define _IONBF 0
 #define _IOLBF 1

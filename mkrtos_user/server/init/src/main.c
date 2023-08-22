@@ -1,25 +1,25 @@
 
-int syscall(int nr, ...);
-#define uint32_t unsigned int
-typedef union msg_tag
+#include "u_log.h"
+#include <stdio.h>
+// char ad = 'a';
+void ulog_test(void)
 {
-    uint32_t raw;
-    union
-    {
-        uint32_t type : 4;
-        uint32_t type2 : 6;
-        uint32_t prot : (sizeof(uint32_t) * 8) - 12;
-    };
-} msg_tag_t;
-
-#define msg_tag_init(r) \
-    ((msg_tag_t){.raw = (r)})
-
-#define msg_tag_init3(t, t2, p) \
-    msg_tag_init(((uint32_t)(t)&0xf) | (((uint32_t)(t2)&0x3f) << 4) | (((uint32_t)(p)) << 10))
-
+    ulog_write_str("Init task running..\n");
+    ulog_write_str("todo..\n");
+    // char data[2] = {ad,0};
+    // ulog_write_str(data);
+}
+void printf_test(void)
+{
+    printf("print test0.\n");
+    printf("print test1.\n");
+    printf("print test2.\n");
+}
 int main(int argc, char *args[])
 {
-    syscall(4, msg_tag_init3(0, 1, 4).raw, 'a', 2, 3, 4, 5);
+    ulog_test();
+    printf_test();
+    while (1)
+        ;
     return 0;
 }

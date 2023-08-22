@@ -1,11 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w \
--fPIC -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
--Wl,--gc-sections -D__dietlibc__ -D__arm__ -D__WORDSIZE=32 -D__ARM_ARCH_7M__ \
-" )
-set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
+
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/dietlibc-0.34/arm/softfpu)
@@ -32,6 +28,7 @@ $<TARGET_OBJECTS:dietlibc_builtins>
 target_link_libraries(diet
 PUBLIC
 dietlibc_src
+libc_be
 )
 add_dependencies(diet dietlibc_src)
 

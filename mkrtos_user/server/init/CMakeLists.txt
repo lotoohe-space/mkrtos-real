@@ -7,20 +7,40 @@ add_executable(init.elf
 )
 target_link_libraries(init.elf
     PUBLIC
-    diet
+    muslc
+    sys
+    ${GCC_LIB_PATH}/libgcc.a
 )
-add_dependencies(init.elf diet)
-set_target_properties(init.elf PROPERTIES LINK_FLAGS
-"-T ${CMAKE_CURRENT_SOURCE_DIR}/link.lds")
+target_include_directories(
+    init.elf
+    PUBLIC
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
 
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/src/internal
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/include
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
+)
+add_dependencies(init.elf
+muslc
+)
+set_target_properties(init.elf PROPERTIES LINK_FLAGS
+"-T ${CMAKE_CURRENT_SOURCE_DIR}/link.lds -pie "
+)
+#-T ${CMAKE_CURRENT_SOURCE_DIR}/link.lds
 add_custom_target(
     init_dump ALL
     COMMAND
     ${CMAKE_OBJDUMP} -s -S init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.S
     COMMAND
-    ${CMAKE_READELF} -a init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.info
+    ${CMAKE_READELF} -a init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.txt
     COMMAND
     ${CMAKE_OBJCOPY} -O binary -S init.elf init.bin
+    COMMAND
+    ${CMAKE_SIZE} init.elf
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output
     COMMAND

@@ -14,7 +14,7 @@
 #include "assert.h"
 
 static mem_t global_mem;                     //!< 全局内存管理块
-static uint8_t mem_block[8 * 1024];          //!< 内核内存分配堆
+static uint8_t mem_block[60 * 1024];          //!< 内核内存分配堆
 static kobject_t *kobj_ls[FACTORY_FUNC_MAX]; //!< 全局静态内核对象
 
 void global_reg_kobj(kobject_t *kobj, int inx)
