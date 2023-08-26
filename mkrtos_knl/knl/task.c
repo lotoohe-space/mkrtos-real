@@ -37,6 +37,7 @@ void task_init(task_t *task, ram_limit_t *ram)
 
     kobject_init(&task->kobj);
     obj_space_init(&task->obj_space, ram);
+    mm_space_init(&task->mm_space);
 }
 
 task_t *task_create(ram_limit_t *lim)

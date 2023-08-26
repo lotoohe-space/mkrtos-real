@@ -350,19 +350,16 @@ struct mem_heap *mem_get_free(mem_t *_this, struct mem_heap *next,
     return NULL;
 }
 
-#if MEM_TRACE
 void mem_trace(mem_t *_this)
 {
     struct mem_heap *mem;
 
-    kprint("start heap:0x%x.\n", _this->heap_start);
-    kprint("l heap:0x%x.\n", _this->l_heap);
-    kprint("end heap:0x%x.\n", _this->heap_end);
+    printk("start heap:0x%x.\n", _this->heap_start);
+    printk("l heap:0x%x.\n", _this->l_heap);
+    printk("end heap:0x%x.\n", _this->heap_end);
 
     for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next)
     {
-        knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
-        kprint("%d [0x%x-] %dB\n", mem->used, mem, mem->size);
+        printk("%d [0x%x-] %dB\n", mem->used, mem, mem->size);
     }
 }
-#endif

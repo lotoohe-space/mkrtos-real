@@ -125,8 +125,9 @@ static void pop_arg(union arg *arg, int type, va_list *ap)
 	break; case UMAX:	arg->i = va_arg(*ap, uintmax_t);
 	break; case PDIFF:	arg->i = va_arg(*ap, ptrdiff_t);
 	break; case UIPTR:	arg->i = (uintptr_t)va_arg(*ap, void *);
-	break; case DBL:	arg->f = va_arg(*ap, double);
-	break; case LDBL:	arg->f = va_arg(*ap, long double);
+	break; case LDBL:case DBL:	arg->f = va_arg(*ap, double);
+	// break; 
+	// case LDBL:	arg->f = va_arg(*ap, long double);
 	}
 }
 
@@ -137,7 +138,7 @@ static void out(FILE *f, const char *s, size_t l)
 
 static void pad(FILE *f, char c, int w, int l, int fl)
 {
-	char pad[256];
+	char pad[64];
 	if (fl & (LEFT_ADJ | ZERO_PAD) || l >= w) return;
 	l = w - l;
 	memset(pad, c, l>sizeof pad ? sizeof pad : l);

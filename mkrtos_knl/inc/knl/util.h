@@ -27,3 +27,5 @@
     ((type *)(((umword_t)(ptr)) - ((umword_t)(&(((type *)0)->member)))))
 
 #define USED __attribute__((used))
+
+int ffs(int x);

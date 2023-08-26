@@ -2,7 +2,7 @@
 .cpu cortex-m3
 .thumb
 
-//.global mpu_update
+.global mpu_switch_to
 
 .global PendSV_Handler
 .type PendSV_Handler, %function
@@ -77,4 +77,7 @@ super_mode: //更新下msp的值
 	MSR CONTROL, R0
 to_ret:
 	CPSIE I
+	push {r0-r3, lr}
+	bl mpu_switch_to
+	pop {r0-r3, lr}
 	BX 	LR

@@ -34,3 +34,5 @@ typedef umword_t uintptr_t;
 #ifndef TRUE
 #define TRUE (!(FALSE))
 #endif
+
+#define WORD_BITS (sizeof(void *) * 8)

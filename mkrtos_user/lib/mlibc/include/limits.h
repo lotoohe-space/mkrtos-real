@@ -84,7 +84,7 @@
 #define LINE_MAX 4096
 #define RE_DUP_MAX 255
 
-#define NL_ARGMAX 9
+#define NL_ARGMAX 6
 #define NL_MSGMAX 32767
 #define NL_SETMAX 255
 #define NL_TEXTMAX 2048

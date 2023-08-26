@@ -28,6 +28,15 @@ void mm_limit_free(ram_limit_t *limit, void *mem)
     mem_free(mm_get_global(), (char *)mem - sizeof(size_t));
     ram_limit_free(limit, size);
 }
+struct mem_heap *mm_get_free(struct mem_heap *next,
+                             umword_t hope_size, umword_t *ret_addr)
+{
+    return mem_get_free(mm_get_global(), next, hope_size, (uint32_t *)ret_addr);
+}
+void mm_trace(void)
+{
+    mem_trace(mm_get_global());
+}
 void *mm_limit_alloc_align(ram_limit_t *limit, size_t size, size_t align)
 {
     if (ram_limit_alloc(limit, size) == FALSE)

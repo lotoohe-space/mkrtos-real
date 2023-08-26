@@ -14,7 +14,7 @@
 #include "config.h"
 #include "thread.h"
 #include "stm32f2xx_conf.h"
-
+#include "mpu.h"
 __ALIGN__(THREAD_BLOCK_SIZE)
 static uint8_t thread_knl_stack[THREAD_BLOCK_SIZE] = {0};
 void *_estack = thread_knl_stack + THREAD_BLOCK_SIZE;
@@ -41,5 +41,6 @@ void sys_startup(void)
 void arch_init(void)
 {
     SystemInit();
+    mpu_enable();
 }
 INIT_LOW_HARD(arch_init);
