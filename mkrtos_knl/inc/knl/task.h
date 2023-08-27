@@ -7,11 +7,13 @@
 #include "kobject.h"
 #include "obj_space.h"
 #include "mm_space.h"
+
 typedef struct task
 {
     kobject_t kobj;
     obj_space_t obj_space;
     mm_space_t mm_space;
+    ram_limit_t *lim;
 } task_t;
 
 task_t *thread_get_current_task(void);

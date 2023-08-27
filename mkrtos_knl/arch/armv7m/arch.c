@@ -41,6 +41,8 @@ void sys_startup(void)
 void arch_init(void)
 {
     SystemInit();
-    mpu_enable();
+    mpu_init();
+    SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk;
+    SCB->SHCSR |= SCB_SHCSR_BUSFAULTENA_Msk;
 }
 INIT_LOW_HARD(arch_init);

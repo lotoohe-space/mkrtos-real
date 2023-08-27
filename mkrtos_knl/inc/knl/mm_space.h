@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "mm_page.h"
 
 #define REGION_NUM 8 //!< 默认为8
 typedef struct region_info
@@ -18,6 +19,7 @@ typedef struct region_info
 typedef struct mm_space
 {
     region_info_t pt_regions[REGION_NUM];
+    mm_pages_t mm_pages;
 } mm_space_t;
 
 enum region_rights

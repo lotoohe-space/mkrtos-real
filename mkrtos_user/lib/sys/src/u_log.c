@@ -5,7 +5,7 @@
 #include "u_types.h"
 #include <string.h>
 
-void ulog_write_bytes(const uint8_t *data, umword_t len)
+void ulog_write_bytes(obj_handler_t obj_inx, const uint8_t *data, umword_t len)
 {
     uint8_t write_buf[ULOG_RW_MAX_BYTES];
     umword_t j = 0;
@@ -20,7 +20,7 @@ void ulog_write_bytes(const uint8_t *data, umword_t len)
         if (i > 0)
         {
             umword_t *write_word_buf = (umword_t *)write_buf;
-            syscall(LOG_PROT, msg_tag_init3(0, i, LOG_PROT).raw,
+            syscall(obj_inx, msg_tag_init3(0, i, LOG_PROT).raw,
                     write_word_buf[0],
                     write_word_buf[1],
                     write_word_buf[2],
@@ -34,7 +34,7 @@ void ulog_write_bytes(const uint8_t *data, umword_t len)
     }
 }
 
-void ulog_write_str(const char *str)
+void ulog_write_str(obj_handler_t obj_inx, const char *str)
 {
-    ulog_write_bytes((uint8_t *)str, strlen(str));
+    ulog_write_bytes(obj_inx, (uint8_t *)str, strlen(str));
 }

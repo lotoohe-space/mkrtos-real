@@ -43,7 +43,7 @@ void *mm_limit_alloc_align(ram_limit_t *limit, size_t size, size_t align)
     {
         return NULL;
     }
-    void *new_mem = mem_alloc_align(mm_get_global(), size + sizeof(size_t), align);
+    void *new_mem = mem_alloc_align(mm_get_global(), size, align);
 
     if (!new_mem)
     {
@@ -56,6 +56,6 @@ void *mm_limit_alloc_align(ram_limit_t *limit, size_t size, size_t align)
 void mm_limit_free_align(ram_limit_t *limit, void *mem, size_t size)
 {
 
-    mem_free_align(mm_get_global(), (char *)mem - sizeof(size_t));
+    mem_free_align(mm_get_global(), (char *)mem);
     ram_limit_free(limit, size);
 }

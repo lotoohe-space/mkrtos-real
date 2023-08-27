@@ -17,7 +17,7 @@ static long be_write(long fd, char *buf, long size)
     case 0:
     case 1:
     case 2:
-        ulog_write_bytes(buf, size);
+        ulog_write_bytes(LOG_PROT, buf, size);
         return size;
     default:
         return -ENOSYS;
@@ -29,7 +29,7 @@ static long be_writev(long fd, const struct iovec *iov, long iovcnt)
     long wlen = 0;
     for (int i = 0; i < iovcnt; i++)
     {
-        ulog_write_bytes(iov[i].iov_base, iov[i].iov_len);
+        ulog_write_bytes(LOG_PROT, iov[i].iov_base, iov[i].iov_len);
         wlen += iov[i].iov_len;
     }
     return wlen;

@@ -109,7 +109,8 @@
         "stdio_impl.h": "c",
         "uio.h": "c",
         "fs_backend.h": "c",
-        "mm_space.h": "c"
+        "mm_space.h": "c",
+        "mm_page.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

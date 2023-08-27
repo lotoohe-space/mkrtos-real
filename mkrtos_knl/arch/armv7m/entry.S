@@ -196,17 +196,17 @@ g_pfnVectors:
 * this definition.
 * 
 *******************************************************************************/
-   .weak      NMI_Handler
-   .thumb_set NMI_Handler,Default_Handler
+  @  .weak      NMI_Handler
+  @  .thumb_set NMI_Handler,Default_Handler
   
-   .weak      HardFault_Handler
-   .thumb_set HardFault_Handler,Default_Handler
+  @  .weak      HardFault_Handler
+  @  .thumb_set HardFault_Handler,Default_Handler
   
-   .weak      MemManage_Handler
-   .thumb_set MemManage_Handler,Default_Handler
+  @  .weak      MemManage_Handler
+  @  .thumb_set MemManage_Handler,Default_Handler
   
-   .weak      BusFault_Handler
-   .thumb_set BusFault_Handler,Default_Handler
+  @  .weak      BusFault_Handler
+  @  .thumb_set BusFault_Handler,Default_Handler
 
   @  .weak      UsageFault_Handler
   @  .thumb_set UsageFault_Handler,Default_Handler
@@ -214,8 +214,8 @@ g_pfnVectors:
   @  .weak      SVC_Handler
   @  .thumb_set SVC_Handler,Default_Handler
 
-   .weak      DebugMon_Handler
-   .thumb_set DebugMon_Handler,Default_Handler
+  @  .weak      DebugMon_Handler
+  @  .thumb_set DebugMon_Handler,Default_Handler
 
   @  .weak      PendSV_Handler
   @  .thumb_set PendSV_Handler,Default_Handler

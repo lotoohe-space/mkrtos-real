@@ -40,7 +40,7 @@ void thread_set_exc_regs(thread_t *th, umword_t pc)
 {
     pf_t *th_pf = thread_get_pf(th);
 
-    th_pf->pc = pc;
+    th_pf->pf_s.pc = pc;
 }
 /**
  * @brief 线程绑定到task

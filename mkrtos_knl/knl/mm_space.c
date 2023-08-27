@@ -3,12 +3,20 @@
 #include "util.h"
 #include "mm_space.h"
 #include "mpu.h"
+#include "assert.h"
+
 void mm_space_init(mm_space_t *mm_space)
 {
+    region_info_t *regi_info;
+
     for (int i = 0; i < REGION_NUM; i++)
     {
         mm_space->pt_regions[i].region_inx = -1;
     }
+
+    regi_info = mm_space_alloc_pt_region(mm_space);
+    assert(regi_info);
+    mm_pages_init(&mm_space->mm_pages, regi_info);
 }
 region_info_t *mm_space_alloc_pt_region(mm_space_t *m_space)
 {
@@ -31,8 +39,7 @@ void mm_space_free_pt_region(mm_space_t *m_space, region_info_t *ri)
 bool_t mm_space_add(mm_space_t *m_space,
                     umword_t addr,
                     umword_t size,
-                    uint8_t attrs
-                    )
+                    uint8_t attrs)
 {
     region_info_t *ri = mm_space_alloc_pt_region(m_space);
 

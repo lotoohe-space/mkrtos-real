@@ -16,9 +16,10 @@
 #define TASK_PROT 3
 #define LOG_PROT 4
 #define IPC_PROT 5
+#define MM_PROT 6
 
 #define FACTORY_PORT_START FACTORY_PROT
-#define FACTORY_FUNC_MAX (IPC_PROT + 1)
+#define FACTORY_FUNC_MAX (MM_PROT + 1)
 #define FACTORY_PORT_END FACTORY_FUNC_MAX
 
 typedef struct msg_tag

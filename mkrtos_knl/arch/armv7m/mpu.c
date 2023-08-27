@@ -13,6 +13,10 @@
 #include "task.h"
 static volatile umword_t *MPUCR = (umword_t *)0xE000ED94;
 
+void mpu_init(void)
+{
+    mpu_enable();
+}
 void mpu_disable(void)
 {
     ARM_MPU_Disable();
@@ -27,6 +31,16 @@ void mpu_calc_regs(region_info_t *region, umword_t addr, int ffs, uint8_t attrs,
     region->rasr = ARM_MPU_RASR(0, attrs, 0UL, 0UL,
                                 1UL, 1UL, regions_bits, ffs - 1);
 }
+void mpu_region_set(int inx, umword_t rbar, umword_t rasr)
+{
+    mpu_disable();
+    ARM_MPU_SetRegionEx(inx, rbar, rasr);
+    mpu_enable();
+}
+void mpu_region_clr(int inx)
+{
+    ARM_MPU_ClrRegion(inx);
+}
 void mpu_switch_to(void)
 {
     struct task *tk = thread_get_current_task();
@@ -35,8 +49,8 @@ void mpu_switch_to(void)
     {
         if (tk->mm_space.pt_regions[i].region_inx >= 0)
         {
-            ARM_MPU_SetRegion(tk->mm_space.pt_regions[i].rbar,
-                              tk->mm_space.pt_regions[i].rasr);
+            ARM_MPU_SetRegionEx(tk->mm_space.pt_regions[i].region_inx, tk->mm_space.pt_regions[i].rbar,
+                                tk->mm_space.pt_regions[i].rasr);
         }
         else
         {

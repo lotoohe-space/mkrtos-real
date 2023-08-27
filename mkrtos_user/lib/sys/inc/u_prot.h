@@ -7,6 +7,7 @@
 #define TASK_PROT 3
 #define LOG_PROT 4
 #define IPC_PROT 5
+#define MM_PROT 6
 
 typedef struct msg_tag
 {
@@ -27,3 +28,6 @@ typedef struct msg_tag
 
 #define msg_tag_init3(t, t2, p) \
     msg_tag_init(((umword_t)(t)&0xf) | (((umword_t)(t2)&0xff) << 4) | (((umword_t)(p)) << 12))
+
+#define msg_tag_get_prot(tag) \
+    ((mword_t)((tag).prot))
