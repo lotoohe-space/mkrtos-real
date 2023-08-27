@@ -6,6 +6,7 @@
 enum task_op_code
 {
     TASK_OBJ_MAP,
+    TASK_OBJ_UNMAP,
 };
 
 static msg_tag_t task_syscall_func(entry_frame_t *f)
@@ -22,7 +23,8 @@ static msg_tag_t task_syscall_func(entry_frame_t *f)
     case TASK_OBJ_MAP:
         /* code */
         break;
-
+    case TASK_OBJ_UNMAP:
+        break;
     default:
         break;
     }
@@ -30,18 +32,18 @@ static msg_tag_t task_syscall_func(entry_frame_t *f)
     return tag;
 }
 
-void task_init(task_t *task, ram_limit_t *ram)
+void task_init(task_t *task, ram_limit_t *ram, int is_knl)
 {
     assert(task);
     assert(ram);
 
     kobject_init(&task->kobj);
     obj_space_init(&task->obj_space, ram);
-    mm_space_init(&task->mm_space);
+    mm_space_init(&task->mm_space, is_knl);
     task->lim = ram;
 }
 
-task_t *task_create(ram_limit_t *lim)
+task_t *task_create(ram_limit_t *lim, int is_knl)
 {
     task_t *tk = mm_limit_alloc(lim, sizeof(task_t));
 
@@ -49,7 +51,7 @@ task_t *task_create(ram_limit_t *lim)
     {
         return NULL;
     }
-    task_init(tk, lim);
+    task_init(tk, lim, is_knl);
 
     return tk;
 }
@@ -67,7 +69,7 @@ task_t *task_create(ram_limit_t *lim)
 static kobject_t *task_create_func(ram_limit_t *lim, umword_t arg0, umword_t arg1,
                                    umword_t arg2, umword_t arg3)
 {
-    task_t *tk = task_create(lim);
+    task_t *tk = task_create(lim, FALSE);
 
     return &tk->kobj;
 }

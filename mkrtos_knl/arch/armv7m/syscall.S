@@ -23,7 +23,6 @@ syscall_exit:
 .type syscall_ret_user, %function
 syscall_ret_user:
 	//存放返回值
-	@ mov		r3,r0
 
 	//还原msp的值
 	mrs		r0, msp
@@ -31,8 +30,6 @@ syscall_ret_user:
 	ldmfd	r0!,{r4-r11}
 	msr		msp,r0
 	pop 	{r0,r1,r2,lr}
-	//设置用户态返回的数据
-	@ str     r3, [r0, #0]
 
     msr     CONTROL, r1
     bx      lr

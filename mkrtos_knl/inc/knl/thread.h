@@ -13,7 +13,7 @@
 #include "util.h"
 #include "arch.h"
 
-#define THREAD_BLOCK_SIZE 0x200 //!< 线程块大小，栈在块的顶部
+#define THREAD_BLOCK_SIZE 0x400 //!< 线程块大小，栈在块的顶部
 
 enum thread_state
 {
@@ -75,7 +75,7 @@ static inline pf_t *thread_get_current_pf(void)
     return thread_get_pf(thread_get_current());
 }
 void thread_init(thread_t *th);
-void thread_set_exc_regs(thread_t *th, umword_t pc);
+void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t sp);
 thread_t *thread_create(ram_limit_t *ram);
 void thread_bind(thread_t *th, kobject_t *tk);
 

@@ -115,6 +115,14 @@ void MemManage_Handler(void)
       }
     }
   }
+  else
+  {
+    printk("semgement fault.\n");
+    /*TODO:杀死进程*/
+    while (1)
+    {
+    }
+  }
   /* Go to infinite loop when Memory Manage exception occurs */
 }
 
@@ -141,7 +149,30 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
   printk("%s\n", __FUNCTION__);
-
+  if (SCB->CFSR & (1 << 16))
+  {
+    printk("未定义指令错误\n");
+  }
+  if (SCB->CFSR & (1 << 17))
+  {
+    printk("试图切换到错误的状态\n");
+  }
+  if (SCB->CFSR & (1 << 18))
+  {
+    printk("试图执行EXC_RETURN错误的异常\n");
+  }
+  if (SCB->CFSR & (1 << 19))
+  {
+    printk("试图执行协处理器指令\n");
+  }
+  if (SCB->CFSR & (1 << 24))
+  {
+    printk("产生了非对其访问错误\n");
+  }
+  if (SCB->CFSR & (1 << 25))
+  {
+    printk("除零错误\n");
+  }
   /* Go to infinite loop when Usage Fault exception occurs */
   while (1)
   {

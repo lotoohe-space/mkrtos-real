@@ -30,13 +30,13 @@ PendSV_Handler:
 
 	//将更改的值放回要传的参数中去
 	TST LR,#4
-	ITE EQ
+	ITTEE EQ
 	MSREQ MSP, r3
+	MOVEQ r1,r3
 	MSRNE PSP, r3
+	MOVNE r0,r3
 thread_sche:
-	MOV r0, r3
-	MOV r1, r2
-	// r0:sp r1:(0为msp 1 psp)
+	// r0:psp r1:msp r2:(0为msp 1 psp)
 	LDR.w r3,=schde_to
 	BLX r3
 	//取得下一个任务的参数 r1 psp r2 msp
@@ -76,8 +76,10 @@ super_mode: //更新下msp的值
 	MOV R0,#0
 	MSR CONTROL, R0
 to_ret:
-	CPSIE I
 	push {r0-r3, lr}
 	bl mpu_switch_to
 	pop {r0-r3, lr}
+	CPSIE I
+	DSB
+	ISB
 	BX 	LR

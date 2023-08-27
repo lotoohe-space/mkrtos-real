@@ -81,7 +81,7 @@ sched_t *scheduler_next(void)
     return next_sch;
 }
 
-sp_info_t *schde_to(void *sp, umword_t sp_type)
+sp_info_t *schde_to(void *usp, void *ksp, umword_t sp_type)
 {
     scheduler_t *sche = scheduler_get_current();
 
@@ -89,14 +89,8 @@ sp_info_t *schde_to(void *sp, umword_t sp_type)
     sched_t *next = sche->cur_sche;
     thread_t *next_th = container_of(next, thread_t, sche);
 
-    if (!sp_type)
-    {
-        cur_th->sp.knl_sp = sp;
-    }
-    else
-    {
-        cur_th->sp.user_sp = sp;
-    }
+    cur_th->sp.knl_sp = ksp;
+    cur_th->sp.user_sp = usp;
     cur_th->sp.sp_type = sp_type;
     return &next_th->sp;
 }

@@ -5,7 +5,7 @@
 #include "mpu.h"
 #include "assert.h"
 
-void mm_space_init(mm_space_t *mm_space)
+void mm_space_init(mm_space_t *mm_space, int is_knl)
 {
     region_info_t *regi_info;
 
@@ -13,10 +13,12 @@ void mm_space_init(mm_space_t *mm_space)
     {
         mm_space->pt_regions[i].region_inx = -1;
     }
-
-    regi_info = mm_space_alloc_pt_region(mm_space);
-    assert(regi_info);
-    mm_pages_init(&mm_space->mm_pages, regi_info);
+    if (!is_knl)
+    {
+        regi_info = mm_space_alloc_pt_region(mm_space);
+        assert(regi_info);
+        mm_pages_init(&mm_space->mm_pages, regi_info);
+    }
 }
 region_info_t *mm_space_alloc_pt_region(mm_space_t *m_space)
 {

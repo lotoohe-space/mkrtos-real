@@ -36,11 +36,15 @@ void thread_init(thread_t *th)
  * @param pc
  * @param ip
  */
-void thread_set_exc_regs(thread_t *th, umword_t pc)
+void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t sp)
 {
+    thread_t *cur_th = thread_get_current();
     pf_t *th_pf = thread_get_pf(th);
 
     th_pf->pf_s.pc = pc;
+    cur_th->sp.knl_sp = ((char *)cur_th + THREAD_BLOCK_SIZE - 8);
+    cur_th->sp.user_sp = (void *)((sp - 8) & ~7UL);
+    cur_th->sp.sp_type = 1;
 }
 /**
  * @brief 线程绑定到task

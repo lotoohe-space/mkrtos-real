@@ -44,5 +44,6 @@ void arch_init(void)
     mpu_init();
     SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk;
     SCB->SHCSR |= SCB_SHCSR_BUSFAULTENA_Msk;
+    ((uint8_t *)(0xE000E008))[0] |= 0x6;
 }
 INIT_LOW_HARD(arch_init);

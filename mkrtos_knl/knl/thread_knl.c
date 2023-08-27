@@ -32,7 +32,7 @@ static void knl_init_1(void)
     thread_t *cur_th = thread_get_current();
 
     thread_init(cur_th);
-    task_init(&knl_task, &root_factory_get()->limit);
+    task_init(&knl_task, &root_factory_get()->limit, TRUE);
 
     thread_bind(cur_th, &knl_task.kobj);
     thread_ready(cur_th, FALSE);
@@ -49,7 +49,7 @@ static void knl_init_2(void)
 {
     thread_t *init_thread = thread_create(&root_factory_get()->limit);
     assert(init_thread);
-    task_t *init_task = task_create(&root_factory_get()->limit);
+    task_t *init_task = task_create(&root_factory_get()->limit, FALSE);
     assert(init_task);
 
     app_info_t *app = app_info_get((void *)(KNL_TEXT + INIT_OFFSET));
@@ -112,6 +112,6 @@ void start_kernel(void)
     thread_sched();
     cli();
 
-    while (1)
-        ;
+    while (1);
+        // printk(".");
 }

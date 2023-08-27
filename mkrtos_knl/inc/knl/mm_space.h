@@ -32,5 +32,5 @@ enum region_rights
 region_info_t *mm_space_alloc_pt_region(mm_space_t *m_space);
 void mm_space_free_pt_region(mm_space_t *m_space, region_info_t *ri);
 
-void mm_space_init(mm_space_t *mm_space);
+void mm_space_init(mm_space_t *mm_space, int is_knl);
 bool_t mm_space_add(mm_space_t *m_space, umword_t addr, umword_t size, uint8_t attrs);
