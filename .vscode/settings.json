@@ -110,7 +110,8 @@
         "uio.h": "c",
         "fs_backend.h": "c",
         "mm_space.h": "c",
-        "mm_page.h": "c"
+        "mm_page.h": "c",
+        "u_task.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

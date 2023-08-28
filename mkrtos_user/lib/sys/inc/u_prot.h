@@ -30,5 +30,5 @@ typedef struct msg_tag
     msg_tag_init(((umword_t)(t)&0xf) | (((umword_t)(t2)&0xff) << 4) | (((umword_t)(p)) << 12))
 
 #define msg_tag_get_prot(tag) \
-    ((mword_t)((tag).prot))
+    ((int16_t)((tag).prot))
 

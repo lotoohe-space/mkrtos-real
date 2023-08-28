@@ -54,18 +54,12 @@ static void knl_init_2(void)
 
     app_info_t *app = app_info_get((void *)(KNL_TEXT + INIT_OFFSET));
     // 申请init的ram内存
-    void *ram = mpu_ram_alloc(&init_task->mm_space, &root_factory_get()->limit, app->i.ram_size);
-    if (!ram)
-    {
-        printk("申请init进程内存失败.\n");
-        assert(ram);
-    }
-    mm_space_add(&init_task->mm_space, KNL_TEXT, 64*1024*1024, REGION_RO);
-    void *sp_addr = (char *)ram + app->i.stack_offset - app->i.data_offset;
+    assert(task_alloc_base_ram(init_task, &root_factory_get()->limit, app->i.ram_size) >= 0);
+    void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 
     thread_bind(init_thread, &init_task->kobj);
-    thread_user_pf_set(init_thread, (void *)(KNL_TEXT + INIT_OFFSET), sp_addr_top, ram);
+    thread_user_pf_set(init_thread, (void *)(KNL_TEXT + INIT_OFFSET), sp_addr_top, init_task->mm_space.mm_block);
     assert(obj_map_root(&init_thread->kobj, &init_task->obj_space, &root_factory_get()->limit, THREAD_PROT));
     assert(obj_map_root(&init_task->kobj, &init_task->obj_space, &root_factory_get()->limit, TASK_PROT));
     for (int i = FACTORY_PORT_START; i < FACTORY_PORT_END; i++)
@@ -112,6 +106,7 @@ void start_kernel(void)
     thread_sched();
     cli();
 
-    while (1);
-        // printk(".");
+    while (1)
+        ;
+    // printk(".");
 }

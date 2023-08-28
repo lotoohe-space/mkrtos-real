@@ -13,13 +13,15 @@ typedef struct region_info
     umword_t rbar;             //!< mpu保护寄存器信息
     umword_t rasr;             //!< mpu保护寄存器信息
     int16_t region_inx;
-    uint8_t region;            //!< 区域禁止信息
+    uint8_t region; //!< 区域禁止信息
 } region_info_t;
 
 typedef struct mm_space
 {
-    region_info_t pt_regions[REGION_NUM];
-    mm_pages_t mm_pages;
+    region_info_t pt_regions[REGION_NUM]; //!< mpu内存保护块
+    mm_pages_t mm_pages;                  //!< 模拟分页内存
+    void *mm_block;                       //!< task 的私有内存块
+    size_t mm_block_size;                 //!< 私有内存块的大小
 } mm_space_t;
 
 enum region_rights
@@ -34,3 +36,9 @@ void mm_space_free_pt_region(mm_space_t *m_space, region_info_t *ri);
 
 void mm_space_init(mm_space_t *mm_space, int is_knl);
 bool_t mm_space_add(mm_space_t *m_space, umword_t addr, umword_t size, uint8_t attrs);
+
+static inline void mm_space_set_ram_block(mm_space_t *mm_space, void *mem, size_t size)
+{
+    mm_space->mm_block = mem;
+    mm_space->mm_block_size = size;
+}

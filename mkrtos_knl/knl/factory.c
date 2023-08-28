@@ -82,6 +82,7 @@ factory_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
     {
         return msg_tag_init3(0, 0, -EPROTO);
     }
+    ram = task->lim;
     switch (tag.type)
     {
     case FACTORY_CREATE_KOBJ:

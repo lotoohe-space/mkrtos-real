@@ -84,14 +84,14 @@ void MemManage_Handler(void)
   task_t *cur_task = thread_get_current_task();
 
   // printk("%s\n", __FUNCTION__);
-  // if (SCB->CFSR & 0x1)
-  // {
-  //   printk("指令访问错误\n");
-  // }
-  // if (SCB->CFSR & 2)
-  // {
-  //   printk("数据访问错误\n");
-  // }
+  if (SCB->CFSR & 0x1)
+  {
+    printk("指令访问错误\n");
+  }
+  if (SCB->CFSR & 2)
+  {
+    printk("数据访问错误\n");
+  }
   if (SCB->CFSR & 128)
   {
     fault_addr = (addr_t)(SCB->MMFAR);

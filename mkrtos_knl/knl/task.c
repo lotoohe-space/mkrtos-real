@@ -4,14 +4,34 @@
 #include "init.h"
 #include "map.h"
 #include "thread.h"
+#include "misc.h"
 enum task_op_code
 {
     TASK_OBJ_MAP,
     TASK_OBJ_UNMAP,
+    TASK_ALLOC_RAM_BASE,
 };
 static bool_t task_put(kobject_t *kobj);
 static void task_release_stage1(kobject_t *kobj);
 static void task_release_stage2(kobject_t *kobj);
+
+int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size)
+{
+    if (tk->mm_space.mm_block)
+    {
+        return -EACCES;
+    }
+    // 申请init的ram内存
+    void *ram = mpu_ram_alloc(&tk->mm_space, lim, size);
+    if (!ram)
+    {
+        printk("申请进程内存失败.\n");
+        return -ENOMEM;
+    }
+    mm_space_set_ram_block(&tk->mm_space, ram, size);
+    return 0;
+}
+
 static msg_tag_t task_syscall_func(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
 {
     task_t *cur_task = thread_get_current_task();
@@ -26,8 +46,20 @@ static msg_tag_t task_syscall_func(kobject_t *kobj, ram_limit_t *ram, entry_fram
     switch (tag.type)
     {
     case TASK_OBJ_MAP:
-        /* code */
-        break;
+    {
+        kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->r[1]);
+
+        if (!kobj)
+        {
+            tag = msg_tag_init3(0, 0, -ENOENT);
+            break;
+        }
+
+        int ret = obj_map(&tag_task->obj_space, f->r[2], source_kobj, ram);
+
+        tag = msg_tag_init3(0, 0, ret);
+    }
+    break;
     case TASK_OBJ_UNMAP:
     {
         kobject_t *del_kobj;
@@ -39,6 +71,12 @@ static msg_tag_t task_syscall_func(kobject_t *kobj, ram_limit_t *ram, entry_fram
         obj_unmap(&tag_task->obj_space, f->r[1], &kobj_list);
         kobj_del_list_to_do(&kobj_list);
         cpulock_set(status);
+    }
+    break;
+    case TASK_ALLOC_RAM_BASE:
+    {
+        tag = msg_tag_init3(0, 0, task_alloc_base_ram(tag_task, tag_task->lim, f->r[1]));
+        f->r[1] = (umword_t)(tag_task->mm_space.mm_block);
     }
     break;
     default:
@@ -63,6 +101,8 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     task->kobj.put_func = task_put;
     task->kobj.stage_1_func = task_release_stage1;
     task->kobj.stage_2_func = task_release_stage2;
+
+    mm_space_add(&task->mm_space, KNL_TEXT, 64 * 1024 * 1024, REGION_RO); // TODO:
 }
 
 static bool_t task_put(kobject_t *kobj)
@@ -85,6 +125,7 @@ static void task_release_stage2(kobject_t *kobj)
     kobj_del_list_t kobj_list;
     task_t *cur_tk = thread_get_current_task();
 
+    mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
     mm_limit_free(tk->lim, tk);
     if (cur_tk == tk)
     {
