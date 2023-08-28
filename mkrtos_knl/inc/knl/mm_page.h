@@ -35,8 +35,6 @@ static inline void mm_entry_set_addr(mm_addr_t *addr, addr_t new_addr)
     *addr |= new_addr & (~3UL);
 }
 
-#define PAGE_MAN_NR 32
-
 #define PAGE_NR 64
 #define PAGE_SIZE 512
 

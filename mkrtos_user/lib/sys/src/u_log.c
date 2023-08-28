@@ -27,7 +27,7 @@ void ulog_write_bytes(obj_handler_t obj_inx, const uint8_t *data, umword_t len)
                     write_word_buf[3],
                     write_word_buf[4]);
         }
-        if (j == len)
+        if (j >= len)
         {
             return;
         }

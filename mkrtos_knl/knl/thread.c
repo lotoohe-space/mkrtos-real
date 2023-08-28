@@ -18,17 +18,57 @@
 #include "task.h"
 #include "thread.h"
 #include "slist.h"
+#include "thread_armv7m.h"
+#include "assert.h"
 
+static msg_tag_t
+thread_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f);
+static bool_t thread_put(kobject_t *kobj);
+static void thread_release_stage1(kobject_t *kobj);
+static void thread_release_stage2(kobject_t *kobj);
 /**
  * @brief 线程的初始化函数
  *
  * @param th
  */
-void thread_init(thread_t *th)
+void thread_init(thread_t *th, ram_limit_t *lim)
 {
     kobject_init(&th->kobj);
     sched_init(&th->sche);
+    ref_counter_init(&th->ref);
+    ref_counter_inc(&th->ref);
+    th->lim = lim;
+    th->kobj.invoke_func = thread_syscall;
+    th->kobj.put_func = thread_put;
+    th->kobj.stage_1_func = thread_release_stage1;
+    th->kobj.stage_2_func = thread_release_stage2;
+    th->magic = THREAD_MAIGC;
 }
+static bool_t thread_put(kobject_t *kobj)
+{
+    thread_t *th = container_of(kobj, thread_t, kobj);
+
+    return ref_counter_dec(&th->ref) == 1;
+}
+static void thread_release_stage1(kobject_t *kobj)
+{
+    thread_t *th = container_of(kobj, thread_t, kobj);
+    thread_suspend(th);
+    thread_unbind(th);
+}
+static void thread_release_stage2(kobject_t *kobj)
+{
+    thread_t *th = container_of(kobj, thread_t, kobj);
+    thread_t *cur_th = thread_get_current();
+    
+    mm_limit_free_align(th->lim, kobj, THREAD_BLOCK_SIZE);
+
+    if (cur_th == th)
+    {
+        thread_sched();
+    }
+}
+
 /**
  * @brief 设置运行寄存器
  *
@@ -36,15 +76,9 @@ void thread_init(thread_t *th)
  * @param pc
  * @param ip
  */
-void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t sp)
+void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t user_sp, umword_t ram)
 {
-    thread_t *cur_th = thread_get_current();
-    pf_t *th_pf = thread_get_pf(th);
-
-    th_pf->pf_s.pc = pc;
-    cur_th->sp.knl_sp = ((char *)cur_th + THREAD_BLOCK_SIZE - 8);
-    cur_th->sp.user_sp = (void *)((sp - 8) & ~7UL);
-    cur_th->sp.sp_type = 1;
+    thread_user_pf_set(th, (void *)pc, (void *)user_sp, (void *)ram);
 }
 /**
  * @brief 线程绑定到task
@@ -55,6 +89,21 @@ void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t sp)
 void thread_bind(thread_t *th, kobject_t *tk)
 {
     th->task = tk;
+    task_t *tsk = container_of(tk, task_t, kobj);
+
+    ref_counter_inc(&tsk->ref_cn);
+}
+/**
+ * @brief 解除task绑定
+ *
+ * @param th
+ */
+void thread_unbind(thread_t *th)
+{
+    task_t *tsk = container_of(th->task, task_t, kobj);
+
+    ref_counter_dec(&tsk->ref_cn);
+    th->task = NULL;
 }
 /**
  * @brief 挂起一个线程
@@ -76,8 +125,10 @@ void thread_suspend(thread_t *th)
 void thread_sched(void)
 {
     sched_t *next_sche = scheduler_next();
+    thread_t *th = thread_get_current();
 
-    if (next_sche == &thread_get_current()->sche)
+    assert(th->magic == THREAD_MAIGC);
+    if (next_sche == &th->sche)
     {
         return;
     }
@@ -113,8 +164,72 @@ thread_t *thread_create(ram_limit_t *ram)
         return NULL;
     }
     memset(th, 0, THREAD_BLOCK_SIZE);
-    thread_init(th);
+    thread_init(th, ram);
     return th;
+}
+enum thread_op
+{
+    SET_EXEC_REGS,
+    RUN_THREAD,
+    BIND_TASK,
+};
+static msg_tag_t
+thread_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
+{
+    msg_tag_t tag = msg_tag_init(f->r[0]);
+    task_t *task = thread_get_current_task();
+    thread_t *cur_th = thread_get_current();
+
+    if (tag.prot != THREAD_PROT)
+    {
+        return msg_tag_init3(0, 0, -EPROTO);
+    }
+
+    switch (tag.type)
+    {
+    case SET_EXEC_REGS:
+    {
+        kobject_t *kobj = obj_space_lookup_kobj(&task->obj_space, f->r[1]);
+        if (kobj == NULL /*TODO:检测kobj类型*/)
+        {
+            tag = msg_tag_init3(0, 0, -ENOENT);
+            return tag;
+        }
+
+        thread_set_exc_regs(container_of(kobj, thread_t, kobj), f->r[2], f->r[3], f->r[4]);
+    }
+    break;
+    case RUN_THREAD:
+    {
+        kobject_t *kobj = obj_space_lookup_kobj(&task->obj_space, f->r[1]);
+        if (kobj == NULL /*TODO:检测kobj类型*/)
+        {
+            tag = msg_tag_init3(0, 0, -ENOENT);
+            return tag;
+        }
+        thread_ready(container_of(kobj, thread_t, kobj), TRUE);
+    }
+    break;
+    case BIND_TASK:
+    {
+        kobject_t *th_kobj = obj_space_lookup_kobj(&task->obj_space, f->r[1]);
+        if (th_kobj == NULL /*TODO:检测kobj类型*/)
+        {
+            tag = msg_tag_init3(0, 0, -ENOENT);
+            return tag;
+        }
+        kobject_t *task_kobj = obj_space_lookup_kobj(&task->obj_space, f->r[2]);
+        if (task_kobj == NULL /*TODO:检测kobj类型*/)
+        {
+            tag = msg_tag_init3(0, 0, -ENOENT);
+            return tag;
+        }
+        thread_bind(container_of(th_kobj, thread_t, kobj), task_kobj);
+        printk("thread %d bind to %d\n", f->r[1], f->r[2]);
+    }
+    break;
+    }
+    return tag;
 }
 
 /**
@@ -131,7 +246,7 @@ static kobject_t *thread_create_func(ram_limit_t *lim, umword_t arg0, umword_t a
                                      umword_t arg2, umword_t arg3)
 {
     kobject_t *kobj = (kobject_t *)thread_create(lim);
-    if (kobj)
+    if (!kobj)
     {
         return NULL;
     }

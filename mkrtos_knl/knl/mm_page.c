@@ -74,6 +74,7 @@ int mm_pages_alloc_page(mm_pages_t *mm, ram_limit_t *lim, size_t pnf_nr, addr_t 
         }
         else
         {
+            mm_entry->attrs = attrs;
             mm_entry->pfn_nr = 1;
         }
     }

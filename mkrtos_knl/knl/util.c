@@ -8,6 +8,6 @@ int ffs(int x)
                      : "=r"(ret)
                      : "r"(x)
                      : "cc");
-    ret = WORD_BITS - ret;
+    ret = (WORD_BITS - 1) - ret;
     return ret;
 }

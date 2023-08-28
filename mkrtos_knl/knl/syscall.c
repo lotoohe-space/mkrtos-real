@@ -20,12 +20,12 @@ void syscall_entry(entry_frame_t entry)
         tag = msg_tag_init3(0, 0, -ENOENT);
         goto end;
     }
-    if (!entry_obj->kobj.obj)
+    if (!entry_obj->obj)
     {
         tag = msg_tag_init3(0, 0, -ENOENT);
         goto end;
     }
-    kobject_t *kobj = obj_map_kobj_get(entry_obj->kobj.obj);
+    kobject_t *kobj = obj_map_kobj_get(entry_obj->obj);
 
     if (kobj->invoke_func)
     {

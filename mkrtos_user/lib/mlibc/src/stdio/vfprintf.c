@@ -102,7 +102,7 @@ static const unsigned char states[]['z'-'A'+1] = {
 union arg
 {
 	uintmax_t i;
-	long double f;
+	double f;
 	void *p;
 };
 
@@ -138,7 +138,7 @@ static void out(FILE *f, const char *s, size_t l)
 
 static void pad(FILE *f, char c, int w, int l, int fl)
 {
-	char pad[64];
+	char pad[32];
 	if (fl & (LEFT_ADJ | ZERO_PAD) || l >= w) return;
 	l = w - l;
 	memset(pad, c, l>sizeof pad ? sizeof pad : l);
@@ -665,7 +665,7 @@ int vfprintf(FILE *restrict f, const char *restrict fmt, va_list ap)
 	va_list ap2;
 	int nl_type[NL_ARGMAX+1] = {0};
 	union arg nl_arg[NL_ARGMAX+1];
-	unsigned char internal_buf[80], *saved_buf = 0;
+	unsigned char internal_buf[32], *saved_buf = 0;
 	int olderr;
 	int ret;
 

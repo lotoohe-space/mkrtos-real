@@ -12,7 +12,7 @@
 #include "scheduler.h"
 #include "util.h"
 #include "arch.h"
-
+#include "ref.h"
 #define THREAD_BLOCK_SIZE 0x400 //!< 线程块大小，栈在块的顶部
 
 enum thread_state
@@ -42,14 +42,17 @@ typedef struct sp_info
     void *knl_sp;    //!< 内核sp
     mword_t sp_type; //!< 使用的栈类型
 } sp_info_t;
-
+#define THREAD_MAIGC 0xdeadead
 typedef struct thread
 {
     kobject_t kobj;           //!< 内核对象节点
     sched_t sche;             //!< 调度节点
-    enum thread_state status; //!< 线程状态
     kobject_t *task;          //!< 绑定的task
     sp_info_t sp;             //!< sp信息
+    ram_limit_t *lim;         //!< 内存限制
+    umword_t magic;           //!< maigc
+    ref_counter_t ref;        //!< 引用计数
+    enum thread_state status; //!< 线程状态
 } thread_t;
 
 static inline enum thread_state thread_get_status(thread_t *th)
@@ -66,18 +69,20 @@ static inline pf_t *thread_get_pf(thread_t *th)
 static inline thread_t *thread_get_current(void)
 {
     umword_t sp = arch_get_sp();
+    thread_t *th = (thread_t *)(ALIGN_DOWN(sp, THREAD_BLOCK_SIZE));
 
-    return (thread_t *)(ALIGN_DOWN(sp, THREAD_BLOCK_SIZE));
+    return th;
 }
 
 static inline pf_t *thread_get_current_pf(void)
 {
     return thread_get_pf(thread_get_current());
 }
-void thread_init(thread_t *th);
-void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t sp);
+void thread_init(thread_t *th, ram_limit_t *lim);
+void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t user_sp, umword_t ram);
 thread_t *thread_create(ram_limit_t *ram);
 void thread_bind(thread_t *th, kobject_t *tk);
+void thread_unbind(thread_t *th);
 
 void thread_sched(void);
 void thread_suspend(thread_t *th);

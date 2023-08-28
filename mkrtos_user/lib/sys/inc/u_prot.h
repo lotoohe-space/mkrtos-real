@@ -31,3 +31,4 @@ typedef struct msg_tag
 
 #define msg_tag_get_prot(tag) \
     ((mword_t)((tag).prot))
+

@@ -35,25 +35,23 @@ void factory_register(factory_func func, int inx)
     factory_func_list[inx] = func;
 }
 
-static kobject_t *factory_manu_kobj(kobject_t *kobj, ram_limit_t *lim, int prot,
-                                    umword_t arg0, umword_t arg1,
-                                    umword_t arg2, umword_t arg3)
+static kobject_t *factory_manu_kobj(kobject_t *kobj, ram_limit_t *lim, entry_frame_t *f)
 {
     kobject_t *new_kobj = NULL;
 
-    if (prot < 0 || prot >= FACTORY_FUNC_MAX)
+    if (f->r[1] < 0 || f->r[1] >= FACTORY_FUNC_MAX)
     {
         return NULL;
     }
-    if (factory_func_list[prot])
+    if (factory_func_list[f->r[1]])
     {
-        new_kobj = factory_func_list[prot](lim, arg0, arg1, arg2, arg3);
+        new_kobj = factory_func_list[f->r[1]](lim, f->r[3], f->r[4], f->r[5], f->r[6]);
     }
     return new_kobj;
 }
 static msg_tag_t factory_create_map(kobject_t *kobj, task_t *tk, ram_limit_t *lim, entry_frame_t *f)
 {
-    kobject_t *new_kobj = factory_manu_kobj(kobj, lim, f->r[1], f->r[2], f->r[3], f->r[4], 0);
+    kobject_t *new_kobj = factory_manu_kobj(kobj, lim, f);
 
     if (!new_kobj)
     {

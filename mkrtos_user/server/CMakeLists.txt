@@ -10,3 +10,4 @@ set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
 
 
 add_subdirectory(init)
+add_subdirectory(shell)

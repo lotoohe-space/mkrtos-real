@@ -7,6 +7,7 @@
 #include "kobject.h"
 #include "obj_space.h"
 #include "mm_space.h"
+#include "ref.h"
 
 typedef struct task
 {
@@ -14,6 +15,7 @@ typedef struct task
     obj_space_t obj_space;
     mm_space_t mm_space;
     ram_limit_t *lim;
+    ref_counter_t ref_cn;
 } task_t;
 
 task_t *thread_get_current_task(void);

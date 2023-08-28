@@ -32,6 +32,7 @@
 #include "printk.h"
 #include "mm_man.h"
 #include "task.h"
+#include "thread.h"
 /** @addtogroup Template_Project
  * @{
  */
@@ -79,32 +80,22 @@ void HardFault_Handler(void)
  */
 void MemManage_Handler(void)
 {
-  printk("%s\n", __FUNCTION__);
-  if (SCB->CFSR & 0x1)
-  {
-    printk("指令访问错误\n");
-  }
-  if (SCB->CFSR & 2)
-  {
-    printk("数据访问错误\n");
-  }
-  if (SCB->CFSR & 8)
-  {
-    printk("出栈错误\n");
-  }
-  if (SCB->CFSR & 16)
-  {
-    printk("压栈错误\n");
-  }
-  if (SCB->CFSR & 32)
-  {
-    printk("浮点惰性压栈错误\n");
-  }
+  addr_t fault_addr = (addr_t)(SCB->MMFAR);
+  task_t *cur_task = thread_get_current_task();
+
+  // printk("%s\n", __FUNCTION__);
+  // if (SCB->CFSR & 0x1)
+  // {
+  //   printk("指令访问错误\n");
+  // }
+  // if (SCB->CFSR & 2)
+  // {
+  //   printk("数据访问错误\n");
+  // }
   if (SCB->CFSR & 128)
   {
-    printk("MMFAR正确，值是%x\n", SCB->MMFAR);
-    addr_t fault_addr = (addr_t)(SCB->MMFAR);
-    task_t *cur_task = thread_get_current_task();
+    fault_addr = (addr_t)(SCB->MMFAR);
+    // printk("%x\t", SCB->MMFAR);
 
     if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
     {
@@ -114,15 +105,53 @@ void MemManage_Handler(void)
       {
       }
     }
+    return;
   }
-  else
+  if ((SCB->CFSR & 8))
   {
+    // printk("出栈错误\n");
+    fault_addr = arch_get_user_sp();
+
+    if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
+    {
+      printk("semgement fault.\n");
+      /*TODO:杀死进程*/
+      while (1)
+      {
+      }
+    }
+    return;
+  }
+  if (SCB->CFSR & 16)
+  {
+    // printk("压栈错误\n");
+     fault_addr = arch_get_user_sp();
+
+    if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
+    {
+      printk("semgement fault.\n");
+      /*TODO:杀死进程*/
+      while (1)
+      {
+      }
+    }
+    return;
+  }
+  if (SCB->CFSR & 32)
+  {
+    printk("浮点惰性压栈错误\n");
+  }
+
+  
+  // else
+  // {
     printk("semgement fault.\n");
     /*TODO:杀死进程*/
     while (1)
     {
     }
-  }
+  // }
+  // thread_sched();
   /* Go to infinite loop when Memory Manage exception occurs */
 }
 

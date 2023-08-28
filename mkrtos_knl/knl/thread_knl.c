@@ -31,7 +31,7 @@ static void knl_init_1(void)
 {
     thread_t *cur_th = thread_get_current();
 
-    thread_init(cur_th);
+    thread_init(cur_th, &root_factory_get()->limit);
     task_init(&knl_task, &root_factory_get()->limit, TRUE);
 
     thread_bind(cur_th, &knl_task.kobj);

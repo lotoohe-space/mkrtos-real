@@ -23,7 +23,7 @@ void obj_space_del(obj_space_t *obj_space, obj_addr_t inx)
     {
         return;
     }
-    obj_space->tab.tabs[tab_inx]->items[entry_inx].kobj.obj = NULL;
+    obj_space->tab.tabs[tab_inx]->items[entry_inx].obj = NULL;
 }
 obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobject_t *kobj, obj_addr_t inx)
 {
@@ -46,11 +46,11 @@ obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobj
     }
     obj_map_entry_t *entry = &obj_space->tab.tabs[tab_inx]->items[entry_inx];
 
-    if (entry->kobj.obj == NULL)
+    if (entry->obj == NULL)
     {
         slist_init(&entry->node);
     }
-    entry->kobj.obj = kobj;
+    entry->obj = kobj;
     return entry;
 }
 obj_map_entry_t *obj_space_lookup(obj_space_t *obj_space, obj_addr_t inx)
@@ -69,4 +69,18 @@ obj_map_entry_t *obj_space_lookup(obj_space_t *obj_space, obj_addr_t inx)
     }
 
     return &obj_space->tab.tabs[tab_inx]->items[entry_inx];
+}
+kobject_t *obj_space_lookup_kobj(obj_space_t *obj_space, obj_addr_t inx)
+{
+    obj_map_entry_t *entry_obj =
+        obj_space_lookup(obj_space, inx);
+    if (!entry_obj)
+    {
+        return NULL;
+    }
+    if (!entry_obj->obj)
+    {
+        return NULL;
+    }
+    return obj_map_kobj_get(entry_obj->obj);
 }
