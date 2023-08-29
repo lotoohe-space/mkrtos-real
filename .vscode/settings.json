@@ -113,7 +113,8 @@
         "mm_page.h": "c",
         "u_task.h": "c",
         "cpiofs.h": "c",
-        "u_factory.h": "c"
+        "u_factory.h": "c",
+        "u_thread.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

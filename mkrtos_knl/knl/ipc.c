@@ -11,12 +11,18 @@
 #include "string.h"
 #include "mm_wrap.h"
 
+/**
+ * @brief ipc 对象，用于接收与发送另一个thread发送的消息
+ *
+ */
 typedef struct ipc
 {
-    kobject_t kobj;
-    spinlock_t lock;
+    kobject_t kobj;         //!< 内核对象
+    spinlock_t lock;        //!< 操作的锁
     slist_head_t wait_send; //!< 发送等待队列
-    thread_t *rcv;          //!< 只有一个接受者
+    //!< 等待回复的链表
+    //!< 发送消息后立刻进入挂起状态，并标记flags在等待中，这时rcv变量将不能改变，直到接受者reply后，清空。
+    thread_t *rcv; //!< 只有一个接受者
 } ipc_t;
 
 enum ipc_op
@@ -25,8 +31,15 @@ enum ipc_op
     IPC_REVC, //!< 接受IPC消息
 };
 
-static msg_tag_t
-ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
+/**
+ * @brief ipc的系统调用
+ *
+ * @param kobj
+ * @param ram
+ * @param f
+ * @return msg_tag_t
+ */
+static msg_tag_t ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
 {
     assert(kobj);
     assert(f);
@@ -45,12 +58,8 @@ ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
         umword_t status;
         size_t send_len_c = -1;
 
-        void *send_addr = (void *)(f->r[1]);
-        /*TODO:检查地址是否在有效范围内*/
-        size_t send_len = f->r[2];
-
-        th->msg.msg = send_addr;
-        th->msg.len = send_len;
+        void *send_addr = th->msg.msg;
+        th->msg.len = f->r[1];
         if (!ipc->rcv)
         {
             status = spinlock_lock(&ipc->lock);
@@ -84,7 +93,7 @@ ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
             status = spinlock_lock(&ipc->lock);
             if (ipc->rcv->status == THREAD_SUSPEND)
             {
-                send_len_c = MIN(ipc->rcv->msg.len, th->msg.len);
+                send_len_c = MIN(THREAD_MSG_BUG_LEN, th->msg.len);
 
                 // 接收线程正在等待中
                 memcpy(ipc->rcv->msg.msg, th->msg.msg, send_len_c); //!< 拷贝数据
@@ -95,7 +104,7 @@ ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
             }
             spinlock_set(&ipc->lock, status);
         }
-        return msg_tag_init3(0, 0, send_len);
+        return msg_tag_init3(0, 0, send_len_c);
     }
     break;
     case IPC_REVC:
@@ -114,12 +123,7 @@ ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
             }
             spinlock_set(&ipc->lock, status);
         }
-        void *recv_addr = (void *)(f->r[1]);
-        /*TODO:检查地址是否在有效范围内*/
-        size_t recv_len = f->r[2];
-
-        th->msg.msg = recv_addr;
-        th->msg.len = recv_len;
+        void *recv_addr = th->msg.msg;
         if (0)
         {
             return msg_tag_init3(0, 0, -EINVAL);
@@ -147,7 +151,7 @@ ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
         slist_head_t *mslist = slist_first(&ipc->wait_send);
         slist_del(mslist);
         thread_t *send_th = container_of(mslist, thread_t, wait);
-        recv_len_c = MIN(recv_len, send_th->msg.len);
+        recv_len_c = MIN(THREAD_MSG_BUG_LEN, send_th->msg.len);
         memcpy(recv_addr, send_th->msg.msg, recv_len_c); //!< 拷贝数据
         ipc->rcv = NULL;
         send_th->msg.flags |= MSG_BUF_HAS_DATA_FLAGS;

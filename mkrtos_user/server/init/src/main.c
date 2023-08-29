@@ -29,16 +29,19 @@ void mm_test(void)
 #include "u_ipc.h"
 void thread_test_func(void)
 {
-    char data[8];
+    char *buf;
+    umword_t len;
+    thread_msg_bug_get(11, (umword_t *)(&buf), NULL);
     while (1)
     {
-        msg_tag_t tag = ipc_recv(12, data, sizeof(data));
+        msg_tag_t tag = ipc_recv(12);
         if (msg_tag_get_prot(tag) > 0)
         {
-            printf("recv data is %s\n", data);
+            buf[msg_tag_get_prot(tag)] = 0;
+            printf("recv data is %s\n", buf);
         }
-        strcpy(data, "reply");
-        ipc_send(12, data, sizeof(data));
+        strcpy(buf, "reply");
+        ipc_send(12, strlen("reply"));
     }
     printf("thread_test_func.\n");
     task_unmap(TASK_PROT, 11);
@@ -46,15 +49,18 @@ void thread_test_func(void)
 }
 void thread_test_func2(void)
 {
-    char data[8] = "1234";
+    char *buf;
+    umword_t len;
+    thread_msg_bug_get(10, (umword_t *)(&buf), NULL);
     while (1)
     {
-        strcpy(data, "1234");
-        ipc_send(12, data, sizeof(data));
-        msg_tag_t tag = ipc_recv(12, data, sizeof(data));
+        strcpy(buf, "1234");
+        ipc_send(12, strlen(buf));
+        msg_tag_t tag = ipc_recv(12);
         if (msg_tag_get_prot(tag) > 0)
         {
-            printf("recv data is %s\n", data);
+            buf[msg_tag_get_prot(tag)] = 0;
+            printf("recv data is %s\n", buf);
         }
     }
     printf("thread_test_func2.\n");
@@ -63,10 +69,13 @@ void thread_test_func2(void)
 }
 void thread_test_func3(void)
 {
-    char data[8] = "____";
+    char *buf;
+    umword_t len;
+    thread_msg_bug_get(13, (umword_t *)(&buf), NULL);
+    strcpy(buf, "____");
     while (1)
     {
-        ipc_send(12, data, sizeof(data));
+        ipc_send(12, strlen(buf));
     }
     printf("thread_test_func2.\n");
     task_unmap(TASK_PROT, 10);
@@ -101,7 +110,8 @@ typedef struct app_info
     };
     const char dot_text[];
 } app_info_t;
-
+static char buf0[128];
+static char buf1[128];
 #include "cpiofs.h"
 void factory_test(void)
 {
@@ -123,11 +133,13 @@ void factory_test(void)
         return;
     }
 #if 1
+    thread_msg_bug_set(11, buf0);
     thread_exec_regs(11, (umword_t)thread_test_func, (umword_t)val + 1024, RAM_BASE());
     thread_bind_task(11, TASK_PROT);
     thread_run(11);
 
     factory_create_thread(FACTORY_PROT, 10);
+    thread_msg_bug_set(10, buf1);
     thread_exec_regs(10, (umword_t)thread_test_func2, (umword_t)val1 + 1024, RAM_BASE());
     thread_bind_task(10, TASK_PROT);
     thread_run(10);

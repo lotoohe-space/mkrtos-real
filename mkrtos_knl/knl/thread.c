@@ -176,12 +176,15 @@ enum thread_op
     SET_EXEC_REGS,
     RUN_THREAD,
     BIND_TASK,
+    MSG_BUG_GET,
+    MSG_BUG_SET,
 };
 static msg_tag_t
 thread_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
 {
     msg_tag_t tag = msg_tag_init(f->r[0]);
     task_t *task = thread_get_current_task();
+    thread_t *tag_th = container_of(kobj, thread_t, kobj);
     thread_t *cur_th = thread_get_current();
 
     if (tag.prot != THREAD_PROT)
@@ -193,47 +196,47 @@ thread_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
     {
     case SET_EXEC_REGS:
     {
-        kobject_t *kobj = obj_space_lookup_kobj(&task->obj_space, f->r[1]);
-        if (kobj == NULL /*TODO:检测kobj类型*/)
+        thread_set_exc_regs(tag_th, f->r[1], f->r[2], f->r[3]);
+    }
+    break;
+    case MSG_BUG_SET:
+    {
+        /*TODO:检查内存的可访问性*/
+        thread_set_msg_bug(tag_th, (void *)(f->r[1]), THREAD_MSG_BUG_LEN);
+        tag = msg_tag_init3(0, 0, 0);
+    }
+    case MSG_BUG_GET:
+    {
+        f->r[1] = (umword_t)(tag_th->msg.msg);
+        f->r[2] = THREAD_MSG_BUG_LEN;
+        if (tag_th->msg.msg == NULL)
         {
-            tag = msg_tag_init3(0, 0, -ENOENT);
-            return tag;
+            tag = msg_tag_init3(0, 0, -EACCES);
         }
-
-        thread_set_exc_regs(container_of(kobj, thread_t, kobj), f->r[2], f->r[3], f->r[4]);
+        else
+        {
+            tag = msg_tag_init3(0, 0, 0);
+        }
     }
     break;
     case RUN_THREAD:
     {
-        kobject_t *kobj = obj_space_lookup_kobj(&task->obj_space, f->r[1]);
-        if (kobj == NULL /*TODO:检测kobj类型*/)
+        if (!slist_in_list(&tag_th->sche.node))
         {
-            tag = msg_tag_init3(0, 0, -ENOENT);
-            return tag;
-        }
-        thread_t *th = container_of(kobj, thread_t, kobj);
-        if (!slist_in_list(&th->sche.node))
-        {
-            thread_ready(th, TRUE);
+            thread_ready(tag_th, TRUE);
         }
     }
     break;
     case BIND_TASK:
     {
-        kobject_t *th_kobj = obj_space_lookup_kobj(&task->obj_space, f->r[1]);
-        if (th_kobj == NULL /*TODO:检测kobj类型*/)
-        {
-            tag = msg_tag_init3(0, 0, -ENOENT);
-            return tag;
-        }
-        kobject_t *task_kobj = obj_space_lookup_kobj(&task->obj_space, f->r[2]);
+        kobject_t *task_kobj = obj_space_lookup_kobj(&task->obj_space, f->r[1]);
         if (task_kobj == NULL /*TODO:检测kobj类型*/)
         {
             tag = msg_tag_init3(0, 0, -ENOENT);
             return tag;
         }
-        thread_bind(container_of(th_kobj, thread_t, kobj), task_kobj);
-        printk("thread %d bind to %d\n", f->r[1], f->r[2]);
+        thread_bind(tag_th, task_kobj);
+        printk("thread bind to %d\n", f->r[7], f->r[1]);
     }
     break;
     }

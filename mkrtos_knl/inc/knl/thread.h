@@ -43,11 +43,12 @@ typedef struct sp_info
     mword_t sp_type; //!< 使用的栈类型
 } sp_info_t;
 
+#define THREAD_MSG_BUG_LEN 128       //!< 默认的消息寄存器大小
 #define MSG_BUF_HAS_DATA_FLAGS 0x01U //!< 已经有数据了
 typedef struct msg_buf
 {
-    void *msg;
-    uhmword_t len;
+    void *msg;       //!< buf，长度 @see THREAD_MSG_BUG_LEN
+    uhmword_t len;   //!< 这里不是buf的大小，而是存储接收或者发送的长度
     uhmword_t flags; //!< 传输标志
 } msg_buf_t;
 
@@ -60,11 +61,18 @@ typedef struct thread
     kobject_t *task;          //!< 绑定的task
     sp_info_t sp;             //!< sp信息
     ram_limit_t *lim;         //!< 内存限制
-    umword_t magic;           //!< maigc
     ref_counter_t ref;        //!< 引用计数
     msg_buf_t msg;            //!< 每个线程独有的消息缓存区
     enum thread_state status; //!< 线程状态
+    umword_t magic;           //!< maigc
 } thread_t;
+
+static inline void thread_set_msg_bug(thread_t *th, void *msg, uint16_t len)
+{
+    th->msg.msg = msg;
+    th->msg.len = len;
+    th->msg.flags = 0;
+}
 
 static inline enum thread_state thread_get_status(thread_t *th)
 {
