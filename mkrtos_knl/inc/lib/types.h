@@ -13,6 +13,7 @@ typedef unsigned long long uint64_t;
 typedef long long int64_t;
 
 typedef unsigned long umword_t;
+typedef unsigned short uhmword_t;
 typedef long mword_t;
 
 typedef signed long int intptr_t;

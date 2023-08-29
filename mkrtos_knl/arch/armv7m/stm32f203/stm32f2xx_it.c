@@ -109,7 +109,7 @@ void MemManage_Handler(void)
   }
   if ((SCB->CFSR & 8))
   {
-    // printk("出栈错误\n");
+    printk("出栈错误\n");
     fault_addr = arch_get_user_sp();
 
     if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
@@ -124,7 +124,7 @@ void MemManage_Handler(void)
   }
   if (SCB->CFSR & 16)
   {
-    // printk("压栈错误\n");
+    printk("压栈错误\n");
      fault_addr = arch_get_user_sp();
 
     if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)

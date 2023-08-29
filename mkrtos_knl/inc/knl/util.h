@@ -29,3 +29,7 @@
 #define USED __attribute__((used))
 
 int ffs(int x);
+
+static inline umword_t is_power_of_2(umword_t num){
+	return (num & (num-1)) == 0;
+}

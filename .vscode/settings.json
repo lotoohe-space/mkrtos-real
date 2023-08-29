@@ -111,7 +111,9 @@
         "fs_backend.h": "c",
         "mm_space.h": "c",
         "mm_page.h": "c",
-        "u_task.h": "c"
+        "u_task.h": "c",
+        "cpiofs.h": "c",
+        "u_factory.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

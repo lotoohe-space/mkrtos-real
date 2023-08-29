@@ -29,6 +29,7 @@ int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size)
         return -ENOMEM;
     }
     mm_space_set_ram_block(&tk->mm_space, ram, size);
+    printk("task alloc size is %d, base is 0x%x\n", size, ram);
     return 0;
 }
 

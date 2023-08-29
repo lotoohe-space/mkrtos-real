@@ -26,20 +26,55 @@ void mm_test(void)
     // memset(mem, 0, 512);
     // memset(mem1, 0, 512);
 }
+#include "u_ipc.h"
 void thread_test_func(void)
 {
+    char data[8];
+    while (1)
+    {
+        msg_tag_t tag = ipc_recv(12, data, sizeof(data));
+        if (msg_tag_get_prot(tag) > 0)
+        {
+            printf("recv data is %s\n", data);
+        }
+        strcpy(data, "reply");
+        ipc_send(12, data, sizeof(data));
+    }
     printf("thread_test_func.\n");
     task_unmap(TASK_PROT, 11);
     printf("Error\n");
 }
 void thread_test_func2(void)
 {
+    char data[8] = "1234";
+    while (1)
+    {
+        strcpy(data, "1234");
+        ipc_send(12, data, sizeof(data));
+        msg_tag_t tag = ipc_recv(12, data, sizeof(data));
+        if (msg_tag_get_prot(tag) > 0)
+        {
+            printf("recv data is %s\n", data);
+        }
+    }
+    printf("thread_test_func2.\n");
+    task_unmap(TASK_PROT, 10);
+    printf("Error\n");
+}
+void thread_test_func3(void)
+{
+    char data[8] = "____";
+    while (1)
+    {
+        ipc_send(12, data, sizeof(data));
+    }
     printf("thread_test_func2.\n");
     task_unmap(TASK_PROT, 10);
     printf("Error\n");
 }
 static __attribute__((aligned(8))) uint8_t val[1024];
 static __attribute__((aligned(8))) uint8_t val1[1024];
+static __attribute__((aligned(8))) uint8_t val2[1024];
 
 typedef struct app_info
 {
@@ -67,19 +102,27 @@ typedef struct app_info
     const char dot_text[];
 } app_info_t;
 
+#include "cpiofs.h"
 void factory_test(void)
 {
     // void *mem = mm_alloc_page(MM_PROT, 4, REGION_RWX);
     // assert(mem);
     // memset(mem, 0, 2048);
-    msg_tag_t tag = factory_create_thread(FACTORY_PROT, 11);
+
+    msg_tag_t tag = factory_create_ipc(FACTORY_PROT, 12);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        printf("factory_create_ipc no memory\n");
+        return;
+    }
+    tag = factory_create_thread(FACTORY_PROT, 11);
 
     if (msg_tag_get_prot(tag) < 0)
     {
         printf("factory_create_thread no memory\n");
         return;
     }
-#if 0
+#if 1
     thread_exec_regs(11, (umword_t)thread_test_func, (umword_t)val + 1024, RAM_BASE());
     thread_bind_task(11, TASK_PROT);
     thread_run(11);
@@ -88,8 +131,16 @@ void factory_test(void)
     thread_exec_regs(10, (umword_t)thread_test_func2, (umword_t)val1 + 1024, RAM_BASE());
     thread_bind_task(10, TASK_PROT);
     thread_run(10);
+
+    // factory_create_thread(FACTORY_PROT, 13);
+    // thread_exec_regs(13, (umword_t)thread_test_func3, (umword_t)val2 + 1024, RAM_BASE());
+    // thread_bind_task(13, TASK_PROT);
+    // thread_run(13);
 #else
-    app_info_t *app = (app_info_t *)0x8014000;
+    umword_t addr = cpio_find_file((umword_t)0x801ff8c, (umword_t)0x8040000, "shell");
+    assert(addr);
+
+    app_info_t *app = (app_info_t *)addr;
     umword_t ram_base;
     tag = factory_create_task(FACTORY_PROT, 10);
     if (msg_tag_get_prot(tag) < 0)
@@ -106,7 +157,7 @@ void factory_test(void)
     task_map(10, LOG_PROT, LOG_PROT);
     void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
-    thread_exec_regs(11, (umword_t)0x8014000, (umword_t)sp_addr_top, ram_base);
+    thread_exec_regs(11, (umword_t)addr, (umword_t)sp_addr_top, ram_base);
     thread_bind_task(11, 10);
     thread_run(11);
 #endif

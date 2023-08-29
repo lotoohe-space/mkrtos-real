@@ -27,11 +27,11 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
 )
-target_link_libraries(
-    sys
-    PUBLIC
-    muslc
-)
-add_dependencies(sys muslc)
+# target_link_libraries(
+#     sys
+#     PUBLIC
+#     muslc
+# )
+# add_dependencies(sys muslc)
 
 

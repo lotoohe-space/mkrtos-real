@@ -33,7 +33,16 @@ static inline mword_t slist_is_empty(slist_head_t *list)
  */
 static inline bool_t slist_in_list(slist_head_t *item)
 {
-	return !(item->prev == item && item->next == item);
+	if (slist_is_empty(item)) {
+		return FALSE;
+	}
+	if (item->prev->next != item) {
+		return FALSE;
+	}
+	if (item->next->prev != item) {
+		return FALSE;
+	}
+	return TRUE;
 }
 /**
  * @brief 在头部添加一个节点
@@ -48,12 +57,12 @@ static inline void slist_add(slist_head_t *head, slist_head_t *item)
 	head->next->prev = item;
 	head->next = item;
 }
-// static inline void slist_add_append(slist_head_t *head, slist_head_t *item)
-// {
-//     slist_head_t *tail = head->prev;
+static inline void slist_add_append(slist_head_t *head, slist_head_t *item)
+{
+    slist_head_t *tail = head->prev;
 
-//     return slist_add(head, tail);
-// }
+    return slist_add(tail, item);
+}
 /**
  * @brief 获取第一个节点
  *

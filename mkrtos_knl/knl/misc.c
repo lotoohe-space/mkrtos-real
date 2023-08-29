@@ -34,9 +34,10 @@ static bool_t mpu_calc(
     }
 
     ffs_t_ = ffs(size);
-    //	if (!is_power_of_2(size)) {
-    //		ffs_t_++;
-    //	}
+    if (!is_power_of_2(size))
+    {
+        ffs_t_++;
+    }
     ffs_t = 1 << ffs_t_;
 
     int sub_region_t = ffs_t >> 3;

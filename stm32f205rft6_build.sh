@@ -2,7 +2,8 @@
 
 export KNL=mkrtos
 export KEN_OFFSET=0x2000
-export INIT_OFFSET=0x14000
+export INIT_OFFSET=0x10000
+export BOOTFS_ADDR_OFFSET=0x1ff8c
 export KNL_TEXT=0x8000000
 export KNL_DATA=0x20000000
 export KNL_DATA_SIZE=64K

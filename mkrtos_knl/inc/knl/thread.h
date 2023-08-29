@@ -19,7 +19,7 @@ enum thread_state
 {
     THREAD_IDLE,
     THREAD_DEAD,
-    THREAD_SUSPEND,
+    THREAD_SUSPEND, //!< 只有接收和发送ipc消息时才能挂起
     THREAD_READY,
 };
 typedef struct
@@ -42,16 +42,27 @@ typedef struct sp_info
     void *knl_sp;    //!< 内核sp
     mword_t sp_type; //!< 使用的栈类型
 } sp_info_t;
+
+#define MSG_BUF_HAS_DATA_FLAGS 0x01U //!< 已经有数据了
+typedef struct msg_buf
+{
+    void *msg;
+    uhmword_t len;
+    uhmword_t flags; //!< 传输标志
+} msg_buf_t;
+
 #define THREAD_MAIGC 0xdeadead
 typedef struct thread
 {
     kobject_t kobj;           //!< 内核对象节点
+    slist_head_t wait;        //!< 用于等待队列
     sched_t sche;             //!< 调度节点
     kobject_t *task;          //!< 绑定的task
     sp_info_t sp;             //!< sp信息
     ram_limit_t *lim;         //!< 内存限制
     umword_t magic;           //!< maigc
     ref_counter_t ref;        //!< 引用计数
+    msg_buf_t msg;            //!< 每个线程独有的消息缓存区
     enum thread_state status; //!< 线程状态
 } thread_t;
 

@@ -35,6 +35,7 @@ void thread_init(thread_t *th, ram_limit_t *lim)
 {
     kobject_init(&th->kobj);
     sched_init(&th->sche);
+    slist_init(&th->wait);
     ref_counter_init(&th->ref);
     ref_counter_inc(&th->ref);
     th->lim = lim;
@@ -60,7 +61,7 @@ static void thread_release_stage2(kobject_t *kobj)
 {
     thread_t *th = container_of(kobj, thread_t, kobj);
     thread_t *cur_th = thread_get_current();
-    
+
     mm_limit_free_align(th->lim, kobj, THREAD_BLOCK_SIZE);
 
     if (cur_th == th)
@@ -115,7 +116,7 @@ void thread_suspend(thread_t *th)
     assert(slist_in_list(&th->sche.node));
     scheduler_del(&th->sche);
     th->status = THREAD_SUSPEND;
-    to_sche();
+    thread_sched();
 }
 /**
  * @brief 进行一次调度
@@ -141,12 +142,15 @@ void thread_sched(void)
  */
 void thread_ready(thread_t *th, bool_t is_sche)
 {
-    assert(!slist_in_list(&th->sche.node));
+    if (!!slist_in_list(&th->sche.node))
+    {
+        assert(!slist_in_list(&th->sche.node));
+    }
     scheduler_add(&th->sche);
     th->status = THREAD_READY;
     if (is_sche)
     {
-        to_sche();
+        thread_sched();
     }
 }
 /**
@@ -207,7 +211,11 @@ thread_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
             tag = msg_tag_init3(0, 0, -ENOENT);
             return tag;
         }
-        thread_ready(container_of(kobj, thread_t, kobj), TRUE);
+        thread_t *th = container_of(kobj, thread_t, kobj);
+        if (!slist_in_list(&th->sche.node))
+        {
+            thread_ready(th, TRUE);
+        }
     }
     break;
     case BIND_TASK:

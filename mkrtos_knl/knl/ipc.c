@@ -6,33 +6,29 @@
 #include "factory.h"
 #include "thread.h"
 #include "assert.h"
-
-#define IPC_MSG_LEN 64
+#include "slist.h"
+#include "spinlock.h"
+#include "string.h"
+#include "mm_wrap.h"
 
 typedef struct ipc
 {
     kobject_t kobj;
-    thread_t *srv;
-    thread_t *cli;
-    uint8_t data[IPC_MSG_LEN];
-    uint8_t flags; //!< 1：服务端发送 2：客户端发送 3：
+    spinlock_t lock;
+    slist_head_t wait_send; //!< 发送等待队列
+    thread_t *rcv;          //!< 只有一个接受者
 } ipc_t;
 
 enum ipc_op
 {
-    IPC_BIND_SRV,   //!< 绑定服务端
-    IPC_BIND_CLI,   //!< 绑定客户端
-    IPC_UNBIND_SRV, //!< 解绑服务端
-    IPC_UNBIND_CLI, //!< 解绑客户端
-    IPC_SEND,       //!< 发送IPC消息
-    IPC_REVC,       //!< 接受IPC消息
+    IPC_SEND, //!< 发送IPC消息
+    IPC_REVC, //!< 接受IPC消息
 };
 
 static msg_tag_t
 ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
 {
     assert(kobj);
-    assert(ram);
     assert(f);
     msg_tag_t tag = msg_tag_init(f->r[0]);
     thread_t *th = thread_get_current();
@@ -44,83 +40,121 @@ ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
     }
     switch (tag.type)
     {
-    case IPC_BIND_SRV:
-    {
-        if (ipc->srv == NULL)
-        {
-            ipc->srv = th;
-        }
-        else
-        {
-            return msg_tag_init3(0, 0, -EACCES);
-        }
-    }
-    break;
-    case IPC_BIND_CLI:
-    {
-        if (ipc->cli == NULL)
-        {
-            ipc->cli = th;
-        }
-        else
-        {
-            return msg_tag_init3(0, 0, -EACCES);
-        }
-    }
-    break;
-    case IPC_UNBIND_SRV:
-    {
-        if (ipc->srv == th)
-        {
-            ipc->srv = NULL;
-        }
-        else
-        {
-            return msg_tag_init3(0, 0, -EACCES);
-        }
-    }
-    break;
-    case IPC_UNBIND_CLI:
-    {
-        if (ipc->cli == th)
-        {
-            ipc->cli = NULL;
-        }
-        else
-        {
-            return msg_tag_init3(0, 0, -EACCES);
-        }
-    }
-    break;
     case IPC_SEND:
     {
-        if (ipc->cli != th && ipc->srv != th)
-        {
-            return msg_tag_init3(0, 0, -EACCES);
-        }
-        thread_t *recv_th = NULL;
+        umword_t status;
+        size_t send_len_c = -1;
 
-        if (ipc->cli == th)
-        {
-            recv_th = ipc->srv;
-        }
-        else if (ipc->srv == th)
-        {
-            recv_th = ipc->cli;
-        }
-        enum thread_state st = thread_get_status(recv_th);
+        void *send_addr = (void *)(f->r[1]);
+        /*TODO:检查地址是否在有效范围内*/
+        size_t send_len = f->r[2];
 
-        if (st == THREAD_SUSPEND)
+        th->msg.msg = send_addr;
+        th->msg.len = send_len;
+        if (!ipc->rcv)
         {
+            status = spinlock_lock(&ipc->lock);
+            if (!ipc->rcv)
+            {
+                slist_add_append(&ipc->wait_send, &th->wait);
+                thread_suspend(th);
+            }
+            spinlock_set(&ipc->lock, status);
+            if (th->msg.flags & MSG_BUF_HAS_DATA_FLAGS)
+            {
+                th->msg.flags &= ~MSG_BUF_HAS_DATA_FLAGS;
+                return msg_tag_init3(0, 0, th->msg.len);
+            }
+        }
+    again_send:
+        if (ipc->rcv->status != THREAD_SUSPEND)
+        {
+            if (ipc->rcv->status == THREAD_DEAD)
+            {
+                return msg_tag_init3(0, 0, -EACCES);
+            }
+            status = spinlock_lock(&ipc->lock);
+            slist_add_append(&ipc->wait_send, &th->wait);
+            thread_suspend(th);
+            spinlock_set(&ipc->lock, status);
+            goto again_send;
         }
         else
         {
-            // 接收者没有再等待状态，当前线程挂起
+            status = spinlock_lock(&ipc->lock);
+            if (ipc->rcv->status == THREAD_SUSPEND)
+            {
+                send_len_c = MIN(ipc->rcv->msg.len, th->msg.len);
+
+                // 接收线程正在等待中
+                memcpy(ipc->rcv->msg.msg, th->msg.msg, send_len_c); //!< 拷贝数据
+                ipc->rcv->msg.flags |= MSG_BUF_HAS_DATA_FLAGS;
+                ipc->rcv->msg.len = send_len_c;
+                thread_ready(ipc->rcv, TRUE); //!< 直接唤醒接受者
+                ipc->rcv = NULL;
+            }
+            spinlock_set(&ipc->lock, status);
         }
+        return msg_tag_init3(0, 0, send_len);
     }
     break;
     case IPC_REVC:
     {
+        if (!ipc->rcv)
+        {
+            umword_t status = spinlock_lock(&ipc->lock);
+            if (!ipc->rcv)
+            {
+                ipc->rcv = th;
+            }
+            else
+            {
+                spinlock_set(&ipc->lock, status);
+                return msg_tag_init3(0, 0, -EAGAIN);
+            }
+            spinlock_set(&ipc->lock, status);
+        }
+        void *recv_addr = (void *)(f->r[1]);
+        /*TODO:检查地址是否在有效范围内*/
+        size_t recv_len = f->r[2];
+
+        th->msg.msg = recv_addr;
+        th->msg.len = recv_len;
+        if (0)
+        {
+            return msg_tag_init3(0, 0, -EINVAL);
+        }
+    again_recv:
+        // 没有数据则睡眠
+        while (slist_is_empty(&ipc->wait_send))
+        {
+            thread_suspend(th);
+            if (th->msg.flags & MSG_BUF_HAS_DATA_FLAGS)
+            {
+                th->msg.flags &= ~MSG_BUF_HAS_DATA_FLAGS;
+                // 已经有数据了，直接返
+                return msg_tag_init3(0, 0, th->msg.len);
+            }
+        }
+
+        size_t recv_len_c = 0;
+        umword_t status = spinlock_lock(&ipc->lock);
+        if (slist_is_empty(&ipc->wait_send))
+        {
+            spinlock_set(&ipc->lock, status);
+            goto again_recv;
+        }
+        slist_head_t *mslist = slist_first(&ipc->wait_send);
+        slist_del(mslist);
+        thread_t *send_th = container_of(mslist, thread_t, wait);
+        recv_len_c = MIN(recv_len, send_th->msg.len);
+        memcpy(recv_addr, send_th->msg.msg, recv_len_c); //!< 拷贝数据
+        ipc->rcv = NULL;
+        send_th->msg.flags |= MSG_BUF_HAS_DATA_FLAGS;
+        send_th->msg.len = recv_len_c;
+        spinlock_set(&ipc->lock, status);
+        thread_ready(send_th, TRUE); //!< 唤醒发送线程
+        return msg_tag_init3(0, 0, recv_len_c);
     }
     break;
     }
@@ -129,14 +163,27 @@ ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
 static void ipc_init(ipc_t *ipc)
 {
     kobject_init(&ipc->kobj);
+    slist_init(&ipc->wait_send);
+    spinlock_init(&ipc->lock);
+    ipc->rcv = NULL;
     ipc->kobj.invoke_func = ipc_syscall;
 }
+static ipc_t *ipc_create(ram_limit_t *lim)
+{
+    ipc_t *ipc = mm_limit_alloc(lim, sizeof(ipc_t));
 
+    if (!ipc)
+    {
+        return NULL;
+    }
+    ipc_init(ipc);
+    return ipc;
+}
 static kobject_t *ipc_create_func(ram_limit_t *lim, umword_t arg0, umword_t arg1,
                                   umword_t arg2, umword_t arg3)
 {
 
-    return NULL;
+    return &ipc_create(lim)->kobj;
 }
 
 /**
@@ -148,3 +195,7 @@ static void ipc_factory_register(void)
     factory_register(ipc_create_func, IPC_PROT);
 }
 INIT_KOBJ(ipc_factory_register);
+
+void ipc_dump(void)
+{
+}

@@ -36,5 +36,8 @@ void ulog_write_bytes(obj_handler_t obj_inx, const uint8_t *data, umword_t len)
 
 void ulog_write_str(obj_handler_t obj_inx, const char *str)
 {
-    ulog_write_bytes(obj_inx, (uint8_t *)str, strlen(str));
+    size_t i;
+    for (i = 0; str[i]; i++)
+        ;
+    ulog_write_bytes(obj_inx, (uint8_t *)str, i);
 }

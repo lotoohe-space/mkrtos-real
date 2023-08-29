@@ -33,5 +33,5 @@ void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram)
     cur_th->sp.user_sp = cur_pf;
     cur_th->sp.sp_type = 1;
 
-    printk("exc_regs:%x %x %x\n", pc, user_sp, ram);
+    printk("exc_regs:%x %x %x\n", cur_pf->pf_s.pc, cur_th->sp.user_sp, ram);
 }
