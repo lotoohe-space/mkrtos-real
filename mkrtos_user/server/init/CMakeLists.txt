@@ -9,12 +9,14 @@ target_link_libraries(init.elf
     PUBLIC
     muslc
     sys
+    cpio
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
     init.elf
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/cpio
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic

@@ -1,9 +1,8 @@
 
 #include "u_types.h"
 #include "cpiofs.h"
+#include "u_util.h"
 #include <string.h>
-#define MIN(a, b) ((a) < (b) ? (a) : (b))                          //!< 最小值
-#define ALIGN(mem, align) (((mem) + ((align)-1)) & (~((align)-1))) //!< 向上对齐
 
 int htoi(char *str, int len)
 {

@@ -9,7 +9,7 @@ msg_tag_t ipc_recv(obj_handler_t obj)
 {
     register volatile umword_t r0 asm("r0");
 
-    syscall(obj, msg_tag_init3(IPC_REVC, 2, IPC_PROT).raw,
+    syscall(obj, msg_tag_init3(IPC_REVC, 0, IPC_PROT).raw,
             0,
             0,
             0,
@@ -19,13 +19,13 @@ msg_tag_t ipc_recv(obj_handler_t obj)
 
     return tag;
 }
-msg_tag_t ipc_send(obj_handler_t obj, umword_t len)
+msg_tag_t ipc_send(obj_handler_t obj, umword_t len, umword_t flags)
 {
     register volatile umword_t r0 asm("r0");
 
     syscall(obj, msg_tag_init3(IPC_SEND, 2, IPC_PROT).raw,
             len,
-            0,
+            flags,
             0,
             0,
             0);

@@ -9,7 +9,7 @@ enum thread_op
     MSG_BUG_GET,
     MSG_BUG_SET,
 };
-msg_tag_t thread_msg_bug_set(obj_handler_t obj, void *msg)
+msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg)
 {
     register volatile umword_t r0 asm("r0");
     register volatile umword_t r1 asm("r1");
@@ -23,7 +23,7 @@ msg_tag_t thread_msg_bug_set(obj_handler_t obj, void *msg)
             0);
     return msg_tag_init(r0);
 }
-msg_tag_t thread_msg_bug_get(obj_handler_t obj, umword_t *msg, umword_t *len)
+msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len)
 {
     register volatile umword_t r0 asm("r0");
     register volatile umword_t r1 asm("r1");

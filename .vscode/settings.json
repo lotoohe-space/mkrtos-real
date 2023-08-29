@@ -114,7 +114,10 @@
         "u_task.h": "c",
         "cpiofs.h": "c",
         "u_factory.h": "c",
-        "u_thread.h": "c"
+        "u_thread.h": "c",
+        "u_app.h": "c",
+        "u_util.h": "c",
+        "u_mm.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

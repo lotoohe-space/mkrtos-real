@@ -9,6 +9,8 @@
 #define IPC_PROT 5
 #define MM_PROT 6
 
+#define TASK_THIS TASK_PROT
+
 typedef struct msg_tag
 {
     union

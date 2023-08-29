@@ -7,205 +7,21 @@
 #include "u_task.h"
 #include <assert.h>
 #include <stdio.h>
-void ulog_test(void)
-{
-    ulog_write_str(LOG_PROT, "Init task running..\n");
-    ulog_write_str(LOG_PROT, "todo..\n");
-}
-void mm_test(void)
-{
-    void *mem = mm_alloc_page(MM_PROT, 2, REGION_RWX);
-    assert(mem);
-    memset((char *)mem, 0, 1024);
-    void *mem1 = mm_alloc_page(MM_PROT, 2, REGION_RWX);
-    assert(mem1);
-    memset(mem1, 0, 1024);
-
-    mm_free_page(MM_PROT, mem1, 2);
-    mm_free_page(MM_PROT, mem, 2);
-    // memset(mem, 0, 512);
-    // memset(mem1, 0, 512);
-}
 #include "u_ipc.h"
-void thread_test_func(void)
-{
-    char *buf;
-    umword_t len;
-    thread_msg_bug_get(11, (umword_t *)(&buf), NULL);
-    while (1)
-    {
-        msg_tag_t tag = ipc_recv(12);
-        if (msg_tag_get_prot(tag) > 0)
-        {
-            buf[msg_tag_get_prot(tag)] = 0;
-            printf("recv data is %s\n", buf);
-        }
-        strcpy(buf, "reply");
-        ipc_send(12, strlen("reply"));
-    }
-    printf("thread_test_func.\n");
-    task_unmap(TASK_PROT, 11);
-    printf("Error\n");
-}
-void thread_test_func2(void)
-{
-    char *buf;
-    umword_t len;
-    thread_msg_bug_get(10, (umword_t *)(&buf), NULL);
-    while (1)
-    {
-        strcpy(buf, "1234");
-        ipc_send(12, strlen(buf));
-        msg_tag_t tag = ipc_recv(12);
-        if (msg_tag_get_prot(tag) > 0)
-        {
-            buf[msg_tag_get_prot(tag)] = 0;
-            printf("recv data is %s\n", buf);
-        }
-    }
-    printf("thread_test_func2.\n");
-    task_unmap(TASK_PROT, 10);
-    printf("Error\n");
-}
-void thread_test_func3(void)
-{
-    char *buf;
-    umword_t len;
-    thread_msg_bug_get(13, (umword_t *)(&buf), NULL);
-    strcpy(buf, "____");
-    while (1)
-    {
-        ipc_send(12, strlen(buf));
-    }
-    printf("thread_test_func2.\n");
-    task_unmap(TASK_PROT, 10);
-    printf("Error\n");
-}
-static __attribute__((aligned(8))) uint8_t val[1024];
-static __attribute__((aligned(8))) uint8_t val1[1024];
-static __attribute__((aligned(8))) uint8_t val2[1024];
 
-typedef struct app_info
-{
-    const char d[32];
-    const char magic[8];
-    union
-    {
-        struct exec_head_info
-        {
-            umword_t ram_size;
-            umword_t heap_offset;
-            umword_t stack_offset;
-            umword_t heap_size;
-            umword_t stack_size;
-            umword_t data_offset;
-            umword_t bss_offset;
-            umword_t got_start;
-            umword_t got_end;
-            umword_t rel_start;
-            umword_t rel_end;
-            umword_t text_start;
-        } i;
-        const char d1[128];
-    };
-    const char dot_text[];
-} app_info_t;
-static char buf0[128];
-static char buf1[128];
-#include "cpiofs.h"
-void factory_test(void)
-{
-    // void *mem = mm_alloc_page(MM_PROT, 4, REGION_RWX);
-    // assert(mem);
-    // memset(mem, 0, 2048);
-
-    msg_tag_t tag = factory_create_ipc(FACTORY_PROT, 12);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        printf("factory_create_ipc no memory\n");
-        return;
-    }
-    tag = factory_create_thread(FACTORY_PROT, 11);
-
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        printf("factory_create_thread no memory\n");
-        return;
-    }
-#if 1
-    thread_msg_bug_set(11, buf0);
-    thread_exec_regs(11, (umword_t)thread_test_func, (umword_t)val + 1024, RAM_BASE());
-    thread_bind_task(11, TASK_PROT);
-    thread_run(11);
-
-    factory_create_thread(FACTORY_PROT, 10);
-    thread_msg_bug_set(10, buf1);
-    thread_exec_regs(10, (umword_t)thread_test_func2, (umword_t)val1 + 1024, RAM_BASE());
-    thread_bind_task(10, TASK_PROT);
-    thread_run(10);
-
-    // factory_create_thread(FACTORY_PROT, 13);
-    // thread_exec_regs(13, (umword_t)thread_test_func3, (umword_t)val2 + 1024, RAM_BASE());
-    // thread_bind_task(13, TASK_PROT);
-    // thread_run(13);
-#else
-    umword_t addr = cpio_find_file((umword_t)0x801ff8c, (umword_t)0x8040000, "shell");
-    assert(addr);
-
-    app_info_t *app = (app_info_t *)addr;
-    umword_t ram_base;
-    tag = factory_create_task(FACTORY_PROT, 10);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        printf("factory_create_task no memory\n");
-        return;
-    }
-    tag = task_alloc_ram_base(10, app->i.ram_size, &ram_base);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        printf("task_alloc_ram_base no memory\n");
-        return;
-    }
-    task_map(10, LOG_PROT, LOG_PROT);
-    void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
-    void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
-    thread_exec_regs(11, (umword_t)addr, (umword_t)sp_addr_top, ram_base);
-    thread_bind_task(11, 10);
-    thread_run(11);
-#endif
-}
-void mpu_test(void)
-{
-
-#if 0
-    // mpu保护测试
-    int *test = ((int *)0x8000000);
-    *test = 1;
-    printf("test is %d\n", *test);
-#endif
-}
-void printf_test(void)
-{
-    printf("print test0.\n");
-    printf("print test1.\n");
-    printf("print test2.\n");
-    float a = 1.1;
-    float b = 1.2;
-    float c = a + b;
-    // printf("%c %d %f\n", 'a', 1234, 1.1);
-    // c = c;
-    // printf("%c %d %lf\n", 'a', 1234, 1.1); 浮点打印有问题
-}
 int main(int argc, char *args[])
 {
     ulog_write_str(LOG_PROT, "init..\n");
-    factory_test();
 #if 0
     mm_test();
-    mpu_test();
     ulog_test();
-#endif
+    factory_test();
+    thread_test();
+    app_test();
+    mpu_test();
     printf_test();
+#endif
+    ipc_test();
     printf("exit init.\n");
     while (1)
         ;
