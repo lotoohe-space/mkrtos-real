@@ -13,13 +13,16 @@
 
 static umword_t th1_hd = 0;
 static umword_t th2_hd = 0;
+static umword_t th3_hd = 0;
 static umword_t ipc_hd = 0;
 
 static char msg_buf0[MSG_BUG_LEN];
 static char msg_buf1[MSG_BUG_LEN];
+static char msg_buf2[MSG_BUG_LEN];
 #define STACK_SIZE 1024
 static __attribute__((aligned(8))) uint8_t stack0[STACK_SIZE];
 static __attribute__((aligned(8))) uint8_t stack1[STACK_SIZE];
+static __attribute__((aligned(8))) uint8_t stack2[STACK_SIZE];
 
 #if !DEBUG_IPC_CALL
 static void thread_test_func(void)
@@ -72,7 +75,7 @@ static void thread_test_func(void)
     {
         ipc_recv(ipc_hd);
         printf(buf);
-        strcpy(buf, "hello thread2.\n");
+        strcpy(buf, "thread_test_func.\n");
         ipc_send(ipc_hd, strlen(buf), 0);
     }
     printf("thread_test_func.\n");
@@ -86,12 +89,28 @@ static void thread_test_func2(void)
     thread_msg_buf_get(th2_hd, (umword_t *)(&buf), NULL);
     while (1)
     {
-        strcpy(buf, "hello thread1.\n");
+        strcpy(buf, "thread_test_func2.\n");
         ipc_send(ipc_hd, strlen(buf), MSG_BUF_CALL_FLAGS);
         printf(buf);
     }
     printf("thread_test_func2.\n");
     task_unmap(TASK_PROT, th2_hd);
+    printf("Error\n");
+}
+static void thread_test_func3(void)
+{
+    char *buf;
+    umword_t len;
+    thread_msg_buf_get(th3_hd, (umword_t *)(&buf), NULL);
+    while (1)
+    {
+        ipc_recv(ipc_hd);
+        printf(buf);
+        strcpy(buf, "thread_test_func3.\n");
+        ipc_send(ipc_hd, strlen(buf), 0);
+    }
+    printf("thread_test_func2.\n");
+    task_unmap(TASK_PROT, th3_hd);
     printf("Error\n");
 }
 #endif
@@ -105,6 +124,8 @@ void ipc_test(void)
     assert(th1_hd != HANDLER_INVALID);
     th2_hd = handler_alloc();
     assert(th2_hd != HANDLER_INVALID);
+    th3_hd = handler_alloc();
+    assert(th3_hd != HANDLER_INVALID);
     ipc_hd = handler_alloc();
     assert(ipc_hd != HANDLER_INVALID);
 
@@ -119,6 +140,7 @@ void ipc_test(void)
     tag = thread_bind_task(th1_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_run(th1_hd);
+
     assert(msg_tag_get_prot(tag) >= 0);
     tag = factory_create_thread(FACTORY_PROT, th2_hd);
     assert(msg_tag_get_prot(tag) >= 0);
@@ -130,4 +152,16 @@ void ipc_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_run(th2_hd);
     assert(msg_tag_get_prot(tag) >= 0);
+
+    // assert(msg_tag_get_prot(tag) >= 0);
+    // tag = factory_create_thread(FACTORY_PROT, th3_hd);
+    // assert(msg_tag_get_prot(tag) >= 0);
+    // tag = thread_msg_buf_set(th3_hd, msg_buf2);
+    // assert(msg_tag_get_prot(tag) >= 0);
+    // tag = thread_exec_regs(th3_hd, (umword_t)thread_test_func3, (umword_t)stack2 + STACK_SIZE, RAM_BASE());
+    // assert(msg_tag_get_prot(tag) >= 0);
+    // tag = thread_bind_task(th3_hd, TASK_THIS);
+    // assert(msg_tag_get_prot(tag) >= 0);
+    // tag = thread_run(th3_hd);
+    // assert(msg_tag_get_prot(tag) >= 0);
 }
