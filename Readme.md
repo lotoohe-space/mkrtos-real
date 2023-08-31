@@ -1,39 +1,94 @@
 ## MKRTOS 是什么
 
-- MKRTOS 全称是 Micro-Kernel Real-Time Operating System，中文名字是微内核实时操作系统。其最终的意义是实现一个小内核，并兼容 Posix 标准的操作系统，使其完全适用于各类嵌入式场合。
+- MKRTOS 全称是 Micro-Kernel Real-Time Operating System，中文名字是微内核实时操作系统。MKRTOS被设计为一个极其精简的内核，内核只包含thread、task、内存管理等功能，其它所有功能都被实现在用户态，同时兼容 Posix 标准的操作系统，使其完全适用于各类嵌入式场合。
 
 ### 开发背景
 
-- Cortex-M 在工业控制领域非常火，但是易用的操作系统却非常上，可能有 ucos 这类的操作系统，但是其功能都非常的简单，使用这类 RTOS 都有着一定的学习成本（我也写过一个，可以看看 xTinyRTOS，非常简单）.开发 MKRTOS 的初衷就是兼容 POSIX，以降低学习成本，并且在开发时还考虑到内存的使用，对内存使用进行优化。
+- 单片机被广泛的应用与工业以及物联网领域，适用于单片机的操作系统非常到，例如：rtthread，freertos这类的操作系统，但是其功能都非常的简单，使用这类 RTOS 都有着一定的学习成本（我也写过一个，可以看看 xTinyRTOS，非常简单）。开发 MKRTOS 的初衷就是兼容 POSIX，以降低学习成本，并且在开发时还考虑到内存的使用，对内存使用进行优化。Note:rtthread支持软件包，但是也存在架构设计以及拓展性方面的问题。
 
-### MKRTOS 内核特性
+### MKRTOS 内核
+#### done
+- 1.处理器：默认支持 Cortex-M3 处理器
+- 2.进程间通信，采用同步通信机制，内核不缓存任何数据。
+- 3.内核只需要支持systick以及串口即可启动系统。
+- 4.内核采用C语言编写，并使用面向对象的编程方式，功能均被抽象为内核对象。
+- 5.内核支持对象：线程对象、进程对象、工厂对象、内存管理对象、Log对象，IPC对象。
+- 4.多线程：支持多线程管理，线程与task分离，设计跟合理。
+- 5.多进程：支持内存空间与对象空间，进程只管理资源。
+- 6.MPU实现进程隔离。
+#### todo
+- 1.Cortex-M其它系列处理器、RISC-V，龙芯支持。
+- 2.硬件浮点支持。
+- 3.irq对象支持，用于内核中断转发到用户态。
+- 4.支持MMU实现进程隔离。
+- 5.内核futex支持（用于实现用户态的锁）。
+#### doing
+- 1.IPC功能完善。
 
-- 1.处理器：默认支持 Cortex-M3 处理器。
-- 2.进程间通信：支持信号、消息邮箱、信号量、匿名管道、共享内存。
-- 3.文件系统：支持 vfs，并开发了 spfs 文件系统，文件系统支持块缓存。
-- 4.可执行文件：支持bin文件的应用程序，并支持mpu做应用间隔离。
-- 5.内存管理：链式内存管理，比较节省内存。
-- 6.多任务支持，多线程还在完善。 
-- 7.驱动框架：字符设备与块设备。
-- 8.常用驱动：null，tty，tty0，flash。
-- 9.用户态支持软件浮点！（修改了dietlib库，可以做一些浮点方面的计算）。
-- 9.以太网支持（正在更新），采用lwip。
-
-### 系统功能
-
-- 支持的库：dietlibc（部分支持）。
-- 支持的应用：shell，ls，ymodem 等.
-### 其它
-- 支持使用ymodem通过串口直接下载应用程序。
-- shell还比较简陋，目前只支持4条命令，可以执行/bin/目录下的应用程序。
-### 硬件支持
-- STM32F103RCT6
-- STM32F205RFT6(qemu)
+### MKRTOS 用户态基础支持
+#### done
+- 1.可执行文件：支持bin可执行文件。
+#### doing
+- 1.musl libc库支持。
+- 2.init进程
+- 3.shell服务
+- 4.path manager服务
+#### todo
+- 1.kconfig支持。
+- 2.Fat、Ext、LittleFs系列文件系统支持
+- 3.drv manager服务
+- 4.process manager服务
+- 5.字符驱动、块驱动、显示驱动、网络驱动支持
+### MKRTOS 用户态生态
+- 1.toybox常用命令支持
+- 2.ota支持
+- 3.ymodem支持
+- 4.GUI支持。
+- 5.lwip支持。
+- 6.modubs支持。
+- 7.can通信协议支持。
+- 8.AT协议支持。
+- 9.其它。
 
 ### 怎么使用？
 
-- 工程更改为CMake+GCC，可以配合WSL2+Vscode+qemu在Linux下面开发，支持软件模拟。
-
+- 工程采用CMake进行管理，并在Linux下进行开发，建议使用Ubuntu18.04开发。
+- GCC编译器采用gcc-arm-none-eabi-5_4-2016q3，也可以使用新版本进行开发。
+- Qemu模拟STM32F2，老版本的Qemu对coretx-m3的模拟存在bug，请使用最新版本Qemu8.0及以上。
+使用步骤：
+1. 安装CMake
+```
+sudo apt install cmake
+```
+2. 安装ninja
+```
+sudo apt update
+sudo apt install ninja-build
+```
+3. 下载gcc
+- 直接使用ubuntu命令安装的gcc arm会没有gdb，可以直接到我给定的仓库下载
+```
+https://gitee.com/IsYourGod/mkrtos-tools.git
+```
+4. Qemu
+- 1.Qemu可以直接下载官方的进行编译
+- 2.也可以从我给定的链接下载
+```
+https://gitee.com/IsYourGod/mkrtos-tools.git
+```
+5. 修改build.sh脚本中GCC路径和GCC库路径
+```
+export TOOLCHAIN=/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/bin/
+export TOOLCHAIN_LIB=/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv7-m
+```
+6. 修改run.sh 和debug.sh中qemu的路径
+```
+qemu-system-arm -machine\
+ 	netduino2 -cpu cortex-m3 \
+  	-nographic -m size=2\
+   	-kernel $PWD/build/output/kernel.img \
+    -S -gdb tcp::$1
+```
 ### 我的博客
 
 - 欢迎到博客交流（还没有申请域名^-^）：[MKRTOS博客](http://124.222.90.143/)
@@ -67,10 +122,5 @@
   4. 增加cpio文件系统支持。
   5. 增加软件浮点支持。
   6. 增加双向链表和单项链表.
-### 工作规划
-1. 优化内核。
-2. 完善用户管理，用户登录相关系统调用。
-3. 完善spFS以及vfs文件系统。（1）mmap等的支持，考虑是否采用分页内存管理，分页比较费内存。（2）完善文件的权限管理
-4. 重新实现自己的网络协议栈。
-5. 显示驱动完善。
-7. cortex-m4支持。
+* 2023/8/31
+  1. 系统重新设计，内核更新为微内核。
