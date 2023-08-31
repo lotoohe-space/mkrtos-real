@@ -1,0 +1,127 @@
+<mxfile host="65bd71144e">
+    <diagram id="ncgATDR3l5mdBxydL-X0" name="Page-1">
+        <mxGraphModel dx="1003" dy="589" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="3" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="140" y="310" width="430" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="280" y="370" width="250" height="75" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="180" y="530" width="390" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="560" width="360" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="线程" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="570" width="50" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="任务" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="570" width="50" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="终端输入输出" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="415" y="620" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="中断" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="620" width="50" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="IPC" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="620" width="50" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="其它" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="415" y="570" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="内核对象" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="600" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;startArrow=block;startFill=1;" parent="1" source="15" target="6" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="690" width="360" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="BSP" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="700" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="Driver" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="700" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="MKRTOS" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="345" y="540" width="60" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=none;startFill=0;" parent="1" source="20" target="5" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="Bootstrap" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="180" y="780" width="390" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="初始进程" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="460" width="320" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="内存管理" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="485" y="570" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="RPC框架" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="370" width="30" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="路径管理器" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="290" y="385" width="30" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="NET服务" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="330" y="385" width="30" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="文件系统服务" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="370" y="385" width="30" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="驱动管理服务" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="490" y="385" width="30" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="musl libc库" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="140" y="370" width="60" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="Log服务" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="415" y="385" width="30" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="进程管理服务" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="455" y="385" width="30" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="应用程序" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="160" y="320" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="应用程序" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="235" y="320" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="用户态" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="310" width="20" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="启动" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="150" y="760" width="20" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="内核" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="150" y="540" width="20" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="" style="line;strokeWidth=2;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="510" width="490" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="MKRTOS Real" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="295" y="270" width="125" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" value="内核态" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="520" width="20" height="290" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="应用程序" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="315" y="320" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="生态组件" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="370" width="60" height="75" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" value="基础库" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="475" width="60" height="25" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
