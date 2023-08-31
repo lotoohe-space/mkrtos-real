@@ -48,6 +48,11 @@ static void add_wait(ipc_t *ipc, thread_t *th)
     thread_suspend(th);
     spinlock_set(&ipc->lock, status);
 }
+static void add_wait_unlock(ipc_t *ipc, thread_t *th)
+{
+    slist_add_append(&ipc->wait_send, &th->wait);
+    thread_suspend(th);
+}
 // if (ipc->rcv->msg.call_send == th)
 // {
 // }
@@ -72,8 +77,7 @@ static int ipc_send(ipc_t *ipc, entry_frame_t *f)
         status = spinlock_lock(&ipc->lock);
         if (!ipc->rcv)
         {
-            slist_add_append(&ipc->wait_send, &th->wait);
-            thread_suspend(th);
+            add_wait_unlock(ipc, th);
         }
         spinlock_set(&ipc->lock, status);
         if (th->msg.flags & MSG_BUF_HAS_DATA_FLAGS)
@@ -237,7 +241,7 @@ again_recv:
     }
     else
     {
-        th->msg.call_send = NULL;
+        send_th->msg.call_send = NULL;
         ipc->rcv = NULL; //! 如果不是call，则清空接收者
     }
     thread_ready(send_th, TRUE); //!< 唤醒发送线程
