@@ -5,9 +5,12 @@
 #include "u_thread.h"
 #include "u_task.h"
 #include "u_ipc.h"
+#include "u_hd_man.h"
 #include <assert.h>
 #include <stdio.h>
-
+static umword_t th1_hd = 0;
+static umword_t th2_hd = 0;
+static umword_t ipc_hd = 0;
 static char msg_buf0[MSG_BUG_LEN];
 static char msg_buf1[MSG_BUG_LEN];
 #define STACK_SIZE 1024
@@ -17,32 +20,32 @@ static void thread_test_func(void)
 {
     char *buf;
     umword_t len;
-    thread_msg_buf_get(11, (umword_t *)(&buf), NULL);
+    thread_msg_buf_get(th1_hd, (umword_t *)(&buf), NULL);
     while (1)
     {
-        msg_tag_t tag = ipc_recv(12);
+        msg_tag_t tag = ipc_recv(ipc_hd, 0);
         if (msg_tag_get_prot(tag) > 0)
         {
             buf[msg_tag_get_prot(tag)] = 0;
             printf("recv data is %s\n", buf);
         }
         strcpy(buf, "reply");
-        ipc_send(12, strlen("reply"), 0);
+        ipc_send(ipc_hd, strlen("reply"), 0);
     }
     printf("thread_test_func.\n");
-    task_unmap(TASK_PROT, 11);
+    task_unmap(TASK_PROT, th1_hd);
     printf("Error\n");
 }
 static void thread_test_func2(void)
 {
     char *buf;
     umword_t len;
-    thread_msg_buf_get(10, (umword_t *)(&buf), NULL);
+    thread_msg_buf_get(th2_hd, (umword_t *)(&buf), NULL);
     while (1)
     {
         strcpy(buf, "1234");
-        ipc_send(12, strlen(buf), 0);
-        msg_tag_t tag = ipc_recv(12);
+        ipc_send(ipc_hd, strlen(buf), 0);
+        msg_tag_t tag = ipc_recv(ipc_hd, 0);
         if (msg_tag_get_prot(tag) > 0)
         {
             buf[msg_tag_get_prot(tag)] = 0;
@@ -50,7 +53,7 @@ static void thread_test_func2(void)
         }
     }
     printf("thread_test_func2.\n");
-    task_unmap(TASK_PROT, 10);
+    task_unmap(TASK_PROT, th2_hd);
     printf("Error\n");
 }
 /**
@@ -59,27 +62,28 @@ static void thread_test_func2(void)
  */
 void thread_test(void)
 {
-    msg_tag_t tag = factory_create_ipc(FACTORY_PROT, 12);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        printf("factory_create_ipc no memory\n");
-        return;
-    }
-    tag = factory_create_thread(FACTORY_PROT, 11);
+    th1_hd = handler_alloc();
+    assert(th1_hd != HANDLER_INVALID);
+    th2_hd = handler_alloc();
+    assert(th2_hd != HANDLER_INVALID);
+    ipc_hd = handler_alloc();
+    assert(ipc_hd != HANDLER_INVALID);
 
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        printf("factory_create_thread no memory\n");
-        return;
-    }
-    thread_msg_buf_set(11, msg_buf0);
-    thread_exec_regs(11, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, RAM_BASE());
-    thread_bind_task(11, TASK_PROT);
-    thread_run(11);
+    msg_tag_t tag = factory_create_ipc(FACTORY_PROT, ipc_hd);
+    assert(msg_tag_get_prot(tag) >= 0);
 
-    factory_create_thread(FACTORY_PROT, 10);
-    thread_msg_buf_set(10, msg_buf1);
-    thread_exec_regs(10, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE, RAM_BASE());
-    thread_bind_task(10, TASK_PROT);
-    thread_run(10);
+    tag = factory_create_thread(FACTORY_PROT, th1_hd);
+    assert(msg_tag_get_prot(tag) >= 0);
+
+    thread_msg_buf_set(th1_hd, msg_buf0);
+    thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, RAM_BASE());
+    thread_bind_task(th1_hd, TASK_THIS);
+    thread_run(th1_hd);
+
+    factory_create_thread(FACTORY_PROT, th2_hd);
+    assert(msg_tag_get_prot(tag) >= 0);
+    thread_msg_buf_set(th2_hd, msg_buf1);
+    thread_exec_regs(th2_hd, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE, RAM_BASE());
+    thread_bind_task(th2_hd, TASK_THIS);
+    thread_run(th2_hd);
 }

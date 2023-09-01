@@ -1,16 +1,17 @@
 #include "u_types.h"
 #include "u_prot.h"
+#include "u_ipc.h"
 enum ipc_op
 {
     IPC_SEND, //!< 发送IPC消息
     IPC_REVC, //!< 接受IPC消息
 };
-msg_tag_t ipc_recv(obj_handler_t obj)
+msg_tag_t ipc_recv(obj_handler_t obj, umword_t flags)
 {
     register volatile umword_t r0 asm("r0");
 
-    syscall(obj, msg_tag_init3(IPC_REVC, 0, IPC_PROT).raw,
-            0,
+    syscall(obj, msg_tag_init3(IPC_REVC, 1, IPC_PROT).raw,
+            flags,
             0,
             0,
             0,

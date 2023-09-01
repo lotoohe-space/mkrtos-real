@@ -261,6 +261,7 @@ static kobject_t *thread_create_func(ram_limit_t *lim, umword_t arg0, umword_t a
     {
         return NULL;
     }
+    printk("thread 0x%x\n", kobj);
     return kobj;
 }
 

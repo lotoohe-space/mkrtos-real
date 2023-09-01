@@ -16,10 +16,10 @@ int main(int argc, char *args[])
     mm_test();
     ulog_test();
     factory_test();
-    thread_test();
     app_test();
     mpu_test();
     printf_test();
+    thread_test();
 #endif
     ipc_test();
     printf("exit init.\n");
