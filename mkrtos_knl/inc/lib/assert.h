@@ -14,7 +14,7 @@
     {                                                      \
         if (!(cond))                                       \
         {                                                  \
-            printk("%s %d:%s", __FILE__, __LINE__, #cond); \
+            printk("%s:%d %s", __FILE__, __LINE__, #cond); \
             while (1)                                      \
                 ;                                          \
         }                                                  \

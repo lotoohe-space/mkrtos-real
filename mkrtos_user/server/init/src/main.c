@@ -16,15 +16,14 @@ int main(int argc, char *args[])
     mm_test();
     ulog_test();
     factory_test();
-    app_test();
     mpu_test();
     printf_test();
     thread_test();
-#endif
     ipc_test();
+    thread_exit_test();
+#endif
+    app_test();
+    task_unmap(TASK_THIS, TASK_THIS);
     printf("exit init.\n");
-    while (1)
-        ;
-    // task_unmap(TASK_PROT, TASK_PROT);
     return 0;
 }

@@ -5,6 +5,7 @@
 #include "map.h"
 #include "thread.h"
 #include "misc.h"
+#include "spinlock.h"
 enum task_op_code
 {
     TASK_OBJ_MAP,
@@ -66,18 +67,30 @@ static msg_tag_t task_syscall_func(kobject_t *kobj, ram_limit_t *ram, entry_fram
         kobject_t *del_kobj;
         kobj_del_list_t kobj_list;
 
-        umword_t status = cpulock_lock();
-
+        mword_t status = spinlock_lock(&tag_task->kobj.lock);
+        if (status < 0)
+        {
+            tag = msg_tag_init3(0, 0, -EINVAL);
+            break;
+        }
         kobj_del_list_init(&kobj_list);
         obj_unmap(&tag_task->obj_space, f->r[1], &kobj_list);
         kobj_del_list_to_do(&kobj_list);
-        cpulock_set(status);
+        spinlock_set(&tag_task->kobj.lock, status);
     }
     break;
     case TASK_ALLOC_RAM_BASE:
     {
-        tag = msg_tag_init3(0, 0, task_alloc_base_ram(tag_task, tag_task->lim, f->r[1]));
-        f->r[1] = (umword_t)(tag_task->mm_space.mm_block);
+        mword_t status = spinlock_lock(&tag_task->kobj.lock);
+        if (status < 0)
+        {
+            tag = msg_tag_init3(0, 0, -EINVAL);
+            break;
+        }
+        int ret = task_alloc_base_ram(tag_task, tag_task->lim, f->r[1]);
+        tag = msg_tag_init3(0, 0, ret);
+         f->r[1] = (umword_t)(tag_task->mm_space.mm_block);
+        spinlock_set(&tag_task->kobj.lock, status);
     }
     break;
     default:
@@ -115,7 +128,7 @@ static void task_release_stage1(kobject_t *kobj)
 {
     task_t *tk = container_of(kobj, task_t, kobj);
     kobj_del_list_t kobj_list;
-
+    kobject_invalidate(kobj);
     kobj_del_list_init(&kobj_list);
     obj_unmap_all(&tk->obj_space, &kobj_list);
     kobj_del_list_to_do(&kobj_list);

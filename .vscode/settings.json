@@ -118,7 +118,8 @@
         "u_app.h": "c",
         "u_util.h": "c",
         "u_mm.h": "c",
-        "u_ipc.h": "c"
+        "u_ipc.h": "c",
+        "ref.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

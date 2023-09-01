@@ -54,6 +54,7 @@ static bool_t thread_put(kobject_t *kobj)
 static void thread_release_stage1(kobject_t *kobj)
 {
     thread_t *th = container_of(kobj, thread_t, kobj);
+    kobject_invalidate(kobj);
     thread_suspend(th);
     thread_unbind(th);
 }
@@ -103,7 +104,7 @@ void thread_unbind(thread_t *th)
 {
     task_t *tsk = container_of(th->task, task_t, kobj);
 
-    ref_counter_dec(&tsk->ref_cn);
+    ref_counter_dec_and_release(&tsk->ref_cn, &th->kobj);
     th->task = NULL;
 }
 /**
@@ -142,10 +143,10 @@ void thread_sched(void)
  */
 void thread_ready(thread_t *th, bool_t is_sche)
 {
-    if (!!slist_in_list(&th->sche.node))
-    {
-        assert(!slist_in_list(&th->sche.node));
-    }
+    // if (!!slist_in_list(&th->sche.node))
+    // {
+    assert(!slist_in_list(&th->sche.node));
+    // }
     scheduler_add(&th->sche);
     th->status = THREAD_READY;
     if (is_sche)

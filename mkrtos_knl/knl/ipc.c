@@ -20,11 +20,8 @@ typedef struct ipc
     kobject_t kobj;         //!< 内核对象
     spinlock_t lock;        //!< 操作的锁
     slist_head_t wait_send; //!< 发送等待队列
-    slist_head_t wait_recv; //!< 接收等待队列
-    //!< 等待回复的链表
-    //!< 发送消息后立刻进入挂起状态，并标记flags在等待中，这时rcv变量将不能改变，直到接受者reply后，清空。
-    thread_t *rcv; //!< 只有一个接受者
-    // thread_t *call_send;
+    thread_t *rcv;          //!< 只有一个接受者
+    ram_limit_t *lim;
 } ipc_t;
 
 enum ipc_op
@@ -41,41 +38,40 @@ static void add_wait(ipc_t *ipc, thread_t *th)
     thread_suspend(th);
     spinlock_set(&ipc->lock, status);
 }
-static void add_wait_recv(ipc_t *ipc, thread_t *th)
-{
-    umword_t status;
-    status = spinlock_lock(&ipc->lock);
-    slist_add_append(&ipc->wait_recv, &th->wait);
-    thread_suspend(th);
-    spinlock_set(&ipc->lock, status);
-}
 static void add_wait_unlock(ipc_t *ipc, thread_t *th)
 {
     slist_add_append(&ipc->wait_send, &th->wait);
     thread_suspend(th);
 }
-// static void add_wait_unlock_recv(ipc_t *ipc, thread_t *th)
-// {
-//     slist_add_append(&ipc->wait_recv, &th->wait);
-//     thread_suspend(th);
-// }
-// static void wake_up_recv(ipc_t *ipc)
-// {
-//     thread_t *send_th;
-//     slist_foreach(send_th, &ipc->wait_recv, wait)
-//     {
-//         thread_ready(send_th, TRUE);
-//     }
-// }
+
+static bool_t ipc_bind_rcv(ipc_t *ipc, thread_t *th)
+{
+    if (!ipc->rcv)
+    {
+        ipc->rcv = th;
+        ref_counter_inc(&th->ref);
+        return TRUE;
+    }
+    return FALSE;
+}
+static void ipc_unbind_rcv(ipc_t *ipc)
+{
+    if (ipc->rcv)
+    {
+        ref_counter_dec_and_release(&ipc->rcv->ref, &ipc->kobj);
+        ipc->rcv = 0;
+    }
+}
+
 static int ipc_send(ipc_t *ipc, entry_frame_t *f)
 {
     umword_t status;
     size_t send_len_c = -1;
     umword_t send_flag = f->r[2];
     thread_t *th = thread_get_current();
-
     void *send_addr = th->msg.msg;
     th->msg.len = f->r[1];
+
 again_send:
     if (!ipc->rcv)
     {
@@ -124,7 +120,7 @@ again_send:
                 ipc->rcv->msg.len = send_len_c;
                 thread_ready(ipc->rcv, TRUE); //!< 直接唤醒接受者
                 ipc->rcv->msg.send_th = th;   //!< 设置接收者的消息来源
-                ipc->rcv = NULL;              //! 如果不是call，则清空接收者
+                ipc_unbind_rcv(ipc);
                 th->msg.recv_th = NULL;
             }
             else
@@ -151,13 +147,9 @@ again_recv:
     if (ipc->rcv != th)
     {
         umword_t status = spinlock_lock(&ipc->lock);
-        if (!ipc->rcv)
+        if (!ipc_bind_rcv(ipc, th))
         {
-            ipc->rcv = th;
-        }
-        else
-        {
-            thread_sched();
+            thread_sched(); // TODO:
             spinlock_set(&ipc->lock, status);
             goto again_recv;
         }
@@ -199,7 +191,7 @@ again_recv:
         }
         if (find == 0)
         {
-            thread_sched();
+            thread_sched(); // TODO:
             spinlock_set(&ipc->lock, status);
             goto again_recv;
         }
@@ -217,8 +209,8 @@ again_recv:
     memcpy(recv_addr, send_th->msg.msg, recv_len_c); //!< 拷贝数据
     send_th->msg.flags |= MSG_BUF_HAS_DATA_FLAGS;
     send_th->msg.len = recv_len_c;
-    send_th->msg.recv_th = th;   //!< 设置消息发送给了谁
-    ipc->rcv = NULL;             //!< 如果不是call，则清空接收者
+    send_th->msg.recv_th = th; //!< 设置消息发送给了谁
+    ipc_unbind_rcv(ipc);
     thread_ready(send_th, TRUE); //!< 唤醒发送线程
     spinlock_set(&ipc->lock, status);
     return recv_len_c;
@@ -258,13 +250,32 @@ static msg_tag_t ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f
     }
     return msg_tag_init3(0, 0, -ENOSYS);
 }
-static void ipc_init(ipc_t *ipc)
+static void ipc_release_stage1(kobject_t *kobj)
+{
+    ipc_t *ipc = container_of(kobj, ipc_t, kobj);
+
+    kobject_invalidate(kobj);
+    if (ipc->rcv)
+    {
+        ref_counter_dec_and_release(&ipc->rcv->ref, &ipc->rcv->kobj);
+    }
+}
+static void ipc_release_stage2(kobject_t *kobj)
+{
+    ipc_t *ipc = container_of(kobj, ipc_t, kobj);
+
+    mm_limit_free(ipc->lim, kobj);
+}
+static void ipc_init(ipc_t *ipc, ram_limit_t *lim)
 {
     kobject_init(&ipc->kobj);
     slist_init(&ipc->wait_send);
     spinlock_init(&ipc->lock);
+    ipc->lim = lim;
     ipc->rcv = NULL;
     ipc->kobj.invoke_func = ipc_syscall;
+    ipc->kobj.stage_1_func = ipc_release_stage1;
+    ipc->kobj.stage_2_func = ipc_release_stage2;
 }
 static ipc_t *ipc_create(ram_limit_t *lim)
 {
@@ -274,7 +285,7 @@ static ipc_t *ipc_create(ram_limit_t *lim)
     {
         return NULL;
     }
-    ipc_init(ipc);
+    ipc_init(ipc, lim);
     return ipc;
 }
 static kobject_t *ipc_create_func(ram_limit_t *lim, umword_t arg0, umword_t arg1,

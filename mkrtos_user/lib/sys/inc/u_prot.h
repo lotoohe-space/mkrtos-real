@@ -9,6 +9,7 @@
 #define IPC_PROT 5
 #define MM_PROT 6
 
+#define THREAD_MAIN THREAD_PROT
 #define TASK_THIS TASK_PROT
 
 typedef struct msg_tag
