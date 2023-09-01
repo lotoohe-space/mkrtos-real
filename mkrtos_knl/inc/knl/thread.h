@@ -46,13 +46,15 @@ typedef struct sp_info
 
 #define THREAD_MSG_BUG_LEN 128       //!< 默认的消息寄存器大小
 #define MSG_BUF_HAS_DATA_FLAGS 0x01U //!< 已经有数据了
-#define MSG_BUF_CALL_FLAGS 0x02U     //!< 是CALL
+#define MSG_BUF_RECV_R_FLAGS 0x02U     //!< 接收上次发送数据的接收者
+#define MSG_BUF_REPLY_FLAGS 0x04U //!<
 typedef struct msg_buf
 {
-    void *msg;           //!< buf，长度 @see THREAD_MSG_BUG_LEN
-    uhmword_t len;       //!< 这里不是buf的大小，而是存储接收或者发送的长度
-    uhmword_t flags;     //!< 传输标志
-    thread_t *call_send; //!< 当是call操作时，存放call的发起方
+    void *msg;         //!< buf，长度 @see THREAD_MSG_BUG_LEN
+    uhmword_t len;     //!< 这里不是buf的大小，而是存储接收或者发送的长度
+    uhmword_t flags;   //!< 传输标志
+    thread_t *send_th; //!< 当是call操作时，存放call的发起方
+    thread_t *recv_th; //!< 当是call操作时，存放call的发起方
 } msg_buf_t;
 
 #define THREAD_MAIGC 0xdeadead

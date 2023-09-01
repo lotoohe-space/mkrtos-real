@@ -66,6 +66,12 @@ static void thread_test_func2(void)
     printf("Error\n");
 }
 #else
+static void hard_sleep(void)
+{
+     
+    for (volatile int i; i < 10000000; i++)
+        ;
+}
 static void thread_test_func(void)
 {
     char *buf;
@@ -73,10 +79,10 @@ static void thread_test_func(void)
     thread_msg_buf_get(th1_hd, (umword_t *)(&buf), NULL);
     while (1)
     {
-        ipc_recv(ipc_hd);
-        printf(buf);
-        strcpy(buf, "thread_test_func.\n");
-        ipc_send(ipc_hd, strlen(buf), 0);
+        ipc_recv(ipc_hd, 0);
+        printf("srv recv:%s", buf);
+        hard_sleep();
+        ipc_send(ipc_hd, strlen(buf), MSG_BUF_REPLY_FLAGS);
     }
     printf("thread_test_func.\n");
     task_unmap(TASK_PROT, th1_hd);
@@ -89,14 +95,16 @@ static void thread_test_func2(void)
     thread_msg_buf_get(th2_hd, (umword_t *)(&buf), NULL);
     while (1)
     {
-        strcpy(buf, "thread_test_func2.\n");
-        ipc_send(ipc_hd, strlen(buf), MSG_BUF_CALL_FLAGS);
-        printf(buf);
+        strcpy(buf, "I am th2.");
+        ipc_send(ipc_hd, strlen(buf), 0);
+        ipc_recv(ipc_hd, MSG_BUF_RECV_R_FLAGS);
+        printf("th2:%s", buf);
     }
     printf("thread_test_func2.\n");
     task_unmap(TASK_PROT, th2_hd);
     printf("Error\n");
 }
+
 static void thread_test_func3(void)
 {
     char *buf;
@@ -104,10 +112,10 @@ static void thread_test_func3(void)
     thread_msg_buf_get(th3_hd, (umword_t *)(&buf), NULL);
     while (1)
     {
-        ipc_recv(ipc_hd);
-        printf(buf);
-        strcpy(buf, "thread_test_func3.\n");
+        strcpy(buf, "I am th3.\n");
         ipc_send(ipc_hd, strlen(buf), 0);
+        ipc_recv(ipc_hd, MSG_BUF_RECV_R_FLAGS);
+        printf("th3:%s", buf);
     }
     printf("thread_test_func2.\n");
     task_unmap(TASK_PROT, th3_hd);
@@ -153,15 +161,15 @@ void ipc_test(void)
     tag = thread_run(th2_hd);
     assert(msg_tag_get_prot(tag) >= 0);
 
-    // assert(msg_tag_get_prot(tag) >= 0);
-    // tag = factory_create_thread(FACTORY_PROT, th3_hd);
-    // assert(msg_tag_get_prot(tag) >= 0);
-    // tag = thread_msg_buf_set(th3_hd, msg_buf2);
-    // assert(msg_tag_get_prot(tag) >= 0);
-    // tag = thread_exec_regs(th3_hd, (umword_t)thread_test_func3, (umword_t)stack2 + STACK_SIZE, RAM_BASE());
-    // assert(msg_tag_get_prot(tag) >= 0);
-    // tag = thread_bind_task(th3_hd, TASK_THIS);
-    // assert(msg_tag_get_prot(tag) >= 0);
-    // tag = thread_run(th3_hd);
-    // assert(msg_tag_get_prot(tag) >= 0);
+    assert(msg_tag_get_prot(tag) >= 0);
+    tag = factory_create_thread(FACTORY_PROT, th3_hd);
+    assert(msg_tag_get_prot(tag) >= 0);
+    tag = thread_msg_buf_set(th3_hd, msg_buf2);
+    assert(msg_tag_get_prot(tag) >= 0);
+    tag = thread_exec_regs(th3_hd, (umword_t)thread_test_func3, (umword_t)stack2 + STACK_SIZE, RAM_BASE());
+    assert(msg_tag_get_prot(tag) >= 0);
+    tag = thread_bind_task(th3_hd, TASK_THIS);
+    assert(msg_tag_get_prot(tag) >= 0);
+    tag = thread_run(th3_hd);
+    assert(msg_tag_get_prot(tag) >= 0);
 }

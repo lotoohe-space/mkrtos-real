@@ -117,7 +117,8 @@
         "u_thread.h": "c",
         "u_app.h": "c",
         "u_util.h": "c",
-        "u_mm.h": "c"
+        "u_mm.h": "c",
+        "u_ipc.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }
