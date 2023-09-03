@@ -38,4 +38,5 @@ typedef umword_t obj_handler_t;
 #define TRUE (!(FALSE))
 #endif
 
+#define WORD_BYTES (sizeof(void *))
 #define WORD_BITS (sizeof(void *) * 8)

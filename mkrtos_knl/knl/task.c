@@ -23,41 +23,45 @@ int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size)
         return -EACCES;
     }
     // 申请init的ram内存
-    void *ram = mpu_ram_alloc(&tk->mm_space, lim, size);
+    void *ram = mpu_ram_alloc(&tk->mm_space, lim, size + THREAD_MSG_BUG_LEN);
     if (!ram)
     {
         printk("申请进程内存失败.\n");
         return -ENOMEM;
     }
-    mm_space_set_ram_block(&tk->mm_space, ram, size);
-    printk("task alloc size is %d, base is 0x%x\n", size, ram);
+    mm_space_set_ram_block(&tk->mm_space, ram, size + THREAD_MSG_BUG_LEN);
+    printk("task alloc size is %d, base is 0x%x\n", size + THREAD_MSG_BUG_LEN, ram);
     return 0;
 }
-
-static msg_tag_t task_syscall_func(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
+task_t *thread_get_bind_task(thread_t *th)
+{
+    return container_of(th->task, task_t, kobj);
+}
+static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     task_t *cur_task = thread_get_current_task();
     task_t *tag_task = container_of(kobj, task_t, kobj);
-    msg_tag_t tag = msg_tag_init(f->r[0]);
+    msg_tag_t tag = msg_tag_init3(0, 0, -EINVAL);
 
-    if (tag.prot != TASK_PROT)
+    if (sys_p.prot != TASK_PROT)
     {
-        return msg_tag_init3(0, 0, -EINVAL);
+        f->r[0] = msg_tag_init3(0, 0, -EINVAL).raw;
+        return;
     }
 
-    switch (tag.type)
+    switch (sys_p.op)
     {
     case TASK_OBJ_MAP:
     {
         kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->r[1]);
 
-        if (!kobj)
+        if (!source_kobj)
         {
             tag = msg_tag_init3(0, 0, -ENOENT);
             break;
         }
 
-        int ret = obj_map(&tag_task->obj_space, f->r[2], source_kobj, ram);
+        int ret = obj_map(&tag_task->obj_space, f->r[2], source_kobj, tag_task->lim);
 
         tag = msg_tag_init3(0, 0, ret);
     }
@@ -89,7 +93,7 @@ static msg_tag_t task_syscall_func(kobject_t *kobj, ram_limit_t *ram, entry_fram
         }
         int ret = task_alloc_base_ram(tag_task, tag_task->lim, f->r[1]);
         tag = msg_tag_init3(0, 0, ret);
-         f->r[1] = (umword_t)(tag_task->mm_space.mm_block);
+        f->r[1] = (umword_t)(tag_task->mm_space.mm_block);
         spinlock_set(&tag_task->kobj.lock, status);
     }
     break;
@@ -97,7 +101,7 @@ static msg_tag_t task_syscall_func(kobject_t *kobj, ram_limit_t *ram, entry_fram
         break;
     }
 
-    return tag;
+    f->r[0] = tag.raw;
 }
 
 void task_init(task_t *task, ram_limit_t *ram, int is_knl)

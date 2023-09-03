@@ -7,3 +7,6 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))                          //!< 最小值
 #define ALIGN(mem, align) (((mem) + ((align)-1)) & (~((align)-1))) //!< 向上对齐
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))             //!< 获取数组大小
+#define ROUND(a, b) (((a) / (b)) + (((a) % (b)) ? 1 : 0))          //!< a/b后的值向上取整
+#define ROUND_UP(a, b) ROUND(a, b)                                 //!< a除b向上取整数
+#define ROUND_DOWN(a, b) ((a) / (b))                               //!< a/b向下取整

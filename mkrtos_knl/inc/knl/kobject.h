@@ -12,7 +12,7 @@
 struct kobject;
 typedef struct kobject kobject_t;
 
-typedef msg_tag_t (*syscall_func)(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f);
+typedef void (*syscall_func)(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f);
 typedef void (*obj_release_stage_1_func)(kobject_t *kobj);
 typedef void (*obj_release_stage_2_func)(kobject_t *kobj);
 typedef bool_t (*obj_release_put)(kobject_t *kobj);
@@ -38,7 +38,6 @@ typedef struct kobject
     obj_release_stage_2_func stage_2_func;
     obj_release_put put_func;
 } kobject_t;
-
 
 typedef struct kobj_del_list
 {
@@ -76,10 +75,10 @@ static inline void kobject_invalidate(kobject_t *kobj)
     spinlock_invalidate(&kobj->lock);
 }
 
-static inline msg_tag_t kobject_invoke(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
+static inline void kobject_invoke(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     /*TODO:*/
-    return msg_tag_init3(0, 0, -ENOSYS);
+    f->r[0] = msg_tag_init3(0, 0, -ENOSYS).raw;
 }
 static inline bool_t kobject_put(kobject_t *kobj)
 {

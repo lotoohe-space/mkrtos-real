@@ -8,7 +8,7 @@
 #include "map.h"
 #include "init.h"
 #include "globals.h"
-
+#include "thread.h"
 enum
 {
     FACTORY_CREATE_KOBJ
@@ -49,17 +49,17 @@ static kobject_t *factory_manu_kobj(kobject_t *kobj, ram_limit_t *lim, entry_fra
     }
     return new_kobj;
 }
-static msg_tag_t factory_create_map(kobject_t *kobj, task_t *tk, ram_limit_t *lim, entry_frame_t *f)
+static msg_tag_t factory_create_map(kobject_t *kobj, task_t *tk, entry_frame_t *f)
 {
-    kobject_t *new_kobj = factory_manu_kobj(kobj, lim, f);
+    kobject_t *new_kobj = factory_manu_kobj(kobj, tk->lim, f);
 
     if (!new_kobj)
     {
         return msg_tag_init3(0, 0, -ENOMEM);
     }
-    if (obj_map_root(new_kobj, &tk->obj_space, lim, f->r[2]) == FALSE)
+    if (obj_map_root(new_kobj, &tk->obj_space, tk->lim, f->r[2]) == FALSE)
     {
-        mm_limit_free(lim, new_kobj);
+        mm_limit_free(tk->lim, new_kobj);
         return msg_tag_init3(0, 0, -ENOMEM);
     }
     return msg_tag_init3(0, 0, 0);
@@ -72,27 +72,27 @@ static msg_tag_t factory_create_map(kobject_t *kobj, task_t *tk, ram_limit_t *li
  * @param f
  * @return msg_tag_t
  */
-static msg_tag_t
-factory_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
+static void
+factory_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
-    msg_tag_t tag = msg_tag_init(f->r[0]);
+    msg_tag_t tag = msg_tag_init3(0, 0, -EINVAL);
     task_t *task = thread_get_current_task();
 
-    if (tag.prot != FACTORY_PROT)
+    if (sys_p.prot != FACTORY_PROT)
     {
-        return msg_tag_init3(0, 0, -EPROTO);
+        f->r[0] = msg_tag_init3(0, 0, -EPROTO).raw;
+        return;
     }
-    ram = task->lim;
-    switch (tag.type)
+    switch (sys_p.op)
     {
     case FACTORY_CREATE_KOBJ:
     {
-        return factory_create_map(kobj, task, ram, f);
+        tag = factory_create_map(kobj, task, f);
     }
     break;
     }
 
-    return msg_tag_init3(0, 0, 0);
+    f->r[0] = tag.raw;
 }
 static void factory_init(factory_t *fac, umword_t max)
 {

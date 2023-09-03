@@ -22,6 +22,30 @@
 #define FACTORY_FUNC_MAX (MM_PROT + 1)
 #define FACTORY_PORT_END FACTORY_FUNC_MAX
 
+enum msg_type
+{
+    MSG_NONE_TYPE = 0,
+    MSG_DEF_TYPE = 1,
+};
+typedef union ipc_type
+{
+    union
+    {
+        uint8_t raw;
+        struct
+        {
+            uint8_t type : 1;
+            uint8_t msg_buf_len : 5;
+            uint8_t map_buf_len : 2;
+        };
+    };
+} ipc_type_t;
+
+static inline ipc_type_t ipc_type_create(uint8_t raw)
+{
+    return (ipc_type_t){.raw = raw};
+}
+
 typedef struct msg_tag
 {
     union
@@ -29,9 +53,9 @@ typedef struct msg_tag
         umword_t raw;
         struct
         {
-            umword_t type : 4;
-            umword_t type2 : 8;
-            umword_t prot : (sizeof(umword_t) * 8) - 12;
+            umword_t type : 4;                           //!< 系统调用时代表操作码
+            umword_t type2 : 8;                          //!< log操作，存放打印的长度; 也可以用于标志消息的类型
+            umword_t prot : (sizeof(umword_t) * 8) - 12; //!< 代码操作的系统调用类型，或者返回值时存放错误码
         };
     };
 } msg_tag_t;
@@ -39,5 +63,29 @@ typedef struct msg_tag
 #define msg_tag_init(r) \
     ((msg_tag_t){.raw = (r)})
 
-#define msg_tag_init3(t, t2, p) \
-    msg_tag_init(((umword_t)(t)&0xf) | (((umword_t)(t2)&0xff) << 4) | (((umword_t)(p)) << 12))
+#define msg_tag_init3(t, t2, p) ((msg_tag_t){ \
+    .type = t,                                \
+    .type2 = t2,                              \
+    .prot = p})
+
+typedef union syscall_prot
+{
+    umword_t raw;
+    struct
+    {
+        umword_t op : 6;                     //!< 操作的op
+        umword_t prot : 6;                   //!< 通信的类型
+        umword_t obj_inx : (WORD_BITS - 12); //!<
+    };
+} syscall_prot_t;
+
+#define syscall_prot_create_raw(r) ((syscall_prot_t){.raw = (r)})
+
+static inline syscall_prot_t syscall_prot_create(uint8_t op, uint8_t prot, obj_handler_t obj_inx)
+{
+    return (syscall_prot_t){
+        .op = op,
+        .prot = prot,
+        .obj_inx = obj_inx,
+    };
+}

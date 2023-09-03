@@ -13,6 +13,8 @@
 #include "globals.h"
 #include "init.h"
 #include "printk.h"
+#include "types.h"
+#include "util.h"
 static log_t log;
 
 enum log_op
@@ -21,8 +23,7 @@ enum log_op
     READ_DATA,
     SET_FLAGS
 };
-static msg_tag_t
-log_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f);
+static void log_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f);
 
 static void log_reg(void)
 {
@@ -39,19 +40,21 @@ static msg_tag_t log_write_data(log_t *log, const char *data, int len)
     }
     return msg_tag_init(0);
 }
-static msg_tag_t
-log_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
+static void
+log_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
-    msg_tag_t tag = msg_tag_init(f->r[0]);
-
-    if (tag.prot != LOG_PROT)
+    msg_tag_t tag = msg_tag_init3(0, 0, -EINVAL);
+    if (sys_p.prot != LOG_PROT)
     {
-        return msg_tag_init3(0, 0, -EPROTO);
+        f->r[0] = msg_tag_init3(0, 0, -EPROTO).raw;
+        return;
     }
-    switch (tag.type)
+    switch (sys_p.op)
     {
     case WRITE_DATA:
-        tag = log_write_data((log_t *)kobj, (const char *)(&f->r[1]), tag.type2);
+        tag = log_write_data(
+            (log_t *)kobj, (const char *)(&f->r[1]),
+            MIN(ipc_type_create(in_tag.type2).msg_buf_len, WORD_BYTES * 5));
         break;
     case READ_DATA:
         printk("don't support read data.\n");
@@ -63,8 +66,8 @@ log_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
         tag = msg_tag_init3(0, 0, -ENOSYS);
         break;
     }
-
-    return tag;
+    f->r[0] = tag.raw;
+    return;
 }
 
 void log_dump(void)

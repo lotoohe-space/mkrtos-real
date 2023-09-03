@@ -12,7 +12,8 @@ msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t 
 {
     register volatile umword_t r0 asm("r0");
 
-    syscall(dst_task, msg_tag_init3(TASK_OBJ_MAP, 2, TASK_PROT).raw,
+    syscall(syscall_prot_create(TASK_OBJ_MAP, TASK_PROT, dst_task),
+            msg_tag_init3(0, ipc_type_create_3(MSG_NONE_TYPE, 2, 0).raw, TASK_PROT).raw,
             src_obj,
             dst_obj,
             0,
@@ -27,7 +28,8 @@ msg_tag_t task_unmap(obj_handler_t task_han, obj_handler_t obj)
 {
     register volatile umword_t r0 asm("r0");
 
-    syscall(task_han, msg_tag_init3(TASK_OBJ_UNMAP, 1, TASK_PROT).raw,
+    syscall(syscall_prot_create(TASK_OBJ_UNMAP, TASK_PROT, task_han),
+            msg_tag_init3(0, ipc_type_create_3(MSG_NONE_TYPE, 1, 0).raw, TASK_PROT).raw,
             obj,
             0,
             0,
@@ -42,7 +44,8 @@ msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *all
     register volatile umword_t r0 asm("r0");
     register volatile umword_t r1 asm("r1");
 
-    syscall(task_han, msg_tag_init3(TASK_ALLOC_RAM_BASE, 1, TASK_PROT).raw,
+    syscall(syscall_prot_create(TASK_ALLOC_RAM_BASE, TASK_PROT, task_han),
+            msg_tag_init3(0, ipc_type_create_3(MSG_NONE_TYPE, 1, 0).raw, TASK_PROT).raw,
             size,
             0,
             0,

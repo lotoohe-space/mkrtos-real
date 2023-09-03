@@ -10,6 +10,7 @@
 #include "mpu.h"
 #include <stm32f2xx.h>
 #include <mpu_armv7.h>
+#include "thread.h"
 #include "task.h"
 static volatile umword_t *MPUCR = (umword_t *)0xE000ED94;
 

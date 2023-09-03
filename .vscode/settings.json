@@ -119,7 +119,10 @@
         "u_util.h": "c",
         "u_mm.h": "c",
         "u_ipc.h": "c",
-        "ref.h": "c"
+        "ref.h": "c",
+        "map.h": "c",
+        "ipc.h": "c",
+        "err.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

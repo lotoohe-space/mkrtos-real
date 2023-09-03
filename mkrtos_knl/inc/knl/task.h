@@ -18,7 +18,6 @@ typedef struct task
     ref_counter_t ref_cn;
 } task_t;
 
-task_t *thread_get_current_task(void);
 void task_init(task_t *task, ram_limit_t *ram, int is_knl);
 task_t *task_create(ram_limit_t *lim, int is_knl);
 int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size);

@@ -2,6 +2,7 @@
 #include "kobject.h"
 #include "init.h"
 #include "mm_page.h"
+#include "thread.h"
 #include "task.h"
 #include "globals.h"
 typedef struct mm_man
@@ -10,8 +11,7 @@ typedef struct mm_man
 } mm_man_t;
 static mm_man_t mm_man;
 
-static msg_tag_t
-mm_man_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f);
+static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f);
 
 static void mm_man_reg(void)
 {
@@ -28,17 +28,17 @@ enum mm_op
     MM_MOD_ATTRS,
 };
 
-static msg_tag_t
-mm_man_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
+static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     task_t *cur_task = thread_get_current_task();
-    msg_tag_t tag = msg_tag_init(f->r[0]);
+    msg_tag_t tag = msg_tag_init3(0, 0, -EINVAL);
 
-    if (tag.prot != MM_PROT)
+    if (sys_p.prot != MM_PROT)
     {
-        return msg_tag_init3(0, 0, -EPROTO);
+        f->r[0] = msg_tag_init3(0, 0, -EPROTO).raw;
+        return;
     }
-    switch (tag.type)
+    switch (sys_p.op)
     {
     case MM_ALLOC:
     {
@@ -70,7 +70,7 @@ mm_man_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
         tag = msg_tag_init3(0, 0, -ENOSYS);
         break;
     }
-    return tag;
+    f->r[0] = tag.raw;
 }
 void mm_man_dump(void)
 {

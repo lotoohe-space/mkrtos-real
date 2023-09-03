@@ -14,8 +14,11 @@
 #include "arch.h"
 #include "ref.h"
 #define THREAD_BLOCK_SIZE 0x400 //!< 线程块大小，栈在块的顶部
+struct task;
+typedef struct task task_t;
 struct thread;
 typedef struct thread thread_t;
+
 enum thread_state
 {
     THREAD_IDLE,
@@ -44,20 +47,22 @@ typedef struct sp_info
     mword_t sp_type; //!< 使用的栈类型
 } sp_info_t;
 
-#define THREAD_MSG_BUG_LEN 128       //!< 默认的消息寄存器大小
+#define THREAD_MSG_BUG_LEN 128UL     //!< 默认的消息寄存器大小
 #define MSG_BUF_HAS_DATA_FLAGS 0x01U //!< 已经有数据了
-#define MSG_BUF_RECV_R_FLAGS 0x02U     //!< 接收上次发送数据的接收者
-#define MSG_BUF_REPLY_FLAGS 0x04U //!<
+#define MSG_BUF_RECV_R_FLAGS 0x02U   //!< 接收来自recv_th的消息
+#define MSG_BUF_REPLY_FLAGS 0x04U    //!< 回复消息给send_th
+
 typedef struct msg_buf
 {
-    void *msg;         //!< buf，长度 @see THREAD_MSG_BUG_LEN
-    uhmword_t len;     //!< 这里不是buf的大小，而是存储接收或者发送的长度
+    void *msg;         //!< buf，长度是固定的 @see THREAD_MSG_BUG_LEN
+    thread_t *send_th; //!< 标志是谁发送的该数据
+    thread_t *recv_th; //!< 标志数据的接收方是谁
     uhmword_t flags;   //!< 传输标志
-    thread_t *send_th; //!< 当是call操作时，存放call的发起方
-    thread_t *recv_th; //!< 当是call操作时，存放call的发起方
+    uint8_t len;       //!< 这里不是buf的大小，而是存储接收或者发送的长度
+    uint8_t ipc_ide;  //!< ipc类型
 } msg_buf_t;
 
-#define THREAD_MAIGC 0xdeadead
+#define THREAD_MAIGC 0xdeadead //!< 用于栈溢出检测
 typedef struct thread
 {
     kobject_t kobj;           //!< 内核对象节点
@@ -97,6 +102,8 @@ static inline thread_t *thread_get_current(void)
 
     return th;
 }
+task_t *thread_get_current_task(void);
+task_t *thread_get_bind_task(thread_t *th);
 
 static inline pf_t *thread_get_current_pf(void)
 {

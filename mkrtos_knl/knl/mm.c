@@ -59,7 +59,6 @@ void mem_free(mem_t *_this, void *mem)
     // #endif
     umword_t status = spinlock_lock(&_this->lock);
     m_mem = (struct mem_heap *)((ptr_t)mem - MEM_HEAP_STRUCT_SIZE);
-    // knl_check_user_ram_access_exit(m_mem, sizeof(struct mem_heap), 1, _this->blong_user);
     assert(m_mem->magic == MAGIC_NUM);
     if (!m_mem->used)
     {
@@ -86,7 +85,6 @@ void *mem_split(mem_t *_this, void *mem, uint32_t size)
     }
     umword_t status = spinlock_lock(&_this->lock);
     t_mem = (struct mem_heap *)((ptr_t)mem - MEM_HEAP_STRUCT_SIZE);
-    // knl_check_user_ram_access_exit(t_mem, sizeof(struct mem_heap), 1, _this->blong_user);
     if (t_mem->used == 0 || t_mem->size < MEM_HEAP_STRUCT_SIZE || t_mem->size < size || size < MEM_HEAP_STRUCT_SIZE)
     {
         spinlock_set(&_this->lock, status);
@@ -94,7 +92,6 @@ void *mem_split(mem_t *_this, void *mem, uint32_t size)
     }
 
     r_mem = (struct mem_heap *)((ptr_t)t_mem + size);
-    // knl_check_user_ram_access_exit(r_mem, sizeof(struct mem_heap), 1, _this->blong_user);
     r_mem->used = 1;
     r_mem->size = t_mem->size - size;
     r_mem->next = t_mem->next;
@@ -152,7 +149,6 @@ again_alloc:
             mem_free(_this, split_addr);
             goto again_alloc;
         }
-        // assert(((struct mem_heap *)(split_addr - MEM_HEAP_STRUCT_SIZE))->size >= size);
         return split_addr;
     }
 
@@ -169,7 +165,6 @@ void mem_free_align(mem_t *_this, void *f_mem)
     umword_t status = spinlock_lock(&_this->lock);
     for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next)
     {
-        // knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
         assert(mem->magic == MAGIC_NUM);
         if ((ptr_t)mem == (ptr_t)f_mem - MEM_HEAP_STRUCT_SIZE)
         {
@@ -204,7 +199,6 @@ void *mem_alloc(mem_t *_this, uint32_t size)
     umword_t status = spinlock_lock(&_this->lock);
     for (mem = _this->l_heap; mem != _this->heap_end; mem = mem->next)
     {
-        // knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
         assert(mem->magic == MAGIC_NUM);
         if (mem->used == 0 && mem->size > size)
         {
@@ -212,7 +206,6 @@ void *mem_alloc(mem_t *_this, uint32_t size)
             {
                 struct mem_heap *mem_temp = NULL;
                 mem_temp = (struct mem_heap *)((ptr_t)mem + MEM_HEAP_STRUCT_SIZE + size);
-                // knl_check_user_ram_access_exit(mem_temp, sizeof(struct mem_heap), 1, _this->blong_user);
                 mem_temp->next = mem->next;
                 mem_temp->prev = mem;
                 mem_temp->used = 0;
@@ -296,7 +289,6 @@ size_t mem_get_free_size(mem_t *_this)
     umword_t status = spinlock_lock(&_this->lock);
     for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next)
     {
-        // knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
         assert(mem->magic == MAGIC_NUM);
         if (!mem->used)
         {

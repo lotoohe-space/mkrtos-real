@@ -20,9 +20,8 @@
 #include "slist.h"
 #include "thread_armv7m.h"
 #include "assert.h"
-
-static msg_tag_t
-thread_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f);
+#include "err.h"
+static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f);
 static bool_t thread_put(kobject_t *kobj);
 static void thread_release_stage1(kobject_t *kobj);
 static void thread_release_stage2(kobject_t *kobj);
@@ -180,20 +179,20 @@ enum thread_op
     MSG_BUG_GET,
     MSG_BUG_SET,
 };
-static msg_tag_t
-thread_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
+static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
-    msg_tag_t tag = msg_tag_init(f->r[0]);
+    msg_tag_t tag = msg_tag_init3(0, 0, -EINVAL);
     task_t *task = thread_get_current_task();
     thread_t *tag_th = container_of(kobj, thread_t, kobj);
     thread_t *cur_th = thread_get_current();
 
-    if (tag.prot != THREAD_PROT)
+    if (sys_p.prot != THREAD_PROT)
     {
-        return msg_tag_init3(0, 0, -EPROTO);
+        f->r[0] = msg_tag_init3(0, 0, -EPROTO).raw;
+        return;
     }
 
-    switch (tag.type)
+    switch (sys_p.op)
     {
     case SET_EXEC_REGS:
     {
@@ -233,15 +232,15 @@ thread_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
         kobject_t *task_kobj = obj_space_lookup_kobj(&task->obj_space, f->r[1]);
         if (task_kobj == NULL /*TODO:检测kobj类型*/)
         {
-            tag = msg_tag_init3(0, 0, -ENOENT);
-            return tag;
+            f->r[0] = msg_tag_init3(0, 0, -ENOENT).raw;
+            return ;
         }
         thread_bind(tag_th, task_kobj);
         printk("thread bind to %d\n", f->r[7], f->r[1]);
     }
     break;
     }
-    return tag;
+    f->r[0] = tag.raw;
 }
 
 /**

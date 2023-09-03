@@ -4,13 +4,14 @@
 #include "prot.h"
 #include "kobject.h"
 #include "factory.h"
+#include "task.h"
 #include "thread.h"
 #include "assert.h"
 #include "slist.h"
 #include "spinlock.h"
 #include "string.h"
 #include "mm_wrap.h"
-
+#include "map.h"
 /**
  * @brief ipc 对象，用于接收与发送另一个thread发送的消息
  *
@@ -28,6 +29,7 @@ enum ipc_op
 {
     IPC_SEND, //!< 发送IPC消息
     IPC_REVC, //!< 接受IPC消息
+    IPC_MAP,  //!< 该消息是一个映射消息
 };
 
 static void add_wait(ipc_t *ipc, thread_t *th)
@@ -62,16 +64,48 @@ static void ipc_unbind_rcv(ipc_t *ipc)
         ipc->rcv = 0;
     }
 }
+static void ipc_data_copy(thread_t *dst_th, thread_t *src_th, int len, ipc_type_t ipc_type)
+{
+    void *src = dst_th->msg.msg;
+    void *dst = src_th->msg.msg;
+    if (ipc_type.type)
+    {
+        ipc_msg_t *src_ipc;
+        ipc_msg_t *dst_ipc;
 
-static int ipc_send(ipc_t *ipc, entry_frame_t *f)
+        src_ipc = src;
+        dst_ipc = dst;
+
+        if (ipc_type.map_buf_len > 0)
+        {
+            int map_len = ipc_type.map_buf_len;
+            task_t *src_tk = thread_get_bind_task(src_th);
+            task_t *dst_tk = thread_get_bind_task(dst_th);
+            for (int i = 0; i < map_len; i++)
+            {
+                obj_map_src_dst(&dst_tk->obj_space, &src_tk->obj_space,
+                                dst_ipc->map_buf[i], src_ipc->map_buf[i], dst_tk->lim);
+            }
+        }
+        memcpy(dst_ipc->msg_buf, src_ipc->msg_buf, MIN(ipc_type.msg_buf_len, IPC_MSG_SIZE));
+    }
+    else
+    {
+        memcpy(src, dst, len);
+    }
+}
+
+static int ipc_send(ipc_t *ipc, entry_frame_t *f, msg_tag_t tag)
 {
     umword_t status;
     size_t send_len_c = -1;
     umword_t send_flag = f->r[2];
+    ipc_type_t ipc_ide = ipc_type_create(tag.type2);
     thread_t *th = thread_get_current();
     void *send_addr = th->msg.msg;
-    th->msg.len = f->r[1];
 
+    th->msg.len = f->r[1];
+    th->msg.ipc_ide = ipc_ide.raw;
 again_send:
     if (!ipc->rcv)
     {
@@ -115,7 +149,8 @@ again_send:
                 send_len_c = MIN(THREAD_MSG_BUG_LEN, th->msg.len);
 
                 // 接收线程正在等待中，直接复制数据到目标缓存中，然后唤醒目标线程
-                memcpy(ipc->rcv->msg.msg, th->msg.msg, send_len_c); //!< 拷贝数据
+                // memcpy(ipc->rcv->msg.msg, th->msg.msg, send_len_c);
+                ipc_data_copy(ipc->rcv, th, send_len_c, ipc_type_create(tag.type2)); //!< 拷贝数据
                 ipc->rcv->msg.flags |= MSG_BUF_HAS_DATA_FLAGS;
                 ipc->rcv->msg.len = send_len_c;
                 thread_ready(ipc->rcv, TRUE); //!< 直接唤醒接受者
@@ -138,7 +173,7 @@ again_send:
         return send_len_c;
     }
 }
-static int ipc_recv(ipc_t *ipc, entry_frame_t *f)
+static int ipc_recv(ipc_t *ipc, entry_frame_t *f, msg_tag_t tag)
 {
     umword_t recv_flags = f->r[1];
     thread_t *th = thread_get_current();
@@ -191,7 +226,7 @@ again_recv:
         }
         if (find == 0)
         {
-            thread_sched(); // TODO:
+            thread_sched(); // TODO:应该挂起，并等待唤醒
             spinlock_set(&ipc->lock, status);
             goto again_recv;
         }
@@ -206,7 +241,8 @@ again_recv:
     }
 
     recv_len_c = MIN(THREAD_MSG_BUG_LEN, send_th->msg.len);
-    memcpy(recv_addr, send_th->msg.msg, recv_len_c); //!< 拷贝数据
+    // memcpy(recv_addr, send_th->msg.msg, recv_len_c);
+    ipc_data_copy(th, send_th, recv_len_c, ipc_type_create(send_th->msg.ipc_ide)); //!< 拷贝数据
     send_th->msg.flags |= MSG_BUF_HAS_DATA_FLAGS;
     send_th->msg.len = recv_len_c;
     send_th->msg.recv_th = th; //!< 设置消息发送给了谁
@@ -223,32 +259,33 @@ again_recv:
  * @param f
  * @return msg_tag_t
  */
-static msg_tag_t ipc_syscall(kobject_t *kobj, ram_limit_t *ram, entry_frame_t *f)
+static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     assert(kobj);
     assert(f);
-    msg_tag_t tag = msg_tag_init(f->r[0]);
+    msg_tag_t tag = msg_tag_init3(0, 0, -EINVAL);
     thread_t *th = thread_get_current();
     ipc_t *ipc = container_of(kobj, ipc_t, kobj);
 
-    if (tag.prot != IPC_PROT)
+    if (sys_p.prot != IPC_PROT)
     {
-        return msg_tag_init3(0, 0, -EPROTO);
+        f->r[0] = msg_tag_init3(0, 0, -EPROTO).raw;
+        return;
     }
-    switch (tag.type)
+    switch (sys_p.op)
     {
     case IPC_SEND:
     {
-        return msg_tag_init3(0, 0, ipc_send(ipc, f));
+        tag = msg_tag_init3(0, 0, ipc_send(ipc, f, in_tag));
     }
     break;
     case IPC_REVC:
     {
-        return msg_tag_init3(0, 0, ipc_recv(ipc, f));
+        tag = msg_tag_init3(0, 0, ipc_recv(ipc, f, in_tag));
     }
     break;
     }
-    return msg_tag_init3(0, 0, -ENOSYS);
+    f->r[0] = tag.raw;
 }
 static void ipc_release_stage1(kobject_t *kobj)
 {

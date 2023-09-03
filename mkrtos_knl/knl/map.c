@@ -16,6 +16,18 @@ bool_t obj_map_root(kobject_t *kobj, obj_space_t *obj_space, ram_limit_t *ram, o
     slist_add(&kobj->mappable.node, &map->node);
     return TRUE;
 }
+int obj_map_src_dst(obj_space_t *dst_space, obj_space_t *src_space,
+                    obj_handler_t dst_inx, obj_handler_t src_inx,
+                    ram_limit_t *ram)
+{
+    kobject_t *source_kobj = obj_space_lookup_kobj(src_space, src_inx);
+
+    if (!source_kobj)
+    {
+        return -ENOENT;
+    }
+    return obj_map(dst_space, dst_inx, source_kobj, ram);
+}
 int obj_map(obj_space_t *obj_space, obj_handler_t inx, kobject_t *insert_kobj, ram_limit_t *ram)
 {
     obj_map_entry_t *entry = NULL;

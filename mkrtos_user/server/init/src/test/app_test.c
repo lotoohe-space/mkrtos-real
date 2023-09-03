@@ -52,6 +52,8 @@ void app_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_bind_task(hd_thread, hd_task);
     assert(msg_tag_get_prot(tag) >= 0);
+    tag = thread_msg_buf_set(hd_thread, ram_base + app->i.ram_size);
+    assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_run(hd_thread);
     assert(msg_tag_get_prot(tag) >= 0);
 
