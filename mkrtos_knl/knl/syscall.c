@@ -8,7 +8,7 @@
 #include "thread.h"
 void syscall_entry(entry_frame_t entry)
 {
-    msg_tag_t tag = msg_tag_init3(0, 0, -1);
+    msg_tag_t tag = msg_tag_init4(0, 0, 0, -1);
     thread_t *th = thread_get_current();
     task_t *tk = thread_get_current_task();
     syscall_prot_t sys_p = syscall_prot_create_raw(entry.r[7]);
@@ -18,7 +18,7 @@ void syscall_entry(entry_frame_t entry)
 
     if (!kobj)
     {
-        entry.r[0] = msg_tag_init3(0, 0, -ENOENT).raw;
+        entry.r[0] = msg_tag_init4(0, 0, 0, -ENOENT).raw;
         goto end;
     }
 

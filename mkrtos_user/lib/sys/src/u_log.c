@@ -27,7 +27,7 @@ void ulog_write_bytes(obj_handler_t obj_inx, const uint8_t *data, umword_t len)
         {
             umword_t *write_word_buf = (umword_t *)write_buf;
             syscall(syscall_prot_create(WRITE_DATA, LOG_PROT, obj_inx),
-                    msg_tag_init3(0, ipc_type_create_3(MSG_NONE_TYPE, i, 0).raw, LOG_PROT).raw,
+                    msg_tag_init4(0, ROUND_UP(i, WORD_BYTES), 0, 0).raw,
                     write_word_buf[0],
                     write_word_buf[1],
                     write_word_buf[2],

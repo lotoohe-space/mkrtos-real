@@ -7,7 +7,7 @@ add_executable(path_manager.elf
 )
 target_link_libraries(path_manager.elf
     PUBLIC
-    # muslc
+    muslc
     sys
     ${GCC_LIB_PATH}/libgcc.a
 )
@@ -23,6 +23,8 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util
 )
 add_dependencies(path_manager.elf
 muslc

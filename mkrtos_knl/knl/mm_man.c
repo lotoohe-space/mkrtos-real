@@ -31,11 +31,11 @@ enum mm_op
 static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     task_t *cur_task = thread_get_current_task();
-    msg_tag_t tag = msg_tag_init3(0, 0, -EINVAL);
+    msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
 
     if (sys_p.prot != MM_PROT)
     {
-        f->r[0] = msg_tag_init3(0, 0, -EPROTO).raw;
+        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
     switch (sys_p.op)
@@ -46,11 +46,11 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         int ret = mm_pages_alloc_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->r[1], &ret_addr, f->r[2]);
         if (ret < 0)
         {
-            tag = msg_tag_init3(0, 0, ret);
+            tag = msg_tag_init4(0, 0, 0, ret);
         }
         else
         {
-            tag = msg_tag_init3(0, 0, 0);
+            tag = msg_tag_init4(0, 0, 0, 0);
             f->r[1] = ret_addr;
         }
     }
@@ -58,16 +58,16 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     case MM_FREE:
     {
         mm_pages_free_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->r[1], f->r[2]);
-        tag = msg_tag_init3(0, 0, 0);
+        tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
     case MM_MOD_ATTRS:
     {
-        tag = msg_tag_init3(0, 0, -ENOSYS); // TODO:
+        tag = msg_tag_init4(0, 0, 0, -ENOSYS); // TODO:
     }
     break;
     default:
-        tag = msg_tag_init3(0, 0, -ENOSYS);
+        tag = msg_tag_init4(0, 0, 0, -ENOSYS);
         break;
     }
     f->r[0] = tag.raw;

@@ -18,5 +18,5 @@ add_dependencies(mkrtos_img_dump
     mkrtos_dump
     init_dump
     shell_dump
-    path_manager_dump
+    # path_manager_dump
 )

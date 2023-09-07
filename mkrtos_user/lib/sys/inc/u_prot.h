@@ -12,48 +12,14 @@
 #define THREAD_MAIN THREAD_PROT
 #define TASK_THIS TASK_PROT
 
-enum msg_type
-{
-    MSG_NONE_TYPE = 0,
-    MSG_DEF_TYPE = 1,
-};
-
-typedef union ipc_type
-{
-    union
-    {
-        uint8_t raw;
-        struct
-        {
-            uint8_t type : 1;
-            uint8_t msg_buf_len : 5;
-            uint8_t map_buf_len : 2;
-        };
-    };
-} ipc_type_t;
-
-static inline ipc_type_t ipc_type_create(uint8_t raw)
-{
-    return (ipc_type_t){.raw = raw};
-}
-
-static inline ipc_type_t ipc_type_create_3(
-    enum msg_type type, uint8_t msg_buf_len, uint8_t map_buf_len)
-{
-    return (ipc_type_t){
-        .type = (uint8_t)type,
-        .msg_buf_len = msg_buf_len,
-        .map_buf_len = map_buf_len,
-    };
-}
-
 typedef union msg_tag
 {
     umword_t raw;
     struct
     {
-        umword_t type : 4;
-        umword_t type2 : 8;
+        umword_t flags : 4;
+        umword_t msg_buf_len : 5;
+        umword_t map_buf_len : 2;
         umword_t prot : WORD_BITS - 12;
     };
 } msg_tag_t;
@@ -61,12 +27,14 @@ typedef union msg_tag
 #define msg_tag_init(r) \
     ((msg_tag_t){.raw = (r)})
 
-#define msg_tag_init3(t, t2, p) ((msg_tag_t){ \
-    .type = t,                                \
-    .type2 = t2,                              \
-    .prot = p})
+#define msg_tag_init4(fg, msg_words, buf_words, p) ((msg_tag_t){ \
+    .flags = (fg),                                               \
+    .msg_buf_len = (msg_words),                                  \
+    .map_buf_len = (buf_words),                                  \
+    .prot = (p)})
 #define msg_tag_get_prot(tag) \
     ((int16_t)((tag).prot))
+#define msg_tag_get_val(tag) msg_tag_get_prot(tag)
 
 typedef union syscall_prot
 {

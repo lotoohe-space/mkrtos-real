@@ -55,14 +55,14 @@ static msg_tag_t factory_create_map(kobject_t *kobj, task_t *tk, entry_frame_t *
 
     if (!new_kobj)
     {
-        return msg_tag_init3(0, 0, -ENOMEM);
+        return msg_tag_init4(0, 0, 0, -ENOMEM);
     }
     if (obj_map_root(new_kobj, &tk->obj_space, tk->lim, f->r[2]) == FALSE)
     {
         mm_limit_free(tk->lim, new_kobj);
-        return msg_tag_init3(0, 0, -ENOMEM);
+        return msg_tag_init4(0, 0, 0, -ENOMEM);
     }
-    return msg_tag_init3(0, 0, 0);
+    return msg_tag_init4(0, 0, 0, 0);
 }
 /**
  * @brief factory的系统调用函数
@@ -75,12 +75,12 @@ static msg_tag_t factory_create_map(kobject_t *kobj, task_t *tk, entry_frame_t *
 static void
 factory_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
-    msg_tag_t tag = msg_tag_init3(0, 0, -EINVAL);
+    msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
     task_t *task = thread_get_current_task();
 
     if (sys_p.prot != FACTORY_PROT)
     {
-        f->r[0] = msg_tag_init3(0, 0, -EPROTO).raw;
+        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
     switch (sys_p.op)

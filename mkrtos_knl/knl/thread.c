@@ -113,11 +113,15 @@ void thread_unbind(thread_t *th)
  */
 void thread_suspend(thread_t *th)
 {
-    assert(slist_in_list(&th->sche.node));
+    if (!slist_in_list(&th->sche.node))
+    {
+        assert(slist_in_list(&th->sche.node));
+    }
     scheduler_del(&th->sche);
     th->status = THREAD_SUSPEND;
     thread_sched();
 }
+
 /**
  * @brief 进行一次调度
  *
@@ -181,14 +185,14 @@ enum thread_op
 };
 static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
-    msg_tag_t tag = msg_tag_init3(0, 0, -EINVAL);
+    msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
     task_t *task = thread_get_current_task();
     thread_t *tag_th = container_of(kobj, thread_t, kobj);
     thread_t *cur_th = thread_get_current();
 
     if (sys_p.prot != THREAD_PROT)
     {
-        f->r[0] = msg_tag_init3(0, 0, -EPROTO).raw;
+        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
 
@@ -203,7 +207,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     {
         /*TODO:检查内存的可访问性*/
         thread_set_msg_bug(tag_th, (void *)(f->r[1]), THREAD_MSG_BUG_LEN);
-        tag = msg_tag_init3(0, 0, 0);
+        tag = msg_tag_init4(0, 0, 0, 0);
     }
     case MSG_BUG_GET:
     {
@@ -211,11 +215,11 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         f->r[2] = THREAD_MSG_BUG_LEN;
         if (tag_th->msg.msg == NULL)
         {
-            tag = msg_tag_init3(0, 0, -EACCES);
+            tag = msg_tag_init4(0, 0, 0, -EACCES);
         }
         else
         {
-            tag = msg_tag_init3(0, 0, 0);
+            tag = msg_tag_init4(0, 0, 0, 0);
         }
     }
     break;
@@ -232,8 +236,8 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         kobject_t *task_kobj = obj_space_lookup_kobj(&task->obj_space, f->r[1]);
         if (task_kobj == NULL /*TODO:检测kobj类型*/)
         {
-            f->r[0] = msg_tag_init3(0, 0, -ENOENT).raw;
-            return ;
+            f->r[0] = msg_tag_init4(0, 0, 0, -ENOENT).raw;
+            return;
         }
         thread_bind(tag_th, task_kobj);
         printk("thread bind to %d\n", f->r[7], f->r[1]);

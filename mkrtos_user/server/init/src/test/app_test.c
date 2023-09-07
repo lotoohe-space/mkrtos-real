@@ -54,6 +54,7 @@ void app_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_msg_buf_set(hd_thread, ram_base + app->i.ram_size);
     assert(msg_tag_get_prot(tag) >= 0);
+    ipc_bind(hd_ipc, hd_thread, 0);
     tag = thread_run(hd_thread);
     assert(msg_tag_get_prot(tag) >= 0);
 
@@ -61,6 +62,6 @@ void app_test(void)
     umword_t len;
     thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
     strcpy(buf, "hello shell.\n");
-    ipc_send(hd_ipc, strlen(buf), 0);
+    ipc_call(hd_ipc, strlen(buf));
     printf("test ok\n");
 }

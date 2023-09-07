@@ -11,6 +11,7 @@ enum task_op_code
     TASK_OBJ_MAP,
     TASK_OBJ_UNMAP,
     TASK_ALLOC_RAM_BASE,
+    TASK_OBJ_VALID,
 };
 static bool_t task_put(kobject_t *kobj);
 static void task_release_stage1(kobject_t *kobj);
@@ -41,29 +42,41 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
 {
     task_t *cur_task = thread_get_current_task();
     task_t *tag_task = container_of(kobj, task_t, kobj);
-    msg_tag_t tag = msg_tag_init3(0, 0, -EINVAL);
+    msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
 
     if (sys_p.prot != TASK_PROT)
     {
-        f->r[0] = msg_tag_init3(0, 0, -EINVAL).raw;
+        f->r[0] = msg_tag_init4(0, 0, 0, -EINVAL).raw;
         return;
     }
 
     switch (sys_p.op)
     {
+    case TASK_OBJ_VALID:
+    {
+        kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->r[1]);
+
+        if (!source_kobj)
+        {
+            tag = msg_tag_init4(0, 0, 0, -ENOENT);
+            break;
+        }
+        tag = msg_tag_init4(0, 0, 0, 1);
+    }
+    break;
     case TASK_OBJ_MAP:
     {
         kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->r[1]);
 
         if (!source_kobj)
         {
-            tag = msg_tag_init3(0, 0, -ENOENT);
+            tag = msg_tag_init4(0, 0, 0, -ENOENT);
             break;
         }
 
         int ret = obj_map(&tag_task->obj_space, f->r[2], source_kobj, tag_task->lim);
 
-        tag = msg_tag_init3(0, 0, ret);
+        tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
     case TASK_OBJ_UNMAP:
@@ -74,7 +87,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         mword_t status = spinlock_lock(&tag_task->kobj.lock);
         if (status < 0)
         {
-            tag = msg_tag_init3(0, 0, -EINVAL);
+            tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
         kobj_del_list_init(&kobj_list);
@@ -88,11 +101,11 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         mword_t status = spinlock_lock(&tag_task->kobj.lock);
         if (status < 0)
         {
-            tag = msg_tag_init3(0, 0, -EINVAL);
+            tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
         int ret = task_alloc_base_ram(tag_task, tag_task->lim, f->r[1]);
-        tag = msg_tag_init3(0, 0, ret);
+        tag = msg_tag_init4(0, 0, 0, ret);
         f->r[1] = (umword_t)(tag_task->mm_space.mm_block);
         spinlock_set(&tag_task->kobj.lock, status);
     }

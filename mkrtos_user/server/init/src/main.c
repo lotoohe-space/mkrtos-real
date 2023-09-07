@@ -19,10 +19,11 @@ int main(int argc, char *args[])
     mpu_test();
     printf_test();
     thread_test();
-    ipc_test();
     thread_exit_test();
+    ipc_test();
 #endif
     app_test();
+    while(1);
     task_unmap(TASK_THIS, TASK_THIS);
     printf("exit init.\n");
     return 0;
