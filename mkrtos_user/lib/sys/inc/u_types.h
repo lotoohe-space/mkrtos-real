@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "u_arch.h"
+#include "u_util.h"
 typedef unsigned long umword_t;
 typedef long mword_t;
 

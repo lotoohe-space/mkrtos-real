@@ -82,7 +82,7 @@ static void thread_test_func(void)
         ipc_wait(ipc_hd, 0);
         printf("srv recv:%s", buf);
         hard_sleep();
-        ipc_reply(ipc_hd, strlen(buf));
+        ipc_reply(ipc_hd, msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0));
     }
     printf("thread_test_func.\n");
     task_unmap(TASK_PROT, th1_hd);
@@ -96,7 +96,7 @@ static void thread_test_func2(void)
     while (1)
     {
         strcpy(buf, "I am th2.\n");
-        ipc_call(ipc_hd, strlen(buf));
+        ipc_call(ipc_hd, msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0));
         printf("th2:%s", buf);
     }
     printf("thread_test_func2.\n");
@@ -112,7 +112,7 @@ static void thread_test_func3(void)
     while (1)
     {
         strcpy(buf, "I am th3.\n");
-        ipc_call(ipc_hd, strlen(buf));
+        ipc_call(ipc_hd, msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0));
         printf("th3:%s", buf);
     }
     printf("thread_test_func2.\n");

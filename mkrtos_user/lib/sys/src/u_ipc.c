@@ -43,12 +43,12 @@ msg_tag_t ipc_wait(obj_handler_t obj, umword_t *user_obj)
     }
     return msg_tag_init(r0);
 }
-msg_tag_t ipc_reply(obj_handler_t obj, umword_t len)
+msg_tag_t ipc_reply(obj_handler_t obj, msg_tag_t in_tag)
 {
     register volatile umword_t r0 asm("r0");
 
     syscall(syscall_prot_create(IPC_REPLY, IPC_PROT, obj),
-            msg_tag_init4(0, ROUND_UP(len, WORD_BYTES), 0, 0).raw,
+            in_tag.raw,
             0,
             0,
             0,
@@ -58,12 +58,12 @@ msg_tag_t ipc_reply(obj_handler_t obj, umword_t len)
 
     return tag;
 }
-msg_tag_t ipc_call(obj_handler_t obj, umword_t len)
+msg_tag_t ipc_call(obj_handler_t obj, msg_tag_t in_tag)
 {
     register volatile umword_t r0 asm("r0");
 
     syscall(syscall_prot_create(IPC_CALL, IPC_PROT, obj),
-            msg_tag_init4(0, ROUND_UP(len, WORD_BYTES), 0, 0).raw,
+            in_tag.raw,
             0,
             0,
             0,

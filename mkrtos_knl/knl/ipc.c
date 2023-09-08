@@ -50,7 +50,7 @@ static void wake_up_th(ipc_t *ipc)
     thread_ready(th, TRUE);
 }
 
-static void ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
+static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
 {
     void *src = dst_th->msg.msg;
     void *dst = src_th->msg.msg;
@@ -67,11 +67,17 @@ static void ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
         task_t *dst_tk = thread_get_bind_task(dst_th);
         for (int i = 0; i < map_len; i++)
         {
-            obj_map_src_dst(&dst_tk->obj_space, &src_tk->obj_space,
-                            dst_ipc->map_buf[i], src_ipc->map_buf[i], dst_tk->lim);
+            int ret = obj_map_src_dst(&dst_tk->obj_space, &src_tk->obj_space,
+                                      dst_ipc->map_buf[i], src_ipc->map_buf[i], dst_tk->lim);
+
+            if (ret < 0)
+            {
+                return ret;
+            }
         }
     }
     memcpy(dst_ipc->msg_buf, src_ipc->msg_buf, MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
+    return 0;
 }
 /**
  * @brief 客户端发送并接收数据
@@ -84,6 +90,7 @@ static void ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
 static int ipc_call(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
 {
     umword_t status;
+    int ret = -1;
 
     assert(th != ipc->svr_th);
 __check:
@@ -95,7 +102,13 @@ __check:
         goto __check;
     }
     //!< 发送数据给svr_th
-    ipc_data_copy(th, ipc->svr_th, tag); //!< 拷贝数据
+    ret = ipc_data_copy(th, ipc->svr_th, tag); //!< 拷贝数据
+    if (ret < 0)
+    {
+        //!< 拷贝失败
+        spinlock_set(&ipc->lock, status);
+        return ret;
+    }
     ipc->svr_th->msg.len = tag.msg_buf_len;
     thread_ready(ipc->svr_th, TRUE); //!< 直接唤醒接受者
     thread_suspend(th);              //!< 发送后客户端直接进入等待状态

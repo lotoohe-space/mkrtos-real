@@ -21,8 +21,9 @@ int main(int argc, char *args[])
     thread_test();
     thread_exit_test();
     ipc_test();
-#endif
     app_test();
+#endif
+    map_test();
     while(1);
     task_unmap(TASK_THIS, TASK_THIS);
     printf("exit init.\n");
