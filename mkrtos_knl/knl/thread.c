@@ -233,6 +233,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     {
         if (!slist_in_list(&tag_th->sche.node))
         {
+            tag_th->sche.prio = (f->r[1] >= PRIO_MAX ? PRIO_MAX - 1 : f->r[1]);
             thread_ready(tag_th, TRUE);
         }
     }

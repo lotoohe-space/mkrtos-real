@@ -62,12 +62,12 @@ msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t
 
     return tag;
 }
-msg_tag_t thread_run(obj_handler_t obj)
+msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
 {
     register volatile umword_t r0 asm("r0");
 
     syscall(syscall_prot_create(RUN_THREAD, THREAD_PROT, obj),
-            0,
+            prio,
             0,
             0,
             0,

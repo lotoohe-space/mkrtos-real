@@ -67,7 +67,7 @@ void thread_exit_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_bind_task(th1_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run(th1_hd);
+    tag = thread_run(th1_hd, 2);
 
     assert(msg_tag_get_prot(tag) >= 0);
     tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th2_hd));
@@ -78,6 +78,6 @@ void thread_exit_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_bind_task(th2_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run(th2_hd);
+    tag = thread_run(th2_hd, 2);
     assert(msg_tag_get_prot(tag) >= 0);
 }

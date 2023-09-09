@@ -57,7 +57,7 @@ void app_test(void)
     tag = thread_msg_buf_set(hd_thread, ram_base + app->i.ram_size);
     assert(msg_tag_get_prot(tag) >= 0);
     ipc_bind(hd_ipc, hd_thread, 0);
-    tag = thread_run(hd_thread);
+    tag = thread_run(hd_thread, 2);
     assert(msg_tag_get_prot(tag) >= 0);
 
     char *buf;
