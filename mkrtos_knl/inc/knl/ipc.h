@@ -24,4 +24,28 @@ typedef struct ipc_msg
     };
 } ipc_msg_t;
 
-void ipc_dump(void);
+typedef union ipc_timeout
+{
+    umword_t raw;
+    struct
+    {
+        uhmword_t send_timeout;
+        uhmword_t recv_timeout;
+    };
+} ipc_timeout_t;
+
+static inline ipc_timeout_t ipc_timeout_create2(uhmword_t send_timeout, uhmword_t recv_timeout)
+{
+    return (ipc_timeout_t){
+        .send_timeout = send_timeout,
+        .recv_timeout = recv_timeout,
+    };
+}
+static inline ipc_timeout_t ipc_timeout_create(umword_t raw)
+{
+    return (ipc_timeout_t){
+        .raw = raw,
+    };
+}
+
+void timeout_times_tick(void);

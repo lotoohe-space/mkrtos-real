@@ -58,13 +58,13 @@ msg_tag_t ipc_reply(obj_handler_t obj, msg_tag_t in_tag)
 
     return tag;
 }
-msg_tag_t ipc_call(obj_handler_t obj, msg_tag_t in_tag)
+msg_tag_t ipc_call(obj_handler_t obj, msg_tag_t in_tag, ipc_timeout_t timeout)
 {
     register volatile umword_t r0 asm("r0");
 
     syscall(syscall_prot_create(IPC_CALL, IPC_PROT, obj),
             in_tag.raw,
-            0,
+            timeout.raw,
             0,
             0,
             0,

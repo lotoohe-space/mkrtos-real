@@ -66,7 +66,7 @@ typedef struct msg_buf
 typedef struct thread
 {
     kobject_t kobj;           //!< 内核对象节点
-    slist_head_t wait;        //!< 用于等待队列
+    // slist_head_t wait;        //!< 用于等待队列
     sched_t sche;             //!< 调度节点
     kobject_t *task;          //!< 绑定的task
     sp_info_t sp;             //!< sp信息

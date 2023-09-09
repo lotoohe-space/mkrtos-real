@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "u_ipc.h"
+#include "u_hd_man.h"
 
 int main(int argc, char *args[])
 {
@@ -20,11 +21,13 @@ int main(int argc, char *args[])
     printf_test();
     thread_test();
     thread_exit_test();
-    ipc_test();
-    app_test();
-#endif
     map_test();
-    while(1);
+    ipc_test();
+#endif
+    ipc_timeout_test();
+    app_test();
+    while (1)
+        ;
     task_unmap(TASK_THIS, TASK_THIS);
     printf("exit init.\n");
     return 0;

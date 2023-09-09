@@ -17,7 +17,7 @@
 void app_test(void)
 {
     msg_tag_t tag;
-    umword_t addr = cpio_find_file((umword_t)0x8020000, (umword_t)0x8040000, "shell");
+    umword_t addr = cpio_find_file((umword_t)0x8020000, (umword_t)0x8040000, "fatfs");
     assert(addr);
 
     app_info_t *app = (app_info_t *)addr;
@@ -62,6 +62,6 @@ void app_test(void)
     umword_t len;
     thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
     strcpy(buf, "hello shell.\n");
-    ipc_call(hd_ipc,msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0));
+    ipc_call(hd_ipc, msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0), ipc_timeout_create2(0, 0));
     printf("test ok\n");
 }

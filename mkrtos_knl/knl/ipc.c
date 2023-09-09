@@ -12,6 +12,15 @@
 #include "string.h"
 #include "mm_wrap.h"
 #include "map.h"
+struct ipc;
+typedef struct ipc ipc_t;
+typedef struct ipc_wait_item
+{
+    slist_head_t node;
+    thread_t *th;
+    // ipc_t *ipc;
+    umword_t sleep_times;
+} ipc_wait_item_t;
 /**
  * @brief ipc 对象，用于接收与发送另一个thread发送的消息
  *
@@ -21,6 +30,8 @@ typedef struct ipc
     kobject_t kobj;         //!< 内核对象
     spinlock_t lock;        //!< 操作的锁TODO: 使用内核对象锁
     slist_head_t wait_send; //!< 发送等待队列
+    slist_head_t recv_send; //!< 发送等待队列
+    slist_head_t node;      //!< 超时检查链表
     thread_t *svr_th;       //!< 服务端 TODO:增加引用计数
     thread_t *last_cli_th;  //!< 上一次发送数据的客户端TODO:增加引用计数
     ram_limit_t *lim;       //!< 内存限额
@@ -35,19 +46,77 @@ enum ipc_op
     IPC_BIND,   //!< 绑定服务端线程
     IPC_UNBIND, //!< 解除绑定
 };
+static void wake_up_th(ipc_t *ipc);
+static slist_head_t wait_list;
 
-static void add_wait_unlock(slist_head_t *wait_send, thread_t *th)
+void timeout_wait_list_init(void)
 {
-    slist_add_append(wait_send, &th->wait);
+    slist_init(&wait_list);
+}
+INIT_KOBJ(timeout_wait_list_init);
+void timeout_times_tick(void)
+{
+    ipc_t *ipc;
+
+    slist_foreach(ipc, &wait_list, node)
+    {
+        umword_t status = spinlock_lock(&ipc->lock);
+        ipc_wait_item_t *item;
+
+        slist_foreach(item, &ipc->wait_send, node)
+        {
+            if (item->sleep_times != 0 && (--item->sleep_times) == 0)
+            {
+                // slist_del(&item->node);
+                thread_ready(item->th, TRUE);
+            }
+        }
+        spinlock_set(&ipc->lock, status);
+    }
+}
+
+static void ipc_wait_item_init(ipc_wait_item_t *item, ipc_t *ipc, thread_t *th, umword_t times)
+{
+    slist_init(&item->node);
+    item->th = th;
+    item->sleep_times = times;
+}
+
+static int add_wait_unlock(ipc_t *ipc, slist_head_t *head, thread_t *th, umword_t times, spinlock_t *lock, int status)
+{
+    ipc_wait_item_t item;
+
+    ipc_wait_item_init(&item, ipc, th, times);
+    if (times)
+    {
+        if (slist_is_empty(head))
+        {
+            slist_add_append(&wait_list, &ipc->node);
+        }
+    }
+    slist_add_append(head, &item.node);
     thread_suspend(th);
+    spinlock_set(lock, status);
+    slist_del(&item.node);
+    if (times)
+    {
+        if (slist_is_empty(head))
+        {
+            slist_del(&ipc->node);
+        }
+        if (item.sleep_times == 0)
+        {
+            return -ETIMEDOUT;
+        }
+    }
+    return 0;
 }
 static void wake_up_th(ipc_t *ipc)
 {
     slist_head_t *mslist = slist_first(&ipc->wait_send);
-    thread_t *th = container_of(mslist, thread_t, wait);
+    ipc_wait_item_t *item = container_of(mslist, ipc_wait_item_t, node);
 
-    slist_del(mslist);
-    thread_ready(th, TRUE);
+    thread_ready(item->th, TRUE);
 }
 
 static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
@@ -87,7 +156,7 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
  * @param f
  * @param tag
  */
-static int ipc_call(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
+static int ipc_call(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag, ipc_timeout_t timeout)
 {
     umword_t status;
     int ret = -1;
@@ -97,8 +166,10 @@ __check:
     status = spinlock_lock(&ipc->lock);
     if (ipc->svr_th->status != THREAD_SUSPEND)
     {
-        add_wait_unlock(&ipc->wait_send, th);
-        spinlock_set(&ipc->lock, status);
+        if (add_wait_unlock(ipc, &ipc->wait_send, th, timeout.send_timeout, &ipc->lock, status) < 0)
+        {
+            return -EWTIMEDOUT;
+        }
         goto __check;
     }
     //!< 发送数据给svr_th
@@ -111,8 +182,13 @@ __check:
     }
     ipc->svr_th->msg.len = tag.msg_buf_len;
     thread_ready(ipc->svr_th, TRUE); //!< 直接唤醒接受者
-    thread_suspend(th);              //!< 发送后客户端直接进入等待状态
-    ipc->last_cli_th = th;           //!< 设置上一次发送的客户端
+    // thread_suspend(th);              //!< 发送后客户端直接进入等待状态
+    ipc->last_cli_th = th; //!< 设置上一次发送的客户端
+    if (add_wait_unlock(ipc, &ipc->recv_send, th, timeout.recv_timeout, &ipc->lock, status) < 0)
+    {
+        ipc->last_cli_th = NULL;
+        return -ERTIMEDOUT;
+    }
     spinlock_set(&ipc->lock, status);
     ipc->last_cli_th = NULL;
     return th->msg.len;
@@ -194,7 +270,7 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         }
         else
         {
-            tag = msg_tag_init4(0, 0, 0, ipc_call(ipc, th, f, in_tag));
+            tag = msg_tag_init4(0, 0, 0, ipc_call(ipc, th, f, in_tag, ipc_timeout_create(f->r[1])));
         }
     }
     break;
@@ -281,6 +357,7 @@ static void ipc_init(ipc_t *ipc, ram_limit_t *lim)
 {
     kobject_init(&ipc->kobj);
     slist_init(&ipc->wait_send);
+    slist_init(&ipc->recv_send);
     spinlock_init(&ipc->lock);
     ipc->lim = lim;
     ipc->svr_th = NULL;

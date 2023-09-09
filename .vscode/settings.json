@@ -122,7 +122,9 @@
         "ref.h": "c",
         "map.h": "c",
         "ipc.h": "c",
-        "err.h": "c"
+        "err.h": "c",
+        "diskio.h": "c",
+        "ff.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

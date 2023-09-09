@@ -131,3 +131,6 @@
 #define EKEYREVOKED 128    /* Key has been revoked */
 #define EKEYREJECTED 129   /* Key was rejected by service */
 #define ERMID 130
+#define EWTIMEDOUT 131      /* Connection timed out */
+#define ERTIMEDOUT 132      /* Connection timed out */
+

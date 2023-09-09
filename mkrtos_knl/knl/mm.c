@@ -6,7 +6,6 @@ void mem_init(mem_t *_this)
     _this->heap_start = NULL;
     _this->heap_end = NULL;
     _this->l_heap = NULL;
-    // _this->blong_user = is_user;
 }
 /**
  * @brief 合并空闲的内存
@@ -17,12 +16,10 @@ static void mem_merge(mem_t *_this, struct mem_heap *mem)
     struct mem_heap *prev_mem;
     struct mem_heap *t_mem;
 
-    // knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
     _this->l_heap = mem;
     prev_mem = mem->prev;
     for (t_mem = mem; t_mem != _this->heap_end; t_mem = t_mem->next)
     {
-        // knl_check_user_ram_access_exit(t_mem, sizeof(struct mem_heap), 1, _this->blong_user);
         if (prev_mem && prev_mem->used == 0)
         {
             // 如果当前没有使用，并且上一个的下一个位置等于当前，则上一个和当前合并
@@ -317,10 +314,8 @@ struct mem_heap *mem_get_free(mem_t *_this, struct mem_heap *next,
     }
 
     umword_t status = spinlock_lock(&_this->lock);
-    // knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
     for (; mem != _this->heap_end; mem = mem->next)
     {
-        // knl_check_user_ram_access_exit(mem, sizeof(struct mem_heap), 1, _this->blong_user);
         assert(mem->magic == MAGIC_NUM);
         if (hope_size > 0 && !mem->used && mem->size >= (umword_t)hope_size)
         {

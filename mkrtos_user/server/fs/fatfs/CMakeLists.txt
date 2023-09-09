@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-file(GLOB_RECURSE deps *.c *.S)
+file(GLOB deps  ff15/source/*.c *.c)
 
 add_executable(
     fatfs.elf
@@ -25,6 +25,9 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/fatfs/ff15/source
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/fatfs
 )
 add_dependencies(
     fatfs.elf

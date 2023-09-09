@@ -11,3 +11,4 @@ void printf_test(void);
 void ipc_test(void);
 void thread_exit_test(void);
 void map_test(void);
+void ipc_timeout_test(void);

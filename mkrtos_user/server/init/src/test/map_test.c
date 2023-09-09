@@ -57,7 +57,7 @@ static void thread_test_func2(void)
     ipc_msg = (ipc_msg_t *)buf;
     strcpy(ipc_msg->msg_buf, "I am th2.\n");
     ipc_msg->map_buf[0] = LOG_PROT;
-    ipc_call(ipc_hd, msg_tag_init4(0, ROUND_UP(strlen(ipc_msg->msg_buf), WORD_BYTES), 1, 0));
+    ipc_call(ipc_hd, msg_tag_init4(0, ROUND_UP(strlen(ipc_msg->msg_buf), WORD_BYTES), 1, 0), ipc_timeout_create2(0, 0));
     printf("th2:%s", buf);
     printf("thread_test_func2.\n");
     task_unmap(TASK_PROT, th2_hd);

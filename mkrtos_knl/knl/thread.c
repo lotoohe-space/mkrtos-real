@@ -34,7 +34,7 @@ void thread_init(thread_t *th, ram_limit_t *lim)
 {
     kobject_init(&th->kobj);
     sched_init(&th->sche);
-    slist_init(&th->wait);
+    // slist_init(&th->wait);
     ref_counter_init(&th->ref);
     ref_counter_inc(&th->ref);
     th->lim = lim;
