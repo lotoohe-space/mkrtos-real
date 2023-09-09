@@ -50,7 +50,10 @@ static inline void kobj_del_list_init(kobj_del_list_t *list)
 }
 static inline void kobj_del_list_add(kobj_del_list_t *list, slist_head_t *node)
 {
-    slist_add(&list->head, node);
+    if (!slist_in_list(node))
+    {
+        slist_add(&list->head, node);
+    }
 }
 static inline void kobj_del_list_clr(kobj_del_list_t *list)
 {

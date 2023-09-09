@@ -124,7 +124,8 @@
         "ipc.h": "c",
         "err.h": "c",
         "diskio.h": "c",
-        "ff.h": "c"
+        "ff.h": "c",
+        "u_hd_man.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

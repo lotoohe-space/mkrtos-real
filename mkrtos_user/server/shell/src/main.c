@@ -17,7 +17,7 @@ int main(int argc, char *args[])
     umword_t len;
     thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
     printf(buf);
-    task_unmap(TASK_THIS, TASK_THIS);
+    task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS));
     ulog_write_str(LOG_PROT, "Error.\n");
     return 0;
 }

@@ -136,8 +136,14 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
         task_t *dst_tk = thread_get_bind_task(dst_th);
         for (int i = 0; i < map_len; i++)
         {
+            vpage_t dst_page = vpage_create_raw(dst_ipc->map_buf[i]);
+            vpage_t src_page = vpage_create_raw(src_ipc->map_buf[i]);
+
             int ret = obj_map_src_dst(&dst_tk->obj_space, &src_tk->obj_space,
-                                      dst_ipc->map_buf[i], src_ipc->map_buf[i], dst_tk->lim);
+                                      vpage_get_obj_handler(dst_page),
+                                      vpage_get_obj_handler(src_page),
+                                      dst_tk->lim,
+                                      vpage_get_attrs(src_page));
 
             if (ret < 0)
             {

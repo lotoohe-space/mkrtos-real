@@ -25,7 +25,7 @@ void obj_space_del(obj_space_t *obj_space, obj_addr_t inx)
     }
     obj_space->tab.tabs[tab_inx]->items[entry_inx].obj = NULL;
 }
-obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobject_t *kobj, obj_addr_t inx)
+obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobject_t *kobj, obj_addr_t inx, uint8_t attrs)
 {
     assert(obj_space);
     assert(kobj);
@@ -51,6 +51,7 @@ obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobj
         slist_init(&entry->node);
     }
     entry->obj = kobj;
+    obj_map_entry_set_attr(entry, attrs);
     return entry;
 }
 obj_map_entry_t *obj_space_lookup(obj_space_t *obj_space, obj_addr_t inx)

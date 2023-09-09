@@ -55,3 +55,23 @@ static inline syscall_prot_t syscall_prot_create(uint8_t op, uint8_t prot, obj_h
         .obj_inx = obj_inx,
     };
 }
+
+typedef union vpage
+{
+    umword_t raw;
+    struct
+    {
+        umword_t attrs : 4;               //!< 权限
+        umword_t : 8;                     //!< 保留
+        umword_t addr : (WORD_BITS - 12); //!< 地址
+    };
+} vpage_t;
+
+static inline vpage_t vpage_create_raw(umword_t raw)
+{
+    return (vpage_t){.raw = raw};
+}
+static inline vpage_t vpage_create_raw3(umword_t attrs, umword_t resv, umword_t addr)
+{
+    return (vpage_t){.attrs = attrs, .addr = addr};
+}

@@ -54,7 +54,10 @@ static void thread_release_stage1(kobject_t *kobj)
 {
     thread_t *th = container_of(kobj, thread_t, kobj);
     kobject_invalidate(kobj);
-    thread_suspend(th);
+    if (th->status == THREAD_READY)
+    {
+        thread_suspend(th);
+    }
     thread_unbind(th);
 }
 static void thread_release_stage2(kobject_t *kobj)
@@ -101,10 +104,13 @@ void thread_bind(thread_t *th, kobject_t *tk)
  */
 void thread_unbind(thread_t *th)
 {
-    task_t *tsk = container_of(th->task, task_t, kobj);
+    if (th->task)
+    {
+        task_t *tsk = container_of(th->task, task_t, kobj);
 
-    ref_counter_dec_and_release(&tsk->ref_cn, &th->kobj);
-    th->task = NULL;
+        ref_counter_dec_and_release(&tsk->ref_cn, &th->kobj);
+        th->task = NULL;
+    }
 }
 /**
  * @brief 挂起一个线程

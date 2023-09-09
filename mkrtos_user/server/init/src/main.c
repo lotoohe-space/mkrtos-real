@@ -21,14 +21,17 @@ int main(int argc, char *args[])
     printf_test();
     thread_test();
     thread_exit_test();
-    map_test();
     ipc_test();
+    map_test();
 #endif
-    ipc_timeout_test();
+    // ipc_timeout_test();
     app_test();
-    while (1)
-        ;
-    task_unmap(TASK_THIS, TASK_THIS);
+    // while (1)
+    // ;
+    // factory_create_ipc(FACTORY_PROT, vpage_create_raw3(0, 0, 10));
+    // factory_create_thread(FACTORY_PROT, vpage_create_raw3(0, 0, 11));
+    // factory_create_task(FACTORY_PROT, vpage_create_raw3(0, 0, 12));
+    task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); // 删除当前task，以及申请得所有对象
     printf("exit init.\n");
     return 0;
 }

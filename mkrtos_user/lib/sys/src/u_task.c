@@ -24,7 +24,7 @@ msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx)
     return tag;
 }
 
-msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t dst_obj)
+msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t dst_obj, uint8_t attrs)
 {
     register volatile umword_t r0 asm("r0");
 
@@ -32,7 +32,7 @@ msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t 
             0,
             src_obj,
             dst_obj,
-            0,
+            attrs,
             0,
             0);
     msg_tag_t tag = msg_tag_init(r0);
@@ -40,13 +40,13 @@ msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t 
     return tag;
 }
 
-msg_tag_t task_unmap(obj_handler_t task_han, obj_handler_t obj)
+msg_tag_t task_unmap(obj_handler_t task_han, vpage_t vpage)
 {
     register volatile umword_t r0 asm("r0");
 
     syscall(syscall_prot_create(TASK_OBJ_UNMAP, TASK_PROT, task_han),
             0,
-            obj,
+            vpage.raw,
             0,
             0,
             0,

@@ -17,7 +17,7 @@
 void app_test(void)
 {
     msg_tag_t tag;
-    umword_t addr = cpio_find_file((umword_t)0x8020000, (umword_t)0x8040000, "fatfs");
+    umword_t addr = cpio_find_file((umword_t)0x8020000, (umword_t)0x8040000, "shell");
     assert(addr);
 
     app_info_t *app = (app_info_t *)addr;
@@ -30,21 +30,23 @@ void app_test(void)
     assert(hd_task != HANDLER_INVALID);
     assert(hd_thread != HANDLER_INVALID);
 
-    tag = factory_create_task(FACTORY_PROT, hd_task);
+    tag = factory_create_task(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_task));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = factory_create_thread(FACTORY_PROT, hd_thread);
+    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_thread));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = factory_create_ipc(FACTORY_PROT, hd_ipc);
+    tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_ipc));
     assert(msg_tag_get_prot(tag) >= 0);
     printf("ipc hd is %d\n", hd_ipc);
 
     tag = task_alloc_ram_base(hd_task, app->i.ram_size, &ram_base);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = task_map(hd_task, LOG_PROT, LOG_PROT);
+    tag = task_map(hd_task, hd_task, TASK_PROT, 0);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = task_map(hd_task, hd_ipc, hd_ipc);
+    tag = task_map(hd_task, LOG_PROT, LOG_PROT, 0);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = task_map(hd_task, hd_thread, THREAD_MAIN);
+    tag = task_map(hd_task, hd_ipc, hd_ipc, 0);
+    assert(msg_tag_get_prot(tag) >= 0);
+    tag = task_map(hd_task, hd_thread, THREAD_MAIN, 0);
     assert(msg_tag_get_prot(tag) >= 0);
     void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;

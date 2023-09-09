@@ -85,7 +85,7 @@ static void thread_test_func(void)
         ipc_reply(ipc_hd, msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0));
     }
     printf("thread_test_func.\n");
-    task_unmap(TASK_PROT, th1_hd);
+    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th1_hd));
     printf("Error\n");
 }
 static void thread_test_func2(void)
@@ -100,7 +100,7 @@ static void thread_test_func2(void)
         printf("th2:%s", buf);
     }
     printf("thread_test_func2.\n");
-    task_unmap(TASK_PROT, th2_hd);
+    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
     printf("Error\n");
 }
 
@@ -116,7 +116,7 @@ static void thread_test_func3(void)
         printf("th3:%s", buf);
     }
     printf("thread_test_func2.\n");
-    task_unmap(TASK_PROT, th3_hd);
+    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th3_hd));
     printf("Error\n");
 }
 #endif
@@ -135,9 +135,9 @@ void ipc_test(void)
     ipc_hd = handler_alloc();
     assert(ipc_hd != HANDLER_INVALID);
 
-    msg_tag_t tag = factory_create_ipc(FACTORY_PROT, ipc_hd);
+    msg_tag_t tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, ipc_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = factory_create_thread(FACTORY_PROT, th1_hd);
+    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
     assert(msg_tag_get_prot(tag) >= 0);
     ipc_bind(ipc_hd, th1_hd, 0);
     tag = thread_msg_buf_set(th1_hd, msg_buf0);
@@ -149,7 +149,7 @@ void ipc_test(void)
     tag = thread_run(th1_hd);
 
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = factory_create_thread(FACTORY_PROT, th2_hd);
+    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th2_hd));
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_msg_buf_set(th2_hd, msg_buf1);
     assert(msg_tag_get_prot(tag) >= 0);
@@ -161,7 +161,7 @@ void ipc_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
 
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = factory_create_thread(FACTORY_PROT, th3_hd);
+    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th3_hd));
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_msg_buf_set(th3_hd, msg_buf2);
     assert(msg_tag_get_prot(tag) >= 0);
@@ -176,7 +176,7 @@ void ipc_test(void)
 void ipc_timeout_test(void)
 {
     obj_handler_t hd = handler_alloc();
-    factory_create_ipc(FACTORY_PROT, hd);
+    factory_create_ipc(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd));
     printf("sleep.\n");
     ipc_call(hd, msg_tag_init4(0, 0, 0, 0), ipc_timeout_create2(100, 100));
     printf("sleep.\n");

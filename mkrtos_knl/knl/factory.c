@@ -51,13 +51,16 @@ static kobject_t *factory_manu_kobj(kobject_t *kobj, ram_limit_t *lim, entry_fra
 }
 static msg_tag_t factory_create_map(kobject_t *kobj, task_t *tk, entry_frame_t *f)
 {
+    vpage_t page = vpage_create_raw(f->r[2]);
     kobject_t *new_kobj = factory_manu_kobj(kobj, tk->lim, f);
 
     if (!new_kobj)
     {
         return msg_tag_init4(0, 0, 0, -ENOMEM);
     }
-    if (obj_map_root(new_kobj, &tk->obj_space, tk->lim, f->r[2]) == FALSE)
+
+    page.attrs |= KOBJ_ALL_RIGHTS;
+    if (obj_map_root(new_kobj, &tk->obj_space, tk->lim, page) == FALSE)
     {
         mm_limit_free(tk->lim, new_kobj);
         return msg_tag_init4(0, 0, 0, -ENOMEM);

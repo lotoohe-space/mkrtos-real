@@ -66,15 +66,9 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     break;
     case TASK_OBJ_MAP:
     {
-        kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->r[1]);
-
-        if (!source_kobj)
-        {
-            tag = msg_tag_init4(0, 0, 0, -ENOENT);
-            break;
-        }
-
-        int ret = obj_map(&tag_task->obj_space, f->r[2], source_kobj, tag_task->lim);
+        int ret = obj_map_src_dst(&tag_task->obj_space, &cur_task->obj_space,
+                                  f->r[2], f->r[1],
+                                  tag_task->lim, f->r[3]);
 
         tag = msg_tag_init4(0, 0, 0, ret);
     }
@@ -91,7 +85,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             break;
         }
         kobj_del_list_init(&kobj_list);
-        obj_unmap(&tag_task->obj_space, f->r[1], &kobj_list);
+        obj_unmap(&tag_task->obj_space, vpage_create_raw(f->r[1]), &kobj_list);
         kobj_del_list_to_do(&kobj_list);
         spinlock_set(&tag_task->kobj.lock, status);
     }
