@@ -54,7 +54,7 @@ typedef struct sp_info
 
 typedef struct msg_buf
 {
-    void *msg; //!< buf，长度是固定的 @see THREAD_MSG_BUG_LEN
+    void *msg;   //!< buf，长度是固定的 @see THREAD_MSG_BUG_LEN
     uint8_t len; //!< 这里不是buf的大小，而是存储接收或者发送的长度
     // thread_t *send_th; //!< 标志是谁发送的该数据
     // thread_t *recv_th; //!< 标志数据的接收方是谁
@@ -65,7 +65,7 @@ typedef struct msg_buf
 #define THREAD_MAIGC 0xdeadead //!< 用于栈溢出检测
 typedef struct thread
 {
-    kobject_t kobj;           //!< 内核对象节点
+    kobject_t kobj; //!< 内核对象节点
     // slist_head_t wait;        //!< 用于等待队列
     sched_t sche;             //!< 调度节点
     kobject_t *task;          //!< 绑定的task
@@ -109,7 +109,7 @@ static inline pf_t *thread_get_current_pf(void)
     return thread_get_pf(thread_get_current());
 }
 void thread_init(thread_t *th, ram_limit_t *lim);
-void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t user_sp, umword_t ram);
+void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t user_sp, umword_t ram, umword_t stack);
 thread_t *thread_create(ram_limit_t *ram);
 void thread_bind(thread_t *th, kobject_t *tk);
 void thread_unbind(thread_t *th);

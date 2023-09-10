@@ -13,6 +13,12 @@ crt/*.C
 crt/*.S
 crt/*.s)
 
+list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/crt/start_init.S)
+list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/crt/start.S)
+
+add_library(start_init ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/crt/start_init.S)
+add_library(start ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/crt/start.S)
+
 add_library(muslc ${deps})
 target_link_libraries(
     muslc

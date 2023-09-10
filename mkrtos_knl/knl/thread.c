@@ -80,9 +80,9 @@ static void thread_release_stage2(kobject_t *kobj)
  * @param pc
  * @param ip
  */
-void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t user_sp, umword_t ram)
+void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t user_sp, umword_t ram, umword_t stack)
 {
-    thread_user_pf_set(th, (void *)pc, (void *)user_sp, (void *)ram);
+    thread_user_pf_set(th, (void *)pc, (void *)user_sp, (void *)ram, stack);
 }
 /**
  * @brief 线程绑定到task
@@ -206,7 +206,13 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     {
     case SET_EXEC_REGS:
     {
-        thread_set_exc_regs(tag_th, f->r[1], f->r[2], f->r[3]);
+        umword_t stack_bottom = 0;
+
+        if (f->r[4]) //!< cp_stack
+        {
+            stack_bottom = (umword_t)(cur_th->msg.msg);
+        }
+        thread_set_exc_regs(tag_th, f->r[1], f->r[2], f->r[3], stack_bottom);
     }
     break;
     case MSG_BUG_SET:
@@ -294,4 +300,9 @@ task_t *thread_get_current_task(void)
 {
     return container_of(
         thread_get_current()->task, task_t, kobj);
+}
+task_t *thread_get_task(thread_t *th)
+{
+    return container_of(
+        th->task, task_t, kobj);
 }

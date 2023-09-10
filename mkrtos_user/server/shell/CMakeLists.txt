@@ -7,6 +7,7 @@ add_executable(shell.elf
 )
 target_link_libraries(shell.elf
     PUBLIC
+    start
     muslc
     sys
     ${GCC_LIB_PATH}/libgcc.a
@@ -15,6 +16,7 @@ target_include_directories(
     shell.elf
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic

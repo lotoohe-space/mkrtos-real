@@ -15,6 +15,7 @@ target_include_directories(
     path_manager.elf
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic

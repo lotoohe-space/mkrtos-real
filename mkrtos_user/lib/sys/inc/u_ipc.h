@@ -51,3 +51,6 @@ msg_tag_t ipc_bind(obj_handler_t obj, obj_handler_t tag_th, umword_t user_obj);
 msg_tag_t ipc_wait(obj_handler_t obj, umword_t *user_obj);
 msg_tag_t ipc_reply(obj_handler_t obj, msg_tag_t tag);
 msg_tag_t ipc_call(obj_handler_t obj, msg_tag_t in_tag, ipc_timeout_t timeout);
+
+#define EWTIMEDOUT 131      /* Connection timed out */
+#define ERTIMEDOUT 132      /* Connection timed out */

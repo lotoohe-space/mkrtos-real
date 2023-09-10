@@ -65,6 +65,8 @@ struct pthread {
 	uintptr_t canary;
 	uintptr_t *dtv;
 #endif
+	int ctid;
+	unsigned long hd;
 };
 
 enum {

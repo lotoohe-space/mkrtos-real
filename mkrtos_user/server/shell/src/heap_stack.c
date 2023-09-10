@@ -1,5 +1,5 @@
 
-#define HEAP_SIZE 4
+#define HEAP_SIZE 8 * 1024
 #define STACK_SIZE 1024 * 2
 
 #if defined(__CC_ARM)
@@ -13,5 +13,5 @@
 #define STACK_ATTR
 #endif
 
-__attribute__((used)) HEAP_ATTR static char heap[HEAP_SIZE];
+__attribute__((used)) HEAP_ATTR char heap[HEAP_SIZE];
 __attribute__((used)) STACK_ATTR static char stack[STACK_SIZE];

@@ -7,6 +7,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w \
 set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
 # add_subdirectory(dietlibc)
 add_subdirectory(sys)
+add_subdirectory(sys_util)
 add_subdirectory(libc_backend)
 add_subdirectory(mlibc)
 add_subdirectory(cpio)

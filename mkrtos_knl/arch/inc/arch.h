@@ -76,3 +76,5 @@ static inline umword_t intr_status(void)
     return read_sysreg(PRIMASK);
 }
 void sys_startup(void);
+// systick.c
+umword_t sys_tick_cnt_get(void);

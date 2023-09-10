@@ -30,7 +30,7 @@ msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len)
     register volatile umword_t r1 asm("r1");
     register volatile umword_t r2 asm("r2");
 
-    syscall(syscall_prot_create(MSG_BUG_GET, THREAD_PROT, obj),
+    syscall(syscall_prot_create4(MSG_BUG_GET, THREAD_PROT, obj, TRUE),
             0,
             0,
             0,
@@ -48,7 +48,7 @@ msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len)
 
     return msg_tag_init(r0);
 }
-msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t ram)
+msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t ram, umword_t cp_stack)
 {
     register volatile umword_t r0 asm("r0");
 
@@ -57,7 +57,8 @@ msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t
             pc,
             sp,
             ram,
-            0, 0);
+            cp_stack,
+            0);
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;

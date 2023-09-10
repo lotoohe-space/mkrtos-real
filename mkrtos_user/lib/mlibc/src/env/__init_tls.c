@@ -14,6 +14,7 @@ volatile int __thread_list_lock;
 int __init_tp(void *p)
 {
 	pthread_t td = p;
+
 	td->self = td;
 	int r = __set_thread_area(TP_ADJ(p));
 	if (r < 0) return -1;

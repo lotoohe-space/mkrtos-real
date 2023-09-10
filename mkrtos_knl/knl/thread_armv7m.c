@@ -14,15 +14,23 @@
 #include "app.h"
 #include "mm_wrap.h"
 #include "arch.h"
-
+#include "string.h"
 syscall_entry_func syscall_handler_get(void)
 {
     return syscall_entry;
 }
 
-void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram)
+void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram, umword_t stack)
 {
-    pf_t *cur_pf = (pf_t *)((addr_t)(user_sp - 8) & ~0x7UL) - 1; // thread_get_pf(cur_th);
+    umword_t usp = ((umword_t)(user_sp - 8) & ~0x7UL);
+
+    if (stack)
+    {
+        usp -= THREAD_MSG_BUG_LEN;
+        memcpy((void *)usp, (void *)stack, THREAD_MSG_BUG_LEN);
+    }
+
+    pf_t *cur_pf = (pf_t *)(usp)-1; // thread_get_pf(cur_th);
 
     cur_pf->pf_s.xpsr = 0x01000000L;
     cur_pf->pf_s.lr = (umword_t)NULL; //!< 线程退出时调用的函数

@@ -7,8 +7,10 @@ add_executable(init.elf
 )
 target_link_libraries(init.elf
     PUBLIC
+    start_init
     muslc
     sys
+    sys_util
     cpio
     ${GCC_LIB_PATH}/libgcc.a
 )
@@ -16,6 +18,7 @@ target_include_directories(
     init.elf
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/cpio
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/

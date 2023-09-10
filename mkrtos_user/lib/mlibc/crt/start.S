@@ -2,7 +2,6 @@
     .section .first, #execinstr
     
     .globl reloc
-    .globl data_offset
 
     .align 2
     .globl    _start_
@@ -49,51 +48,33 @@ LoopCopyDataInit:
     cmp     r2, r3
     bcc     CopyDataInit
 
-//movs    r0, #0
-//ldr     r1, = __data_start__
-//ldr     r2, = __bss_start__
-//sub     r2, r2, r1
-//add     r2, r2, r9
-//ldr     r3, = __bss_end__
-//sub     r3, r3, r1
-//add     r3, r3, r9
-//b       LoopFillZerobss
-/* Zero fill the bss segment. */
-//FillZerobss:
-//    str     r0, [r2], #4
-//LoopFillZerobss:
-//    cmp     r2, r3
-//    bcc     FillZerobss
-
     /* initial stack */
-    ldr     r0, =#0x23232323
-    ldr     r1, = __data_start__
-    ldr     r2, = __stack_start__
-    sub     r2, r2, r1
-    add     r2, r2, r9
-    ldr     r3, = __stack_end__
-    sub     r3, r3, r1
-    add     r3, r3, r9
-    b       LoopInitStack
-    /* fill the stack segment with '#'. */
-FillStack:
-    str     r0, [r2], #4
-LoopInitStack:
-    cmp     r2, r3
-    bcc     FillStack
-    mov     r0, r12
-    push    {r0, r4}
-
-    //ldr     r0, = __stack_end__
-    //mov     sp, r0
+@     ldr     r0, =#0x23232323
+@     ldr     r1, = __data_start__
+@     ldr     r2, = __stack_start__
+@     sub     r2, r2, r1
+@     add     r2, r2, r9
+@     ldr     r3, = __stack_end__
+@     sub     r3, r3, r1
+@     add     r3, r3, r9
+@     b       LoopInitStack
+@     /* fill the stack segment with '#'. */
+@ FillStack:
+@     str     r0, [r2], #4
+@ LoopInitStack:
+@     cmp     r2, r3
+@     bcc     FillStack
+@     mov     r0, r12
+@     push    {r0, r4}
 
     mov     r0, r9
     adr     r1, _start_
     bic     r1, r1, #1
     bl      _reloc
 
-	pop     {r0, r12}
+	@ pop     {r0, r12}
+    mov     r0, sp
     adr		r1, _start_
-    bl      _start_c_init
+    bl      _start_c
     b		.
 	.end

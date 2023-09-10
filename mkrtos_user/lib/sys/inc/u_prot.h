@@ -8,6 +8,7 @@
 #define LOG_PROT 4
 #define IPC_PROT 5
 #define MM_PROT 6
+#define SYS_PROT 7
 
 #define THREAD_MAIN THREAD_PROT
 #define TASK_THIS TASK_PROT
@@ -42,7 +43,8 @@ typedef union syscall_prot
     struct
     {
         umword_t op : 6;                     //!< 操作的op
-        umword_t prot : 6;                   //!< 通信的类型
+        umword_t prot : 5;                   //!< 通信的类型
+        umword_t self : 1;                   //!< 如果obj_inx指定为无效，则采用当前thread
         umword_t obj_inx : (WORD_BITS - 12); //!<
     };
 } syscall_prot_t;
@@ -55,7 +57,15 @@ static inline syscall_prot_t syscall_prot_create(uint8_t op, uint8_t prot, obj_h
         .obj_inx = obj_inx,
     };
 }
-
+static inline syscall_prot_t syscall_prot_create4(uint8_t op, uint8_t prot, obj_handler_t obj_inx, uint8_t self)
+{
+    return (syscall_prot_t){
+        .op = op,
+        .prot = prot,
+        .obj_inx = obj_inx,
+        .self = self,
+    };
+}
 typedef union vpage
 {
     umword_t raw;

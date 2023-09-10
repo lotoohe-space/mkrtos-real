@@ -18,8 +18,15 @@ void syscall_entry(entry_frame_t entry)
 
     if (!kobj)
     {
-        entry.r[0] = msg_tag_init4(0, 0, 0, -ENOENT).raw;
-        goto end;
+        if (sys_p.self)
+        {
+            kobj = &th->kobj;
+        }
+        else
+        {
+            entry.r[0] = msg_tag_init4(0, 0, 0, -ENOENT).raw;
+            goto end;
+        }
     }
 
     if (kobj->invoke_func)

@@ -42,3 +42,8 @@ static inline void mm_space_set_ram_block(mm_space_t *mm_space, void *mem, size_
     mm_space->mm_block = mem;
     mm_space->mm_block_size = size;
 }
+static inline void mm_space_get_ram_block(mm_space_t *mm_space, void **mem, size_t *size)
+{
+    *mem = mm_space->mm_block;
+    *size = mm_space->mm_block_size;
+}

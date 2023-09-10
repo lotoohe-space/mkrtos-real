@@ -11,6 +11,7 @@ target_include_directories(
     libc_be
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/libc_be/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/libc_backend/inc
 

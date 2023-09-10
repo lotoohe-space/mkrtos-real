@@ -8,8 +8,17 @@
 #include "u_thread.h"
 #include "u_ipc.h"
 #include "cpiofs.h"
+#include "u_env.h"
 #include <assert.h>
 #include <string.h>
+#include <elf.h>
+umword_t app_stack_push(umword_t *stack, umword_t val)
+{
+    *stack = val;
+    stack++;
+    return stack;
+}
+#define TEST_APP_NAME "shell"
 /**
  * @brief 加载一个app，并启动
  *
@@ -17,7 +26,7 @@
 void app_test(void)
 {
     msg_tag_t tag;
-    umword_t addr = cpio_find_file((umword_t)0x8020000, (umword_t)0x8040000, "shell");
+    umword_t addr = cpio_find_file((umword_t)0x8020000, (umword_t)0x8040000, TEST_APP_NAME);
     assert(addr);
 
     app_info_t *app = (app_info_t *)addr;
@@ -48,19 +57,55 @@ void app_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
     tag = task_map(hd_task, hd_thread, THREAD_MAIN, 0);
     assert(msg_tag_get_prot(tag) >= 0);
-    void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
-    void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
-    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)sp_addr_top, ram_base);
+
+    tag = thread_msg_buf_set(hd_thread, ram_base + app->i.ram_size);
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_bind_task(hd_thread, hd_task);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_msg_buf_set(hd_thread, ram_base + app->i.ram_size);
-    assert(msg_tag_get_prot(tag) >= 0);
     ipc_bind(hd_ipc, hd_thread, 0);
+
+    void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
+    void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
+
+    umword_t usp_top = ((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL) - MSG_BUG_LEN;
+
+    /**处理传参*/
+    umword_t *buf;
+    thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
+    umword_t *buf_bk = buf;
+
+    // 传递的参数放到最后64字节，可以存放16-1个words.
+    buf = app_stack_push(buf, 1);                      //!< argc 24
+    buf = app_stack_push(buf, (umword_t)usp_top + 64); //!< argv[0]
+    buf = app_stack_push(buf, NULL);                   //!< NULL
+    buf = app_stack_push(buf, (umword_t)usp_top + 96); //!< env[0...N]
+    buf = app_stack_push(buf, NULL);                   //!< NULL
+
+    buf = app_stack_push(buf, (umword_t)AT_PAGESZ);         //!< auxvt[0...N]
+    buf = app_stack_push(buf, MK_PAGE_SIZE);                //!< auxvt[0...N]
+    buf = app_stack_push(buf, (umword_t)usp_top + 96 + 16); //!< auxvt[0...N]
+    buf = app_stack_push(buf, 0xfe);                        //!< auxvt[0...N]
+
+    buf = app_stack_push(buf, 0); //!< 0
+    buf = app_stack_push(buf, 0); //!< 0
+    buf = app_stack_push(buf, 0); //!< 0
+    buf = app_stack_push(buf, 0); //!< 0
+    buf = app_stack_push(buf, 0); //!< 0
+    buf = app_stack_push(buf, 0); //!< 0
+
+    printf("argc addr is 0x%x\n", buf);
+    memcpy((char *)buf_bk + 64, TEST_APP_NAME, strlen(TEST_APP_NAME) + 1);
+    memcpy((char *)buf_bk + 96, "PATH=/", strlen("PATH=/") + 1);
+    uenv_t *uenv = (char *)buf_bk + 96 + 16;
+    uenv->log_hd = LOG_PROT;
+
+    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)sp_addr_top, ram_base, 1);
+    assert(msg_tag_get_prot(tag) >= 0);
+
+    /*启动线程运行*/
     tag = thread_run(hd_thread, 2);
     assert(msg_tag_get_prot(tag) >= 0);
 
-    char *buf;
     umword_t len;
     thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
     strcpy(buf, "hello shell.\n");

@@ -10,8 +10,10 @@
 #include "u_ipc.h"
 #include "u_hd_man.h"
 
+extern void futex_init(void);
 int main(int argc, char *args[])
 {
+    // futex_init();
     ulog_write_str(LOG_PROT, "init..\n");
 #if 0
     mm_test();

@@ -17,9 +17,10 @@
 #define LOG_PROT 4
 #define IPC_PROT 5
 #define MM_PROT 6
+#define SYS_PROT 7
 
 #define FACTORY_PORT_START FACTORY_PROT
-#define FACTORY_FUNC_MAX (MM_PROT + 1)
+#define FACTORY_FUNC_MAX (SYS_PROT + 1)
 #define FACTORY_PORT_END FACTORY_FUNC_MAX
 
 typedef struct msg_tag
@@ -52,7 +53,8 @@ typedef union syscall_prot
     struct
     {
         umword_t op : 6;                     //!< 操作的op
-        umword_t prot : 6;                   //!< 通信的类型
+        umword_t prot : 5;                   //!< 通信的类型
+        umword_t self : 1;                   //!< 如果obj_inx指定为无效，则采用当前thread
         umword_t obj_inx : (WORD_BITS - 12); //!<
     };
 } syscall_prot_t;

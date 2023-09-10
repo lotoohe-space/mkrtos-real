@@ -22,7 +22,7 @@ set(CMAKE_SIZE "${CROSS_COMPILE}size" CACHE PATH "" FORCE)
 # -mfloat-abi=soft  -u _printf_float 
 set(CMAKE_C_FLAGS "-mcpu=cortex-m3 -mthumb -O0 -g -lc -lrdimon -mfloat-abi=soft \
 -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
--nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker \
+-nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
 --gc-sections -fno-stack-protector \
 " CACHE STRING "" FORCE)
 
