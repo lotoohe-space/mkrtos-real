@@ -1,10 +1,12 @@
-/*
- * @Author: zhangzheng 1358745329@qq.com
- * @Date: 2023-08-14 09:47:54
- * @LastEditors: zhangzheng 1358745329@qq.com
- * @LastEditTime: 2023-08-18 16:21:48
- * @FilePath: /mkrtos-real/mkrtos_knl/inc/knl/thread.h
- * @Description: 线程管理相关
+/**
+ * @file thread.h
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-09-14
+ * 
+ * @copyright Copyright (c) 2023
+ * 
  */
 #pragma once
 

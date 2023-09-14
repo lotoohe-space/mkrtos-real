@@ -4,21 +4,27 @@
 #include "u_ipc.h"
 #include "u_mm.h"
 #include "u_app.h"
+#include "u_log.h"
 #include <pthread_impl.h>
+#include <assert.h>
+static pthread_spinlock_t lock;
 extern void *app_start_addr;
-// extern char __heap_start__[];
-extern umword_t __heap_size__;
-// extern void *_start_;
 static umword_t mm_bitemp[32 /*TODO:自动分配，或者静态划分*/];
-// extern char heap[];
-static void *mm_page_alloc(void)
+static void *mm_page_alloc(int page_nr)
 {
-    // pthread_spin_lock(&lock);
+    int cnt = 0;
+    mword_t find_inx = -1;
     app_info_t *info = app_info_get(app_start_addr);
+    assert(info);
     void *heap_addr = RAM_BASE() + info->i.heap_offset - info->i.data_offset;
-    size_t max_page_nr = (info->i.heap_size) / 512;
-    printf("heap is 0x%x, max page nr is %d.\n", heap_addr, max_page_nr);
-    for (umword_t i = 0; i < max_page_nr; i++)
+    size_t max_page_nr = (info->i.heap_size) / PAGE_SIZE;
+    if (max_page_nr > sizeof(mm_bitemp) * WORD_BITS)
+    {
+        ulog_write_str(LOG_PROT, "mm bitmap is to small.\n");
+    }
+    // printf("heap is 0x%x, max page nr is %d.\n", heap_addr, max_page_nr);
+    pthread_spin_lock(&lock);
+    for (umword_t i = 0; i < ROUND_UP(max_page_nr, WORD_BITS); i++)
     {
         if (mm_bitemp[i] != (umword_t)(-1))
         {
@@ -27,17 +33,54 @@ static void *mm_page_alloc(void)
                 if (MK_GET_BIT(mm_bitemp[i], j) == 0)
                 {
                     // 找到空闲的
-                    umword_t find_inx = i * WORD_BITS + j;
-                    MK_SET_BIT(mm_bitemp[i], j);
-                    // pthread_spin_unlock(&lock);
-                    return find_inx * PAGE_SIZE + (char *)heap_addr;
+                    if (find_inx == -1)
+                    {
+                        find_inx = i * WORD_BITS + j;
+                    }
+                    cnt++;
+                    if (find_inx + cnt >= max_page_nr)
+                    {
+                        pthread_spin_unlock(&lock);
+                        return NULL;
+                    }
+                    if (cnt >= page_nr)
+                    {
+                        for (int m = find_inx; m < find_inx + cnt; m++)
+                        {
+
+                            MK_SET_BIT(mm_bitemp[m / WORD_BITS], m % WORD_BITS);
+                        }
+                        pthread_spin_unlock(&lock);
+                        printf("st_inx:%d, cnt:%d\n", find_inx, cnt);
+                        return find_inx * PAGE_SIZE + (char *)heap_addr;
+                    }
+                }
+                else
+                {
+                    cnt = 0;
+                    find_inx = -1;
                 }
             }
         }
     }
-    // pthread_spin_unlock(&lock);
+    pthread_spin_unlock(&lock);
 
     return NULL;
+}
+
+static void mm_page_free(int st, int nr)
+{
+    app_info_t *info = app_info_get(app_start_addr);
+    assert(info);
+    void *heap_addr = RAM_BASE() + info->i.heap_offset - info->i.data_offset;
+    size_t max_page_nr = (info->i.heap_size) / PAGE_SIZE;
+
+    pthread_spin_lock(&lock);
+    for (int i = st; (i < st + nr) && (i < max_page_nr); i++)
+    {
+        MK_CLR_BIT(mm_bitemp[i / WORD_BITS], i % WORD_BITS);
+    }
+    pthread_spin_unlock(&lock);
 }
 
 static int sys_mmap2(void *start, size_t len, int prot, int flags, int fd, off_t _offset, umword_t *addr)
@@ -47,7 +90,7 @@ static int sys_mmap2(void *start, size_t len, int prot, int flags, int fd, off_t
         return -ENOSYS;
     }
     len = ALIGN(len, PAGE_SIZE);
-    *addr = (umword_t)mm_page_alloc();
+    *addr = (umword_t)mm_page_alloc(len / PAGE_SIZE);
     return 0;
 }
 
@@ -71,4 +114,19 @@ umword_t be_mmap2(va_list ap)
         return (umword_t)ret;
     }
     return addr;
+}
+umword_t be_munmap(va_list ap)
+{
+    void *start;
+    size_t len;
+
+    ARG_2_BE(ap, len, size_t, start, void *);
+    app_info_t *info = app_info_get(app_start_addr);
+    assert(info);
+    void *heap_addr = RAM_BASE() + info->i.heap_offset - info->i.data_offset;
+
+    len = ALIGN(len, PAGE_SIZE);
+    printf("munmap 0x%x, 0x%x.\n", start, len);
+    mm_page_free(((umword_t)(start) - (umword_t)heap_addr) / PAGE_SIZE, len / PAGE_SIZE);
+    return 0;
 }

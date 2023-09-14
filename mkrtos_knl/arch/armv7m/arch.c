@@ -15,6 +15,7 @@
 #include "thread.h"
 #include "stm32f2xx_conf.h"
 #include "mpu.h"
+#include "core_cm3.h"
 __ALIGN__(THREAD_BLOCK_SIZE)
 static uint8_t thread_knl_stack[THREAD_BLOCK_SIZE] = {0};
 void *_estack = thread_knl_stack + THREAD_BLOCK_SIZE;
@@ -38,6 +39,16 @@ void sys_startup(void)
     // 初始化systick时钟
     SysTick_Config(SystemCoreClock / SYS_SCHE_HZ);
 }
+
+void arch_disable_irq(int inx)
+{
+    NVIC_DisableIRQ(inx);
+}
+void arch_enable_irq(int inx)
+{
+    NVIC_EnableIRQ(inx);
+}
+
 void arch_init(void)
 {
     SystemInit();

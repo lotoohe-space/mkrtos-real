@@ -44,6 +44,16 @@ static inline umword_t arch_get_sp(void)
         :);
     return ret;
 }
+static inline umword_t arch_get_isr_no(void)
+{
+    umword_t num;
+    __asm__ __volatile__(
+        "mrs %0,IPSR"
+        : "=r"(num)
+        :
+        :);
+    return num;
+}
 static inline void arch_set_knl_sp(umword_t sp)
 {
     write_sysreg(sp, msp);
@@ -60,6 +70,9 @@ static inline umword_t arch_get_user_sp(void)
 {
     return read_sysreg(psp);
 }
+void arch_disable_irq(int inx);
+void arch_enable_irq(int inx);
+
 #define sti()                                 \
     do                                        \
     {                                         \

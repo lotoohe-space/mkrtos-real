@@ -37,7 +37,7 @@ end:;
     addr_t u_sp = arch_get_user_sp();
     pf_s_t *pf_a = (pf_s_t *)u_sp;
 
-    // pf_a->rg0[0] = tag.raw;
+    pf_a->rg0[0] = entry.r[0];
     pf_a->rg0[1] = entry.r[1];
     pf_a->rg0[2] = entry.r[2];
     pf_a->rg0[3] = entry.r[3];

@@ -1,5 +1,7 @@
 #include "u_types.h"
 
+#define APP_MAGIC "MKRTOS."
+
 typedef struct app_info
 {
     const char d[32];
@@ -28,5 +30,14 @@ typedef struct app_info
 
 static inline app_info_t *app_info_get(void *addr)
 {
-    return (app_info_t *)addr;
+    app_info_t *app = (app_info_t *)addr;
+    const char *magic = APP_MAGIC;
+    for (int i = 0; i < sizeof(app->magic) - 1; i++)
+    {
+        if (app->magic[i] != magic[i])
+        {
+            return NULL;
+        }
+    }
+    return app;
 }

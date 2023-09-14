@@ -9,11 +9,27 @@
 #include <assert.h>
 #include <stdio.h>
 #include <malloc.h>
+
+void malloc_test(void)
+{
+    void *mem = malloc(1024);
+    assert(mem);
+    void *mem1 = malloc(1024);
+    assert(mem1);
+    free(mem);
+    free(mem1);
+    mem = malloc(4 * 1024);
+    assert(mem);
+    free(mem);
+    mem1 = malloc(1024);
+    assert(mem1);
+    free(mem1);
+}
+
 int main(int argc, char *args[])
 {
     ulog_write_str(LOG_PROT, "MKRTOS:\n");
-    void *mem = malloc(12);
-    free(mem);
+    malloc_test();
     ipc_wait(12, 0);
     ipc_reply(12, msg_tag_init4(0, 0, 0, 0));
     char *buf;

@@ -8,6 +8,7 @@ typedef long (*sys_call_func)(va_list ap);
 
 static const sys_call_func sys_call_list[] = {
     // TODO: add syscall func pointer.
+    [SYS_munmap] = be_munmap,
     [SYS_mmap2] = be_mmap2,
     [SYS_read] = sys_be_read,
     [SYS_write] = sys_be_read,

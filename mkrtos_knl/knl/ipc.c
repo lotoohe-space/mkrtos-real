@@ -28,7 +28,7 @@ typedef struct ipc_wait_item
 typedef struct ipc
 {
     kobject_t kobj;         //!< 内核对象
-    spinlock_t lock;        //!< 操作的锁TODO: 使用内核对象锁
+    spinlock_t lock;        //!< 操作的锁 TODO: 使用内核对象锁
     slist_head_t wait_send; //!< 发送等待队列
     slist_head_t recv_send; //!< 发送等待队列
     slist_head_t node;      //!< 超时检查链表
@@ -40,11 +40,11 @@ typedef struct ipc
 
 enum ipc_op
 {
-    IPC_CALL,   //!< 客户端CALL操作
-    IPC_WAIT,   //!< 服务端等待接收信息
-    IPC_REPLY,  //!< 服务端回复信息
-    IPC_BIND,   //!< 绑定服务端线程
-    IPC_UNBIND, //!< 解除绑定
+    IPC_CALL,        //!< 客户端CALL操作
+    IPC_WAIT,        //!< 服务端等待接收信息
+    IPC_REPLY,       //!< 服务端回复信息
+    IPC_BIND,        //!< 绑定服务端线程
+    IPC_UNBIND,      //!< 解除绑定
 };
 static void wake_up_th(ipc_t *ipc);
 static slist_head_t wait_list;

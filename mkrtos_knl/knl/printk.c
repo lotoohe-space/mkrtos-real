@@ -1,15 +1,18 @@
-/*
- * @Author: zhangzheng 1358745329@qq.com
- * @Date: 2023-08-14 09:47:54
- * @LastEditors: zhangzheng 1358745329@qq.com
- * @LastEditTime: 2023-08-14 13:11:18
- * @FilePath: /mkrtos-real/mkrtos_knl/knl/printk.c
- * @Description: 内核信息输出，内核内使用
+/**
+ * @file printk.c
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-09-14
+ * 
+ * @copyright Copyright (c) 2023
+ * 
  */
 #include "printk.h"
 #include "stdarg.h"
 #include "xprintf.h"
 #include "spinlock.h"
+#include "uart/uart.h"
 
 static spinlock_t lock;
 static char print_cache[128];
@@ -34,6 +37,10 @@ static void print_raw(const char *str)
 void putc(int c)
 {
     xputc(c);
+}
+int getc(void)
+{
+    return uart_getc(uart_get_global());
 }
 /**
  * @brief 输出数据

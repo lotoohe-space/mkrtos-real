@@ -5,8 +5,9 @@
 #include "u_task.h"
 #include "u_hd_man.h"
 #include <pthread.h>
-#define HANDLER_START_INX 10
-#define HANDLER_MAX_NR 64
+
+#define HANDLER_START_INX 10 //!< fd开始的值，前10个内核保留
+#define HANDLER_MAX_NR 64    //!< 单个task最大支持的hd数量
 
 static umword_t bitmap_handler_alloc[HANDLER_MAX_NR / WORD_BYTES];
 static pthread_spinlock_t lock;
@@ -39,6 +40,11 @@ void handler_free(obj_handler_t hd_inx)
     hd_inx -= HANDLER_START_INX;
     umword_t word_offset = hd_inx / WORD_BITS;
     umword_t bits_offset = hd_inx % WORD_BITS;
+
+    if (word_offset >= (HANDLER_MAX_NR / WORD_BYTES))
+    {
+        return;
+    }
     pthread_spin_lock(&lock);
     MK_CLR_BIT(bitmap_handler_alloc[word_offset], bits_offset);
     pthread_spin_unlock(&lock);

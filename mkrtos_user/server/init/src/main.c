@@ -13,8 +13,18 @@
 extern void futex_init(void);
 int main(int argc, char *args[])
 {
+    uint8_t data[10];
     // futex_init();
     ulog_write_str(LOG_PROT, "init..\n");
+    // while (1)
+    // {
+    //     int len = ulog_read_bytes(LOG_PROT, data, sizeof(data) - 1);
+    //     if (len > 0)
+    //     {
+    //         data[len] = 0;
+    //         printf("%s\n", data);
+    //     }
+    // }
 #if 0
     mm_test();
     ulog_test();

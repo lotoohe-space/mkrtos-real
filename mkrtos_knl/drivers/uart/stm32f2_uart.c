@@ -3,6 +3,8 @@
 #include "types.h"
 #include "uart/uart.h"
 #include "init.h"
+#include "queue.h"
+#include <irq.h>
 #define CR3_CLEAR_MASK ((uint16_t)(USART_CR3_RTSE | USART_CR3_CTSE))
 
 static void uart_set_word_len(USART_TypeDef *USARTx, uint16_t len)
@@ -124,15 +126,35 @@ static void uart_hardware_flow_rts(USART_TypeDef *USARTx, uint16_t flow)
 }
 static uart_t uart = {
     .baud = 115200};
+
 uart_t *uart_get_global(void)
 {
     return &uart;
 }
+#define QUEUE_LEN 129
+static queue_t queue;
+static uint8_t queue_data[QUEUE_LEN];
+void uart_tigger(irq_entry_t *irq)
+{
+    if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+    {
+        // 清除中断标志位
+        USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+        q_enqueue(&queue, USART_ReceiveData(USART1));
+
+        if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
+        {
+            thread_ready(irq->irq->wait_thread, TRUE);
+        }
+    }
+}
+
 void uart_init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
+    q_init(&queue, queue_data, QUEUE_LEN);
 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
@@ -167,6 +189,7 @@ void uart_init(void)
     USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
     USART_Init(USART1, &USART_InitStructure);
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+
     USART_Cmd(USART1, ENABLE);
 }
 INIT_HIGH_HAD(uart_init);
@@ -186,5 +209,19 @@ void uart_putc(uart_t *uart, int data)
 }
 int uart_getc(uart_t *uart)
 {
+    uint8_t e;
+    umword_t status;
+
+    status = cpulock_lock();
+    if (q_dequeue(&queue, &e) >= 0)
+    {
+        cpulock_set(status);
+        return e;
+    }
+    cpulock_set(status);
     return -1;
+}
+int uart_get_len(uart_t *uart)
+{
+    return q_queue_len(&queue);
 }

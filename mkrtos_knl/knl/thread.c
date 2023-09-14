@@ -213,6 +213,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
             stack_bottom = (umword_t)(cur_th->msg.msg);
         }
         thread_set_exc_regs(tag_th, f->r[1], f->r[2], f->r[3], stack_bottom);
+        tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
     case MSG_BUG_SET:
@@ -242,6 +243,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
             tag_th->sche.prio = (f->r[1] >= PRIO_MAX ? PRIO_MAX - 1 : f->r[1]);
             thread_ready(tag_th, TRUE);
         }
+        tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
     case BIND_TASK:
@@ -253,6 +255,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
             return;
         }
         thread_bind(tag_th, task_kobj);
+        tag = msg_tag_init4(0, 0, 0, 0);
         printk("thread bind to %d\n", f->r[7], f->r[1]);
     }
     break;

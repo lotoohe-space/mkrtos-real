@@ -11,7 +11,4 @@
 #include "types.h"
 #include "kobject.h"
 
-typedef struct log
-{
-    kobject_t kobj;
-} log_t;
+

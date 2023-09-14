@@ -129,7 +129,10 @@
         "pthread.h": "c",
         "*.in": "cpp",
         "syscall_backend.h": "c",
-        "misc_backend.h": "c"
+        "misc_backend.h": "c",
+        "queue.h": "c",
+        "irq.h": "c",
+        "irq_sender.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

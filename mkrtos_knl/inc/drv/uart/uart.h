@@ -2,6 +2,7 @@
 #pragma once
 
 #include "types.h"
+#include "irq.h"
 
 typedef struct uart
 {
@@ -16,3 +17,4 @@ uart_t *uart_get_global(void);
 void uart_set(uart_t *uart);
 void uart_putc(uart_t *uart, int data);
 int uart_getc(uart_t *uart);
+void uart_tigger(irq_entry_t *irq);

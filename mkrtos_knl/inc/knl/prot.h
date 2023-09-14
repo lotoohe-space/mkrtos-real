@@ -18,9 +18,10 @@
 #define IPC_PROT 5
 #define MM_PROT 6
 #define SYS_PROT 7
+#define IRQ_PROT 8
 
 #define FACTORY_PORT_START FACTORY_PROT
-#define FACTORY_FUNC_MAX (SYS_PROT + 1)
+#define FACTORY_FUNC_MAX (IRQ_PROT + 1)
 #define FACTORY_PORT_END FACTORY_FUNC_MAX
 
 typedef struct msg_tag
