@@ -54,7 +54,7 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     thread_t *th = thread_get_current();
     irq_sender_t *irq = container_of(kobj, irq_sender_t, kobj);
 
-    if (sys_p.prot != IPC_PROT)
+    if (sys_p.prot != IRQ_PROT)
     {
         f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;

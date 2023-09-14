@@ -6,7 +6,21 @@ enum
 {
     FACTORY_CREATE_KOBJ
 };
+msg_tag_t factory_create_irq_sender(obj_handler_t obj, vpage_t vpage)
+{
+    register volatile umword_t r0 asm("r0");
 
+    syscall(syscall_prot_create(FACTORY_CREATE_KOBJ, FACTORY_PROT, obj),
+            0,
+            IRQ_PROT,
+            vpage.raw,
+            0,
+            0,
+            0);
+    msg_tag_t tag = msg_tag_init(r0);
+
+    return tag;
+}
 msg_tag_t factory_create_thread(obj_handler_t obj, vpage_t vpage)
 {
     register volatile umword_t r0 asm("r0");
