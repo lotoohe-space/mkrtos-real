@@ -6,9 +6,10 @@ enum mm_op
 {
     MM_ALLOC,
     MM_FREE,
+    MM_ALIGN_ALLOC, //!< 直接暂用一个region
+    MM_ALIGN_FREE,
     MM_MOD_ATTRS,
 };
-
 void *mm_alloc_page(obj_handler_t obj_inx, umword_t pnf_nr, uint8_t attrs)
 {
     register volatile umword_t r0 asm("r0");
@@ -42,4 +43,18 @@ void mm_free_page(obj_handler_t obj_inx, void *addr, umword_t pfn_nr)
             0,
             0,
             0);
+}
+msg_tag_t mm_align_alloc(obj_handler_t obj_inx, void *addr, umword_t size)
+{
+    register volatile umword_t r0 asm("r0");
+
+    syscall(syscall_prot_create(MM_ALIGN_ALLOC, MM_PROT, obj_inx),
+            0,
+            addr,
+            size,
+            0,
+            0,
+            0);
+
+    return msg_tag_init(r0);
 }

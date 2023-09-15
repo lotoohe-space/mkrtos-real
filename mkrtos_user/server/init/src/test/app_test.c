@@ -12,11 +12,12 @@
 #include <assert.h>
 #include <string.h>
 #include <elf.h>
+#include <stdio.h>
 umword_t app_stack_push(umword_t *stack, umword_t val)
 {
     *stack = val;
     stack++;
-    return stack;
+    return (umword_t)stack;
 }
 #define TEST_APP_NAME "shell"
 /**
@@ -57,8 +58,12 @@ void app_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
     tag = task_map(hd_task, hd_thread, THREAD_MAIN, 0);
     assert(msg_tag_get_prot(tag) >= 0);
+    tag = task_map(hd_task, FACTORY_PROT, FACTORY_PROT, 0);
+    assert(msg_tag_get_prot(tag) >= 0);
+    tag = task_map(hd_task, MM_PROT, MM_PROT, 0);
+    assert(msg_tag_get_prot(tag) >= 0);
 
-    tag = thread_msg_buf_set(hd_thread, ram_base + app->i.ram_size);
+    tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + app->i.ram_size));
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_bind_task(hd_thread, hd_task);
     assert(msg_tag_get_prot(tag) >= 0);
@@ -75,28 +80,28 @@ void app_test(void)
     umword_t *buf_bk = buf;
 
     // 传递的参数放到最后64字节，可以存放16-1个words.
-    buf = app_stack_push(buf, 1);                      //!< argc 24
-    buf = app_stack_push(buf, (umword_t)usp_top + 64); //!< argv[0]
-    buf = app_stack_push(buf, NULL);                   //!< NULL
-    buf = app_stack_push(buf, (umword_t)usp_top + 96); //!< env[0...N]
-    buf = app_stack_push(buf, NULL);                   //!< NULL
+    buf = (umword_t *)app_stack_push(buf, 1);                      //!< argc 24
+    buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + 64); //!< argv[0]
+    buf = (umword_t *)app_stack_push(buf, 0);                      //!< NULL
+    buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + 96); //!< env[0...N]
+    buf = (umword_t *)app_stack_push(buf, 0);                      //!< NULL
 
-    buf = app_stack_push(buf, (umword_t)AT_PAGESZ);         //!< auxvt[0...N]
-    buf = app_stack_push(buf, MK_PAGE_SIZE);                //!< auxvt[0...N]
-    buf = app_stack_push(buf, (umword_t)usp_top + 96 + 16); //!< auxvt[0...N]
-    buf = app_stack_push(buf, 0xfe);                        //!< auxvt[0...N]
+    buf = (umword_t *)app_stack_push(buf, (umword_t)AT_PAGESZ);         //!< auxvt[0...N]
+    buf = (umword_t *)app_stack_push(buf, MK_PAGE_SIZE);                //!< auxvt[0...N]
+    buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + 96 + 16); //!< auxvt[0...N]
+    buf = (umword_t *)app_stack_push(buf, 0xfe);                        //!< auxvt[0...N]
 
-    buf = app_stack_push(buf, 0); //!< 0
-    buf = app_stack_push(buf, 0); //!< 0
-    buf = app_stack_push(buf, 0); //!< 0
-    buf = app_stack_push(buf, 0); //!< 0
-    buf = app_stack_push(buf, 0); //!< 0
-    buf = app_stack_push(buf, 0); //!< 0
+    buf = (umword_t *)app_stack_push(buf, 0); //!< 0
+    buf = (umword_t *)app_stack_push(buf, 0); //!< 0
+    buf = (umword_t *)app_stack_push(buf, 0); //!< 0
+    buf = (umword_t *)app_stack_push(buf, 0); //!< 0
+    buf = (umword_t *)app_stack_push(buf, 0); //!< 0
+    buf = (umword_t *)app_stack_push(buf, 0); //!< 0
 
     printf("argc addr is 0x%x\n", buf);
     memcpy((char *)buf_bk + 64, TEST_APP_NAME, strlen(TEST_APP_NAME) + 1);
     memcpy((char *)buf_bk + 96, "PATH=/", strlen("PATH=/") + 1);
-    uenv_t *uenv = (char *)buf_bk + 96 + 16;
+    uenv_t *uenv = (uenv_t *)((char *)buf_bk + 96 + 16);
     uenv->log_hd = LOG_PROT;
 
     tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)sp_addr_top, ram_base, 1);
@@ -108,7 +113,7 @@ void app_test(void)
 
     umword_t len;
     thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
-    strcpy(buf, "hello shell.\n");
-    ipc_call(hd_ipc, msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0), ipc_timeout_create2(0, 0));
+    strcpy((char *)buf, "hello shell.\n");
+    ipc_call(hd_ipc, msg_tag_init4(0, ROUND_UP(strlen((char *)buf), WORD_BYTES), 0, 0), ipc_timeout_create2(0, 0));
     printf("test ok\n");
 }

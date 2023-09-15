@@ -18,7 +18,7 @@ enum irq_sender_op
     WAIT_IRQ,   //!< 等待中断触发
     ACK_IRQ,    //!< 中断确认
 };
-msg_tag_t uirq_bind(obj_handler_t obj_inx, umword_t irq_no)
+msg_tag_t uirq_bind(obj_handler_t obj_inx, umword_t irq_no, umword_t prio_sub_pre)
 {
     register volatile umword_t r0 asm("r0");
 

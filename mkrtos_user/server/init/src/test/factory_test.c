@@ -4,6 +4,7 @@
 #include "u_task.h"
 #include "u_hd_man.h"
 #include <assert.h>
+#include <stdio.h>
 void factory_test(void)
 {
     obj_handler_t hd = handler_alloc();

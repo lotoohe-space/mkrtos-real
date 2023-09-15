@@ -21,6 +21,7 @@ typedef struct irq_sender
     umword_t irq_id; //!< 绑定的中断号
     ref_counter_t ref;
     thread_t *wait_thread; //!< 等待中断的线程
+    umword_t irq_cn;
 } irq_sender_t;
 
 void irq_sender_init(irq_sender_t *irq);

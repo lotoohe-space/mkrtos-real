@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.13)
 
 file(GLOB_RECURSE deps *.c *.S)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_STDPERIPH_DRIVER=1 \
+")
+
+
 add_executable(shell.elf
     ${deps}
 )
@@ -10,6 +14,7 @@ target_link_libraries(shell.elf
     start
     muslc
     sys
+    sys_util
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -25,6 +30,9 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/shell/bsp/core_inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/shell/bsp/inc
 )
 add_dependencies(shell.elf
 muslc
@@ -51,4 +59,6 @@ add_custom_target(
 )
 
 add_dependencies(shell_dump shell.elf)
+add_dependencies(shell_dump sys)
+add_dependencies(shell_dump sys_util)
  

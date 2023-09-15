@@ -42,9 +42,8 @@ void mpu_region_clr(int inx)
 {
     ARM_MPU_ClrRegion(inx);
 }
-void mpu_switch_to(void)
+void mpu_switch_to_task(struct task *tk)
 {
-    struct task *tk = thread_get_current_task();
     mpu_disable();
     for (int i = 0; i < REGION_NUM; i++)
     {
@@ -59,4 +58,10 @@ void mpu_switch_to(void)
         }
     }
     mpu_enable();
+}
+void mpu_switch_to(void)
+{
+    struct task *tk = thread_get_current_task();
+
+    mpu_switch_to_task(tk);
 }

@@ -226,8 +226,15 @@ tree_node_t *path_open_dir_namei(
         int ret = path_lookup(cur_node, &name[inx], find_len, &cur_node);
         if (ret < 0)
         {
-            *err = -ENOENT;
-            return NULL;
+            if (ret == -ENOTDIR)
+            {
+                return cur_node;
+            }
+            else
+            {
+                *err = ret;
+                return NULL;
+            }
         }
     }
     *err = 0;
@@ -315,7 +322,9 @@ int path_open(const char *path, int flags, mode_t mode)
         /*TODO:obj已经无效，删除这个文件节点*/
         mk_file_free(inx);
         return -ECANCELED;
-    } else {
+    }
+    else
+    {
         // 映射给open的操作者
     }
     file->flags = flags;
@@ -324,15 +333,15 @@ int path_open(const char *path, int flags, mode_t mode)
     file->node = node;
     return inx;
 }
-//路径管理器大纲
-//路径管理器，所有的非固化存储的资源
-//支持mount其它文件系统，其它文件系统也是一个服务对象
-//支持mount单个服务对象。
-//打开一个文件时，首先在路径管理器中找到文件系统服务的对象，
-//然后调用文件系统服务对象的open接口打开文件，该文件系统返回一个句柄。
-//之后的操作都直接对文件系统服务对象进行操作，不在经过路径管理器。
+// 路径管理器大纲
+// 路径管理器，所有的非固化存储的资源
+// 支持mount其它文件系统，其它文件系统也是一个服务对象
+// 支持mount单个服务对象。
+// 打开一个文件时，首先在路径管理器中找到文件系统服务的对象，
+// 然后调用文件系统服务对象的open接口打开文件，该文件系统返回一个句柄。
+// 之后的操作都直接对文件系统服务对象进行操作，不在经过路径管理器。
 
-//路径管理器也可以映射其它任意对象，但这些对象可能不具备读写等操作，具体操作由使用者负责。
+// 路径管理器也可以映射其它任意对象，但这些对象可能不具备读写等操作，具体操作由使用者负责。
 
 int main(int argc, char *args[])
 {

@@ -8,7 +8,7 @@
 #include "u_hd_man.h"
 #include <assert.h>
 #include <stdio.h>
-
+#include <string.h>
 #define DEBUG_IPC_CALL 1
 
 static umword_t th1_hd = 0;

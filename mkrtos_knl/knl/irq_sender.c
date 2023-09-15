@@ -23,26 +23,44 @@ enum irq_sender_op
  */
 static void irq_tigger(irq_entry_t *irq)
 {
+    arch_disable_irq(irq->irq->irq_id);
     if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
     {
-        arch_disable_irq(irq->irq->irq_id);
         thread_ready(irq->irq->wait_thread, TRUE);
+    }
+    else
+    {
+        irq->irq->irq_cn++;
     }
 }
 int irq_sender_wait(irq_sender_t *irq, thread_t *th)
 {
     // TODO:临界保护
+    umword_t status = cpulock_lock();
+
     if (!irq->wait_thread)
     {
         irq->wait_thread = th;
-        ref_counter_inc(&irq->wait_thread->ref); //! 线程引用计数+1
-        thread_suspend(irq->wait_thread);
-        ref_counter_dec(&irq->wait_thread->ref); //! 线程引用计数+1
-        irq->wait_thread = NULL;
+        if (irq->irq_cn > 0)
+        {
+            irq->irq_cn = 0;
+            cpulock_set(status);
+        }
+        else
+        {
+            ref_counter_inc(&irq->wait_thread->ref); //! 线程引用计数+1
+            thread_suspend(irq->wait_thread);
+            cpulock_set(status);
+            ref_counter_dec(&irq->wait_thread->ref); //! 线程引用计数+1
+            irq->wait_thread = NULL;
+        }
+        irq->irq_cn = 0;
         return 0;
     }
     else
     {
+        cpulock_set(status);
+
         return -EACCES;
     }
 }
@@ -69,6 +87,7 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
             irq->irq_id = irq_no;
             irq_alloc(irq_no, irq, irq_tigger);
             ref_counter_inc(&irq->ref);
+            arch_set_enable_irq_prio(irq_no, f->r[2] & 0xffff, f->r[2] >> 16);
             tag = msg_tag_init4(0, 0, 0, 0);
         }
         else
@@ -115,6 +134,7 @@ void irq_sender_init(irq_sender_t *irq)
     ref_counter_inc(&irq->ref);
     irq->kobj.invoke_func = irq_sender_syscall;
     irq->irq_id = IRQ_INVALID_NO;
+    irq->irq_cn = 0;
 }
 static irq_sender_t *irq_create(ram_limit_t *lim)
 {

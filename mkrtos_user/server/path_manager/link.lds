@@ -1,5 +1,4 @@
 ENTRY(_start_)
-_system_stack_size = 0x100;
 SECTIONS
 {
     .text : {

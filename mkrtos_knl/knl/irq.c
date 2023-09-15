@@ -8,7 +8,7 @@
 #include <mm_wrap.h>
 #include <factory.h>
 #include <irq.h>
-
+#include <printk.h>
 /*TODO:换成更节省内存的方式*/
 static irq_entry_t irqs[IRQ_REG_TAB_SIZE] = {0};
 static void irq_tigger(irq_entry_t *irq);
@@ -47,6 +47,7 @@ void entry_handler(void)
 
     isr_no -= USER_ISR_START_NO;
 
+    // printk("%d.\n", isr_no);
     if (!irq_check_usability(isr_no))
     {
         if (irqs[isr_no].irq_tigger_func)

@@ -10,13 +10,13 @@
 #include "u_ipc.h"
 #include "u_hd_man.h"
 #include "u_irq_sender.h"
+#include "test/test.h"
 extern void futex_init(void);
 int main(int argc, char *args[])
 {
     // futex_init();
     ulog_write_str(LOG_PROT, "init..\n");
 #if 0
-    mm_test();
     ulog_test();
     factory_test();
     mpu_test();
@@ -26,9 +26,9 @@ int main(int argc, char *args[])
     ipc_test();
     map_test();
     ipc_timeout_test();
-    app_test();
+    mm_test();
 #endif
-    irq_test();
+    app_test();
     task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); // 删除当前task，以及申请得所有对象
     printf("exit init.\n");
     return 0;

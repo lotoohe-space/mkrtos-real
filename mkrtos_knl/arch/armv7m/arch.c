@@ -48,7 +48,15 @@ void arch_enable_irq(int inx)
 {
     NVIC_EnableIRQ(inx);
 }
-
+void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio)
+{
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel = inx;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = pre_prio;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = sub_prio;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+}
 void arch_init(void)
 {
     SystemInit();

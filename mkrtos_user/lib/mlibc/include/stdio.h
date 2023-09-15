@@ -30,7 +30,9 @@ extern "C" {
 #elif defined(__cplusplus)
 #define NULL 0L
 #else
+#ifndef NULL
 #define NULL ((void*)0)
+#endif
 #endif
 
 #undef EOF

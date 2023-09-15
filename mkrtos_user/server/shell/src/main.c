@@ -6,6 +6,7 @@
 #include "u_thread.h"
 #include "u_task.h"
 #include "u_ipc.h"
+#include "test.h"
 #include <assert.h>
 #include <stdio.h>
 #include <malloc.h>
@@ -28,8 +29,10 @@ void malloc_test(void)
 
 int main(int argc, char *args[])
 {
+    printf("argc:%d args[0]:%s\n", argc, args[0]);
     ulog_write_str(LOG_PROT, "MKRTOS:\n");
     malloc_test();
+    irq_test();
     ipc_wait(12, 0);
     ipc_reply(12, msg_tag_init4(0, 0, 0, 0));
     char *buf;

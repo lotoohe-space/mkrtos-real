@@ -72,6 +72,7 @@ static inline umword_t arch_get_user_sp(void)
 }
 void arch_disable_irq(int inx);
 void arch_enable_irq(int inx);
+void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
 
 #define sti()                                 \
     do                                        \

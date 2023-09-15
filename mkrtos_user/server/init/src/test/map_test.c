@@ -10,7 +10,7 @@
 #include "u_util.h"
 #include <assert.h>
 #include <stdio.h>
-
+#include <string.h>
 #define DEBUG_IPC_CALL 1
 
 static umword_t th1_hd = 0;
@@ -56,9 +56,9 @@ static void thread_test_func2(void)
 
     thread_msg_buf_get(th2_hd, (umword_t *)(&buf), NULL);
     ipc_msg = (ipc_msg_t *)buf;
-    strcpy(ipc_msg->msg_buf, "I am th2.\n");
+    strcpy((char *)(ipc_msg->msg_buf), "I am th2.\n");
     ipc_msg->map_buf[0] = vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, LOG_PROT).raw;
-    ipc_call(ipc_hd, msg_tag_init4(0, ROUND_UP(strlen(ipc_msg->msg_buf), WORD_BYTES), 1, 0), ipc_timeout_create2(0, 0));
+    ipc_call(ipc_hd, msg_tag_init4(0, ROUND_UP(strlen((char *)(ipc_msg->msg_buf)), WORD_BYTES), 1, 0), ipc_timeout_create2(0, 0));
     printf("th2:%s", buf);
     printf("thread_test_func2.\n");
     task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));

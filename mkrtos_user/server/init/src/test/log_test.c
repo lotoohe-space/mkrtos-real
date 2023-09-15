@@ -1,6 +1,7 @@
 #include "u_types.h"
 #include "u_prot.h"
-
+#include "u_log.h"
+#include <stdio.h>
 void ulog_test(void)
 {
     uint8_t data[10];

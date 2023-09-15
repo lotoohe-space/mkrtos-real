@@ -5,6 +5,7 @@
 #include "thread.h"
 #include "task.h"
 #include "globals.h"
+#include "mpu.h"
 typedef struct mm_man
 {
     kobject_t kobj;
@@ -25,6 +26,8 @@ enum mm_op
 {
     MM_ALLOC,
     MM_FREE,
+    MM_ALIGN_ALLOC, //!< 直接暂用一个region
+    MM_ALIGN_FREE,
     MM_MOD_ATTRS,
 };
 
@@ -59,6 +62,30 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     {
         mm_pages_free_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->r[1], f->r[2]);
         tag = msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
+    case MM_ALIGN_ALLOC:
+    {
+        region_info_t *regi_info = mm_space_alloc_pt_region(&cur_task->mm_space);
+
+        if (regi_info)
+        {
+            umword_t size = f->r[2];
+            umword_t addr = f->r[1];
+
+            if ((!is_power_of_2(size)) && ((addr & (~(size - 1))) != 0))
+            {
+                tag = msg_tag_init4(0, 0, 0, -EINVAL);
+                break;
+            }
+            mpu_calc_regs(regi_info, addr, ffs(size), REGION_RWX, 0);
+            mpu_switch_to_task(cur_task);
+            tag = msg_tag_init4(0, 0, 0, 0);
+        }
+        else
+        {
+            tag = msg_tag_init4(0, 0, 0, -ENOMEM);
+        }
     }
     break;
     case MM_MOD_ATTRS:
