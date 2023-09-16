@@ -55,4 +55,5 @@ add_custom_target(
 )
 
 add_dependencies(init_dump init.elf)
+add_dependencies(init.elf muslc)
  

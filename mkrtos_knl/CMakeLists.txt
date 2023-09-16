@@ -61,6 +61,8 @@ add_custom_target(
     cp mkrtos.bin ${CMAKE_SOURCE_DIR}/build/output/mkrtos
     COMMAND
     cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/mkrtos.elf
+    COMMAND
+    ${CMAKE_SIZE} mkrtos.elf
 )
 add_dependencies(mkrtos.elf link_file_dump)
 add_dependencies(mkrtos_dump mkrtos.elf)

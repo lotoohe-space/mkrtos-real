@@ -25,9 +25,7 @@ target_link_libraries(
     PUBLIC
     libc_be
 )
-set_target_properties(muslc PROPERTIES LINK_FLAGS
-"-pie "
-)
+set_target_properties(muslc PROPERTIES LINK_FLAGS "-pie ")
 target_include_directories(
     muslc
     BEFORE
