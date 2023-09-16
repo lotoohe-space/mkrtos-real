@@ -19,6 +19,7 @@ target_include_directories(
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/cpio
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
@@ -33,6 +34,7 @@ target_link_libraries(
     PUBLIC
     sys
     muslc
+    cpio
 )
 add_dependencies(sys_util sys)
 add_dependencies(sys_util muslc)

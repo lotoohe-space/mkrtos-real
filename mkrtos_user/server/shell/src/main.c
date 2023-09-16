@@ -6,6 +6,7 @@
 #include "u_thread.h"
 #include "u_task.h"
 #include "u_ipc.h"
+#include "u_env.h"
 #include "test.h"
 #include <assert.h>
 #include <stdio.h>
@@ -30,16 +31,16 @@ void malloc_test(void)
 int main(int argc, char *args[])
 {
     printf("argc:%d args[0]:%s\n", argc, args[0]);
-    ulog_write_str(LOG_PROT, "MKRTOS:\n");
+    ulog_write_str(u_get_global_env()->log_hd, "MKRTOS:\n");
     malloc_test();
     irq_test();
-    ipc_wait(12, 0);
-    ipc_reply(12, msg_tag_init4(0, 0, 0, 0));
-    char *buf;
-    umword_t len;
-    thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
-    printf(buf);
+    // ipc_wait(12, 0);
+    // ipc_reply(12, msg_tag_init4(0, 0, 0, 0));
+    // char *buf;
+    // umword_t len;
+    // thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
+    // printf(buf);
     task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS));
-    ulog_write_str(LOG_PROT, "Error.\n");
+    ulog_write_str(u_get_global_env()->log_hd, "Error.\n");
     return 0;
 }

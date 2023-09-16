@@ -10,6 +10,8 @@
 #include "u_ipc.h"
 #include "u_hd_man.h"
 #include "u_irq_sender.h"
+#include "u_app_loader.h"
+
 #include "test/test.h"
 extern void futex_init(void);
 int main(int argc, char *args[])
@@ -27,8 +29,13 @@ int main(int argc, char *args[])
     map_test();
     ipc_timeout_test();
     mm_test();
-#endif
     app_test();
+#endif
+    int ret = app_load("shell");
+    if (ret < 0)
+    {
+        printf("app load fail, 0x%x\n", ret);
+    }
     task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); // 删除当前task，以及申请得所有对象
     printf("exit init.\n");
     return 0;

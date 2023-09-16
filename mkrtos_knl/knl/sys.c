@@ -1,12 +1,13 @@
-/*
- * @Author: zhangzheng 1358745329@qq.com
- * @Date: 2023-08-14 09:47:54
- * @LastEditors: zhangzheng 1358745329@qq.com
- * @LastEditTime: 2023-08-14 13:10:35
- * @FilePath: /mkrtos-real/mkrtos_knl/knl/log.c
- * @Description: 内核的信息输出对象，用户态使用该对象进行数据输出。
+/**
+ * @file sys.c
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief 内核的信息输出对象，用户态使用该对象进行数据输出。
+ * @version 0.1
+ * @date 2023-09-16
+ *
+ * @copyright Copyright (c) 2023
+ *
  */
-
 #include "log.h"
 #include "factory.h"
 #include "kobject.h"
@@ -42,7 +43,7 @@ INIT_KOBJ(sys_reg);
 static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
-    if (sys_p.prot != LOG_PROT)
+    if (sys_p.prot != SYS_PROT)
     {
         f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
@@ -52,6 +53,7 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     case SYS_INFO_GET:
     {
         f->r[1] = sys_tick_cnt_get();
+        f->r[2] = KNL_TEXT + BOOTFS_ADDR_OFFSET;
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;

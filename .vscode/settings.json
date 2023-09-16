@@ -133,7 +133,8 @@
         "queue.h": "c",
         "irq.h": "c",
         "irq_sender.h": "c",
-        "u_irq_sender.h": "c"
+        "u_irq_sender.h": "c",
+        "u_env.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

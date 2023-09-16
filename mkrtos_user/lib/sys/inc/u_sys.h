@@ -5,6 +5,7 @@
 typedef struct sys_info
 {
     umword_t sys_tick;
+    umword_t bootfs_start_addr;
 } sys_info_t;
 
-void sys_read_info(obj_handler_t obj, sys_info_t *info);
+msg_tag_t sys_read_info(obj_handler_t obj, sys_info_t *info);
