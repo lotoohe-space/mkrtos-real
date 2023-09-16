@@ -98,6 +98,9 @@ qemu-system-arm -machine\
 ### 我的博客
 
 - 欢迎到博客交流（还没有申请域名^-^）：[MKRTOS博客](http://124.222.90.143/)
+- 加群微信或者QQ交流。
+- ![image](./mkrtos_doc/qq.jpg)
+- ![image](./mkrtos_doc/wechat.jpg)
 
 ### 日志
 * 很久以前的日志

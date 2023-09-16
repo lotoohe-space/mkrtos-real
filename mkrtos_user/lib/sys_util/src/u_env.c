@@ -12,6 +12,8 @@ void u_env_default_init(void)
 {
     env.log_hd = LOG_PROT;
     env.ns_hd = HANDLER_INVALID;
+    env.rev1 = HANDLER_INVALID;
+    env.rev2 = HANDLER_INVALID;
 }
 
 void u_env_init(void *in_env)
