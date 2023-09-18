@@ -40,11 +40,11 @@ typedef struct ipc
 
 enum ipc_op
 {
-    IPC_CALL,        //!< 客户端CALL操作
-    IPC_WAIT,        //!< 服务端等待接收信息
-    IPC_REPLY,       //!< 服务端回复信息
-    IPC_BIND,        //!< 绑定服务端线程
-    IPC_UNBIND,      //!< 解除绑定
+    IPC_CALL,   //!< 客户端CALL操作
+    IPC_WAIT,   //!< 服务端等待接收信息
+    IPC_REPLY,  //!< 服务端回复信息
+    IPC_BIND,   //!< 绑定服务端线程
+    IPC_UNBIND, //!< 解除绑定
 };
 static void wake_up_th(ipc_t *ipc);
 static slist_head_t wait_list;
@@ -162,10 +162,11 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
  * @param f
  * @param tag
  */
-static int ipc_call(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag, ipc_timeout_t timeout)
+static msg_tag_t ipc_call(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag, ipc_timeout_t timeout)
 {
     umword_t status;
     int ret = -1;
+    msg_tag_t tmp_tag;
 
     assert(th != ipc->svr_th);
 __check:
@@ -174,7 +175,7 @@ __check:
     {
         if (add_wait_unlock(ipc, &ipc->wait_send, th, timeout.send_timeout, &ipc->lock, status) < 0)
         {
-            return -EWTIMEDOUT;
+            return msg_tag_init4(0, 0, 0, -EWTIMEDOUT);
         }
         goto __check;
     }
@@ -184,20 +185,22 @@ __check:
     {
         //!< 拷贝失败
         spinlock_set(&ipc->lock, status);
-        return ret;
+        return msg_tag_init4(0, 0, 0, ret);
     }
-    ipc->svr_th->msg.len = tag.msg_buf_len;
+    ipc->svr_th->msg.tag = tag;
     thread_ready(ipc->svr_th, TRUE); //!< 直接唤醒接受者
     // thread_suspend(th);              //!< 发送后客户端直接进入等待状态
     ipc->last_cli_th = th; //!< 设置上一次发送的客户端
     if (add_wait_unlock(ipc, &ipc->recv_send, th, timeout.recv_timeout, &ipc->lock, status) < 0)
     {
         ipc->last_cli_th = NULL;
-        return -ERTIMEDOUT;
+        return msg_tag_init4(0, 0, 0, -ERTIMEDOUT);
     }
     spinlock_set(&ipc->lock, status);
+
+    tmp_tag = th->msg.tag;
     ipc->last_cli_th = NULL;
-    return th->msg.len;
+    return tmp_tag;
 }
 /**
  * @brief 服务端用于回复
@@ -218,7 +221,7 @@ static int ipc_reply(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
     status = spinlock_lock(&ipc->lock);
     //!< 发送数据给svr_th
     ipc_data_copy(ipc->last_cli_th, th, tag); //!< 拷贝数据
-    ipc->last_cli_th->msg.len = tag.msg_buf_len;
+    ipc->last_cli_th->msg.tag = tag;
     thread_ready(ipc->last_cli_th, TRUE); //!< 直接唤醒接受者
     spinlock_set(&ipc->lock, status);
     return 0;
@@ -232,7 +235,7 @@ static int ipc_reply(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
  * @param f
  * @param tag
  */
-static void ipc_wait(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
+static msg_tag_t ipc_wait(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
 {
     assert(ipc->svr_th == th);
     umword_t status;
@@ -244,6 +247,7 @@ static void ipc_wait(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
         wake_up_th(ipc);
     }
     spinlock_set(&ipc->lock, status);
+    return th->msg.tag;
 }
 /**
  * @brief ipc的系统调用
@@ -276,7 +280,7 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         }
         else
         {
-            tag = msg_tag_init4(0, 0, 0, ipc_call(ipc, th, f, in_tag, ipc_timeout_create(f->r[1])));
+            tag = ipc_call(ipc, th, f, in_tag, ipc_timeout_create(f->r[1]));
         }
     }
     break;
@@ -288,8 +292,8 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         }
         else
         {
-            ipc_wait(ipc, th, f, in_tag);
-            tag = msg_tag_init4(0, 0, 0, 0);
+            tag = ipc_wait(ipc, th, f, in_tag);
+            f->r[1] = ipc->user_id;
         }
     }
     break;

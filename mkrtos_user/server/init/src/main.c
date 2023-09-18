@@ -13,6 +13,9 @@
 #include "u_app_loader.h"
 
 #include "test/test.h"
+#include "rpc.h"
+#include "namespace.h"
+
 extern void futex_init(void);
 int main(int argc, char *args[])
 {
@@ -31,11 +34,20 @@ int main(int argc, char *args[])
     mm_test();
     app_test();
 #endif
-    int ret = app_load("shell");
+    uenv_t env = *u_get_global_env();
+    obj_handler_t ipc_hd;
+
+    int ret = rpc_creaite_bind_ipc(THREAD_MAIN, NULL, &ipc_hd);
+    assert(ret >= 0);
+
+    env.ns_hd = ipc_hd;
+    ret = app_load("shell", &env);
     if (ret < 0)
     {
         printf("app load fail, 0x%x\n", ret);
     }
+    ns_pre_alloc_map_fd(thread_get_cur_ipc_msg());
+    rpc_loop(ipc_hd, ns_dispatch);
     task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); // 删除当前task，以及申请得所有对象
     printf("exit init.\n");
     return 0;

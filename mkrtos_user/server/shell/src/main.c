@@ -33,10 +33,17 @@ int main(int argc, char *args[])
     printf("argc:%d args[0]:%s\n", argc, args[0]);
     ulog_write_str(u_get_global_env()->log_hd, "MKRTOS:\n");
     malloc_test();
+    char *buf;
+    ipc_msg_t *ipc_msg;
+    thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
+    ipc_msg = (ipc_msg_t *)buf;
+    ipc_msg->msg_buf[0] = 0x112233;
+    ipc_msg->msg_buf[1] = 0x223344;
+    msg_tag_t tag = ipc_call(u_get_global_env()->ns_hd, msg_tag_init4(0, 2, 0, 0), ipc_timeout_create2(0, 0));
+    printf("msg %d\n", tag.msg_buf_len);
     irq_test();
     // ipc_wait(12, 0);
     // ipc_reply(12, msg_tag_init4(0, 0, 0, 0));
-    // char *buf;
     // umword_t len;
     // thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
     // printf(buf);

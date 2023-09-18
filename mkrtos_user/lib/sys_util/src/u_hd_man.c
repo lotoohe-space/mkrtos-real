@@ -11,6 +11,23 @@
 
 static umword_t bitmap_handler_alloc[HANDLER_MAX_NR / WORD_BYTES];
 static pthread_spinlock_t lock;
+
+void hanlder_pre_alloc(obj_handler_t inx)
+{
+    inx -= HANDLER_START_INX;
+    umword_t word_offset = inx / WORD_BITS;
+    umword_t bits_offset = inx % WORD_BITS;
+
+    if (word_offset >= (HANDLER_MAX_NR / WORD_BYTES))
+    {
+        return;
+    }
+
+    pthread_spin_lock(&lock);
+    MK_SET_BIT(bitmap_handler_alloc[word_offset], bits_offset);
+    pthread_spin_unlock(&lock);
+}
+
 obj_handler_t handler_alloc(void)
 {
     pthread_spin_lock(&lock);

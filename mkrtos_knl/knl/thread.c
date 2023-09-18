@@ -219,7 +219,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     case MSG_BUG_SET:
     {
         /*TODO:检查内存的可访问性*/
-        thread_set_msg_bug(tag_th, (void *)(f->r[1]), THREAD_MSG_BUG_LEN);
+        thread_set_msg_bug(tag_th, (void *)(f->r[1]));
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     case MSG_BUG_GET:

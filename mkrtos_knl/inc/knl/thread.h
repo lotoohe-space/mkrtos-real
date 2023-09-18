@@ -1,12 +1,12 @@
 /**
  * @file thread.h
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-14
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #pragma once
 
@@ -56,12 +56,9 @@ typedef struct sp_info
 
 typedef struct msg_buf
 {
-    void *msg;   //!< buf，长度是固定的 @see THREAD_MSG_BUG_LEN
-    uint8_t len; //!< 这里不是buf的大小，而是存储接收或者发送的长度
-    // thread_t *send_th; //!< 标志是谁发送的该数据
-    // thread_t *recv_th; //!< 标志数据的接收方是谁
-    // uhmword_t flags;   //!< 传输标志
-    // uint8_t ipc_ide;   //!< ipc类型
+    void *msg; //!< buf，长度是固定的 @see THREAD_MSG_BUG_LEN
+    // uint8_t len; //!< 这里不是buf的大小，而是存储接收或者发送的长度
+    msg_tag_t tag;
 } msg_buf_t;
 
 #define THREAD_MAIGC 0xdeadead //!< 用于栈溢出检测
@@ -79,10 +76,9 @@ typedef struct thread
     umword_t magic;           //!< maigc
 } thread_t;
 
-static inline void thread_set_msg_bug(thread_t *th, void *msg, uint16_t len)
+static inline void thread_set_msg_bug(thread_t *th, void *msg)
 {
     th->msg.msg = msg;
-    th->msg.len = len;
 }
 
 static inline enum thread_state thread_get_status(thread_t *th)

@@ -37,11 +37,10 @@ static umword_t app_stack_push(umword_t *stack, umword_t val)
  * @param name app的名字
  * @return int
  */
-int app_load(const char *name)
+int app_load(const char *name, uenv_t *cur_env)
 {
     msg_tag_t tag;
     sys_info_t sys_info;
-    uenv_t *cur_env = u_get_global_env();
 
     tag = sys_read_info(SYS_PROT, &sys_info);
     if (msg_tag_get_val(tag))
@@ -127,7 +126,11 @@ int app_load(const char *name)
     {
         goto end_del_obj;
     }
-
+    tag = task_map(hd_task, cur_env->ns_hd, cur_env->ns_hd, 0);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
     tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + app->i.ram_size));
     if (msg_tag_get_prot(tag) < 0)
     {
@@ -138,6 +141,7 @@ int app_load(const char *name)
     {
         goto end_del_obj;
     }
+
     // tag = ipc_bind(hd_ipc, hd_thread, 0);
     // if (msg_tag_get_prot(tag) < 0)
     // {
@@ -170,7 +174,7 @@ int app_load(const char *name)
     memcpy((char *)buf_bk + ARG_WORD_NR * 4 + 16, "PATH=/", strlen("PATH=/") + 1);
 
     // set user env.
-    uenv_t *uenv = (uenv_t *)((char *)buf_bk + 9 * 4 + 16 + 16);
+    uenv_t *uenv = (uenv_t *)((char *)buf_bk + ARG_WORD_NR * 4 + 16 + 16);
     uenv->log_hd = LOG_PROT;
     uenv->ns_hd = cur_env->ns_hd;
     uenv->rev1 = HANDLER_INVALID;

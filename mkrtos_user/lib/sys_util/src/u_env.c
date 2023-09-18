@@ -19,4 +19,7 @@ void u_env_default_init(void)
 void u_env_init(void *in_env)
 {
     env = *((uenv_t *)in_env);
+    hanlder_pre_alloc(env.log_hd);
+    hanlder_pre_alloc(env.ns_hd);
+    /*TODO:*/
 }
