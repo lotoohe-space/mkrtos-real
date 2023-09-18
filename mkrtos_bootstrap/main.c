@@ -1,6 +1,6 @@
 
 
-#include <type.h>
+#include <types.h>
 #include <stm32f2xx.h>
 
 //! 内核镜像的开始地址
