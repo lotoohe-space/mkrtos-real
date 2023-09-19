@@ -23,6 +23,14 @@ namespace_t;
 
 static namespace_t ns;
 
+void ns_init(void)
+{
+    for (int i = 0; i < NAMESAPCE_NR; i++)
+    {
+        ns.ne_list[i].hd = HANDLER_INVALID;
+    }
+}
+
 static int ns_alloc(const char *path, obj_handler_t hd)
 {
     for (int i = 0; i < NAMESAPCE_NR; i++)
@@ -57,7 +65,7 @@ int ns_register(const char *path, obj_handler_t hd)
     {
         return -1;
     }
-    printf("register svr, name is %d, hd is %d\n", path, hd);
+    printf("register svr, name is %s, hd is %d\n", path, hd);
     return 0;
 }
 /**
@@ -111,9 +119,9 @@ msg_tag_t ns_dispatch(ipc_msg_t *msg)
             break;
         }
         ((char *)&(msg->msg_buf[2]))[len] = 0;
-        ns_register((char*)msg->msg_buf[2], pre_alloc_hd);
+        int ret = ns_register((char *)(&msg->msg_buf[2]), pre_alloc_hd);
         ns_pre_alloc_map_fd(msg);
-        tag = msg_tag_init4(0, 0, 0, 0);
+        tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
     case OP_QUERY:

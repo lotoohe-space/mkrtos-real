@@ -46,6 +46,7 @@ int main(int argc, char *args[])
     {
         printf("app load fail, 0x%x\n", ret);
     }
+    ns_init();
     ns_pre_alloc_map_fd(thread_get_cur_ipc_msg());
     rpc_loop(ipc_hd, ns_dispatch);
     task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); // 删除当前task，以及申请得所有对象
