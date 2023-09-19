@@ -31,7 +31,7 @@ add_dependencies(path_manager.elf
 muslc
 )
 set_target_properties(path_manager.elf PROPERTIES LINK_FLAGS
-"-T ${CMAKE_CURRENT_SOURCE_DIR}/link.lds -pie "
+"-T ${CMAKE_CURRENT_SOURCE_DIR}/link.lds -pie --gc-section "
 )
 add_custom_target(
     path_manager_dump ALL
