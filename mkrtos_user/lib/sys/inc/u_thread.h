@@ -1,7 +1,7 @@
 #pragma once
 
 #include "u_types.h"
-
+#include "u_prot.h"
 msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg);
 msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len);
 msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t ram, umword_t cp_stack);

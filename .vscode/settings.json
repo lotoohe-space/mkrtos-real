@@ -134,7 +134,9 @@
         "irq.h": "c",
         "irq_sender.h": "c",
         "u_irq_sender.h": "c",
-        "u_env.h": "c"
+        "u_env.h": "c",
+        "stddef.h": "c",
+        "u_rpc.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

@@ -179,7 +179,7 @@ __check:
     {
         if (add_wait_unlock(ipc, &ipc->wait_send, th, timeout.send_timeout, &ipc->lock, status) < 0)
         {
-            return msg_tag_init4(0, 0, 0, -EWTIMEDOUT);
+            return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, -EWTIMEDOUT);
         }
         goto __check;
     }
@@ -189,7 +189,7 @@ __check:
     {
         //!< 拷贝失败
         spinlock_set(&ipc->lock, status);
-        return msg_tag_init4(0, 0, 0, ret);
+        return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, ret);
     }
     ipc->svr_th->msg.tag = tag;
     thread_ready(ipc->svr_th, TRUE); //!< 直接唤醒接受者
@@ -198,7 +198,7 @@ __check:
     if (add_wait_unlock(ipc, &ipc->recv_send, th, timeout.recv_timeout, &ipc->lock, status) < 0)
     {
         ipc->last_cli_th = NULL;
-        return msg_tag_init4(0, 0, 0, -ERTIMEDOUT);
+        return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, -ERTIMEDOUT);
     }
     spinlock_set(&ipc->lock, status);
 

@@ -8,6 +8,7 @@ static MKFS_PARM defopt = {FM_ANY, 0, 0, 0};
 int main(int args, char *argv[])
 {
     FRESULT res = f_mount(&fs, "0:", 1);
+
     if (res != FR_OK)
     {
         res = f_mkfs("0:", &defopt, buff, 512); // 第三个参数可以设置成NULL，默认使用heap memory

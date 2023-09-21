@@ -26,6 +26,7 @@
 #define FACTORY_FUNC_MAX (IRQ_PROT + 1)
 #define FACTORY_PORT_END FACTORY_FUNC_MAX
 
+#define MSG_TAG_KNL_ERR 0x8
 typedef struct msg_tag
 {
     union

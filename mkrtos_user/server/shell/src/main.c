@@ -10,6 +10,7 @@
 #include "u_hd_man.h"
 #include "u_ns.h"
 #include "test.h"
+#include "u_rpc.h"
 #include <assert.h>
 #include <stdio.h>
 #include <malloc.h>
@@ -53,6 +54,7 @@ int main(int argc, char *args[])
     malloc_test();
     irq_test();
 #endif
+    rpc_test();
     ns_test();
     task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS));
     ulog_write_str(u_get_global_env()->log_hd, "Error.\n");

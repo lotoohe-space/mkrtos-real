@@ -14,12 +14,15 @@
 #define THREAD_MAIN THREAD_PROT
 #define TASK_THIS TASK_PROT
 
+
+#define MSG_TAG_KNL_ERR 0x8
+
 typedef union msg_tag
 {
     umword_t raw;
     struct
     {
-        umword_t flags : 4;
+        umword_t flags : 4; // 3bit:代表错误由内核报告
         umword_t msg_buf_len : 5;
         umword_t map_buf_len : 2;
         umword_t prot : WORD_BITS - 12;
@@ -28,6 +31,8 @@ typedef union msg_tag
 
 #define msg_tag_init(r) \
     ((msg_tag_t){.raw = (r)})
+
+#define msg_tag_is_knl_err(tag) (!!((tag).flags & MSG_TAG_KNL_ERR)) //!< 内核错误
 
 #define msg_tag_init4(fg, msg_words, buf_words, p) ((msg_tag_t){ \
     .flags = (fg),                                               \
