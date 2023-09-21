@@ -1,5 +1,5 @@
     .syntax unified
-    .section .first, #execinstr
+    .section .first
     
     .globl reloc
     .globl data_offset

@@ -25,7 +25,7 @@ set(CMAKE_C_FLAGS "-mcpu=cortex-m3 -mthumb -O0 -g -lc -lrdimon -mfloat-abi=soft 
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
 --gc-sections -fno-stack-protector \
 " CACHE STRING "" FORCE)
-
+message(${CMAKE_C_FLAGS})
 set(CMAKE_CXX_FLAGS "-mcpu=cortex-m3 -mthumb -mno-thumb-interwork \
 -mfix-cortex-m3-ldrd -O0 -g -std=c++11 \
 -fmessage-length=0 -Xlinker --print-map -Wall -W -fno-stack-protector -g \ 

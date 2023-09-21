@@ -8,11 +8,13 @@
 #include "u_ipc.h"
 #include "u_env.h"
 #include "u_hd_man.h"
+#include "u_ns.h"
 #include "test.h"
 #include <assert.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
+
 void malloc_test(void)
 {
     void *mem = malloc(1024);
@@ -30,24 +32,18 @@ void malloc_test(void)
 }
 void ns_test(void)
 {
-    char *buf;
-    ipc_msg_t *ipc_msg;
+    int ret;
     obj_handler_t tmp_ipc_hd;
 
     tmp_ipc_hd = handler_alloc();
     assert(tmp_ipc_hd != HANDLER_INVALID);
     msg_tag_t tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(0, 0, tmp_ipc_hd));
     assert(msg_tag_get_val(tag) >= 0);
-
-    thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
-    ipc_msg = (ipc_msg_t *)buf;
-    ipc_msg->msg_buf[0] = 0;
-    ipc_msg->msg_buf[1] = strlen("shell") + 1;
-    ipc_msg->map_buf[0] = vpage_create_raw3(0, 0, tmp_ipc_hd).raw;
-    strcpy((char *)(&ipc_msg->msg_buf[2]), "shell");
-    tag = ipc_call(u_get_global_env()->ns_hd, msg_tag_init4(0, 2 + ROUND_UP(strlen("shell"), WORD_BYTES), 1, 0), ipc_timeout_create2(0, 0));
-    printf("msg %d\n", tag.msg_buf_len);
-    handler_free_umap(tmp_ipc_hd);
+    ret = cli_ns_register("shell", tmp_ipc_hd);
+    assert(ret >= 0);
+    ret = cli_ns_query("shell", &tmp_ipc_hd);
+    assert(ret >= 0);
+    
 }
 int main(int argc, char *args[])
 {

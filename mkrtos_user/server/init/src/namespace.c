@@ -11,13 +11,13 @@
 
 typedef struct namespace_entry
 {
-    char path[NAMESPACE_PATH_LEN];
-    obj_handler_t hd;
+    char path[NAMESPACE_PATH_LEN]; //!< 服务的路径名
+    obj_handler_t hd;              //!< 服务的fd
 } namespace_entry_t;
 
 typedef struct namespace
 {
-    namespace_entry_t ne_list[NAMESAPCE_NR];
+    namespace_entry_t ne_list[NAMESAPCE_NR]; //!< 服务列表
 }
 namespace_t;
 
@@ -79,7 +79,7 @@ int ns_query(const char *path, obj_handler_t *hd)
 {
     for (int i = 0; i < NAMESAPCE_NR; i++)
     {
-        if (ns.ne_list[i].hd == HANDLER_INVALID)
+        if (ns.ne_list[i].hd != HANDLER_INVALID)
         {
             if (strncmp(ns.ne_list[i].path, path, NAMESPACE_PATH_LEN) == 0)
             {
@@ -90,7 +90,7 @@ int ns_query(const char *path, obj_handler_t *hd)
     }
     return -1;
 }
-obj_handler_t pre_alloc_hd = HANDLER_INVALID;
+obj_handler_t pre_alloc_hd = HANDLER_INVALID; //!< 预备一个可用的fd
 int ns_pre_alloc_map_fd(ipc_msg_t *msg)
 {
     obj_handler_t hd = handler_alloc();
@@ -110,7 +110,7 @@ msg_tag_t ns_dispatch(ipc_msg_t *msg)
 
     switch (msg->msg_buf[0])
     {
-    case OP_REGISTER:
+    case OP_REGISTER: //!< 服务注册
     {
         size_t len = msg->msg_buf[1];
         if (len > NAMESPACE_PATH_LEN)
@@ -124,9 +124,24 @@ msg_tag_t ns_dispatch(ipc_msg_t *msg)
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
-    case OP_QUERY:
-        tag = msg_tag_init4(0, 0, 0, 0);
-        break;
+    case OP_QUERY: //!< 服务申请
+    {
+        obj_handler_t hd;
+        int ret = ns_query(((char *)&(msg->msg_buf[2])), &hd);
+        if (ret < 0)
+        {
+            tag = msg_tag_init4(0, 0, 0, ret);
+        }
+        else
+        {
+            size_t len = msg->msg_buf[1];
+
+            msg->map_buf[0] = hd;
+            printf("query..\n");
+            tag = msg_tag_init4(0, 0, 1, ret);
+        }
+    }
+    break;
     default:
         tag = msg_tag_init4(0, 0, 0, -ENOSYS);
         break;

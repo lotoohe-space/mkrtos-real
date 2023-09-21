@@ -35,7 +35,7 @@ add_dependencies(
 )
 set_target_properties(
     fatfs.elf PROPERTIES LINK_FLAGS
-    "-T ${CMAKE_CURRENT_SOURCE_DIR}/link.lds -pie --gc-section "
+    "-T ${CMAKE_CURRENT_SOURCE_DIR}/link.lds -pie --gc-section  -no-dynamic-linker --no-warn-rwx-segments"
 )
 add_custom_target(
     fatfs_dump ALL

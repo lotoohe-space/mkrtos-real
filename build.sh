@@ -1,6 +1,6 @@
 #!/bin/bash
-export TOOLCHAIN=/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/bin/
-export TOOLCHAIN_LIB=/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv7-m
+export TOOLCHAIN=/opt/homebrew/bin/
+export TOOLCHAIN_LIB=/opt/homebrew/lib/gcc/arm-none-eabi/13.2.0/thumb
 export KNL=mkrtos
 export KEN_OFFSET=0x2000
 export INIT_OFFSET=0x10000

@@ -38,7 +38,7 @@ add_dependencies(shell.elf
 muslc
 )
 set_target_properties(shell.elf PROPERTIES LINK_FLAGS
-"-T ${CMAKE_CURRENT_SOURCE_DIR}/link.lds -pie --gc-section "
+"-T ${CMAKE_CURRENT_SOURCE_DIR}/link.lds -pie --gc-section -no-dynamic-linker --no-warn-rwx-segments"
 )
 add_custom_target(
     shell_dump ALL

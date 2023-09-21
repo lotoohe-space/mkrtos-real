@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 set(CMAKE_C_COMPILER_WORKS TRUE)
 set(CMAKE_CXX_COMPILER_WORKS TRUE)
+SET(CMAKE_SYSTEM_NAME Linux) 
+set(CMAKE_SYSTEM_PROCESSOR arm)
 include(setting.cmake)
 enable_language(ASM C CXX)
 project(mkrtos)
