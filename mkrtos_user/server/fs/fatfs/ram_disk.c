@@ -1,7 +1,7 @@
 
 #include "u_types.h"
 #include "ram_disk.h"
-
+#include <string.h>
 #define RAM_DISK_SECTOR_NR 512
 
 static uint8_t ram_disk[RAM_DISK_SECTOR_NR * 512];

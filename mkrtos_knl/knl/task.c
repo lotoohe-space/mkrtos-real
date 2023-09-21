@@ -66,10 +66,14 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     break;
     case TASK_OBJ_MAP:
     {
+        kobj_del_list_t del;
+
+        kobj_del_list_init(&del);
         int ret = obj_map_src_dst(&tag_task->obj_space, &cur_task->obj_space,
                                   f->r[2], f->r[1],
-                                  tag_task->lim, f->r[3]);
+                                  tag_task->lim, f->r[3], &del);
 
+        kobj_del_list_to_do(&del);
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;

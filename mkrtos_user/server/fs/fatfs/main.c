@@ -1,5 +1,6 @@
 #include <ff.h>
 #include "u_log.h"
+#include <stdio.h>
 static FATFS fs;
 static BYTE buff[512];
 static MKFS_PARM defopt = {FM_ANY, 0, 0, 0};

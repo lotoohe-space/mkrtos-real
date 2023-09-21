@@ -16,9 +16,20 @@ bool_t obj_map_root(kobject_t *kobj, obj_space_t *obj_space, ram_limit_t *ram, v
     slist_add(&kobj->mappable.node, &map->node);
     return TRUE;
 }
+/**
+ * @brief 从源映射到目的，如果目的中已经存在，则先解除目的映射然后在影视
+ * 
+ * @param dst_space 
+ * @param src_space 
+ * @param dst_inx 
+ * @param src_inx 
+ * @param ram 
+ * @param del_attrs 
+ * @return int 
+ */
 int obj_map_src_dst(obj_space_t *dst_space, obj_space_t *src_space,
                     obj_handler_t dst_inx, obj_handler_t src_inx,
-                    ram_limit_t *ram, uint8_t del_attrs)
+                    ram_limit_t *ram, uint8_t del_attrs, kobj_del_list_t *del_list)
 {
     obj_map_entry_t *entry_obj =
         obj_space_lookup(src_space, src_inx);
@@ -30,6 +41,11 @@ int obj_map_src_dst(obj_space_t *dst_space, obj_space_t *src_space,
     {
         return -ENOENT;
     }
+
+    if (obj_space_lookup_kobj(dst_space, dst_inx)) { //!< 已经存在则解除注释
+        obj_unmap(dst_space, vpage_create3(0, 0, dst_inx), del_list);
+    }
+
     return obj_map(dst_space, dst_inx, obj_map_entry_kobj_get(entry_obj),
                    ram, obj_map_entry_get_attr(entry_obj) & (~(del_attrs & 0x3UL)));
 }

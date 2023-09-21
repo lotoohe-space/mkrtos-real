@@ -54,7 +54,12 @@ int app_load(const char *name, uenv_t *cur_env)
         return -ENOENT;
     }
 
-    app_info_t *app = (app_info_t *)addr;
+    app_info_t *app = app_info_get((void *)addr);
+
+    if (app == NULL) {
+        printf("app format is error.\n");
+        return -1;
+    }
     printf("app addr is 0x%x\n", app);
     umword_t ram_base;
     obj_handler_t hd_task = handler_alloc();

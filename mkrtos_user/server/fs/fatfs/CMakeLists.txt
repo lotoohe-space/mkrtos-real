@@ -9,8 +9,10 @@ add_executable(
 target_link_libraries(
     fatfs.elf
     PUBLIC
+    start
     muslc
     sys
+    sys_util
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -31,7 +33,10 @@ target_include_directories(
 )
 add_dependencies(
     fatfs.elf
+    start
     muslc
+    sys
+    sys_util
 )
 set_target_properties(
     fatfs.elf PROPERTIES LINK_FLAGS

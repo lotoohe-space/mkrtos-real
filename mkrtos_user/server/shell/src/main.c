@@ -43,7 +43,7 @@ void ns_test(void)
     assert(ret >= 0);
     ret = cli_ns_query("shell", &tmp_ipc_hd);
     assert(ret >= 0);
-    
+    ulog_write_str(u_get_global_env()->log_hd, "ns test success.\n");
 }
 int main(int argc, char *args[])
 {

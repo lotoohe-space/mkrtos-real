@@ -136,7 +136,7 @@ msg_tag_t ns_dispatch(ipc_msg_t *msg)
         {
             size_t len = msg->msg_buf[1];
 
-            msg->map_buf[0] = hd;
+            msg->map_buf[0] = vpage_create_raw3(0, 0, hd).raw;
             printf("query..\n");
             tag = msg_tag_init4(0, 0, 1, ret);
         }

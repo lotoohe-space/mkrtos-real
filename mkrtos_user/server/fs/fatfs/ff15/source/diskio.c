@@ -10,7 +10,7 @@
 #include "ff.h"		/* Obtains integer types */
 #include "diskio.h" /* Declarations of disk functions */
 #include "ram_disk.h"
-
+#include <stdio.h>
 /* Definitions of physical drive number for each drive */
 #define DEV_RAM 0 /* Example: Map Ramdisk to physical drive 0 */
 #define DEV_MMC 1 /* Example: Map MMC/SD card to physical drive 1 */
@@ -107,7 +107,7 @@ DRESULT disk_write(
 	case DEV_RAM:
 		// translate the arguments here
 
-		if (ram_disk_write(buff, sector, count) < 0) {
+		if (ram_disk_write((uint8_t *)buff, sector, count) < 0) {
 			return RES_ERROR;
 		}
 		return 0;

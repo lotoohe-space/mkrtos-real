@@ -121,8 +121,8 @@ static void wake_up_th(ipc_t *ipc)
 
 static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
 {
-    void *src = dst_th->msg.msg;
-    void *dst = src_th->msg.msg;
+    void *src = src_th->msg.msg;
+    void *dst = dst_th->msg.msg;
     ipc_msg_t *src_ipc;
     ipc_msg_t *dst_ipc;
 
@@ -131,7 +131,10 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
 
     if (tag.map_buf_len > 0)
     {
+        kobj_del_list_t del;
         int map_len = tag.map_buf_len;
+
+        kobj_del_list_init(&del);
         task_t *src_tk = thread_get_bind_task(src_th);
         task_t *dst_tk = thread_get_bind_task(dst_th);
         for (int i = 0; i < map_len; i++)
@@ -143,13 +146,14 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
                                       vpage_get_obj_handler(dst_page),
                                       vpage_get_obj_handler(src_page),
                                       dst_tk->lim,
-                                      vpage_get_attrs(src_page));
+                                      vpage_get_attrs(src_page), &del);
 
             if (ret < 0)
             {
                 return ret;
             }
         }
+        kobj_del_list_to_do(&del);
     }
     memcpy(dst_ipc->msg_buf, src_ipc->msg_buf, MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
     return 0;
@@ -180,7 +184,7 @@ __check:
         goto __check;
     }
     //!< 发送数据给svr_th
-    ret = ipc_data_copy(th, ipc->svr_th, tag); //!< 拷贝数据
+    ret = ipc_data_copy(ipc->svr_th, th, tag); //!< 拷贝数据
     if (ret < 0)
     {
         //!< 拷贝失败
@@ -220,7 +224,12 @@ static int ipc_reply(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
     assert(th == ipc->svr_th); // 服务端才能回复
     status = spinlock_lock(&ipc->lock);
     //!< 发送数据给svr_th
-    ipc_data_copy(ipc->last_cli_th, th, tag); //!< 拷贝数据
+    int ret = ipc_data_copy(ipc->last_cli_th, th, tag); //!< 拷贝数据
+
+    if (ret < 0) {
+        spinlock_set(&ipc->lock, status);;
+        return ret;
+    }
     ipc->last_cli_th->msg.tag = tag;
     thread_ready(ipc->last_cli_th, TRUE); //!< 直接唤醒接受者
     spinlock_set(&ipc->lock, status);
