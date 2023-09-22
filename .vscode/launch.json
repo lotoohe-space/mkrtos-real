@@ -10,7 +10,8 @@
             "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,
-            "miDebuggerPath": "/opt/homebrew/bin/arm-none-eabi-gdb",
+            // "miDebuggerPath": "/opt/homebrew/bin/arm-none-eabi-gdb",
+            "miDebuggerPath": "/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-gdb",
             "miDebuggerServerAddress": "127.0.0.1:3333",
             "MIMode": "gdb",
             "setupCommands": [
