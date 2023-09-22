@@ -127,13 +127,13 @@ RPC_TYPE_DEF_ALL(int) //!< 定义所有的
 RPC_ARRAY_TYPE_DEF(uint32_t, uint8_t, 32);
 RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_array_uint32_t_uint8_t_32_t, int)
 {
-    if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) >= IPC_MSG_SIZE)
+    if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) > IPC_MSG_SIZE)
     {
         return -ETOLONG;
     }
     len = rpc_align(len, __alignof(d->len));
     *((typeof(d->len) *)(&buf[len])) = d->len;
-    if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) >= IPC_MSG_SIZE)
+    if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > IPC_MSG_SIZE)
     {
         return -ETOLONG;
     }
@@ -148,13 +148,13 @@ RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_array_uint32_t_uint8_t_32_t, int)
 }
 RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_array_uint32_t_uint8_t_32_t, int)
 {
-    if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) >= max)
+    if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) > max)
     {
         return -ETOLONG;
     }
     len = rpc_align(len, __alignof(d->len));
     d->len = *((typeof(d->len) *)(&buf[len]));
-    if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) >= max)
+    if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > max)
     {
         return -ETOLONG;
     }
@@ -186,7 +186,7 @@ RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_ref_array_uint32_t_uint8_t_32_t, int)
     }
     len = rpc_align(len, __alignof(d->len));
     *((typeof(d->len) *)(&buf[len])) = d->len;
-    if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) >= IPC_MSG_SIZE)
+    if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > IPC_MSG_SIZE)
     {
         return -ETOLONG;
     }
@@ -201,7 +201,7 @@ RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_ref_array_uint32_t_uint8_t_32_t, int)
 }
 RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_ref_array_uint32_t_uint8_t_32_t, int)
 {
-    if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) >= max)
+    if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) > max)
     {
         return -ETOLONG;
     }
@@ -226,7 +226,7 @@ RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_ref_array_uint32_t_uint8_t_32_t, int)
 RPC_TYPE_DEF(obj_handler_t);
 RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
 {
-    if (sizeof(d->data) + rpc_align(len, __alignof(d->data)) >= IPC_MSG_SIZE)
+    if (sizeof(d->data) + rpc_align(len, __alignof(d->data)) > IPC_MSG_SIZE)
     {
         return -ETOLONG;
     }
@@ -240,7 +240,13 @@ RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
 }
 RPC_SVR_MSG_TO_BUF_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
 {
-    return len;
+    if (sizeof(d->data) + rpc_align(len, __alignof(d->data)) > IPC_MSG_SIZE)
+    {
+        return -ETOLONG;
+    }
+    len = rpc_align(len, __alignof(d->data));
+    *((umword_t *)(buf + len)) = vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, d->data).raw;
+    return sizeof(d->data) + rpc_align(len, __alignof(d->data));
 }
 RPC_SVR_BUF_TO_MSG_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
 {
@@ -343,6 +349,23 @@ RPC_SVR_BUF_TO_MSG_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
                 off = ret;                                                                \
             }                                                                             \
         }                                                                                 \
+    } while (0)
+
+#define PRC_SVR_FILL_MAP_BUF(rpc_type, var_type, var, dir, buf, off)                     \
+    do                                                                               \
+    {                                                                                \
+        if (rpc_type == RPC_TYPE_BUF)                                                \
+        {                                                                            \
+            if (dir == RPC_DIR_OUT || dir == RPC_DIR_INOUT)                           \
+            {                                                                        \
+                int ret = rpc_svr_msg_to_buf_##var_type(var, (uint8_t *)(buf), off); \
+                if (ret < 0)                                                         \
+                {                                                                    \
+                    return msg_tag_init4(0, 0, 0, ret);                              \
+                }                                                                    \
+                off = ret;                                                           \
+            }                                                                        \
+        }                                                                            \
     } while (0)
 
 #define RPC_GENERATION_CALL1(struct_type, op, func_name, type0, dir0, rpc_type0, name0)                                      \
