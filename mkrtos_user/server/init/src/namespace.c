@@ -6,32 +6,19 @@
 #include <stdio.h>
 #include "u_hd_man.h"
 #include "u_ipc.h"
-#define NAMESPACE_PATH_LEN 32
-#define NAMESAPCE_NR 32
+#include "ns_types.h"
+#include "ns_svr.h"
+#include "namespace.h"
+static ns_t ns;
 
-typedef struct namespace_entry
+void namespace_init(obj_handler_t ipc)
 {
-    char path[NAMESPACE_PATH_LEN]; //!< 服务的路径名
-    obj_handler_t hd;              //!< 服务的fd
-} namespace_entry_t;
-
-typedef struct namespace
-{
-    namespace_entry_t ne_list[NAMESAPCE_NR]; //!< 服务列表
-}
-namespace_t;
-
-static namespace_t ns;
-
-void ns_init(void)
-{
-    for (int i = 0; i < NAMESAPCE_NR; i++)
-    {
-        ns.ne_list[i].hd = HANDLER_INVALID;
-    }
+    ns_init(&ns);
+    namespace_pre_alloc_map_fd();
+    ns.ipc_hd = ipc;
 }
 
-static int ns_alloc(const char *path, obj_handler_t hd)
+static int namespace_alloc(const char *path, obj_handler_t hd)
 {
     for (int i = 0; i < NAMESAPCE_NR; i++)
     {
@@ -59,13 +46,14 @@ enum ns_op
  * @param hd 注册的hd
  * @return int
  */
-int ns_register(const char *path, obj_handler_t hd)
+int namespace_register(const char *path, obj_handler_t hd)
 {
-    if (ns_alloc(path, hd) < 0)
+    if (namespace_alloc(path, hd) < 0)
     {
         return -1;
     }
     printf("register svr, name is %s, hd is %d\n", path, hd);
+    namespace_pre_alloc_map_fd();
     return 0;
 }
 /**
@@ -75,7 +63,7 @@ int ns_register(const char *path, obj_handler_t hd)
  * @param hd
  * @return int
  */
-int ns_query(const char *path, obj_handler_t *hd)
+int namespace_query(const char *path, obj_handler_t *hd)
 {
     for (int i = 0; i < NAMESAPCE_NR; i++)
     {
@@ -90,61 +78,68 @@ int ns_query(const char *path, obj_handler_t *hd)
     }
     return -1;
 }
-obj_handler_t pre_alloc_hd = HANDLER_INVALID; //!< 预备一个可用的fd
-int ns_pre_alloc_map_fd(ipc_msg_t *msg)
+int namespace_pre_alloc_map_fd(void)
 {
+    ipc_msg_t *msg;
     obj_handler_t hd = handler_alloc();
 
     if (hd == HANDLER_INVALID)
     {
         return -1;
     }
+    thread_msg_buf_get(-1, (umword_t *)(&msg), NULL);
     msg->map_buf[0] = vpage_create_raw3(0, 0, hd).raw;
-    pre_alloc_hd = hd;
+    ns.hd = hd;
     return 0;
 }
-msg_tag_t ns_dispatch(ipc_msg_t *msg)
+
+void namespace_loop(void)
 {
-    msg_tag_t tag = msg_tag_init4(0, 0, 0, -ENOSYS);
-    assert(msg);
-
-    switch (msg->msg_buf[0])
-    {
-    case OP_REGISTER: //!< 服务注册
-    {
-        size_t len = msg->msg_buf[1];
-        if (len > NAMESPACE_PATH_LEN)
-        {
-            tag = msg_tag_init4(0, 0, 0, -EINVAL);
-            break;
-        }
-        ((char *)&(msg->msg_buf[2]))[len] = 0;
-        int ret = ns_register((char *)(&msg->msg_buf[2]), pre_alloc_hd);
-        ns_pre_alloc_map_fd(msg);
-        tag = msg_tag_init4(0, 0, 0, ret);
-    }
-    break;
-    case OP_QUERY: //!< 服务申请
-    {
-        obj_handler_t hd;
-        int ret = ns_query(((char *)&(msg->msg_buf[2])), &hd);
-        if (ret < 0)
-        {
-            tag = msg_tag_init4(0, 0, 0, ret);
-        }
-        else
-        {
-            size_t len = msg->msg_buf[1];
-
-            msg->map_buf[0] = vpage_create_raw3(0, 0, hd).raw;
-            printf("query..\n");
-            tag = msg_tag_init4(0, 0, 1, ret);
-        }
-    }
-    break;
-    default:
-        tag = msg_tag_init4(0, 0, 0, -ENOSYS);
-        break;
-    }
-    return tag;
+    rpc_loop(ns.ipc_hd, &ns.svr);
 }
+
+// msg_tag_t ns_dispatch(ipc_msg_t *msg)
+// {
+//     msg_tag_t tag = msg_tag_init4(0, 0, 0, -ENOSYS);
+//     assert(msg);
+
+//     switch (msg->msg_buf[0])
+//     {
+//     case OP_REGISTER: //!< 服务注册
+//     {
+//         size_t len = msg->msg_buf[1];
+//         if (len > NAMESPACE_PATH_LEN)
+//         {
+//             tag = msg_tag_init4(0, 0, 0, -EINVAL);
+//             break;
+//         }
+//         ((char *)&(msg->msg_buf[2]))[len] = 0;
+//         int ret = ns_register((char *)(&msg->msg_buf[2]), pre_alloc_hd);
+//         ns_pre_alloc_map_fd(msg);
+//         tag = msg_tag_init4(0, 0, 0, ret);
+//     }
+//     break;
+//     case OP_QUERY: //!< 服务申请
+//     {
+//         obj_handler_t hd;
+//         int ret = ns_query(((char *)&(msg->msg_buf[2])), &hd);
+//         if (ret < 0)
+//         {
+//             tag = msg_tag_init4(0, 0, 0, ret);
+//         }
+//         else
+//         {
+//             size_t len = msg->msg_buf[1];
+
+//             msg->map_buf[0] = vpage_create_raw3(0, 0, hd).raw;
+//             printf("query..\n");
+//             tag = msg_tag_init4(0, 0, 1, ret);
+//         }
+//     }
+//     break;
+//     default:
+//         tag = msg_tag_init4(0, 0, 0, -ENOSYS);
+//         break;
+//     }
+//     return tag;
+// }

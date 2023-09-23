@@ -136,7 +136,15 @@
         "u_irq_sender.h": "c",
         "u_env.h": "c",
         "stddef.h": "c",
-        "u_rpc.h": "c"
+        "u_rpc.h": "c",
+        "namespace.h": "c",
+        "u_rpc_svr.h": "c",
+        "rpc_prot.h": "c",
+        "ns_types.h": "c",
+        "ns_svr.h": "c",
+        "u_rpc_2.h": "c",
+        "ns_cli.h": "c",
+        "fs_cli.h": "c"
     },
     "cortex-debug.showRTOS": false,
 }

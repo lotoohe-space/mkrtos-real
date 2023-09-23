@@ -1,6 +1,11 @@
-#include <ff.h>
 #include "u_log.h"
+#include "ns_cli.h"
+#include "u_rpc_svr.h"
+#include "u_prot.h"
+#include "fs_rpc.h"
+#include <ff.h>
 #include <stdio.h>
+#include <assert.h>
 static FATFS fs;
 static BYTE buff[512];
 static MKFS_PARM defopt = {FM_ANY, 0, 0, 0};
@@ -30,6 +35,13 @@ int main(int args, char *argv[])
         }
     }
     printf("mount success\n");
+    obj_handler_t ipc_hd;
+    int ret = rpc_creaite_bind_ipc(THREAD_MAIN, NULL, &ipc_hd);
+    assert(ret >= 0);
+    ns_register("fs", ipc_hd);
+
+    fs_svr_init(ipc_hd);
+    fs_svr_loop();
     while (1)
         ;
     return -1;

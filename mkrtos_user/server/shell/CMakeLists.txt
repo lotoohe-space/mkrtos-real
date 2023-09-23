@@ -15,6 +15,7 @@ target_link_libraries(shell.elf
     muslc
     sys
     sys_util
+    sys_svr
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -22,6 +23,7 @@ target_include_directories(
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic

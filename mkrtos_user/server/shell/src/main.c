@@ -11,6 +11,7 @@
 #include "u_ns.h"
 #include "test.h"
 #include "u_rpc.h"
+#include "ns_cli.h"
 #include <assert.h>
 #include <stdio.h>
 #include <malloc.h>
@@ -33,6 +34,7 @@ void malloc_test(void)
 }
 void ns_test(void)
 {
+#if 0
     int ret;
     obj_handler_t tmp_ipc_hd;
 
@@ -45,6 +47,24 @@ void ns_test(void)
     ret = cli_ns_query("shell", &tmp_ipc_hd);
     assert(ret >= 0);
     ulog_write_str(u_get_global_env()->log_hd, "ns test success.\n");
+#endif
+    obj_handler_t tmp_ipc_hd;
+
+    tmp_ipc_hd = handler_alloc();
+    assert(tmp_ipc_hd != HANDLER_INVALID);
+    msg_tag_t tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(0, 0, tmp_ipc_hd));
+
+    assert(ns_register("shell", tmp_ipc_hd) >= 0);
+    obj_handler_t rcv_ipc_hd;
+
+    assert(ns_query("shell", &rcv_ipc_hd) >= 0);
+
+    handler_free_umap(rcv_ipc_hd);
+}
+#include "fs_cli.h"
+void fs_test(void)
+{
+    fs_open("/test", 0, 0);
 }
 int main(int argc, char *args[])
 {
@@ -56,6 +76,7 @@ int main(int argc, char *args[])
 #endif
     rpc_test();
     ns_test();
+    fs_test();
     task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS));
     ulog_write_str(u_get_global_env()->log_hd, "Error.\n");
     return 0;
