@@ -9,140 +9,139 @@ typedef struct test_svr
 
 static test_svr_t test;
 
-RPC_GENERATION_OP1(test_svr_t, 0, register, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, var0)
+#if 0
+RPC_GENERATION_OP1(test_svr_t, 0, register, rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0)
 {
     printf("var0 val is %d\n", var0->data);
+    var0->data = 0x112233;
     return 1;
 }
-// RPC_GENERATION_DISPATCH1(test_svr_t, 0, register, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, var0)
-msg_tag_t test_svr_t_register_dispatch(test_svr_t *obj, msg_tag_t tag, ipc_msg_t *ipc_msg)
+RPC_GENERATION_DISPATCH1(test_svr_t, 0, register, rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0)
+RPC_GENERATION_CALL1(test_svr_t, 0, register, rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0)
+#endif
+#if 0
+RPC_GENERATION_OP2(test_svr_t, 0, query,
+                   rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
+                   rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var1)
 {
-    rpc_int_t var0;
-    size_t op_val;
-    uint8_t *value = (uint8_t *)(ipc_msg->msg_buf);
-    int off = 0;
-    rpc_var_rpc_int_t_init(&var0);
-    op_val = *((typeof(0) *)value);
-    off += sizeof(typeof(0));
-    off = rpc_align(off, __alignof(typeof(0)));
-    do
-    {
-        if (1 == 1)
-        {
-            if (1 == 1 || 1 == 4)
-            {
-                int ret = rpc_svr_buf_to_msg_rpc_int_t(&var0, (uint8_t *)(value), off, tag.msg_buf_len * (sizeof(void *)));
-                if (ret < 0)
-                {
-                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
-                }
-                off = ret;
-            }
-        }
-    } while (0);
-    short ret_val = test_svr_t_register_op(obj, &var0);
-    if (ret_val < 0)
-    {
-        return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret_val)});
-    }
-    off = 0;
-    do
-    {
-        if (1 == 1)
-        {
-            if (1 == 2 || 1 == 4)
-            {
-                int ret = rpc_svr_msg_to_buf_rpc_int_t(&var0, (uint8_t *)(value), off);
-                if (ret < 0)
-                {
-                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
-                }
-                off = ret;
-            }
-        }
-    } while (0);
-    return ((msg_tag_t){.flags = (0), .msg_buf_len = ((((off) / ((sizeof(void *)))) + (((off) % ((sizeof(void *)))) ? 1 : 0))), .map_buf_len = (0), .prot = (ret_val)});
+    printf("var0 val is %d\n", var0->data);
+    printf("var1 val is %d\n", var1->data);
+    var0->data = 0x112233;
+    var1->data = 0x123456;
+    return 2;
 }
-// RPC_GENERATION_CALL1(test_svr_t, 0, register, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, var0)
-msg_tag_t test_svr_t_register_call(obj_handler_t hd, rpc_int_t *var0)
+
+RPC_GENERATION_DISPATCH2(test_svr_t, 0, query,
+                         rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
+                         rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var1)
+RPC_GENERATION_CALL2(test_svr_t, 0, query,
+                     rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
+                     rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var1)
+
+msg_tag_t dispatch_test(msg_tag_t tag, ipc_msg_t *msg)
 {
-    void *buf;
-    ipc_msg_t *msg_ipc;
-    thread_msg_buf_get(2, (umword_t *)(&buf), ((void *)0));
-    msg_ipc = (ipc_msg_t *)buf;
-    int off = 0;
-    int ret = -1;
-    int op_val = 0;
-    rpc_memcpy(msg_ipc->msg_buf, &op_val, sizeof(op_val));
-    off += rpc_align(sizeof(op_val), __alignof(0));
-    do
-    {
-        if (1 == 1)
-        {
-            if (1 == 1 || 1 == 4)
-            {
-                int ret = rpc_cli_msg_to_buf_rpc_int_t(var0, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off);
-                if (ret < 0)
-                {
-                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
-                }
-                off = ret;
-            }
-        }
-    } while (0);
-    do
-    {
-        if (1 == 2)
-        {
-            if (1 == 1 || 1 == 4)
-            {
-                int ret = rpc_cli_msg_to_buf_rpc_int_t(var0, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off);
-                if (ret < 0)
-                {
-                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
-                }
-                off = ret;
-            }
-        }
-    } while (0);
-    // msg_tag_t tag = ipc_call(hd, ((msg_tag_t){.flags = (0), .msg_buf_len = ((((off) / ((sizeof(void *)))) + (((off) % ((sizeof(void *)))) ? 1 : 0))), .map_buf_len = (0), .prot = (0)}), ipc_timeout_create2(0, 0));
-    msg_tag_t tag = test_svr_t_register_dispatch(&test, ((msg_tag_t){.flags = (0), .msg_buf_len = ((((off) / ((sizeof(void *)))) + (((off) % ((sizeof(void *)))) ? 1 : 0))), .map_buf_len = (0), .prot = (0)}), msg_ipc);
-
-    if (((int16_t)((tag).prot)) < 0)
-    {
-        return tag;
-    }
-    off = 0;
-    do
-    {
-        if (1 == 1)
-        {
-            if (1 == 2 || 1 == 4)
-            {
-                int ret = rpc_cli_buf_to_msg_rpc_int_t(var0, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off, tag.msg_buf_len * (sizeof(void *)));
-                if (ret < 0)
-                {
-                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
-                }
-                off = ret;
-            }
-        }
-    } while (0);
-    return tag;
+    tag = test_svr_t_query_dispatch(&test, tag, msg);
 }
-// msg_tag_t tag = test_svr_t_register_dispatch(&test, ((msg_tag_t){.flags = (0), .msg_buf_len = ((((off) / ((sizeof(void *)))) + (((off) % ((sizeof(void *)))) ? 1 : 0))), .map_buf_len = (0), .prot = (0)}), msg_ipc);
+#endif
 
-// RPC_GENERATION_CALL2(test_svr_t, 1, query,
-//                      rpc_ref_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, var0, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, var1)
+#if 0
+RPC_GENERATION_OP2(test_svr_t, 0, query,
+                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
+                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var1)
+{
+    printf("var0 val is %s\n", var0->data);
+    printf("var1 val is %s\n", var1->data);
+    strcpy(var0->data, "....");
+    var0->len = 5;
+    strcpy(var1->data, "____");
+    var1->len = 5;
+    return 2;
+}
 
+RPC_GENERATION_DISPATCH2(test_svr_t, 0, query,
+                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
+                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var1)
+
+RPC_GENERATION_CALL2(test_svr_t, 0, query,
+                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
+                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var1)
+
+msg_tag_t dispatch_test(msg_tag_t tag, ipc_msg_t *msg)
+{
+    tag = test_svr_t_query_dispatch(&test, tag, msg);
+}
+#endif
+#if 0
+RPC_GENERATION_OP2(test_svr_t, 0, query,
+                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
+                   rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
+{
+    printf("var0 val is %s\n", var0->data);
+    strcpy(var0->data, "....");
+    var0->len = 5;
+    return 2;
+}
+
+RPC_GENERATION_DISPATCH2(test_svr_t, 0, query,
+                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
+                         rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
+
+RPC_GENERATION_CALL2(test_svr_t, 0, query,
+                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
+                     rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
+
+msg_tag_t dispatch_test(msg_tag_t tag, ipc_msg_t *msg)
+{
+    tag = test_svr_t_query_dispatch(&test, tag, msg);
+}
+#endif
+RPC_GENERATION_OP2(test_svr_t, 0, query,
+                   rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_OUT, RPC_TYPE_BUF, var0,
+                   rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
+{
+    printf("dispath ok.\n");
+    var0->data = vpage_create_raw3(0, 0, 30).raw;
+    return 2;
+}
+
+RPC_GENERATION_DISPATCH2(test_svr_t, 0, query,
+                         rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_OUT, RPC_TYPE_BUF, var0,
+                         rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
+RPC_GENERATION_CALL2(test_svr_t, 0, query,
+                     rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_OUT, RPC_TYPE_BUF, var0,
+                     rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
+
+msg_tag_t dispatch_test(msg_tag_t tag, ipc_msg_t *msg)
+{
+    tag = test_svr_t_query_dispatch(&test, tag, msg);
+}
 void rpc_test(void)
 {
-    rpc_int_t var0 = {.data = 1};
-    msg_tag_t tag = test_svr_t_register_call(15, &var0);
-
-    rpc_ref_array_uint32_t_uint8_t_32_t str_tst = {
-        .data = "test",
-        .len = strlen("test") + 1};
-
-    // test_svr_t_query_call(15, &str_tst, &var0);
+    msg_tag_t tag;
+#if 0
+    rpc_int_t var0 = {.data = 456};
+    tag = test_svr_t_register_call(15, &var0);
+    printf("ret:%d, val is 0x%x\n", msg_tag_get_val(tag), var0.data);
+#endif
+#if 0
+    rpc_int_t var1 = {.data = 123};
+    tag = test_svr_t_query_call(15, &var0, &var1);
+    printf("ret:%d, val is 0x%x, val is 0x%x\n", msg_tag_get_val(tag), var0.data, var1.data);
+#endif
+#if 0
+    uint8_t data_cache[10] = "test";
+    uint8_t data_cache1[10] = "tttt";
+    rpc_ref_array_uint32_t_uint8_t_32_t var0 = {
+        .data = data_cache,
+        .len = strlen(data_cache) + 1};
+    rpc_ref_array_uint32_t_uint8_t_32_t var1 = {
+        .data = data_cache1,
+        .len = strlen(data_cache1) + 1};
+    tag = test_svr_t_query_call(15, &var0, &var1);
+    printf("ret:%d, val is %s, val is %s.\n", msg_tag_get_val(tag), var0.data, var1.data);
+#endif
+    rpc_obj_handler_t_t var0 = {.data = 0};
+    rpc_obj_handler_t_t var1 = {.data = 12};
+    tag = test_svr_t_query_call(15, &var0, &var1);
+    printf("ret:%d\n", msg_tag_get_val(tag));
 }
