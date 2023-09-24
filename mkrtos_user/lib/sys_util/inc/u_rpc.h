@@ -193,7 +193,8 @@ RPC_TYPE_DEF_ALL(int) //!< 定义所有的
     RPC_ARRAY_TYPE_DEF(len_type, data_type, length);                                               \
     RPC_SVR_MSG_TO_BUF_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)        \
     {                                                                                              \
-        if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) > IPC_MSG_SIZE)                  \
+        if (rpc_align(len, __alignof(d->len)) + d->len >                                           \
+            IPC_MSG_SIZE)                                                                          \
         {                                                                                          \
             return -ETOLONG;                                                                       \
         }                                                                                          \
@@ -214,7 +215,8 @@ RPC_TYPE_DEF_ALL(int) //!< 定义所有的
     }                                                                                              \
     RPC_SVR_BUF_TO_MSG_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)        \
     {                                                                                              \
-        if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) > max)                           \
+        if (rpc_align(len, __alignof(d->len)) + d->len >                                           \
+            max)                                                                                   \
         {                                                                                          \
             return -ETOLONG;                                                                       \
         }                                                                                          \
@@ -235,7 +237,8 @@ RPC_TYPE_DEF_ALL(int) //!< 定义所有的
     }                                                                                              \
     RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)        \
     {                                                                                              \
-        if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) > IPC_MSG_SIZE)                  \
+        if (rpc_align(len, __alignof(d->len)) + d->len >                                           \
+            IPC_MSG_SIZE)                                                                          \
         {                                                                                          \
             return -ETOLONG;                                                                       \
         }                                                                                          \
@@ -256,7 +259,8 @@ RPC_TYPE_DEF_ALL(int) //!< 定义所有的
     }                                                                                              \
     RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)        \
     {                                                                                              \
-        if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) > max)                           \
+        if (rpc_align(len, __alignof(d->len)) + d->len >                                           \
+            max)                                                                                   \
         {                                                                                          \
             return -ETOLONG;                                                                       \
         }                                                                                          \
@@ -304,7 +308,7 @@ RPC_ARRAY_DEF(uint32_t, uint8_t, 32)
     RPC_REF_ARRAY_TYPE_DEF(len_type, data_type, length);                                           \
     RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_ref_array_##len_type##_##data_type##_##length##_t, int)    \
     {                                                                                              \
-        if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) >= IPC_MSG_SIZE)                 \
+        if (rpc_align(len, __alignof(d->len)) + d->len > IPC_MSG_SIZE)                             \
         {                                                                                          \
             return -ETOLONG;                                                                       \
         }                                                                                          \
@@ -325,13 +329,14 @@ RPC_ARRAY_DEF(uint32_t, uint8_t, 32)
     }                                                                                              \
     RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_ref_array_uint32_t_uint8_t_32_t, int)                      \
     {                                                                                              \
-        if (rpc_align(d->len, __alignof(d->len) + sizeof(d->len)) > max)                           \
+        if (rpc_align(len, __alignof(d->len)) + d->len >                                           \
+            max)                                                                                   \
         {                                                                                          \
             return -ETOLONG;                                                                       \
         }                                                                                          \
         len = rpc_align(len, __alignof(d->len));                                                   \
         d->len = *((typeof(d->len) *)(&buf[len]));                                                 \
-        if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) >= max)         \
+        if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > max)          \
         {                                                                                          \
             return -ETOLONG;                                                                       \
         }                                                                                          \
@@ -539,7 +544,7 @@ RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
         }                                                                            \
     } while (0)
 
-#define RPC_DISPATCH1(struct_type, op_type, func0_op, func0_name)            \
+#define RPC_DISPATCH1(struct_type, op_type, func0_op, func0_name)                                  \
     msg_tag_t rpc_##struct_type##_dispatch(struct_type *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg) \
     {                                                                                              \
         msg_tag_t tag = msg_tag_init4(0, 0, 0, -EPROTO);                                           \
@@ -550,13 +555,12 @@ RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
         {                                                                                          \
         case func0_op:                                                                             \
         {                                                                                          \
-            tag = struct_type##_##func0_name##_dispatch(obj, in_tag, ipc_msg);                              \
+            tag = struct_type##_##func0_name##_dispatch(obj, in_tag, ipc_msg);                     \
         }                                                                                          \
         break;                                                                                     \
         }                                                                                          \
         return tag;                                                                                \
     }
-
 
 #define RPC_DISPATCH2(struct_type, op_type, func0_op, func0_name, func1_op, func1_name)            \
     msg_tag_t rpc_##struct_type##_dispatch(struct_type *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg) \
@@ -569,12 +573,12 @@ RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
         {                                                                                          \
         case func0_op:                                                                             \
         {                                                                                          \
-            tag = struct_type##_##func0_name##_dispatch(obj, in_tag, ipc_msg);                              \
+            tag = struct_type##_##func0_name##_dispatch(obj, in_tag, ipc_msg);                     \
         }                                                                                          \
         break;                                                                                     \
         case func1_op:                                                                             \
         {                                                                                          \
-            tag = struct_type##_##func1_name##_dispatch(obj, in_tag, ipc_msg);                              \
+            tag = struct_type##_##func1_name##_dispatch(obj, in_tag, ipc_msg);                     \
         }                                                                                          \
         break;                                                                                     \
         }                                                                                          \
@@ -592,23 +596,95 @@ RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
         {                                                                                                     \
         case func0_op:                                                                                        \
         {                                                                                                     \
-            tag = struct_type##_##func0_name##_dispatch(obj, in_tag, ipc_msg);                                         \
+            tag = struct_type##_##func0_name##_dispatch(obj, in_tag, ipc_msg);                                \
         }                                                                                                     \
         break;                                                                                                \
         case func1_op:                                                                                        \
         {                                                                                                     \
-            tag = struct_type##_##func1_name##_dispatch(obj, in_tag, ipc_msg);                                         \
+            tag = struct_type##_##func1_name##_dispatch(obj, in_tag, ipc_msg);                                \
         }                                                                                                     \
         break;                                                                                                \
         case func2_op:                                                                                        \
         {                                                                                                     \
-            tag = struct_type##_##func2_name##_dispatch(obj, in_tag, ipc_msg);                                         \
+            tag = struct_type##_##func2_name##_dispatch(obj, in_tag, ipc_msg);                                \
         }                                                                                                     \
         break;                                                                                                \
         }                                                                                                     \
         return tag;                                                                                           \
     }
 
+#define RPC_DISPATCH4(struct_type, op_type, func0_op, func0_name, func1_op, func1_name, func2_op, func2_name, func3_op, func3_name) \
+    msg_tag_t rpc_##struct_type##_dispatch(struct_type *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg)                                  \
+    {                                                                                                                               \
+        msg_tag_t tag = msg_tag_init4(0, 0, 0, -EPROTO);                                                                            \
+        size_t op_val;                                                                                                              \
+                                                                                                                                    \
+        op_val = *((op_type *)(ipc_msg->msg_buf));                                                                                  \
+        switch (op_val)                                                                                                             \
+        {                                                                                                                           \
+        case func0_op:                                                                                                              \
+        {                                                                                                                           \
+            tag = struct_type##_##func0_name##_dispatch(obj, in_tag, ipc_msg);                                                      \
+        }                                                                                                                           \
+        break;                                                                                                                      \
+        case func1_op:                                                                                                              \
+        {                                                                                                                           \
+            tag = struct_type##_##func1_name##_dispatch(obj, in_tag, ipc_msg);                                                      \
+        }                                                                                                                           \
+        break;                                                                                                                      \
+        case func2_op:                                                                                                              \
+        {                                                                                                                           \
+            tag = struct_type##_##func2_name##_dispatch(obj, in_tag, ipc_msg);                                                      \
+        }                                                                                                                           \
+        break;                                                                                                                      \
+        case func3_op:                                                                                                              \
+        {                                                                                                                           \
+            tag = struct_type##_##func3_name##_dispatch(obj, in_tag, ipc_msg);                                                      \
+        }                                                                                                                           \
+        break;                                                                                                                      \
+        }                                                                                                                           \
+        return tag;                                                                                                                 \
+    }
+
+#define RPC_DISPATCH5(struct_type, op_type, func0_op, func0_name, func1_op, func1_name,            \
+                      func2_op, func2_name, func3_op, func3_name,                                  \
+                      func4_op, func4_name)                                                        \
+    msg_tag_t rpc_##struct_type##_dispatch(struct_type *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg) \
+    {                                                                                              \
+        msg_tag_t tag = msg_tag_init4(0, 0, 0, -EPROTO);                                           \
+        size_t op_val;                                                                             \
+                                                                                                   \
+        op_val = *((op_type *)(ipc_msg->msg_buf));                                                 \
+        switch (op_val)                                                                            \
+        {                                                                                          \
+        case func0_op:                                                                             \
+        {                                                                                          \
+            tag = struct_type##_##func0_name##_dispatch(obj, in_tag, ipc_msg);                     \
+        }                                                                                          \
+        break;                                                                                     \
+        case func1_op:                                                                             \
+        {                                                                                          \
+            tag = struct_type##_##func1_name##_dispatch(obj, in_tag, ipc_msg);                     \
+        }                                                                                          \
+        break;                                                                                     \
+        case func2_op:                                                                             \
+        {                                                                                          \
+            tag = struct_type##_##func2_name##_dispatch(obj, in_tag, ipc_msg);                     \
+        }                                                                                          \
+        break;                                                                                     \
+        case func3_op:                                                                             \
+        {                                                                                          \
+            tag = struct_type##_##func3_name##_dispatch(obj, in_tag, ipc_msg);                     \
+        }                                                                                          \
+        break;                                                                                     \
+        case func4_op:                                                                             \
+        {                                                                                          \
+            tag = struct_type##_##func4_name##_dispatch(obj, in_tag, ipc_msg);                     \
+        }                                                                                          \
+        break;                                                                                     \
+        }                                                                                          \
+        return tag;                                                                                \
+    }
 
 #include "u_rpc_1.h"
 #include "u_rpc_2.h"

@@ -15,10 +15,10 @@ typedef struct file_desc
     FIL fp;
 } file_desc_t;
 
-#define FILE_DESC_NR 16
+#define FILE_DESC_NR 3
 static file_desc_t files[FILE_DESC_NR];
 
-file_desc_t *alloc_file(int *fd)
+static file_desc_t *alloc_file(int *fd)
 {
     for (int i = 0; i < FILE_DESC_NR; i++)
     {
@@ -30,10 +30,19 @@ file_desc_t *alloc_file(int *fd)
     }
     return NULL;
 }
-void free_file(int fd)
+static void free_file(int fd)
 {
     files[fd].fp.obj.fs = NULL;
 }
+static file_desc_t *file_get(int fd)
+{
+    if (fd < 0 || fd >= FILE_DESC_NR)
+    {
+        return NULL;
+    }
+    return files + fd;
+}
+
 int fs_svr_open(const char *path, int flags, int mode)
 {
     printf("open %s.\n", path);
@@ -55,6 +64,90 @@ int fs_svr_open(const char *path, int flags, int mode)
     return -ret;
 }
 
+int fs_svr_read(int fd, void *buf, size_t len)
+{
+    UINT br;
+    file_desc_t *file = file_get(fd);
+
+    if (!file)
+    {
+        return -ENOENT;
+    }
+    FRESULT ret = f_read(&file->fp, buf, len, &br);
+
+    if (ret != FR_OK)
+    {
+        return -ret;
+    }
+    return br;
+}
+int fs_svr_write(int fd, void *buf, size_t len)
+{
+    UINT bw;
+    file_desc_t *file = file_get(fd);
+
+    if (!file)
+    {
+        return -ENOENT;
+    }
+    FRESULT ret = f_write(&file->fp, buf, len, &bw);
+
+    if (ret != FR_OK)
+    {
+        return -ret;
+    }
+    return bw;
+}
+void fs_svr_close(int fd)
+{
+    file_desc_t *file = file_get(fd);
+
+    if (!file)
+    {
+        return;
+    }
+    f_close(&file->fp);
+}
+int fs_svr_lseek(int fd, int offs, int whence)
+{
+    UINT bw;
+    file_desc_t *file = file_get(fd);
+    int new_offs = 0;
+
+    if (!file)
+    {
+        return -ENOENT;
+    }
+    switch (whence)
+    {
+    case SEEK_SET:
+        new_offs = offs;
+        break;
+    case SEEK_END:
+    {
+        new_offs = f_size(&file->fp) + offs;
+    }
+    break;
+    case SEEK_CUR:
+    {
+        new_offs = offs + f_tell(&file->fp);
+    }
+    break;
+    default:
+        return -EINVAL;
+    }
+    if (new_offs > f_size(&file->fp))
+    {
+        new_offs = f_size(&file->fp);
+    }
+    if (new_offs < 0)
+    {
+        new_offs = 0;
+    }
+    FRESULT ret = f_lseek(&file->fp, new_offs);
+
+    return -ret;
+}
 void fs_svr_loop(void)
 {
     rpc_loop(fs.ipc, &fs.svr);

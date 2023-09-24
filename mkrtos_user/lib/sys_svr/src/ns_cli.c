@@ -198,7 +198,8 @@ int ns_query(const char *path, obj_handler_t *svr_hd)
     newfd = find_hd(path);
     if (newfd != HANDLER_INVALID)
     {
-        return newfd;
+        *svr_hd = newfd;
+        return 0;
     }
 
     newfd = handler_alloc();

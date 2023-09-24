@@ -9,3 +9,4 @@
 #define FS_CLOSE ((uint16_t)1)
 #define FS_READ ((uint16_t)2)
 #define FS_WRITE ((uint16_t)3)
+#define FS_LSEEK ((uint16_t)4)

@@ -64,7 +64,17 @@ void ns_test(void)
 #include "fs_cli.h"
 void fs_test(void)
 {
-    fs_open("/test", 0, 0);
+    char tmp[4] = "123";
+    int fd = fs_open("/test", 0, 0x1 | 0x2 | 0x8);
+    assert(fd >= 0);
+    int wlen = fs_write(fd, tmp, 4);
+    assert(wlen == 4);
+    int ret = fs_lseek(fd, 0, SEEK_SET);
+    assert(ret >= 0);
+    int rlen = fs_read(fd, tmp, 4);
+    assert(rlen == 4);
+    assert(strcmp(tmp, "123") == 0);
+    fs_close(fd);
 }
 int main(int argc, char *args[])
 {
