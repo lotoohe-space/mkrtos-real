@@ -40,6 +40,13 @@ int main(int argc, char *args[])
     int ret = rpc_creaite_bind_ipc(THREAD_MAIN, NULL, &ipc_hd);
     assert(ret >= 0);
     env.ns_hd = ipc_hd;
+
+    ret = app_load("fatfs", &env);
+    if (ret < 0)
+    {
+        printf("app load fail, 0x%x\n", ret);
+    }
+
     ret = app_load("shell", &env);
     if (ret < 0)
     {
@@ -47,11 +54,6 @@ int main(int argc, char *args[])
     }
     namespace_init(ipc_hd);
 
-    ret = app_load("fatfs", &env);
-    if (ret < 0)
-    {
-        printf("app load fail, 0x%x\n", ret);
-    }
     namespace_loop();
     task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); // 删除当前task，以及申请得所有对象
     printf("exit init.\n");

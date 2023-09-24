@@ -56,4 +56,5 @@ void irq_test(void)
         }
     }
     ulog_write_str(LOG_PROT, "irq test success.\n");
+    handler_free_umap(obj);
 }
