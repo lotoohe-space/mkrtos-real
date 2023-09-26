@@ -13,11 +13,10 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 include_directories(${CMAKE_SOURCE_DIR}/)
 include_directories(${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/core/cortex-m3)
 include_directories(${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/inc/lib)
-include_directories(${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/inc/stm32f205rft6)
-include_directories(${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/inc/stm32f205rft6/lib)
 
 
-file(GLOB_RECURSE deps *.c *.S)
+
+file(GLOB deps *.c)
 
 add_executable(bootstrap.elf
     ${deps}
@@ -26,9 +25,21 @@ add_executable(bootstrap.elf
 set_target_properties(bootstrap.elf PROPERTIES LINK_FLAGS 
 "-T ${CMAKE_CURRENT_SOURCE_DIR}/stm32f205rft6_link.lds --gc-section ")
 
-# TARGET_LINK_LIBRARIES(bootstrap.elf
-#     boot_src
-# )
+if (${BOARD_NAME} STREQUAL "STM32F1x")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F10X_XL ")
+    
+    include_directories(${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/inc/STM32F1x)
+    include_directories(${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/inc/STM32F1x/lib)
+    add_subdirectory(bsp/STM32F1x)
+elseif(${BOARD_NAME} STREQUAL "STM32F2x" )
+    include_directories(${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/inc/stm32f205rft6)
+    include_directories(${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/inc/stm32f205rft6/lib)
+    add_subdirectory(bsp/STM32F2x)
+endif()
+
+TARGET_LINK_LIBRARIES(bootstrap.elf
+    bsp
+)
 
 add_custom_target(
     bootstrap_dump ALL

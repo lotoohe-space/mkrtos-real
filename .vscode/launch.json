@@ -1,6 +1,43 @@
 {
     "configurations": [
         {
+            "preLaunchTask": "download",
+            "name": "openocd",
+            "type": "cortex-debug",
+            "request": "launch",
+            "interface": "swd",
+            "executable": "${workspaceFolder}/build/mkrtos/mkrtos_bootstrap/bootstrap.elf",
+            "servertype": "openocd",
+            "cwd": "${fileDirname}",
+            // "miDebuggerPath": "/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-gdb",
+            "device": "STM32F103RE",
+            "configFiles": [
+                "interface/jlink.cfg",
+                "${workspaceFolder}/mkrtos_cfg/stm32f103ret6.cfg",
+            ]
+        },
+        {
+            // "preLaunchTask": "download",
+            "name": "jlink",
+            "type": "cortex-debug",
+            "request": "launch",
+            "interface": "swd",
+            "executable": "${workspaceFolder}/build/output/kernel.img.out",
+            "symbolFiles": [
+                "${workspaceFolder}/build/mkrtos/mkrtos_knl/mkrtos.elf"
+            ],
+            "servertype": "jlink",
+            "cwd": "${fileDirname}",
+            // "miDebuggerPath": "/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-gdb",
+            "device": "STM32F103RE",
+            // "serverpath": "/usr/local/bin/JLinkGDBServerCL",
+            // "runToMain": true,
+            "configFiles": [
+                "interface/jlink.cfg",
+                "${workspaceFolder}/mkrtos_cfg/stm32f103ret6.cfg",
+            ]
+        },
+        {
             "name": "(gdb) 启动",
             "type": "cppdbg",
             "request": "launch",

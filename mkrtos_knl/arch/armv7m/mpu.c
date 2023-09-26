@@ -8,7 +8,7 @@
 #include "types.h"
 #include "assert.h"
 #include "mpu.h"
-#include <stm32f2xx.h>
+#include <stm32_sys.h>
 #include <mpu_armv7.h>
 #include "thread.h"
 #include "task.h"

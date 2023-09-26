@@ -1,6 +1,26 @@
 {
     "tasks": [
-     
+        {
+			"type": "shell",
+			"label": "download",
+			"command": "openocd",
+			"args": [
+				"-f",
+				"interface/jlink.cfg",
+				"-f",
+				"${workspaceFolder}/mkrtos_cfg/stm32f103ret6.cfg",
+                "-c","init",
+                "-c","targets;reset halt;wait_halt;poll",
+				"-c","flash write_image erase unlock build/output/kernel.img 0x08000000",
+				"-c","flash erase_check 0;reset run; shutdown"
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"dependsOn": "Build"
+		}
+
     ],
     "version": "2.0.0"
 }

@@ -1,11 +1,7 @@
 #ifndef __SYS_H
 #define __SYS_H	
 #include <stm32f2xx.h>
-
-
 #include <stm32f2xx_conf.h>
-
-	 
 //位带操作,实现51类似的GPIO控制功能
 //具体实现思想,参考<<CM3权威指南>>第五章(87页~92页).
 //IO口操作宏定义

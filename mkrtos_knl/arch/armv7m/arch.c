@@ -1,21 +1,22 @@
-/*
- * @Author: zhangzheng 1358745329@qq.com
- * @Date: 2023-08-18 15:03:16
- * @LastEditors: zhangzheng 1358745329@qq.com
- * @LastEditTime: 2023-08-18 16:24:47
- * @FilePath: /mkrtos-real/mkrtos_knl/arch/armv7m/arch.c
- * @Description: 与arch相关的借口
+/**
+ * @file arch.c
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-09-25
+ * 
+ * @copyright Copyright (c) 2023
+ * 
  */
-
 #include "arch.h"
 #include "types.h"
 #include "util.h"
 #include "init.h"
 #include "config.h"
 #include "thread.h"
-#include "stm32f2xx_conf.h"
+#include "stm32_sys.h"
 #include "mpu.h"
-#include "core_cm3.h"
+
 __ALIGN__(THREAD_BLOCK_SIZE)
 static uint8_t thread_knl_stack[THREAD_BLOCK_SIZE] = {0};
 void *_estack = thread_knl_stack + THREAD_BLOCK_SIZE;
@@ -64,5 +65,7 @@ void arch_init(void)
     SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk;
     SCB->SHCSR |= SCB_SHCSR_BUSFAULTENA_Msk;
     ((uint8_t *)(0xE000E008))[0] |= 0x6;
+    RCC_ClocksTypeDef RCC_ClocksStatus;
+    RCC_GetClocksFreq(&RCC_ClocksStatus);
 }
 INIT_LOW_HARD(arch_init);

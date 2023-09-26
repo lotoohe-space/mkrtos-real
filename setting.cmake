@@ -25,7 +25,7 @@ set(CMAKE_C_FLAGS "-mcpu=cortex-m3 -mthumb -O0 -g -lc -lrdimon -mfloat-abi=soft 
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
 --gc-sections -fno-stack-protector \
 " CACHE STRING "" FORCE)
-message(${CMAKE_C_FLAGS})
+
 set(CMAKE_CXX_FLAGS "-mcpu=cortex-m3 -mthumb -mno-thumb-interwork \
 -mfix-cortex-m3-ldrd -O0 -g -std=c++11 \
 -fmessage-length=0 -Xlinker --print-map -Wall -W -fno-stack-protector -g \ 
@@ -37,6 +37,8 @@ set(CMAKE_ASM_FLAGS "-mcpu=cortex-m3 -mthumb -O0 -g -mfloat-abi=soft -lc -lrdimo
 -u _printf_float -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker --gc-sections -fno-stack-protector \
 " CACHE STRING "" FORCE)
+
+set(BOARD_NAME "$ENV{BOARD}")
 
 set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} <OBJECTS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> --start-group <LINK_LIBRARIES> --end-group -o <TARGET>" CACHE INTERNAL " " FORCE)
 set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_LINKER} <OBJECTS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> --start-group <LINK_LIBRARIES> --end-group -o <TARGET>" CACHE INTERNAL " " FORCE)

@@ -12,12 +12,18 @@ add_custom_target(
         ${CMAKE_SOURCE_DIR}/build/output/mkrtos -binary -offset $ENV{KEN_OFFSET}
         ${CMAKE_SOURCE_DIR}/build/output/init -binary -offset $ENV{INIT_OFFSET}
         ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio -binary -offset $ENV{BOOTFS_ADDR_OFFSET}
+    COMMAND
+    ${CMAKE_OBJCOPY} -I binary -O elf32-littlearm -B arm ${CMAKE_SOURCE_DIR}/build/output/kernel.img 
+    ${CMAKE_SOURCE_DIR}/build/output/kernel.img.out --rename-section .data=.text 
+    COMMAND
+    ${CMAKE_OBJCOPY}  --change-section-address .text=0x8000000 ${CMAKE_SOURCE_DIR}/build/output/kernel.img.out 
 )
 add_dependencies(mkrtos_img_dump
     bootstrap_dump
     mkrtos_dump
     init_dump
-    shell_dump
+    app_dump
+    # shell_dump
     # fatfs_dump
     # path_manager_dump
 )

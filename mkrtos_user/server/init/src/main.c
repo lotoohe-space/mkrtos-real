@@ -22,10 +22,10 @@ int main(int argc, char *args[])
 {
     // futex_init();
     ulog_write_str(LOG_PROT, "init..\n");
+    // mpu_test();
 #if 0
     ulog_test();
     factory_test();
-    mpu_test();
     printf_test();
     thread_test();
     thread_exit_test();
@@ -41,13 +41,13 @@ int main(int argc, char *args[])
     assert(ret >= 0);
     env.ns_hd = ipc_hd;
 
-    ret = app_load("fatfs", &env);
-    if (ret < 0)
-    {
-        printf("app load fail, 0x%x\n", ret);
-    }
+    // ret = app_load("fatfs", &env);
+    // if (ret < 0)
+    // {
+    //     printf("app load fail, 0x%x\n", ret);
+    // }
 
-    ret = app_load("shell", &env);
+    ret = app_load("app", &env);
     if (ret < 0)
     {
         printf("app load fail, 0x%x\n", ret);
