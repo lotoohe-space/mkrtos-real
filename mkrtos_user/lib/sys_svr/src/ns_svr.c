@@ -15,11 +15,11 @@ RPC_GENERATION_OP2(ns_t, NS_REGISTER_OP, register,
     int ret = namespace_register((char *)(path->data), obj->hd);
     if (ret >= 0)
     {
-        printf("注册服务[%s]成功.\n", (char *)(path->data));
+        printf("register [%s] success.\n", (char *)(path->data));
     }
     else
     {
-        printf("注册服务[%s]失败.\n", (char *)(path->data));
+        printf("register [%s] fail.\n", (char *)(path->data));
     }
     return ret;
 }

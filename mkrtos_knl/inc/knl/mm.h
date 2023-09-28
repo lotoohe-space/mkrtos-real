@@ -14,7 +14,6 @@ typedef struct mem_heap
     union
     {
         char name[MEM_HEAP_NAME];
-        // pid_t pid;
     };
     struct mem_heap *next;
     struct mem_heap *prev;
@@ -29,7 +28,6 @@ typedef struct mem
     struct mem_heap *heap_start; //!< 开始位置
     struct mem_heap *heap_end;   //!< 结束位置
     struct mem_heap *l_heap;     //!< 空闲位置
-    // uint16_t blong_user;         //!< 属于用户
     spinlock_t lock;
 } mem_t;
 

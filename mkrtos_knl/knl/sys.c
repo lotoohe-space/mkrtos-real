@@ -23,7 +23,7 @@ typedef struct sys
     kobject_t kobj;
 } sys_t;
 
-static sys_t sys_boj;
+static sys_t sys_obj;
 
 enum sys_op
 {
@@ -34,9 +34,9 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
 
 static void sys_reg(void)
 {
-    kobject_init(&sys_boj.kobj);
-    sys_boj.kobj.invoke_func = sys_syscall;
-    global_reg_kobj(&sys_boj.kobj, SYS_PROT);
+    kobject_init(&sys_obj.kobj);
+    sys_obj.kobj.invoke_func = sys_syscall;
+    global_reg_kobj(&sys_obj.kobj, SYS_PROT);
 }
 INIT_KOBJ(sys_reg);
 

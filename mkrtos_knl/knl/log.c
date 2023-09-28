@@ -43,6 +43,9 @@ static void log_reg(void)
     // kobject_init(&log.kobj);
     irq_sender_init(&log.kobj);
     log.kobj.kobj.invoke_func = log_syscall;
+    log.kobj.kobj.stage_1_func = kobject_release_stage1;
+    log.kobj.kobj.stage_2_func = kobject_release_stage2;
+    log.kobj.kobj.put_func = kobject_put;
     global_reg_kobj(&log.kobj.kobj, LOG_PROT);
     irq_alloc(37 /*USART1_IRQn*/, &log.kobj, log_trigger);
 }

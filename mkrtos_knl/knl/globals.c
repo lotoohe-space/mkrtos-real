@@ -1,9 +1,12 @@
-/*
- * @Author: zhangzheng
- * @Date: 2023-08-14 09:47:54
- * @LastEditors: zhangzheng 1358745329@qq.com
- * @FilePath: /mkrtos-real/mkrtos_knl/inc/knl/globals.h
- * @Description:
+/**
+ * @file globals.c
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-09-29
+ * 
+ * @copyright Copyright (c) 2023
+ * 
  */
 #include "globals.h"
 #include "types.h"

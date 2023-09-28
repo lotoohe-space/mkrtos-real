@@ -1,10 +1,12 @@
-/*
- * @Author: zhangzheng 1358745329@qq.com
- * @Date: 2023-08-14 09:47:54
- * @LastEditors: zhangzheng 1358745329@qq.com
- * @LastEditTime: 2023-08-18 16:21:58
- * @FilePath: /mkrtos-real/mkrtos_knl/knl/thread_knl.c
- * @Description: 内核线程初始化
+/**
+ * @file thread_knl.c
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief
+ * @version 0.1
+ * @date 2023-09-29
+ *
+ * @copyright Copyright (c) 2023
+ *
  */
 
 #include "types.h"

@@ -1,10 +1,12 @@
-/*
- * @Author: zhangzheng 1358745329@qq.com
- * @Date: 2023-08-18 15:03:16
- * @LastEditors: zhangzheng 1358745329@qq.com
- * @LastEditTime: 2023-08-18 16:22:11
- * @FilePath: /mkrtos-real/mkrtos_knl/knl/thread_armv7m.c
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+/**
+ * @file thread_armv7m.c
+ * @author zhangzheng (135874329@qq.com)
+ * @brief
+ * @version 0.1
+ * @date 2023-09-29
+ *
+ * @copyright Copyright (c) 2023
+ *
  */
 
 #include "types.h"

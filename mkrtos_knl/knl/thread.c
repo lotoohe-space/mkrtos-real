@@ -1,10 +1,12 @@
-/*
- * @Author: zhangzheng 1358745329@qq.com
- * @Date: 2023-08-14 09:47:54
- * @LastEditors: zhangzheng 1358745329@qq.com
- * @LastEditTime: 2023-08-18 16:21:20
- * @FilePath: /mkrtos-real/mkrtos_knl/knl/thread.c
- * @Description: 线程管理相关
+/**
+ * @file thread.c
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-09-29
+ * 
+ * @copyright Copyright (c) 2023
+ * 
  */
 
 #include "types.h"
@@ -54,17 +56,18 @@ static void thread_release_stage1(kobject_t *kobj)
 {
     thread_t *th = container_of(kobj, thread_t, kobj);
     kobject_invalidate(kobj);
+    thread_unbind(th);
     if (th->status == THREAD_READY)
     {
         thread_suspend(th);
     }
-    thread_unbind(th);
 }
 static void thread_release_stage2(kobject_t *kobj)
 {
     thread_t *th = container_of(kobj, thread_t, kobj);
     thread_t *cur_th = thread_get_current();
 
+    printk("thread 0x%x\n", kobj);
     mm_limit_free_align(th->lim, kobj, THREAD_BLOCK_SIZE);
 
     if (cur_th == th)

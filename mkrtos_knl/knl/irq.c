@@ -1,4 +1,13 @@
-
+/**
+ * @file irq.c
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-09-29
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include <arch.h>
 #include <types.h>
 #include <kobject.h>
@@ -13,6 +22,12 @@
 static irq_entry_t irqs[IRQ_REG_TAB_SIZE] = {0};
 static void irq_tigger(irq_entry_t *irq);
 
+/**
+ * @brief 检查指定的irq号是否可用
+ *
+ * @param inx
+ * @return bool_t
+ */
 bool_t irq_check_usability(int inx)
 {
     if (inx >= IRQ_REG_TAB_SIZE)
@@ -21,17 +36,40 @@ bool_t irq_check_usability(int inx)
     }
     return irqs[inx].irq_tigger_func == NULL;
 }
-void irq_alloc(int inx, irq_sender_t *irq, void (*irq_tigger_func)(irq_entry_t *irq))
+/**
+ * @brief 分配一个可用的irq
+ *
+ * @param inx
+ * @param irq
+ * @param irq_tigger_func
+ * @return bool_t
+ */
+bool_t irq_alloc(int inx, irq_sender_t *irq, void (*irq_tigger_func)(irq_entry_t *irq))
 {
-    assert(irqs[inx].irq_tigger_func == NULL);
+    if (irqs[inx].irq_tigger_func != NULL)
+    {
+        return FALSE;
+    }
     irqs[inx].irq = irq;
     irqs[inx].irq_tigger_func = irq_tigger_func;
+    return TRUE;
 }
+/**
+ * @brief 释放一个irq
+ *
+ * @param inx
+ */
 void irq_free(int inx)
 {
     assert(inx < IRQ_REG_TAB_SIZE);
     irqs[inx].irq_tigger_func = NULL;
 }
+/**
+ * @brief 获取一个irq
+ *
+ * @param inx
+ * @return irq_entry_t*
+ */
 irq_entry_t *irq_get(int inx)
 {
     assert(inx < IRQ_REG_TAB_SIZE);
@@ -45,7 +83,7 @@ void entry_handler(void)
 {
     umword_t isr_no = arch_get_isr_no();
 
-    isr_no -= USER_ISR_START_NO;
+    isr_no -= USER_ISR_START_NO; //!< 系统用的irq偏移
 
     // printk("%d.\n", isr_no);
     if (!irq_check_usability(isr_no))

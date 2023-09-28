@@ -1,3 +1,13 @@
+/**
+ * @file ram_limit.c
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-09-29
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include "ram_limit.h"
 #include "types.h"
 void ram_limit_init(ram_limit_t *limit, size_t max)

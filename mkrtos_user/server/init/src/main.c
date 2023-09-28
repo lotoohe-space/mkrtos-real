@@ -29,12 +29,12 @@ int main(int argc, char *args[])
     printf_test();
     thread_test();
     thread_exit_test();
-    ipc_test();
     map_test();
     ipc_timeout_test();
     mm_test();
     app_test();
 #endif
+    ipc_test();
     uenv_t env = *u_get_global_env();
     obj_handler_t ipc_hd;
     int ret = rpc_creaite_bind_ipc(THREAD_MAIN, NULL, &ipc_hd);
@@ -47,14 +47,14 @@ int main(int argc, char *args[])
     //     printf("app load fail, 0x%x\n", ret);
     // }
 
-    ret = app_load("app", &env);
-    if (ret < 0)
-    {
-        printf("app load fail, 0x%x\n", ret);
-    }
-    namespace_init(ipc_hd);
+    // ret = app_load("app", &env);
+    // if (ret < 0)
+    // {
+    //     printf("app load fail, 0x%x\n", ret);
+    // }
+    // namespace_init(ipc_hd);
 
-    namespace_loop();
+    // namespace_loop();
     task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); // 删除当前task，以及申请得所有对象
     printf("exit init.\n");
     return 0;

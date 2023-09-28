@@ -1,12 +1,12 @@
 /**
  * @file printk.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-14
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "printk.h"
 #include "stdarg.h"
@@ -53,7 +53,7 @@ void printk(const char *fmt, ...)
     va_list args;
     umword_t state = 0;
 
-    spinlock_lock(&lock);
+    state = spinlock_lock(&lock);
     va_start(args, fmt);
     xvsprintf(print_cache, fmt, args);
     va_end(args);

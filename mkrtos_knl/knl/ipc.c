@@ -1,3 +1,13 @@
+/**
+ * @file ipc.c
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-09-29
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include "ipc.h"
 #include "types.h"
 #include "init.h"
@@ -30,7 +40,7 @@ typedef struct ipc
     kobject_t kobj;         //!< 内核对象
     spinlock_t lock;        //!< 操作的锁 TODO: 使用内核对象锁
     slist_head_t wait_send; //!< 发送等待队列
-    slist_head_t recv_send; //!< 发送等待队列
+    slist_head_t recv_send; //!< 接收等待队列
     slist_head_t node;      //!< 超时检查链表
     thread_t *svr_th;       //!< 服务端 TODO:增加引用计数
     thread_t *last_cli_th;  //!< 上一次发送数据的客户端TODO:增加引用计数
@@ -49,39 +59,82 @@ enum ipc_op
 static void wake_up_th(ipc_t *ipc);
 static slist_head_t wait_list;
 
+/**
+ * @brief 初始化一个超时等待队列
+ *
+ */
 void timeout_wait_list_init(void)
 {
     slist_init(&wait_list);
 }
 INIT_KOBJ(timeout_wait_list_init);
+
+/**
+ * @brief 检查超时队列
+ *
+ */
 void timeout_times_tick(void)
 {
     ipc_t *ipc;
 
-    slist_foreach(ipc, &wait_list, node)
+    slist_foreach(ipc, &wait_list, node) //!< 第一次循环等待的ipc
     {
         umword_t status = spinlock_lock(&ipc->lock);
         ipc_wait_item_t *item;
 
-        slist_foreach(item, &ipc->wait_send, node)
+        slist_foreach(item, &ipc->wait_send, node) //!< 第二次循环等待irq里面的等待者
         {
             if (item->sleep_times != 0 && (--item->sleep_times) == 0)
             {
-                // slist_del(&item->node);
+                //!< 超时时间满后直接唤醒等待者
                 thread_ready(item->th, TRUE);
             }
         }
         spinlock_set(&ipc->lock, status);
     }
 }
+/**
+ * @brief 唤醒某个ipc的所有等待者
+ *
+ * @param ipc
+ */
+static void timeout_times_wake_ipc(ipc_t *ipc)
+{
+    assert(ipc);
+    ipc_wait_item_t *item;
 
+    slist_foreach(item, &ipc->wait_send, node) //!< 第二次循环等待irq里面的等待者
+    {
+        //!< 超时时间满后直接唤醒等待者
+        thread_ready(item->th, TRUE);
+    }
+    thread_sched();
+}
+/**
+ * @brief ipc_wait_item_t结构体初始化
+ *
+ * @param item
+ * @param ipc
+ * @param th
+ * @param times
+ */
 static void ipc_wait_item_init(ipc_wait_item_t *item, ipc_t *ipc, thread_t *th, umword_t times)
 {
     slist_init(&item->node);
     item->th = th;
     item->sleep_times = times;
 }
-
+/**
+ * @brief 添加到一个等待队列，并进行解锁
+ *
+ * @param ipc
+ * @param head
+ * @param th
+ * @param times 超时时间，为0代表一直超时
+ * @param lock
+ * @param status
+ * @return int
+ */
 static int add_wait_unlock(ipc_t *ipc, slist_head_t *head, thread_t *th, umword_t times, spinlock_t *lock, int status)
 {
     ipc_wait_item_t item;
@@ -111,6 +164,11 @@ static int add_wait_unlock(ipc_t *ipc, slist_head_t *head, thread_t *th, umword_
     }
     return 0;
 }
+/**
+ * @brief 拿出等待队列中的第一个并唤醒
+ *
+ * @param ipc
+ */
 static void wake_up_th(ipc_t *ipc)
 {
     slist_head_t *mslist = slist_first(&ipc->wait_send);
@@ -118,7 +176,14 @@ static void wake_up_th(ipc_t *ipc)
 
     thread_ready(item->th, TRUE);
 }
-
+/**
+ * @brief ipc传输时的数据拷贝
+ *
+ * @param dst_th
+ * @param src_th
+ * @param tag
+ * @return int
+ */
 static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
 {
     void *src = src_th->msg.msg;
@@ -177,7 +242,8 @@ __check:
     status = spinlock_lock(&ipc->lock);
     if (ipc->svr_th->status != THREAD_SUSPEND)
     {
-        if (add_wait_unlock(ipc, &ipc->wait_send, th, timeout.send_timeout, &ipc->lock, status) < 0)
+        if (add_wait_unlock(ipc, &ipc->wait_send, th,
+                            timeout.send_timeout, &ipc->lock, status) < 0)
         {
             return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, -EWTIMEDOUT);
         }
@@ -193,15 +259,14 @@ __check:
     }
     ipc->svr_th->msg.tag = tag;
     thread_ready(ipc->svr_th, TRUE); //!< 直接唤醒接受者
-    // thread_suspend(th);              //!< 发送后客户端直接进入等待状态
-    ipc->last_cli_th = th; //!< 设置上一次发送的客户端
+    ipc->last_cli_th = th;           //!< 设置上一次发送的客户端
     if (add_wait_unlock(ipc, &ipc->recv_send, th, timeout.recv_timeout, &ipc->lock, status) < 0)
     {
         ipc->last_cli_th = NULL;
+        ref_counter_dec_and_release(&ipc->last_cli_th->ref, &ipc->last_cli_th->kobj);
         return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, -ERTIMEDOUT);
     }
-    spinlock_set(&ipc->lock, status);
-
+    // spinlock_set(&ipc->lock, status);
     tmp_tag = th->msg.tag;
     ipc->last_cli_th = NULL;
     return tmp_tag;
@@ -226,8 +291,9 @@ static int ipc_reply(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
     //!< 发送数据给svr_th
     int ret = ipc_data_copy(ipc->last_cli_th, th, tag); //!< 拷贝数据
 
-    if (ret < 0) {
-        spinlock_set(&ipc->lock, status);;
+    if (ret < 0)
+    {
+        spinlock_set(&ipc->lock, status);
         return ret;
     }
     ipc->last_cli_th->msg.tag = tag;
@@ -289,7 +355,9 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         }
         else
         {
-            tag = ipc_call(ipc, th, f, in_tag, ipc_timeout_create(f->r[1]));
+            ref_counter_inc(&th->ref);                                       //!< 引用计数+1
+            tag = ipc_call(ipc, th, f, in_tag, ipc_timeout_create(f->r[1])); //!< ipc call
+            ref_counter_dec_and_release(&th->ref, &th->kobj);                //!< 引用计数-1
         }
     }
     break;
@@ -301,7 +369,9 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         }
         else
         {
-            tag = ipc_wait(ipc, th, f, in_tag);
+            ref_counter_inc(&th->ref);                        //!< 引用计数+1
+            tag = ipc_wait(ipc, th, f, in_tag);               //!< 进入等待
+            ref_counter_dec_and_release(&th->ref, &th->kobj); //!< 引用计数-1
             f->r[1] = ipc->user_id;
         }
     }
@@ -314,7 +384,9 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         }
         else
         {
+            ref_counter_inc(&th->ref); //!< 引用计数+1
             int ret = ipc_reply(ipc, th, f, in_tag);
+            ref_counter_dec_and_release(&th->ref, &th->kobj); //!< 引用计数-1
             tag = msg_tag_init4(0, 0, 0, ret);
         }
     }
@@ -330,7 +402,10 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
                 tag = msg_tag_init4(0, 0, 0, -ENOENT);
                 break;
             }
-            ipc->svr_th = container_of(source_kobj, thread_t, kobj);
+            thread_t *srv_th = container_of(source_kobj, thread_t, kobj);
+
+            ref_counter_inc(&srv_th->ref);
+            ipc->svr_th = srv_th;
             ipc->user_id = f->r[2];
             tag = msg_tag_init4(0, 0, 0, 0);
         }
@@ -361,16 +436,19 @@ static void ipc_release_stage1(kobject_t *kobj)
     ipc_t *ipc = container_of(kobj, ipc_t, kobj);
 
     kobject_invalidate(kobj);
+    timeout_times_wake_ipc(ipc);
     if (ipc->svr_th)
     {
         ref_counter_dec_and_release(&ipc->svr_th->ref, &ipc->svr_th->kobj);
     }
+
 }
 static void ipc_release_stage2(kobject_t *kobj)
 {
     ipc_t *ipc = container_of(kobj, ipc_t, kobj);
 
     mm_limit_free(ipc->lim, kobj);
+    printk("ipc 0x%x\n", kobj);
 }
 static void ipc_init(ipc_t *ipc, ram_limit_t *lim)
 {
