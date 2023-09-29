@@ -22,7 +22,6 @@ int main(int argc, char *args[])
 {
     // futex_init();
     ulog_write_str(LOG_PROT, "init..\n");
-    // mpu_test();
 #if 0
     ulog_test();
     factory_test();
@@ -33,6 +32,7 @@ int main(int argc, char *args[])
     ipc_timeout_test();
     mm_test();
     app_test();
+    mpu_test();
 #endif
     ipc_test();
     uenv_t env = *u_get_global_env();

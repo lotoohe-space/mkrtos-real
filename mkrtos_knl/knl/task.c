@@ -173,7 +173,14 @@ static void task_release_stage2(kobject_t *kobj)
     }
     printk("release tk %x\n", tk);
 }
-
+void task_kill(task_t *tk)
+{
+    kobj_del_list_t kobj_list;
+    kobj_del_list_init(&kobj_list);
+    obj_unmap(&tk->obj_space, vpage_create3(KOBJ_DELETE_RIGHT, 0, TASK_PROT), &kobj_list);
+    kobj_del_list_to_do(&kobj_list);
+    thread_sched();
+}
 task_t *task_create(ram_limit_t *lim, int is_knl)
 {
     task_t *tk = mm_limit_alloc(lim, sizeof(task_t));

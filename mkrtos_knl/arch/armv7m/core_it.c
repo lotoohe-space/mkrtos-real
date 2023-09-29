@@ -33,6 +33,7 @@
 #include "mm_man.h"
 #include "task.h"
 #include "thread.h"
+#include "map.h"
 /** @addtogroup Template_Project
  * @{
  */
@@ -66,11 +67,11 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   printk("%s\n", __FUNCTION__);
-
+  task_kill(thread_get_current_task());
   /* Go to infinite loop when Hard Fault exception occurs */
-  while (1)
-  {
-  }
+  // while (1)
+  // {
+  // }
 }
 
 /**
@@ -101,9 +102,10 @@ void MemManage_Handler(void)
     {
       printk("semgement fault.\n");
       /*TODO:杀死进程*/
-      while (1)
-      {
-      }
+      // while (1)
+      // {
+      // }
+      goto end;
     }
     return;
   }
@@ -116,24 +118,23 @@ void MemManage_Handler(void)
     {
       printk("semgement fault.\n");
       /*TODO:杀死进程*/
-      while (1)
-      {
-      }
+      // while (1)
+      // {
+      // }
+      goto end;
     }
     return;
   }
   if (SCB->CFSR & 16)
   {
     printk("压栈错误\n");
-     fault_addr = arch_get_user_sp();
+    fault_addr = arch_get_user_sp();
 
     if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
     {
       printk("semgement fault.\n");
       /*TODO:杀死进程*/
-      while (1)
-      {
-      }
+      goto end;
     }
     return;
   }
@@ -142,17 +143,13 @@ void MemManage_Handler(void)
     printk("浮点惰性压栈错误\n");
   }
 
-  
-  // else
+  printk("semgement fault.\n");
+  /*TODO:杀死进程*/
+  // while (1)
   // {
-    printk("semgement fault.\n");
-    /*TODO:杀死进程*/
-    while (1)
-    {
-    }
   // }
-  // thread_sched();
-  /* Go to infinite loop when Memory Manage exception occurs */
+end:
+  task_kill(thread_get_current_task());
 }
 
 /**
@@ -165,9 +162,10 @@ void BusFault_Handler(void)
   printk("%s\n", __FUNCTION__);
 
   /* Go to infinite loop when Bus Fault exception occurs */
-  while (1)
-  {
-  }
+  // while (1)
+  // {
+  // }
+  task_kill(thread_get_current_task());
 }
 
 /**
@@ -203,9 +201,10 @@ void UsageFault_Handler(void)
     printk("除零错误\n");
   }
   /* Go to infinite loop when Usage Fault exception occurs */
-  while (1)
-  {
-  }
+  // while (1)
+  // {
+  // }
+  task_kill(thread_get_current_task());
 }
 
 // /**

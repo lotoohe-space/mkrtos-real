@@ -15,5 +15,5 @@ void factory_test(void)
         printf("factory_create_ipc no memory\n");
         return;
     }
-    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd));
+    handler_free_umap(hd);
 }
