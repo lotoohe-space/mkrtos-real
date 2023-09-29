@@ -24,7 +24,7 @@ int main(int argc, char *args[])
     ns_test();
 #endif
     irq_test();
-    fs_test();
+    // fs_test();
     task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS));
     ulog_write_str(u_get_global_env()->log_hd, "Error.\n");
     return 0;

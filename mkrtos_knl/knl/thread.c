@@ -1,12 +1,12 @@
 /**
  * @file thread.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 #include "types.h"
@@ -57,17 +57,16 @@ static void thread_release_stage1(kobject_t *kobj)
     thread_t *th = container_of(kobj, thread_t, kobj);
     kobject_invalidate(kobj);
     thread_unbind(th);
-    if (th->status == THREAD_READY)
+    if (th->status == THREAD_READY || th->status == THREAD_TODEAD)
     {
-        thread_suspend(th);
+        thread_dead(th);
     }
 }
 static void thread_release_stage2(kobject_t *kobj)
 {
     thread_t *th = container_of(kobj, thread_t, kobj);
     thread_t *cur_th = thread_get_current();
-
-    printk("thread 0x%x\n", kobj);
+    printk("release thread 0x%x\n", kobj);
     mm_limit_free_align(th->lim, kobj, THREAD_BLOCK_SIZE);
 
     if (cur_th == th)
@@ -130,6 +129,21 @@ void thread_suspend(thread_t *th)
     th->status = THREAD_SUSPEND;
     thread_sched();
 }
+/**
+ * @brief 线程死亡
+ *
+ * @param th
+ */
+void thread_dead(thread_t *th)
+{
+    if (!slist_in_list(&th->sche.node))
+    {
+        assert(slist_in_list(&th->sche.node));
+    }
+    scheduler_del(&th->sche);
+    th->status = THREAD_DEAD;
+    thread_sched();
+}
 
 /**
  * @brief 进行一次调度
@@ -166,6 +180,20 @@ void thread_ready(thread_t *th, bool_t is_sche)
         thread_sched();
     }
 }
+void thread_todead(thread_t *th, bool_t is_sche)
+{
+    if (!!slist_in_list(&th->sche.node))
+    {
+        assert(!slist_in_list(&th->sche.node));
+    }
+    scheduler_add(&th->sche);
+    th->status = THREAD_TODEAD;
+    if (is_sche)
+    {
+        thread_sched();
+    }
+}
+
 /**
  * @brief 创建线程
  *
@@ -182,6 +210,7 @@ thread_t *thread_create(ram_limit_t *ram)
     }
     memset(th, 0, THREAD_BLOCK_SIZE);
     thread_init(th, ram);
+    printk("create thread 0x%x\n", th);
     return th;
 }
 enum thread_op
@@ -284,7 +313,6 @@ static kobject_t *thread_create_func(ram_limit_t *lim, umword_t arg0, umword_t a
     {
         return NULL;
     }
-    printk("thread 0x%x\n", kobj);
     return kobj;
 }
 

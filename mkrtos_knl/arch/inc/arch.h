@@ -85,10 +85,20 @@ void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
     {                             \
         write_sysreg(0, PRIMASK); \
     } while (0)
+
+static inline void preemption(void)
+{
+    cli();
+    sti();
+}
+
 static inline umword_t intr_status(void)
 {
     return read_sysreg(PRIMASK);
 }
+
 void sys_startup(void);
+
+
 // systick.c
 umword_t sys_tick_cnt_get(void);

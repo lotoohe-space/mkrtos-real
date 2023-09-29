@@ -1,12 +1,12 @@
 /**
  * @file ipc.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "ipc.h"
 #include "types.h"
@@ -106,9 +106,21 @@ static void timeout_times_wake_ipc(ipc_t *ipc)
     slist_foreach(item, &ipc->wait_send, node) //!< 第二次循环等待irq里面的等待者
     {
         //!< 超时时间满后直接唤醒等待者
-        thread_ready(item->th, TRUE);
+        if (thread_get_status(item->th) == THREAD_SUSPEND)
+        {
+            thread_todead(item->th, TRUE);
+        }
+    }
+    slist_foreach(item, &ipc->recv_send, node) //!< 第二次循环等待irq里面的等待者
+    {
+        //!< 超时时间满后直接唤醒等待者
+        if (thread_get_status(item->th) == THREAD_SUSPEND)
+        {
+            thread_todead(item->th, TRUE);
+        }
     }
     thread_sched();
+    preemption();
 }
 /**
  * @brief ipc_wait_item_t结构体初始化
@@ -137,6 +149,7 @@ static void ipc_wait_item_init(ipc_wait_item_t *item, ipc_t *ipc, thread_t *th, 
  */
 static int add_wait_unlock(ipc_t *ipc, slist_head_t *head, thread_t *th, umword_t times, spinlock_t *lock, int status)
 {
+    int ret = 0;
     ipc_wait_item_t item;
 
     ipc_wait_item_init(&item, ipc, th, times);
@@ -159,10 +172,14 @@ static int add_wait_unlock(ipc_t *ipc, slist_head_t *head, thread_t *th, umword_
         }
         if (item.sleep_times == 0)
         {
-            return -ETIMEDOUT;
+            ret = -ETIMEDOUT;
         }
     }
-    return 0;
+    if (thread_get_status(th) == THREAD_TODEAD)
+    {
+        ret = -ESHUTDOWN;
+    }
+    return ret;
 }
 /**
  * @brief 拿出等待队列中的第一个并唤醒
@@ -242,10 +259,11 @@ __check:
     status = spinlock_lock(&ipc->lock);
     if (ipc->svr_th->status != THREAD_SUSPEND)
     {
-        if (add_wait_unlock(ipc, &ipc->wait_send, th,
-                            timeout.send_timeout, &ipc->lock, status) < 0)
+        ret = add_wait_unlock(ipc, &ipc->wait_send, th,
+                              timeout.send_timeout, &ipc->lock, status);
+        if (ret < 0)
         {
-            return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, -EWTIMEDOUT);
+            return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, ret);
         }
         goto __check;
     }
@@ -441,7 +459,6 @@ static void ipc_release_stage1(kobject_t *kobj)
     {
         ref_counter_dec_and_release(&ipc->svr_th->ref, &ipc->svr_th->kobj);
     }
-
 }
 static void ipc_release_stage2(kobject_t *kobj)
 {

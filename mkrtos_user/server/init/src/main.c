@@ -47,11 +47,11 @@ int main(int argc, char *args[])
     //     printf("app load fail, 0x%x\n", ret);
     // }
 
-    // ret = app_load("app", &env);
-    // if (ret < 0)
-    // {
-    //     printf("app load fail, 0x%x\n", ret);
-    // }
+    ret = app_load("app", &env);
+    if (ret < 0)
+    {
+        printf("app load fail, 0x%x\n", ret);
+    }
     // namespace_init(ipc_hd);
 
     // namespace_loop();

@@ -174,7 +174,7 @@ static void irq_sender_stage2(kobject_t *kobj)
     task_t *cur_task = thread_get_current_task();
 
     mm_limit_free(cur_task->lim, th);
-    printk("irq_sender 0x%x\n", kobj);
+    printk("irq_sender release 0x%x\n", kobj);
 }
 /**
  * @brief 初始化

@@ -1,12 +1,12 @@
 /**
  * @file task.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 #include "task.h"
@@ -167,7 +167,7 @@ static void task_release_stage2(kobject_t *kobj)
 
     mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
     mm_limit_free(tk->lim, tk);
-    if (cur_tk == tk)
+    // if (cur_tk == tk)
     {
         thread_sched();
     }

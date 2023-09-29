@@ -27,6 +27,7 @@ enum thread_state
     THREAD_DEAD,
     THREAD_SUSPEND, //!< 只有接收和发送ipc消息时才能挂起
     THREAD_READY,
+    THREAD_TODEAD, //!< 该标志标志线程马上要死亡了，应该立刻停止操作
 };
 typedef struct
 {
@@ -115,4 +116,6 @@ void thread_unbind(thread_t *th);
 void thread_send_wait(thread_t *th);
 void thread_sched(void);
 void thread_suspend(thread_t *th);
+void thread_dead(thread_t *th);
+void thread_todead(thread_t *th, bool_t is_sche);
 void thread_ready(thread_t *th, bool_t is_sche);
