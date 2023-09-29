@@ -465,7 +465,7 @@ static void ipc_release_stage2(kobject_t *kobj)
     ipc_t *ipc = container_of(kobj, ipc_t, kobj);
 
     mm_limit_free(ipc->lim, kobj);
-    printk("ipc 0x%x\n", kobj);
+    printk("ipc release 0x%x\n", kobj);
 }
 static void ipc_init(ipc_t *ipc, ram_limit_t *lim)
 {

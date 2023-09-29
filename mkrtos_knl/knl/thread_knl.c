@@ -49,6 +49,7 @@ INIT_STAGE1(knl_init_1);
  */
 static void knl_init_2(void)
 {
+    mm_trace();
     thread_t *init_thread = thread_create(&root_factory_get()->limit);
     assert(init_thread);
     task_t *init_task = task_create(&root_factory_get()->limit, FALSE);

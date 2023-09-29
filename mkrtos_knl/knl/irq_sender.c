@@ -110,7 +110,7 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
-    ref_counter_inc(&irq->wait_thread->ref); //! 引用计数+1
+
     switch (sys_p.op)
     {
     case BIND_IRQ:
@@ -139,7 +139,9 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     break;
     case WAIT_IRQ:
     {
+        ref_counter_inc(&th->ref);
         int ret = irq_sender_wait(irq, th);
+        ref_counter_dec_and_release(&th->ref, &irq->kobj); //! 引用计数+1
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
@@ -152,7 +154,6 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     default:
         break;
     }
-    ref_counter_dec_and_release(&irq->wait_thread->ref, &irq->kobj); //! 引用计数+1
 
     f->r[0] = tag.raw;
 }

@@ -62,7 +62,9 @@ typedef struct obj_space
 {
     obj_map_tab_t tab;
 } obj_space_t;
+
 void obj_space_init(obj_space_t *obj_space, ram_limit_t *ram);
+void obj_space_release(obj_space_t *obj_space, ram_limit_t *ram);
 void obj_space_del(obj_space_t *obj_space, obj_addr_t inx);
 obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobject_t *kobj, obj_addr_t inx, uint8_t attrs);
 obj_map_entry_t *obj_space_lookup(obj_space_t *obj_space, obj_addr_t inx);

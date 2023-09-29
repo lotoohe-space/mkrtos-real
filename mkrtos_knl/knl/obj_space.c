@@ -1,21 +1,29 @@
 /**
  * @file obj_space.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "obj_space.h"
 #include "types.h"
+#include "mm_wrap.h"
 
 void obj_space_init(obj_space_t *obj_space, ram_limit_t *ram)
 {
     for (int i = 0; i < OBJ_MAP_TAB_SIZE; i++)
     {
         obj_space->tab.tabs[i] = NULL;
+    }
+}
+void obj_space_release(obj_space_t *obj_space, ram_limit_t *ram)
+{
+    for (int i = 0; i < OBJ_MAP_TAB_SIZE; i++)
+    {
+        mm_limit_free(ram, obj_space->tab.tabs[i]);
     }
 }
 void obj_space_del(obj_space_t *obj_space, obj_addr_t inx)

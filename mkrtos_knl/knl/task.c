@@ -165,12 +165,14 @@ static void task_release_stage2(kobject_t *kobj)
     kobj_del_list_t kobj_list;
     task_t *cur_tk = thread_get_current_task();
 
+    obj_space_release(&tk->obj_space, tk->lim);
     mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
     mm_limit_free(tk->lim, tk);
     // if (cur_tk == tk)
     {
         thread_sched();
     }
+    // mm_trace();
     printk("release tk %x\n", tk);
 }
 void task_kill(task_t *tk)

@@ -1,12 +1,12 @@
 /**
  * @file mm.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "mm.h"
 
@@ -351,6 +351,7 @@ void mem_trace(mem_t *_this)
 {
     struct mem_heap *mem;
 
+    printk("================");
     printk("start heap:0x%x.\n", _this->heap_start);
     printk("l heap:0x%x.\n", _this->l_heap);
     printk("end heap:0x%x.\n", _this->heap_end);
@@ -359,4 +360,5 @@ void mem_trace(mem_t *_this)
     {
         printk("%d [0x%x-] %dB\n", mem->used, mem, mem->size);
     }
+    printk("================");
 }
