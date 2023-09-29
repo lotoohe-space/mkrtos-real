@@ -278,11 +278,12 @@ __check:
     ipc->svr_th->msg.tag = tag;
     thread_ready(ipc->svr_th, TRUE); //!< 直接唤醒接受者
     ipc->last_cli_th = th;           //!< 设置上一次发送的客户端
-    if (add_wait_unlock(ipc, &ipc->recv_send, th, timeout.recv_timeout, &ipc->lock, status) < 0)
+    ret = add_wait_unlock(ipc, &ipc->recv_send, th, timeout.recv_timeout, &ipc->lock, status);
+    if (ret < 0)
     {
+        // ref_counter_dec_and_release(&ipc->last_cli_th->ref, &ipc->last_cli_th->kobj);
         ipc->last_cli_th = NULL;
-        ref_counter_dec_and_release(&ipc->last_cli_th->ref, &ipc->last_cli_th->kobj);
-        return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, -ERTIMEDOUT);
+        return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, ret);
     }
     // spinlock_set(&ipc->lock, status);
     tmp_tag = th->msg.tag;
@@ -376,6 +377,10 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
             ref_counter_inc(&th->ref);                                       //!< 引用计数+1
             tag = ipc_call(ipc, th, f, in_tag, ipc_timeout_create(f->r[1])); //!< ipc call
             ref_counter_dec_and_release(&th->ref, &th->kobj);                //!< 引用计数-1
+            if (msg_tag_get_val(tag) == -ESHUTDOWN)
+            {
+                thread_dead(th);
+            }
         }
     }
     break;
@@ -390,6 +395,10 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
             ref_counter_inc(&th->ref);                        //!< 引用计数+1
             tag = ipc_wait(ipc, th, f, in_tag);               //!< 进入等待
             ref_counter_dec_and_release(&th->ref, &th->kobj); //!< 引用计数-1
+            if (msg_tag_get_val(tag) == -ESHUTDOWN)
+            {
+                thread_dead(th);
+            }
             f->r[1] = ipc->user_id;
         }
     }
@@ -405,6 +414,10 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
             ref_counter_inc(&th->ref); //!< 引用计数+1
             int ret = ipc_reply(ipc, th, f, in_tag);
             ref_counter_dec_and_release(&th->ref, &th->kobj); //!< 引用计数-1
+            if (msg_tag_get_val(tag) == -ESHUTDOWN)
+            {
+                thread_dead(th);
+            }
             tag = msg_tag_init4(0, 0, 0, ret);
         }
     }
@@ -437,6 +450,7 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     {
         if (ipc->svr_th == th)
         {
+            ref_counter_dec_and_release(&th->ref, &th->kobj); //!< 引用计数-1
             ipc->svr_th = NULL;
             tag = msg_tag_init4(0, 0, 0, 0);
         }

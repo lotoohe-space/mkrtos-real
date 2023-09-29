@@ -55,12 +55,34 @@ static bool_t thread_put(kobject_t *kobj)
 static void thread_release_stage1(kobject_t *kobj)
 {
     thread_t *th = container_of(kobj, thread_t, kobj);
+    thread_t *cur = thread_get_current();
     kobject_invalidate(kobj);
-    thread_unbind(th);
-    if (th->status == THREAD_READY || th->status == THREAD_TODEAD)
+
+    if (cur == th)
     {
-        thread_dead(th);
+        if (th->status == THREAD_READY || th->status == THREAD_TODEAD)
+        {
+            thread_dead(th);
+        }
     }
+    else
+    {
+        if (th->status == THREAD_TODEAD) //!< 如果在TODEAD状态则等待其死亡
+        {
+            while (th->status != THREAD_DEAD)
+            {
+                //!< 循环等待其死亡
+                thread_sched();
+                preemption();
+            }
+        }
+        else if (th->status == THREAD_READY)
+        {
+            thread_dead(th);
+        }
+    }
+
+    thread_unbind(th);
 }
 static void thread_release_stage2(kobject_t *kobj)
 {

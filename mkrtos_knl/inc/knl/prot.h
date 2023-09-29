@@ -50,6 +50,9 @@ typedef struct msg_tag
     .msg_buf_len = (msg_words),                                  \
     .map_buf_len = (buf_words),                                  \
     .prot = (p)})
+#define msg_tag_get_prot(tag) \
+    ((int16_t)((tag).prot))
+#define msg_tag_get_val(tag) msg_tag_get_prot(tag)
 
 typedef union syscall_prot
 {

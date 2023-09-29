@@ -23,11 +23,11 @@ typedef struct thread thread_t;
 
 enum thread_state
 {
-    THREAD_IDLE,
-    THREAD_DEAD,
+    THREAD_IDLE,    //!< 空闲状态
+    THREAD_DEAD,    //!< 死亡状态
     THREAD_SUSPEND, //!< 只有接收和发送ipc消息时才能挂起
-    THREAD_READY,
-    THREAD_TODEAD, //!< 该标志标志线程马上要死亡了，应该立刻停止操作
+    THREAD_READY,   //!< 正常工作状态
+    THREAD_TODEAD,  //!< 该标志标志线程马上要死亡了，执行完必要操作后，进入THREAD_DEAD状态
 };
 typedef struct
 {
