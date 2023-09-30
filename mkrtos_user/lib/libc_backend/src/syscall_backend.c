@@ -16,6 +16,7 @@ static const sys_call_func sys_call_list[] = {
     [SYS_ioctl] = sys_be_ioctl,
     [SYS_set_tid_address] = be_set_tid_address,
     [__ARM_NR_set_tls] = be_set_thread_area,
+    [SYS_exit] = be_exit,
 };
 
 static const sys_call_func_nr = sizeof(sys_call_list) / sizeof(sys_call_func);

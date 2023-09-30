@@ -39,3 +39,4 @@ long syscall_backend(long sys_inx, ...);
 
 umword_t be_mmap2(va_list ap);
 umword_t be_munmap(va_list ap);
+void be_exit(va_list ap);

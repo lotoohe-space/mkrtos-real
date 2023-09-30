@@ -2,7 +2,8 @@
 #include "syscall_backend.h"
 #include "u_prot.h"
 #include "u_ipc.h"
-
+#include "u_task.h"
+#include "u_env.h"
 #include <pthread_impl.h>
 
 long be_set_tid_address(va_list ap)
@@ -47,3 +48,9 @@ unsigned long get_thread_area(void)
     return i_msg->user[0];
 }
 
+void be_exit(va_list ap)
+{
+    /*TODO:暂时先这样*/
+    task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS));
+    ulog_write_str(u_get_global_env()->log_hd, "It shouldn't go here.\n");
+}

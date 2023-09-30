@@ -24,6 +24,8 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/drv
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/test
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic

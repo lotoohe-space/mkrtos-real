@@ -172,7 +172,7 @@ static void task_release_stage2(kobject_t *kobj)
         thread_sched();
     }
     scheduler_reset();
-    mm_trace();
+    // mm_trace();
     printk("release tk %x\n", tk);
 }
 void task_kill(task_t *tk)

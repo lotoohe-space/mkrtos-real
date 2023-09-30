@@ -146,7 +146,12 @@
         "ns_cli.h": "c",
         "fs_cli.h": "c",
         "u_rpc_1.h": "c",
-        "__config": "c"
+        "__config": "c",
+        "stm32f10x.h": "c",
+        "variant": "c",
+        "soft_iic.h": "c",
+        "sysinfo.h": "c",
+        "u_sleep.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

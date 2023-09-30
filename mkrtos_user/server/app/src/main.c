@@ -9,23 +9,28 @@
 #include "u_env.h"
 #include "u_hd_man.h"
 #include "u_ns.h"
-#include "test.h"
 #include "u_rpc.h"
+#include "u_sleep.h"
+#include "drv.h"
+#include "led.h"
+#include "test.h"
+#include "spl06.h"
+#include "sysinfo.h"
 #include <assert.h>
 #include <stdio.h>
 
 int main(int argc, char *args[])
 {
+    drv_init();
     printf("argc:%d args[0]:%s\n", argc, args[0]);
-    ulog_write_str(u_get_global_env()->log_hd, "MKRTOS:\n");
-#if 0
-    malloc_test();
-    rpc_test();
-    ns_test();
-#endif
-    irq_test();
-    // fs_test();
-    task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS));
-    ulog_write_str(u_get_global_env()->log_hd, "Error.\n");
+    ulog_write_str(u_get_global_env()->log_hd, "app start..\n");
+    relay_test();
+    while (1)
+    {
+        user_spl0601_get();
+        u_sleep_ms(500);
+        printf("temp:%d press:%d\n", (int)(sys_info.board_temp), (int)(sys_info.pressure));
+        toogle_led_0();
+    }
     return 0;
 }

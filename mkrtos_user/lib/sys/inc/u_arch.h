@@ -1,5 +1,7 @@
 #pragma once
 
+#define SYS_SCHE_HZ 1000 //!< 系统调度频率
+
 #define WORD_BYTES (sizeof(void *))
 #define WORD_BITS (WORD_BYTES * 8)
 
@@ -13,4 +15,3 @@
             :);                \
         _val;                  \
     })
-

@@ -256,7 +256,7 @@ static msg_tag_t ipc_call(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t 
     assert(th != ipc->svr_th);
 __check:
     status = spinlock_lock(&ipc->lock);
-    if (ipc->svr_th->status != THREAD_SUSPEND)
+    if (ipc->svr_th == NULL || ipc->svr_th->status != THREAD_SUSPEND)
     {
         ret = add_wait_unlock(ipc, &ipc->wait_send, th,
                               timeout.send_timeout, &ipc->lock, status);
