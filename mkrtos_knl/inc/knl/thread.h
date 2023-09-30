@@ -26,7 +26,7 @@ enum thread_state
     THREAD_IDLE,    //!< 空闲状态
     THREAD_DEAD,    //!< 死亡状态
     THREAD_SUSPEND, //!< 只有接收和发送ipc消息时才能挂起
-    THREAD_READY,   //!< 正常工作状态
+    THREAD_READY,   //!< 在就绪队列中
     THREAD_TODEAD,  //!< 该标志标志线程马上要死亡了，执行完必要操作后，进入THREAD_DEAD状态
 };
 typedef struct
@@ -57,16 +57,14 @@ typedef struct sp_info
 
 typedef struct msg_buf
 {
-    void *msg; //!< buf，长度是固定的 @see THREAD_MSG_BUG_LEN
-    // uint8_t len; //!< 这里不是buf的大小，而是存储接收或者发送的长度
-    msg_tag_t tag;
+    void *msg;     //!< buf，长度是固定的 @see THREAD_MSG_BUG_LEN
+    msg_tag_t tag; //!< 存放发送的临时标识
 } msg_buf_t;
 
 #define THREAD_MAIGC 0xdeadead //!< 用于栈溢出检测
 typedef struct thread
 {
-    kobject_t kobj; //!< 内核对象节点
-    // slist_head_t wait;        //!< 用于等待队列
+    kobject_t kobj;           //!< 内核对象节点
     sched_t sche;             //!< 调度节点
     kobject_t *task;          //!< 绑定的task
     sp_info_t sp;             //!< sp信息

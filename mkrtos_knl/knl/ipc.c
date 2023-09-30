@@ -28,7 +28,6 @@ typedef struct ipc_wait_item
 {
     slist_head_t node;
     thread_t *th;
-    // ipc_t *ipc;
     umword_t sleep_times;
 } ipc_wait_item_t;
 /**
@@ -38,12 +37,12 @@ typedef struct ipc_wait_item
 typedef struct ipc
 {
     kobject_t kobj;         //!< 内核对象
-    spinlock_t lock;        //!< 操作的锁 TODO: 使用内核对象锁
+    spinlock_t lock;        //!< 操作的锁
     slist_head_t wait_send; //!< 发送等待队列
     slist_head_t recv_send; //!< 接收等待队列
     slist_head_t node;      //!< 超时检查链表
-    thread_t *svr_th;       //!< 服务端 TODO:增加引用计数
-    thread_t *last_cli_th;  //!< 上一次发送数据的客户端TODO:增加引用计数
+    thread_t *svr_th;       //!< 服务端
+    thread_t *last_cli_th;  //!< 上一次发送数据的客户端
     ram_limit_t *lim;       //!< 内存限额
     umword_t user_id;       //!< 服务端绑定的数据
 } ipc_t;

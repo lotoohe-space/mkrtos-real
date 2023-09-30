@@ -141,11 +141,12 @@ void *mpu_ram_alloc(mm_space_t *ms, ram_limit_t *r_limit, size_t ram_size)
 {
     umword_t pre_alloc_addr;
     struct mem_heap *heap = NULL;
-    /*TODO:临界区保护*/
+    umword_t status = cpulock_lock();
 again_alloc:
     heap = mm_get_free(heap, ram_size, &pre_alloc_addr);
     if (!heap)
     {
+        cpulock_set(status);
         printk("The system is low on memory.\n");
         mm_trace();
         return NULL;

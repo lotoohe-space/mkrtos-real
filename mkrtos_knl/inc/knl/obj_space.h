@@ -6,8 +6,8 @@
 #include "types.h"
 #include "mm_wrap.h"
 
-#define OBJ_MAP_TAB_SIZE 2
-#define OBJ_MAP_ENTRY_SIZE 32
+#define OBJ_MAP_TAB_SIZE 4
+#define OBJ_MAP_ENTRY_SIZE 8
 
 #define OBJ_MAP_MAX_ADDR ((OBJ_MAP_ENTRY_SIZE) * (OBJ_MAP_TAB_SIZE))
 

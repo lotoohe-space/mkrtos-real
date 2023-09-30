@@ -37,7 +37,7 @@ add_dependencies(mkrtos.elf knl)
 add_dependencies(mkrtos.elf lib)
 
 set_target_properties(mkrtos.elf PROPERTIES 
-LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/stm32f205rft6_link.lds -z max-page-size=0x1000 --gc-section ")
+LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/stm32_link.lds -z max-page-size=0x1000 --gc-section ")
 
 add_custom_target(
     link_file_dump ALL
@@ -47,8 +47,8 @@ add_custom_target(
     -DKNL_DATA=$ENV{KNL_DATA}
     -DKNL_OFFSET=$ENV{KEN_OFFSET}
     -DKNL_DATA_SIZE=$ENV{KNL_DATA_SIZE}
-    -E -P -<${CMAKE_CURRENT_SOURCE_DIR}/stm32f205rft6_link.lds.S> 
-    ${CMAKE_CURRENT_SOURCE_DIR}/stm32f205rft6_link.lds
+    -E -P -<${CMAKE_CURRENT_SOURCE_DIR}/stm32_link.lds.S> 
+    ${CMAKE_CURRENT_SOURCE_DIR}/stm32_link.lds
 )
 
 add_custom_target(
