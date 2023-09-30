@@ -21,6 +21,10 @@ msg_tag_t ipc_bind(obj_handler_t obj, obj_handler_t tag_th, umword_t user_obj)
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
@@ -37,6 +41,10 @@ msg_tag_t ipc_wait(obj_handler_t obj, umword_t *user_obj)
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0", "r1");
     if (user_obj)
     {
         *user_obj = r1;
@@ -54,6 +62,10 @@ msg_tag_t ipc_reply(obj_handler_t obj, msg_tag_t in_tag)
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
@@ -69,6 +81,10 @@ msg_tag_t ipc_call(obj_handler_t obj, msg_tag_t in_tag, ipc_timeout_t timeout)
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;

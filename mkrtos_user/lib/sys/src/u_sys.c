@@ -27,10 +27,15 @@ msg_tag_t sys_read_info(obj_handler_t obj, sys_info_t *info)
             0,
             0);
     msg_tag_t tag = msg_tag_init(r0);
+
+    asm __volatile__(""
+                     :
+                     : :"r0", "r1", "r2");
     if (info)
     {
         info->sys_tick = r1;
         info->bootfs_start_addr = r2;
     }
+
     return tag;
 }

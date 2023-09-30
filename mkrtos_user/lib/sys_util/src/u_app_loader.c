@@ -43,7 +43,7 @@ int app_load(const char *name, uenv_t *cur_env)
     sys_info_t sys_info;
 
     tag = sys_read_info(SYS_PROT, &sys_info);
-    if (msg_tag_get_val(tag))
+    if (msg_tag_get_val(tag) < 0)
     {
         return -ENOENT;
     }

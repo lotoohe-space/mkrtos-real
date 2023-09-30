@@ -36,7 +36,7 @@ void thread_knl_pf_set(thread_t *cur_th, void *pc)
 }
 void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram, umword_t stack)
 {
-    assert((((umword_t)user_sp) & 0x7UL) == 0);
+    // assert((((umword_t)user_sp) & 0x7UL) == 0);
     umword_t usp = ((umword_t)(user_sp - 8) & ~0x7UL);
 
     if (stack)

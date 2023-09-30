@@ -29,6 +29,10 @@ msg_tag_t uirq_bind(obj_handler_t obj_inx, umword_t irq_no, umword_t prio_sub_pr
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
@@ -44,6 +48,10 @@ msg_tag_t uirq_wait(obj_handler_t obj_inx)
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
@@ -59,6 +67,10 @@ msg_tag_t uirq_ack(obj_handler_t obj_inx, umword_t irq_no)
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;

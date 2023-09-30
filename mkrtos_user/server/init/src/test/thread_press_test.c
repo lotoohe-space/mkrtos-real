@@ -11,8 +11,9 @@
 #include "test.h"
 static umword_t th1_hd = 0;
 static umword_t ipc_hd = 0;
+static int i = 100;
 
-#define STACK_SIZE 1024
+#define STACK_SIZE 512
 static __attribute__((aligned(8))) uint8_t stack0[STACK_SIZE];
 
 static void thread_test_func(void)
@@ -30,7 +31,6 @@ static void thread_test_func(void)
 
 void thread_press_test(void)
 {
-    int i = 100;
     while (i--)
     {
         th1_hd = handler_alloc();
@@ -48,6 +48,7 @@ void thread_press_test(void)
         assert(msg_tag_get_prot(tag) >= 0);
         tag = thread_run(th1_hd, 2);
         ulog_write_str(LOG_PROT, "\n");
+
         // sleep_tick(20);
     }
 }

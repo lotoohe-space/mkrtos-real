@@ -145,7 +145,8 @@
         "u_rpc_2.h": "c",
         "ns_cli.h": "c",
         "fs_cli.h": "c",
-        "u_rpc_1.h": "c"
+        "u_rpc_1.h": "c",
+        "__config": "c"
     },
     "cortex-debug.showRTOS": false,
 }

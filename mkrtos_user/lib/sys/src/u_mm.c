@@ -23,6 +23,10 @@ void *mm_alloc_page(obj_handler_t obj_inx, umword_t pnf_nr, uint8_t attrs)
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0", "r1", "r2", "r3");
     {
         msg_tag_t tag = msg_tag_init(r0);
 

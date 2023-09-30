@@ -22,6 +22,10 @@ msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg)
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0", "r1", "r2");
     return msg_tag_init(r0);
 }
 msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len)
@@ -37,6 +41,10 @@ msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len)
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0", "r1", "r2");
     if (msg)
     {
         *msg = r1;
@@ -59,6 +67,10 @@ msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t
             ram,
             cp_stack,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
@@ -88,6 +100,10 @@ msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj)
             0,
             0,
             0, 0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;

@@ -26,6 +26,10 @@ static msg_tag_t ulog_read_bytes_raw(obj_handler_t obj_inx, umword_t data[5], in
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0", "r1", "r2", "r3", "r4", "r5");
     msg_tag_t tag = msg_tag_init(r0);
     {
         ((umword_t *)data)[0] = r1;

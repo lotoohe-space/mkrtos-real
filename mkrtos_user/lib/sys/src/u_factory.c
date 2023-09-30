@@ -62,6 +62,10 @@ msg_tag_t factory_create_ipc(obj_handler_t obj, vpage_t vpage)
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;

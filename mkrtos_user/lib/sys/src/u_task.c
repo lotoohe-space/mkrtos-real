@@ -19,6 +19,10 @@ msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx)
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
@@ -35,6 +39,10 @@ msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t 
             attrs,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
@@ -67,6 +75,10 @@ msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *all
             0,
             0,
             0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0", "r1");
     if (alloc_addr)
     {
         *alloc_addr = r1;
