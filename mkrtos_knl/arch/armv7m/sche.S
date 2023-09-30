@@ -27,7 +27,7 @@ PendSV_Handler:
 	ldr r4, [r4]
 	//! psp为零时，立刻调度一次
 	CBZ r4, thread_sche
-
+	pop {r4}
 	SUB R3, R3, #0x20 //R3 -= 32
 	STM R3, {R4-R11}
 
@@ -38,8 +38,10 @@ PendSV_Handler:
 	MOVEQ r1,r3
 	MSRNE PSP, r3
 	MOVNE r0,r3
+	b thread_sche_next
 thread_sche:
 	pop {r4}
+thread_sche_next:
 	// r0:psp r1:msp r2:(0为msp 1 psp)
 	LDR.w r3,=schde_to
 	BLX r3

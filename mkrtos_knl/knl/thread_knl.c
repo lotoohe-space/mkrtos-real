@@ -86,7 +86,7 @@ static void knl_init_2(void)
     }
     thread_ready(init_thread, FALSE);
 }
-INIT_STAGE1(knl_init_2);
+INIT_STAGE2(knl_init_2);
 
 static void print_mkrtos_info(void)
 {

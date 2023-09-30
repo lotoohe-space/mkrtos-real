@@ -149,4 +149,5 @@
         "__config": "c"
     },
     "cortex-debug.showRTOS": false,
+    "cortex-debug.variableUseNaturalFormat": false,
 }

@@ -24,7 +24,8 @@
             "interface": "swd",
             "executable": "${workspaceFolder}/build/output/kernel.img.out",
             "symbolFiles": [
-                "${workspaceFolder}/build/mkrtos/mkrtos_knl/mkrtos.elf"
+                "${workspaceFolder}/build/mkrtos/mkrtos_knl/mkrtos.elf",
+                "${workspaceFolder}/build/mkrtos/mkrtos_user/server/init/init.elf",
             ],
             "servertype": "jlink",
             "cwd": "${fileDirname}",

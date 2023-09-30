@@ -1,12 +1,12 @@
 /**
  * @file misc.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "types.h"
 #include "mm_wrap.h"
@@ -158,6 +158,7 @@ again_alloc:
     if (mpu_calc(ms, pre_alloc_addr, ram_size,
                  &need_align, &alloc_addr) == FALSE)
     {
+        cpulock_set(status);
         printk("The MPU area is exhausted.");
         return NULL;
     }
@@ -165,6 +166,7 @@ again_alloc:
     void *ram = mm_limit_alloc_align(r_limit, ram_size, need_align);
     if (!ram)
     {
+        cpulock_set(status);
         printk("The system is low on memory.\n");
         return NULL;
     }
@@ -172,10 +174,12 @@ again_alloc:
     //!< 申请的地址与预分配的地址不同
     if (ram != (void *)alloc_addr)
     {
+        cpulock_set(status);
         printk("Again.\n");
         mm_limit_free_align(r_limit, ram, need_align);
         heap = heap->next;
         goto again_alloc;
     }
+    cpulock_set(status);
     return ram;
 }
