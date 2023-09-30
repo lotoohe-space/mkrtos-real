@@ -1,12 +1,12 @@
 /**
  * @file scheduler.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "scheduler.h"
 #include "util.h"
@@ -14,6 +14,12 @@
 #include "thread.h"
 #include "init.h"
 static scheduler_t scheduler;
+umword_t sched_reset = 0;
+
+void scheduler_reset(void)
+{
+    sched_reset = 0;
+}
 
 scheduler_t *scheduler_get_current(void)
 {
@@ -37,6 +43,7 @@ void scheduler_add(sched_t *node)
     if (node->prio != sched->max_prio)
     {
         sched->max_prio = node->prio;
+        sched->cur_sche = NULL;
     }
 
     slist_add(&sched->prio_list[node->prio], &node->node);
@@ -52,12 +59,13 @@ void scheduler_del(sched_t *node)
         /*TODO:更新最大优先级，这里可以用位图优化*/
         for (mword_t i = node->prio - 1; i >= 0; i--)
         {
-            if (slist_is_empty(&sched->prio_list[i]))
+            if (!slist_is_empty(&sched->prio_list[i]))
             {
                 sched->max_prio = i;
                 break;
             }
         }
+        sched->cur_sche = NULL;
     }
 }
 sched_t *scheduler_next(void)
@@ -87,12 +95,16 @@ sp_info_t *schde_to(void *usp, void *ksp, umword_t sp_type)
 {
     scheduler_t *sche = scheduler_get_current();
 
-    thread_t *cur_th = thread_get_current();
     sched_t *next = sche->cur_sche;
     thread_t *next_th = container_of(next, thread_t, sche);
 
-    cur_th->sp.knl_sp = ksp;
-    cur_th->sp.user_sp = usp;
-    cur_th->sp.sp_type = sp_type;
+    if (sched_reset)
+    {
+        thread_t *cur_th = thread_get_current();
+        cur_th->sp.knl_sp = ksp;
+        cur_th->sp.user_sp = usp;
+        cur_th->sp.sp_type = sp_type;
+    }
+    sched_reset = 1;
     return &next_th->sp;
 }

@@ -28,6 +28,19 @@ static inline void kobj_map_init(kobj_map_t *map)
     slist_init(&map->node);
 }
 
+enum knl_obj_type
+{
+    BASE_KOBJ_TYPE,
+    TASK_TYPE,
+    THREAD_TYPE,
+    IRQ_SENDER_TYPE,
+    IPC_TYPE,
+    LOG_TYPE,
+    MM_TYPE,
+    FACTORY_TYPE,
+    SYS_TYPE,
+};
+
 typedef struct kobject
 {
     kobj_map_t mappable;
@@ -37,6 +50,7 @@ typedef struct kobject
     obj_release_stage_1_func stage_1_func;
     obj_release_stage_2_func stage_2_func;
     obj_release_put put_func;
+    enum knl_obj_type kobj_type;
 } kobject_t;
 
 typedef struct kobj_del_list
@@ -94,7 +108,7 @@ static inline void kobject_release_stage2(kobject_t *kobj)
 {
 }
 
-static inline void kobject_init(kobject_t *kobj)
+static inline void kobject_init(kobject_t *kobj, enum knl_obj_type type)
 {
     kobj_map_init(&kobj->mappable);
     slist_init(&kobj->del_node);
@@ -103,4 +117,5 @@ static inline void kobject_init(kobject_t *kobj)
     kobj->put_func = kobject_put;
     kobj->stage_1_func = kobject_release_stage1;
     kobj->stage_2_func = kobject_release_stage2;
+    kobj->kobj_type = type;
 }

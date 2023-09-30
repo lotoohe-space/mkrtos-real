@@ -483,7 +483,7 @@ static void ipc_release_stage2(kobject_t *kobj)
 }
 static void ipc_init(ipc_t *ipc, ram_limit_t *lim)
 {
-    kobject_init(&ipc->kobj);
+    kobject_init(&ipc->kobj, IPC_TYPE);
     slist_init(&ipc->wait_send);
     slist_init(&ipc->recv_send);
     spinlock_init(&ipc->lock);

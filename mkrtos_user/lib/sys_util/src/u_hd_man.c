@@ -55,6 +55,10 @@ obj_handler_t handler_alloc(void)
 void handler_free(obj_handler_t hd_inx)
 {
     hd_inx -= HANDLER_START_INX;
+    if (hd_inx < 0)
+    {
+        return;
+    }
     umword_t word_offset = hd_inx / WORD_BITS;
     umword_t bits_offset = hd_inx % WORD_BITS;
 
@@ -73,6 +77,6 @@ void handler_free(obj_handler_t hd_inx)
  */
 void handler_free_umap(obj_handler_t hd_inx)
 {
-    task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_inx));
     handler_free(hd_inx);
+    task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_inx));
 }

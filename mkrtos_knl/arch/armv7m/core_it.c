@@ -67,7 +67,10 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   printk("%s\n", __FUNCTION__);
+  umword_t status;
+  status = cpulock_lock();
   task_kill(thread_get_current_task());
+  cpulock_set(status);
   /* Go to infinite loop when Hard Fault exception occurs */
   // while (1)
   // {
@@ -83,6 +86,7 @@ void MemManage_Handler(void)
 {
   addr_t fault_addr = (addr_t)(SCB->MMFAR);
   task_t *cur_task = thread_get_current_task();
+  umword_t status;
 
   // printk("%s\n", __FUNCTION__);
   if (SCB->CFSR & 0x1)
@@ -149,7 +153,9 @@ void MemManage_Handler(void)
   // {
   // }
 end:
+  status = cpulock_lock();
   task_kill(thread_get_current_task());
+  cpulock_set(status);
 }
 
 /**
@@ -159,13 +165,16 @@ end:
  */
 void BusFault_Handler(void)
 {
+  umword_t status;
   printk("%s\n", __FUNCTION__);
 
   /* Go to infinite loop when Bus Fault exception occurs */
   // while (1)
   // {
   // }
+  status = cpulock_lock();
   task_kill(thread_get_current_task());
+  cpulock_set(status);
 }
 
 /**
@@ -204,7 +213,10 @@ void UsageFault_Handler(void)
   // while (1)
   // {
   // }
+  umword_t status;
+  status = cpulock_lock();
   task_kill(thread_get_current_task());
+  cpulock_set(status);
 }
 
 // /**

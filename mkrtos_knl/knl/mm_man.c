@@ -26,7 +26,7 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
 
 static void mm_man_reg(void)
 {
-    kobject_init(&mm_man.kobj);
+    kobject_init(&mm_man.kobj, MM_TYPE);
     mm_man.kobj.invoke_func = mm_man_syscall;
     global_reg_kobj(&mm_man.kobj, MM_PROT);
 }

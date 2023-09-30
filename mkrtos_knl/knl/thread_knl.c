@@ -25,6 +25,14 @@
 static thread_t *knl_thread;
 static task_t knl_task;
 
+static void knl_main(void)
+{
+    printk("knl main run..\n");
+    while (1)
+    {
+    }
+}
+
 /**
  * 初始化内核线程
  * 初始化内核任务
@@ -36,6 +44,7 @@ static void knl_init_1(void)
     thread_init(cur_th, &root_factory_get()->limit);
     task_init(&knl_task, &root_factory_get()->limit, TRUE);
 
+    thread_knl_pf_set(cur_th, knl_main);
     thread_bind(cur_th, &knl_task.kobj);
     thread_ready(cur_th, FALSE);
 }
@@ -63,7 +72,8 @@ static void knl_init_2(void)
 
     thread_set_msg_bug(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
     thread_bind(init_thread, &init_task->kobj);
-    thread_user_pf_set(init_thread, (void *)(KNL_TEXT + INIT_OFFSET), sp_addr_top, init_task->mm_space.mm_block, 0);
+    thread_user_pf_set(init_thread, (void *)(KNL_TEXT + INIT_OFFSET), (void *)((umword_t)sp_addr_top - 8),
+                       init_task->mm_space.mm_block, 0);
     assert(obj_map_root(&init_thread->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, THREAD_PROT)));
     assert(obj_map_root(&init_task->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, TASK_PROT)));
     for (int i = FACTORY_PORT_START; i < FACTORY_PORT_END; i++)
@@ -106,7 +116,7 @@ void start_kernel(void)
     printk("mkrtos running..\n");
     print_mkrtos_info();
     sti();
-    sys_startup();
+    sys_startup(); //!< 开始调度
     thread_sched();
     cli();
 

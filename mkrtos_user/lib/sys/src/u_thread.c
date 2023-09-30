@@ -68,8 +68,8 @@ msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
     register volatile umword_t r0 asm("r0");
 
     syscall(syscall_prot_create(RUN_THREAD, THREAD_PROT, obj),
-            prio,
             0,
+            prio,
             0,
             0,
             0,

@@ -131,7 +131,7 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     assert(task);
     assert(ram);
 
-    kobject_init(&task->kobj);
+    kobject_init(&task->kobj, TASK_TYPE);
     obj_space_init(&task->obj_space, ram);
     mm_space_init(&task->mm_space, is_knl);
     ref_counter_init(&task->ref_cn);
@@ -141,7 +141,6 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     task->kobj.put_func = task_put;
     task->kobj.stage_1_func = task_release_stage1;
     task->kobj.stage_2_func = task_release_stage2;
-
     mm_space_add(&task->mm_space, KNL_TEXT, 64 * 1024 * 1024, REGION_RO); // TODO:
 }
 
@@ -172,7 +171,8 @@ static void task_release_stage2(kobject_t *kobj)
     {
         thread_sched();
     }
-    // mm_trace();
+    scheduler_reset();
+    mm_trace();
     printk("release tk %x\n", tk);
 }
 void task_kill(task_t *tk)

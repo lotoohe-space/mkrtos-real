@@ -3,6 +3,7 @@
 .thumb
 
 .global mpu_switch_to
+.global sched_reset
 
 .global PendSV_Handler
 .type PendSV_Handler, %function
@@ -21,9 +22,11 @@ PendSV_Handler:
 	MRSNE r3, PSP
 	MOVNE r2, #1
 
+	push {r4}
+	ldr r4, =sched_reset
+	ldr r4, [r4]
 	//! psp为零时，立刻调度一次
-	//CMP r0,#0
-	//CBZ r0, thread_sche
+	CBZ r4, thread_sche
 
 	SUB R3, R3, #0x20 //R3 -= 32
 	STM R3, {R4-R11}
@@ -36,6 +39,7 @@ PendSV_Handler:
 	MSRNE PSP, r3
 	MOVNE r0,r3
 thread_sche:
+	pop {r4}
 	// r0:psp r1:msp r2:(0为msp 1 psp)
 	LDR.w r3,=schde_to
 	BLX r3

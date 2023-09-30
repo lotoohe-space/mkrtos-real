@@ -36,3 +36,4 @@ void scheduler_init(void);
 sched_t *scheduler_next(void);
 void scheduler_add(sched_t *node);
 void scheduler_del(sched_t *node);
+void scheduler_reset(void);

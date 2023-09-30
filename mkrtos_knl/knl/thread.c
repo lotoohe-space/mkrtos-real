@@ -34,7 +34,7 @@ static void thread_release_stage2(kobject_t *kobj);
  */
 void thread_init(thread_t *th, ram_limit_t *lim)
 {
-    kobject_init(&th->kobj);
+    kobject_init(&th->kobj, THREAD_TYPE);
     sched_init(&th->sche);
     // slist_init(&th->wait);
     ref_counter_init(&th->ref);
@@ -91,10 +91,10 @@ static void thread_release_stage2(kobject_t *kobj)
     printk("release thread 0x%x\n", kobj);
     mm_limit_free_align(th->lim, kobj, THREAD_BLOCK_SIZE);
 
-    if (cur_th == th)
-    {
-        thread_sched();
-    }
+    // if (cur_th == th)
+    // {
+    thread_sched();
+    // }
 }
 
 /**
@@ -310,7 +310,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         }
         thread_bind(tag_th, task_kobj);
         tag = msg_tag_init4(0, 0, 0, 0);
-        printk("thread bind to %d\n", f->r[7], f->r[1]);
+        printk("thread bind to %d\n", f->r[1]);
     }
     break;
     }

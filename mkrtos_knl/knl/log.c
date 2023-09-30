@@ -42,6 +42,7 @@ static void log_reg(void)
 {
     // kobject_init(&log.kobj);
     irq_sender_init(&log.kobj);
+    log.kobj.kobj.kobj_type = IRQ_SENDER_TYPE;
     log.kobj.kobj.invoke_func = log_syscall;
     log.kobj.kobj.stage_1_func = kobject_release_stage1;
     log.kobj.kobj.stage_2_func = kobject_release_stage2;

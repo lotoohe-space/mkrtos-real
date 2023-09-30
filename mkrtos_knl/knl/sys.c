@@ -34,7 +34,7 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
 
 static void sys_reg(void)
 {
-    kobject_init(&sys_obj.kobj);
+    kobject_init(&sys_obj.kobj, SYS_TYPE);
     sys_obj.kobj.invoke_func = sys_syscall;
     global_reg_kobj(&sys_obj.kobj, SYS_PROT);
 }

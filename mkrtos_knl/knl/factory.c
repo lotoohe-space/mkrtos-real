@@ -1,12 +1,12 @@
 /**
  * @file factory.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "factory.h"
 #include "kobject.h"
@@ -62,19 +62,35 @@ static kobject_t *factory_manu_kobj(kobject_t *kobj, ram_limit_t *lim, entry_fra
 static msg_tag_t factory_create_map(kobject_t *kobj, task_t *tk, entry_frame_t *f)
 {
     vpage_t page = vpage_create_raw(f->r[2]);
+    mword_t status = spinlock_lock(&tk->kobj.lock);
+
+    if (status < 0)
+    {
+        return msg_tag_init4(0, 0, 0, -EINVAL);
+    }
     kobject_t *new_kobj = factory_manu_kobj(kobj, tk->lim, f);
 
     if (!new_kobj)
     {
+        spinlock_set(&tk->kobj.lock, status);
         return msg_tag_init4(0, 0, 0, -ENOMEM);
     }
 
     page.attrs |= KOBJ_ALL_RIGHTS;
     if (obj_map_root(new_kobj, &tk->obj_space, tk->lim, page) == FALSE)
     {
-        mm_limit_free(tk->lim, new_kobj);
+        if (new_kobj->kobj_type == THREAD_TYPE)
+        {
+            mm_limit_free_align(tk->lim, new_kobj, THREAD_BLOCK_SIZE);
+        }
+        else
+        {
+            mm_limit_free(tk->lim, new_kobj);
+        }
+        spinlock_set(&tk->kobj.lock, status);
         return msg_tag_init4(0, 0, 0, -ENOMEM);
     }
+    spinlock_set(&tk->kobj.lock, status);
     return msg_tag_init4(0, 0, 0, 0);
 }
 /**
@@ -109,7 +125,7 @@ factory_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_f
 }
 static void factory_init(factory_t *fac, umword_t max)
 {
-    kobject_init(&fac->kobj);
+    kobject_init(&fac->kobj, FACTORY_TYPE);
     ram_limit_init(&fac->limit, max);
     fac->kobj.invoke_func = factory_syscall;
 }

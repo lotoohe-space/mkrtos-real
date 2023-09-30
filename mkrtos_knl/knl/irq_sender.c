@@ -184,7 +184,7 @@ static void irq_sender_stage2(kobject_t *kobj)
  */
 void irq_sender_init(irq_sender_t *irq)
 {
-    kobject_init(&irq->kobj);
+    kobject_init(&irq->kobj, IRQ_SENDER_TYPE);
     ref_counter_init(&irq->ref);
     ref_counter_inc(&irq->ref);
     irq->kobj.invoke_func = irq_sender_syscall;

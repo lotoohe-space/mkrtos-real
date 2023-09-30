@@ -13,3 +13,5 @@ void thread_exit_test(void);
 void map_test(void);
 void ipc_timeout_test(void);
 void irq_test(void);
+void thread_press_test(void);
+void sleep_tick(int tick);
