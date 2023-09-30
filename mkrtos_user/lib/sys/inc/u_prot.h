@@ -61,6 +61,7 @@ static inline syscall_prot_t syscall_prot_create(uint8_t op, uint8_t prot, obj_h
         .op = op,
         .prot = prot,
         .obj_inx = obj_inx,
+        .self = 0,
     };
 }
 static inline syscall_prot_t syscall_prot_create4(uint8_t op, uint8_t prot, obj_handler_t obj_inx, uint8_t self)

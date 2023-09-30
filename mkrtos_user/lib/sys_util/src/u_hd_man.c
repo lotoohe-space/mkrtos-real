@@ -7,7 +7,7 @@
 #include <pthread.h>
 
 #define HANDLER_START_INX 10 //!< fd开始的值，前10个内核保留
-#define HANDLER_MAX_NR 64    //!< 单个task最大支持的hd数量
+#define HANDLER_MAX_NR 64   //!< 单个task最大支持的hd数量
 
 static umword_t bitmap_handler_alloc[HANDLER_MAX_NR / WORD_BYTES];
 static pthread_spinlock_t lock;

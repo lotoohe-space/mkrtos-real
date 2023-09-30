@@ -29,7 +29,7 @@ void obj_space_release(obj_space_t *obj_space, ram_limit_t *ram)
 void obj_space_del(obj_space_t *obj_space, obj_addr_t inx)
 {
     assert(obj_space);
-    if (inx > OBJ_MAP_MAX_ADDR)
+    if (inx >= OBJ_MAP_MAX_ADDR)
     {
         return;
     }
@@ -46,7 +46,7 @@ obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobj
 {
     assert(obj_space);
     assert(kobj);
-    if (inx > OBJ_MAP_MAX_ADDR)
+    if (inx >= OBJ_MAP_MAX_ADDR)
     {
         return NULL;
     }
@@ -74,7 +74,7 @@ obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobj
 obj_map_entry_t *obj_space_lookup(obj_space_t *obj_space, obj_addr_t inx)
 {
     assert(obj_space);
-    if (inx > OBJ_MAP_MAX_ADDR)
+    if (inx >= OBJ_MAP_MAX_ADDR)
     {
         return NULL;
     }
