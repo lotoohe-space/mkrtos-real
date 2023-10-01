@@ -187,27 +187,27 @@ void UsageFault_Handler(void)
   printk("%s\n", __FUNCTION__);
   if (SCB->CFSR & (1 << 16))
   {
-    printk("未定义指令错误\n");
+    printk("Undefined instruction error\n");
   }
   if (SCB->CFSR & (1 << 17))
   {
-    printk("试图切换到错误的状态\n");
+    printk("Trying to switch to the wrong state\n");
   }
   if (SCB->CFSR & (1 << 18))
   {
-    printk("试图执行EXC_RETURN错误的异常\n");
+    printk("An exception attempting to execute an EXC_RETURN error\n");
   }
   if (SCB->CFSR & (1 << 19))
   {
-    printk("试图执行协处理器指令\n");
+    printk("An attempt was made to execute a coprocessor instruction\n");
   }
   if (SCB->CFSR & (1 << 24))
   {
-    printk("产生了非对其访问错误\n");
+    printk("A non-access error was generated\n");
   }
   if (SCB->CFSR & (1 << 25))
   {
-    printk("除零错误\n");
+    printk("Division by zero error\n");
   }
   /* Go to infinite loop when Usage Fault exception occurs */
   // while (1)

@@ -91,10 +91,11 @@ static void thread_release_stage2(kobject_t *kobj)
     printk("release thread 0x%x\n", kobj);
     mm_limit_free_align(th->lim, kobj, THREAD_BLOCK_SIZE);
 
-    // if (cur_th == th)
-    // {
-    thread_sched();
-    // }
+    if (cur_th == th)
+    {
+        thread_sched();
+        scheduler_reset();
+    }
 }
 
 /**

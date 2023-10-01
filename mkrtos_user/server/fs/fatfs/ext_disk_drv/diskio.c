@@ -9,13 +9,14 @@
 
 #include "ff.h"		/* Obtains integer types */
 #include "diskio.h" /* Declarations of disk functions */
-#include "ram_disk.h"
+#include "w25q64.h"
 #include <stdio.h>
 /* Definitions of physical drive number for each drive */
-#define DEV_RAM 0 /* Example: Map Ramdisk to physical drive 0 */
-#define DEV_MMC 1 /* Example: Map MMC/SD card to physical drive 1 */
-#define DEV_USB 2 /* Example: Map USB MSD to physical drive 2 */
+#define DEV_EXT_FLASH 0 /* Example: Map Ramdisk to physical drive 0 */
 
+#define FLASH_SECTOR_SIZE 4096
+u16 FLASH_SECTOR_COUNT = 2048; // W25Q64,前12M字节给FATFS占用
+#define FLASH_BLOCK_SIZE 1	   // 每个BLOCK有8个扇区
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/
@@ -29,11 +30,16 @@ DSTATUS disk_status(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_EXT_FLASH:
 		result = 0;
-
-		// translate the reslut code here
-		stat = RES_OK;
+		if (W25QXX_ReadID() != W25Q64)
+		{
+			stat = RES_ERROR;
+		}
+		else
+		{
+			stat = RES_OK;
+		}
 		return stat;
 	}
 	return STA_NOINIT;
@@ -52,11 +58,11 @@ DSTATUS disk_initialize(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_EXT_FLASH:
 		result = 0;
-		stat = RES_OK;
+		W25QXX_Init();
 		// translate the reslut code here
-		return stat;
+		return disk_status(pdrv);
 	}
 	return STA_NOINIT;
 }
@@ -76,10 +82,12 @@ DRESULT disk_read(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
-		// translate the reslut code here
-		if (ram_disk_read(buff, sector, count) < 0) {
-			return RES_ERROR;
+	case DEV_EXT_FLASH:
+		for (; count > 0; count--)
+		{
+			W25QXX_Read(buff, sector * FLASH_SECTOR_SIZE, FLASH_SECTOR_SIZE);
+			sector++;
+			buff += FLASH_SECTOR_SIZE;
 		}
 		return 0;
 	}
@@ -104,11 +112,13 @@ DRESULT disk_write(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
-		// translate the arguments here
-
-		if (ram_disk_write((uint8_t *)buff, sector, count) < 0) {
-			return RES_ERROR;
+	case DEV_EXT_FLASH:
+		for (; count > 0; count--)
+		{
+			W25QXX_Erase_Sector(sector); // 擦除这个扇区
+			W25QXX_Write_NoCheck((u8 *)buff, sector * FLASH_SECTOR_SIZE, FLASH_SECTOR_SIZE);
+			sector++;
+			buff += FLASH_SECTOR_SIZE;
 		}
 		return 0;
 	}
@@ -133,23 +143,23 @@ DRESULT disk_ioctl(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_EXT_FLASH:
 		switch (cmd)
 		{					   // fatfs内核使用cmd调用
 		case GET_SECTOR_COUNT: // sector count, 传入sect_cnt
-			*(DWORD *)buff = ram_disk_sector_nr();
+			*(DWORD *)buff = FLASH_SECTOR_COUNT;
 			return RES_OK;
 		case GET_SECTOR_SIZE: // sector size, 传入block size(SD),单位bytes
-			*(DWORD *)buff = 512;
+			*(DWORD *)buff = FLASH_SECTOR_SIZE;
 			return RES_OK;
-		case GET_BLOCK_SIZE:	// block size, 由上文可得，对于SD2.0卡最大8192，最小 1
-			*(DWORD *)buff = 1; // 单位为 sector(FatFs)
+		case GET_BLOCK_SIZE:				   // block size, 由上文可得，对于SD2.0卡最大8192，最小 1
+			*(DWORD *)buff = FLASH_BLOCK_SIZE; // 单位为 sector(FatFs)
 			return RES_OK;
 		case CTRL_SYNC: // 同步命令，貌似FatFs内核用来判断写操作是否完成
 			return RES_OK;
 		}
 	default:
-		printf("No device %d.\n", pdrv);
+		// printf("No device %d.\n", pdrv);
 		break;
 	}
 	return RES_PARERR; // 默认返回参数错误

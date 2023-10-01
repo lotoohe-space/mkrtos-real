@@ -18,7 +18,10 @@ umword_t sched_reset = 0;
 
 void scheduler_reset(void)
 {
+    scheduler_t *sched = scheduler_get_current();
+
     sched_reset = 0;
+    sched->cur_sche = NULL;
 }
 
 scheduler_t *scheduler_get_current(void)

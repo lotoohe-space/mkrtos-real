@@ -37,13 +37,13 @@ msg_tag_t uirq_bind(obj_handler_t obj_inx, umword_t irq_no, umword_t prio_sub_pr
 
     return tag;
 }
-msg_tag_t uirq_wait(obj_handler_t obj_inx)
+msg_tag_t uirq_wait(obj_handler_t obj_inx, int flags)
 {
     register volatile umword_t r0 asm("r0");
 
     syscall(syscall_prot_create(WAIT_IRQ, IRQ_PROT, obj_inx),
             0,
-            0,
+            flags,
             0,
             0,
             0,

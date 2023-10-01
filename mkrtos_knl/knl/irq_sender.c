@@ -18,6 +18,7 @@
 #include <factory.h>
 #include <irq.h>
 #include <task.h>
+#include <fcntl.h>
 /**
  * @brief irq sender的操作号
  *
@@ -54,7 +55,7 @@ static void irq_tigger(irq_entry_t *irq)
  * @param th
  * @return int
  */
-int irq_sender_wait(irq_sender_t *irq, thread_t *th)
+int irq_sender_wait(irq_sender_t *irq, thread_t *th, int flags)
 {
     umword_t status = cpulock_lock();
 
@@ -63,23 +64,35 @@ int irq_sender_wait(irq_sender_t *irq, thread_t *th)
         irq->wait_thread = th;
         if (irq->irq_cn > 0)
         {
-            irq->irq_cn = 0;
             cpulock_set(status);
+            irq->irq_cn = 0;
+            irq->wait_thread = NULL;
         }
         else
         {
-            thread_suspend(irq->wait_thread);
+            int ret = 0;
+
+            if (!(flags & O_NONBLOCK))
+            {
+                thread_suspend(irq->wait_thread);
+                ret = 0;
+            }
+            else
+            {
+                ret = -EAGAIN;
+            }
             cpulock_set(status);
+            irq->irq_cn = 0;
             irq->wait_thread = NULL;
+            return ret;
         }
-        irq->irq_cn = 0;
         return 0;
     }
     else
     {
         cpulock_set(status);
 
-        return -EACCES;
+        return -EAGAIN;
     }
 }
 static bool_t irq_sender_unbind(irq_sender_t *irq, int irq_no)
@@ -140,7 +153,7 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     case WAIT_IRQ:
     {
         ref_counter_inc(&th->ref);
-        int ret = irq_sender_wait(irq, th);
+        int ret = irq_sender_wait(irq, th, f->r[1]);
         ref_counter_dec_and_release(&th->ref, &irq->kobj); //! 引用计数+1
         tag = msg_tag_init4(0, 0, 0, ret);
     }

@@ -68,7 +68,7 @@ static int log_read_data(log_t *log, uint8_t *data, int len)
 
         if (c < 0 && i == 0)
         {
-            int ret = irq_sender_wait(&log->kobj, thread_get_current());
+            int ret = irq_sender_wait(&log->kobj, thread_get_current(), 0);
             if (ret < 0)
             {
                 return ret;

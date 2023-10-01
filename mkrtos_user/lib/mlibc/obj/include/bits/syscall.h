@@ -79,7 +79,7 @@
 #define __NR_stat	106
 #define __NR_lstat	107
 #define __NR_fstat	108
-#define __NR_vhangup	111
+#define __NR_vhangup	447//111
 #define __NR_wait4	114
 #define __NR_swapoff	115
 #define __NR_sysinfo	116
@@ -404,7 +404,7 @@
 #define __ARM_NR_cacheflush	0x0f0002
 #define __ARM_NR_usr26		0x0f0003
 #define __ARM_NR_usr32		0x0f0004
-#define __ARM_NR_set_tls	0x447//0x0f0005
+#define __ARM_NR_set_tls	111//0x0f0005
 #define __ARM_NR_get_tls	0x0f0006
 
 #define SYS_restart_syscall	0

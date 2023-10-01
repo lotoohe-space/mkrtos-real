@@ -25,5 +25,5 @@ typedef struct irq_sender
 } irq_sender_t;
 
 void irq_sender_init(irq_sender_t *irq);
-int irq_sender_wait(irq_sender_t *irq, thread_t *th);
+int irq_sender_wait(irq_sender_t *irq, thread_t *th, int flags);
 void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f);

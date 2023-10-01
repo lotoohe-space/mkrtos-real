@@ -1,8 +1,11 @@
 #include "u_rpc.h"
 #include "u_rpc_svr.h"
 #include "fs_svr.h"
-#include <stdio.h>
 #include "ff.h"
+#include "u_log.h"
+#include "u_env.h"
+#include <stdio.h>
+#include <fcntl.h>
 static fs_t fs;
 
 void fs_svr_init(obj_handler_t ipc)
@@ -15,8 +18,13 @@ typedef struct file_desc
     FIL fp;
 } file_desc_t;
 
-#define FILE_DESC_NR 3
+#define FILE_DESC_NR 1
 static file_desc_t files[FILE_DESC_NR];
+
+void *file_temp_buf_get(void)
+{
+    return (void *)(&files[0]);
+}
 
 static file_desc_t *alloc_file(int *fd)
 {
@@ -45,7 +53,7 @@ static file_desc_t *file_get(int fd)
 
 int fs_svr_open(const char *path, int flags, int mode)
 {
-    printf("open %s.\n", path);
+    // printf("open %s.\n", path);
     int fd;
     file_desc_t *file = alloc_file(&fd);
 
@@ -53,11 +61,39 @@ int fs_svr_open(const char *path, int flags, int mode)
     {
         return -ENOMEM;
     }
-    FRESULT ret = f_open(&file->fp, path, mode);
+    int new_mode = 0;
+
+    switch (flags & O_ACCMODE)
+    {
+    case O_RDWR:
+        new_mode |= FA_READ;
+        new_mode |= FA_WRITE;
+        break;
+    case O_RDONLY:
+        new_mode |= FA_READ;
+        break;
+    case O_WRONLY:
+        new_mode |= FA_WRITE;
+        break;
+    }
+    if ((flags & O_CREAT) && (flags & O_EXCL))
+    {
+        new_mode |= FA_CREATE_NEW;
+    }
+    else if ((flags & O_CREAT))
+    {
+        new_mode |= FA_OPEN_ALWAYS;
+    }
+    if (flags & O_APPEND)
+    {
+        new_mode |= FA_OPEN_APPEND;
+    }
+
+    FRESULT ret = f_open(&file->fp, path, new_mode);
 
     if (ret != FR_OK)
     {
-        printf("open fail..\n");
+        ulog_write_str(u_get_global_env()->log_hd, "open fail..\n");
         free_file(fd);
     }
 

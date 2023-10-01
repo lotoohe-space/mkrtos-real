@@ -8,7 +8,7 @@
 void fs_test(void)
 {
     char tmp[4] = "123";
-    int fd = fs_open("/test", 0, 0x1 | 0x2 | 0x8);
+    int fd = fs_open("/test", O_CREAT | O_RDWR, 0777);
     assert(fd >= 0);
     int wlen = fs_write(fd, tmp, 4);
     assert(wlen == 4);

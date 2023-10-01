@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Werror \
--D__MPU_PRESENT=1 -DUSE_STDPERIPH_DRIVER=1 -DSTM32F10X_XL \
+-D__MPU_PRESENT=1 -DUSE_STDPERIPH_DRIVER=1 \
 -DKNL_OFFSET=$ENV{KEN_OFFSET} \
 -DKNL_TEXT=$ENV{KNL_TEXT} \
 -DINIT_OFFSET=$ENV{INIT_OFFSET} \
@@ -13,6 +13,13 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Wno-unused-variable \
 ")
 set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
+
+
+if (${BOARD_NAME} STREQUAL "STM32F1x")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F10X_XL ")
+elseif(${BOARD_NAME} STREQUAL "STM32F2x" )
+endif()
+
 message(编译参数：${CMAKE_C_FLAGS})
 add_subdirectory(arch)
 add_subdirectory(drivers)

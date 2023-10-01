@@ -1,4 +1,4 @@
-
+#pragma once
 #include "u_types.h"
 
 #define CTRL_IO_NUM 10
@@ -20,9 +20,12 @@ typedef struct
 
     uint8_t netID;
     uint8_t devID;
-} sys_info_t;
+} uapp_sys_info_t;
 
-extern sys_info_t sys_info;
+extern uapp_sys_info_t sys_info;
 
 void sys_info_lock(void);
 void sys_info_unlock(void);
+
+int sys_info_save(void);
+int sys_info_read(void);

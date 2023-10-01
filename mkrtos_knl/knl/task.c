@@ -38,7 +38,7 @@ int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size)
     void *ram = mpu_ram_alloc(&tk->mm_space, lim, size + THREAD_MSG_BUG_LEN);
     if (!ram)
     {
-        printk("申请进程内存失败.\n");
+        printk("Failed to request process memory.\n");
         return -ENOMEM;
     }
     mm_space_set_ram_block(&tk->mm_space, ram, size + THREAD_MSG_BUG_LEN);
@@ -168,10 +168,9 @@ static void task_release_stage2(kobject_t *kobj)
     mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
     mm_limit_free(tk->lim, tk);
     // if (cur_tk == tk)
-    {
-        thread_sched();
-    }
-    scheduler_reset();
+    // {
+    thread_sched();
+    // }
     // mm_trace();
     printk("release tk %x\n", tk);
 }

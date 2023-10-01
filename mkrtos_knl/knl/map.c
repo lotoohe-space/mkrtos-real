@@ -1,12 +1,12 @@
 /**
  * @file map.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "map.h"
 #include "types.h"
@@ -28,14 +28,14 @@ bool_t obj_map_root(kobject_t *kobj, obj_space_t *obj_space, ram_limit_t *ram, v
 }
 /**
  * @brief 从源映射到目的，如果目的中已经存在，则先解除目的映射然后在影视
- * 
- * @param dst_space 
- * @param src_space 
- * @param dst_inx 
- * @param src_inx 
- * @param ram 
- * @param del_attrs 
- * @return int 
+ *
+ * @param dst_space
+ * @param src_space
+ * @param dst_inx
+ * @param src_inx
+ * @param ram
+ * @param del_attrs
+ * @return int
  */
 int obj_map_src_dst(obj_space_t *dst_space, obj_space_t *src_space,
                     obj_handler_t dst_inx, obj_handler_t src_inx,
@@ -52,7 +52,8 @@ int obj_map_src_dst(obj_space_t *dst_space, obj_space_t *src_space,
         return -ENOENT;
     }
 
-    if (obj_space_lookup_kobj(dst_space, dst_inx)) { //!< 已经存在则解除注释
+    if (obj_space_lookup_kobj(dst_space, dst_inx))
+    { //!< 已经存在则解除注释
         obj_unmap(dst_space, vpage_create3(0, 0, dst_inx), del_list);
     }
 
@@ -101,10 +102,11 @@ void obj_unmap(obj_space_t *obj_space, vpage_t vpage, kobj_del_list_t *del_list)
     {
         //!< 代表删除所有
         obj_map_entry_t *pos;
+    again:
 
         slist_foreach(pos, &kobj->mappable.node, node)
         {
-            slist_del(&entry->node);
+            slist_del(&pos->node);
             entry->obj = NULL;
             // 删除一个
             kobj->mappable.map_cnt--;
@@ -115,6 +117,7 @@ void obj_unmap(obj_space_t *obj_space, vpage_t vpage, kobj_del_list_t *del_list)
                     kobj_del_list_add(del_list, &kobj->del_node);
                 }
             }
+            goto again;
         }
     }
     else

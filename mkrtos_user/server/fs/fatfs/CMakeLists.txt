@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.13)
 
-file(GLOB deps  ff15/source/*.c *.c)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_STDPERIPH_DRIVER=1 -DSTM32F10X_XL ")
+
+file(
+    GLOB deps  
+    ff15/source/*.c  
+    ext_disk_drv/*.c 
+    *.c
+)
+
+list(REMOVE_ITEM deps mkrtos_user/server/fs/fatfs/ram_disk_drv/*.*)
 
 add_executable(
     fatfs.elf
@@ -14,6 +23,7 @@ target_link_libraries(
     sys
     sys_util
     sys_svr
+    stm32f1_bsp
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -32,6 +42,10 @@ target_include_directories(
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/fatfs/ff15/source
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/fatfs
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/stm32f1_bsp/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/stm32f1_bsp/core_inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/fatfs/ext_disk_drv
 )
 add_dependencies(
     fatfs.elf
@@ -39,6 +53,7 @@ add_dependencies(
     muslc
     sys
     sys_util
+    stm32f1_bsp
 )
 set_target_properties(
     fatfs.elf PROPERTIES LINK_FLAGS

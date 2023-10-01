@@ -2,7 +2,7 @@
 #include "u_types.h"
 #include "u_rpc_svr.h"
 #define NAMESPACE_PATH_LEN 32
-#define NAMESAPCE_NR 32
+#define NAMESAPCE_NR 8
 
 typedef struct namespace_entry
 {

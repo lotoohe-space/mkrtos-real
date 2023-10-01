@@ -16,6 +16,7 @@ target_link_libraries(app.elf
     sys
     sys_util
     sys_svr
+    stm32f1_bsp
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -35,8 +36,10 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
 
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/bsp/core_inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/bsp/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/stm32f1_bsp/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/stm32f1_bsp/core_inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/hmi_lcd
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/util
 )
 add_dependencies(app.elf
 muslc

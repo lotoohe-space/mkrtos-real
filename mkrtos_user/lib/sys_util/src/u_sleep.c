@@ -7,11 +7,15 @@
 #include "u_factory.h"
 #include <sys/types.h>
 #include <assert.h>
-static obj_handler_t hd;
+static obj_handler_t hd = HANDLER_INVALID;
 void u_sleep_init(void)
 {
     msg_tag_t tag;
 
+    if (hd != HANDLER_INVALID)
+    {
+        return;
+    }
     hd = handler_alloc();
     assert(hd != HANDLER_INVALID);
     tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd));

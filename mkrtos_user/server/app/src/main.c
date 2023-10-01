@@ -16,20 +16,33 @@
 #include "test.h"
 #include "spl06.h"
 #include "sysinfo.h"
+#include "usart3.h"
 #include <assert.h>
 #include <stdio.h>
-
+#include "temp_cal.h"
 int main(int argc, char *args[])
 {
-    drv_init();
     printf("argc:%d args[0]:%s\n", argc, args[0]);
+    drv_init();
+    u_sleep_ms(100);
+    sys_info.devID = 12;
+    sys_info_save();
+    sys_info.devID = 0;
+    sys_info_read();
+    assert(sys_info.devID == 12);
     ulog_write_str(u_get_global_env()->log_hd, "app start..\n");
     relay_test();
     while (1)
     {
         user_spl0601_get();
-        u_sleep_ms(500);
-        printf("temp:%d press:%d\n", (int)(sys_info.board_temp), (int)(sys_info.pressure));
+        temps_cal();
+        u_sleep_ms(1000);
+        printf("temp:%f press:%f\n", (sys_info.board_temp), (sys_info.pressure));
+        for (int i = 0; i < 4; i++)
+        {
+            printf("tmp%d:%f\n", i, sys_info.temp[i]);
+        }
+        usart3_send_string("usart3..\n");
         toogle_led_0();
     }
     return 0;
