@@ -21,7 +21,7 @@ void sys_info_unlock(void)
 
 int sys_info_save(void)
 {
-    int fd = fs_open("/sys_info.bin", O_CREAT | O_RDONLY, 0777);
+    int fd = fs_open("/sys_info.bin", O_CREAT | O_WRONLY, 0777);
     if (fd < 0)
     {
         return fd;
@@ -40,7 +40,7 @@ int sys_info_save(void)
 }
 int sys_info_read(void)
 {
-    int fd = fs_open("/sys_info.bin", O_CREAT | O_WRONLY, 0777);
+    int fd = fs_open("/sys_info.bin", O_CREAT | O_RDONLY, 0777);
     if (fd < 0)
     {
         return fd;

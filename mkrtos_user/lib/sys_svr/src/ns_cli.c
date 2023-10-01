@@ -106,6 +106,7 @@ int ns_query(const char *path, obj_handler_t *svr_hd)
     };
     rpc_obj_handler_t_t rpc_svr_hd = {
         .data = newfd,
+        .del_map_flags = VPAGE_FLAGS_MAP,
     };
 
     msg_tag_t tag = ns_t_query_call(u_get_global_env()->ns_hd, &rpc_path, &rpc_svr_hd);
@@ -117,7 +118,7 @@ int ns_query(const char *path, obj_handler_t *svr_hd)
     }
     if (reg_hd(path, newfd) == FALSE)
     {
-        printf("客户端服务缓存区已满.\n");
+        printf("The client service cache is full.\n");
         handler_free_umap(newfd);
         return -ENOMEM;
     }

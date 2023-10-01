@@ -1,12 +1,12 @@
 /**
  * @file prot.h
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-16
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #pragma once
 
@@ -83,18 +83,20 @@ typedef union vpage
     struct
     {
         umword_t attrs : 4;               //!< 权限
-        umword_t : 8;                     //!< 保留
+        umword_t flags : 8;               //!< 保留
         umword_t addr : (WORD_BITS - 12); //!< 地址
     };
 } vpage_t;
+
+#define VPAGE_FLAGS_MAP 0x1 //!< 是否ipc时立刻映射操作
 
 static inline vpage_t vpage_create_raw(umword_t raw)
 {
     return (vpage_t){.raw = raw};
 }
-static inline vpage_t vpage_create3(umword_t attrs, umword_t resv, umword_t addr)
+static inline vpage_t vpage_create3(umword_t attrs, umword_t flags, umword_t addr)
 {
-    return (vpage_t){.attrs = attrs, .addr = addr};
+    return (vpage_t){.attrs = attrs, .flags = flags, .addr = addr};
 }
 static inline obj_handler_t vpage_get_obj_handler(vpage_t vpage)
 {

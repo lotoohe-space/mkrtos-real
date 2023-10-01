@@ -174,7 +174,12 @@
         "__strerror.h": "c",
         "sstream": "c",
         "u_drv.h": "c",
-        "__node_handle": "c"
+        "__node_handle": "c",
+        "__hash_table": "c",
+        "__tuple": "c",
+        "limits": "c",
+        "compare": "c",
+        "algorithm": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

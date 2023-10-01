@@ -14,7 +14,6 @@
 #define THREAD_MAIN THREAD_PROT
 #define TASK_THIS TASK_PROT
 
-
 #define MSG_TAG_KNL_ERR 0x8
 
 typedef union msg_tag
@@ -79,16 +78,18 @@ typedef union vpage
     struct
     {
         umword_t attrs : 4;               //!< 权限
-        umword_t : 8;                     //!< 保留
+        umword_t flags : 8;               //!< 保留
         umword_t addr : (WORD_BITS - 12); //!< 地址
     };
 } vpage_t;
+
+#define VPAGE_FLAGS_MAP 0x1 //!< 是否ipc时立刻映射
 
 static inline vpage_t vpage_create_raw(umword_t raw)
 {
     return (vpage_t){.raw = raw};
 }
-static inline vpage_t vpage_create_raw3(umword_t attrs, umword_t resv, umword_t addr)
+static inline vpage_t vpage_create_raw3(umword_t attrs, umword_t flags, umword_t addr)
 {
-    return (vpage_t){.attrs = attrs, .addr = addr};
+    return (vpage_t){.attrs = attrs, .flags = flags, .addr = addr};
 }

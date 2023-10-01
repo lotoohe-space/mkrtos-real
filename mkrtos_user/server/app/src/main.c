@@ -25,11 +25,11 @@ int main(int argc, char *args[])
     printf("argc:%d args[0]:%s\n", argc, args[0]);
     drv_init();
     u_sleep_ms(100);
-    sys_info.devID = 12;
-    sys_info_save();
-    sys_info.devID = 0;
-    sys_info_read();
-    assert(sys_info.devID == 12);
+    // sys_info.devID = 12;
+    // sys_info_save();
+    // sys_info.devID = 0;
+    // sys_info_read();
+    // assert(sys_info.devID == 12);
     ulog_write_str(u_get_global_env()->log_hd, "app start..\n");
     relay_test();
     while (1)

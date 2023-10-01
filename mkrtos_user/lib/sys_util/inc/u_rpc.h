@@ -189,98 +189,97 @@ RPC_TYPE_DEF_ALL(int) //!< 定义所有的
  * @brief 数组类型的RPC定义，用于定义任意长度
  *
  */
-#define RPC_ARRAY_DEF(len_type, data_type, length)                                                 \
-    RPC_ARRAY_TYPE_DEF(len_type, data_type, length);                                               \
-    RPC_SVR_MSG_TO_BUF_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)        \
-    {                                                                                              \
-        if (rpc_align(len, __alignof(d->len)) + d->len >                                           \
-            IPC_MSG_SIZE)                                                                          \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len = rpc_align(len, __alignof(d->len));                                                   \
-        *((typeof(d->len) *)(&buf[len])) = d->len;                                                 \
-        if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > IPC_MSG_SIZE) \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len += sizeof(d->len);                                                                     \
-        len = rpc_align(len, __alignof(d->data[0]));                                               \
-        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                      \
-        {                                                                                          \
-            buf[i + len] = ((uint8_t *)(d->data))[i];                                              \
-        }                                                                                          \
-        len += d->len * sizeof(d->data[0]);                                                        \
-        return len;                                                                                \
-    }                                                                                              \
-    RPC_SVR_BUF_TO_MSG_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)        \
-    {                                                                                              \
-        if (rpc_align(len, __alignof(d->len)) + d->len >                                           \
-            max)                                                                                   \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len = rpc_align(len, __alignof(d->len));                                                   \
-        d->len = *((typeof(d->len) *)(&buf[len]));                                                 \
-        if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > max)          \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len += sizeof(d->len);                                                                     \
-        len = rpc_align(len, __alignof(d->data[0]));                                               \
-        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                      \
-        {                                                                                          \
-            ((uint8_t *)(d->data))[i] = buf[i + len];                                              \
-        }                                                                                          \
-        len += d->len * sizeof(d->data[0]);                                                        \
-        return len;                                                                                \
-    }                                                                                              \
-    RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)        \
-    {                                                                                              \
-        if (rpc_align(len, __alignof(d->len)) + d->len >                                           \
-            IPC_MSG_SIZE)                                                                          \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len = rpc_align(len, __alignof(d->len));                                                   \
-        *((typeof(d->len) *)(&buf[len])) = d->len;                                                 \
-        if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > IPC_MSG_SIZE) \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len += sizeof(d->len);                                                                     \
-        len = rpc_align(len, __alignof(d->data[0]));                                               \
-        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                      \
-        {                                                                                          \
-            buf[i + len] = ((uint8_t *)(d->data))[i];                                              \
-        }                                                                                          \
-        len += d->len * sizeof(d->data[0]);                                                        \
-        return len;                                                                                \
-    }                                                                                              \
-    RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)        \
-    {                                                                                              \
-        if (rpc_align(len, __alignof(d->len)) + d->len >                                           \
-            max)                                                                                   \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len = rpc_align(len, __alignof(d->len));                                                   \
-        d->len = *((typeof(d->len) *)(&buf[len]));                                                 \
-        if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > max)          \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len += sizeof(d->len);                                                                     \
-        len = rpc_align(len, __alignof(d->data[0]));                                               \
-        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                      \
-        {                                                                                          \
-            ((uint8_t *)(d->data))[i] = buf[i + len];                                              \
-        }                                                                                          \
-        len += d->len * sizeof(d->data[0]);                                                        \
-        return len;                                                                                \
-    }                                                                                              \
-    RPC_TYPE_INIT_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t)                  \
-    {                                                                                              \
+#define RPC_ARRAY_DEF(len_type, data_type, length)                                              \
+    RPC_ARRAY_TYPE_DEF(len_type, data_type, length);                                            \
+    RPC_SVR_MSG_TO_BUF_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)     \
+    {                                                                                           \
+        if (rpc_align(len, __alignof(d->len)) >                                                 \
+            IPC_MSG_SIZE)                                                                       \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len = rpc_align(len, __alignof(d->len));                                                \
+        *((typeof(d->len) *)(&buf[len])) = d->len;                                              \
+        if (rpc_align(len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > IPC_MSG_SIZE) \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len += sizeof(d->len);                                                                  \
+        len = rpc_align(len, __alignof(d->data[0]));                                            \
+        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                   \
+        {                                                                                       \
+            buf[i + len] = ((uint8_t *)(d->data))[i];                                           \
+        }                                                                                       \
+        len += d->len * sizeof(d->data[0]);                                                     \
+        return len;                                                                             \
+    }                                                                                           \
+    RPC_SVR_BUF_TO_MSG_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)     \
+    {                                                                                           \
+        if (rpc_align(len, __alignof(d->len)) >                                                 \
+            max)                                                                                \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len = rpc_align(len, __alignof(d->len));                                                \
+        d->len = *((typeof(d->len) *)(&buf[len]));                                              \
+        if (rpc_align(len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > max)          \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len += sizeof(d->len);                                                                  \
+        len = rpc_align(len, __alignof(d->data[0]));                                            \
+        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                   \
+        {                                                                                       \
+            ((uint8_t *)(d->data))[i] = buf[i + len];                                           \
+        }                                                                                       \
+        len += d->len * sizeof(d->data[0]);                                                     \
+        return len;                                                                             \
+    }                                                                                           \
+    RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)     \
+    {                                                                                           \
+        if (rpc_align(len, __alignof(d->len)) >                                                 \
+            IPC_MSG_SIZE)                                                                       \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len = rpc_align(len, __alignof(d->len));                                                \
+        *((typeof(d->len) *)(&buf[len])) = d->len;                                              \
+        if (rpc_align(len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > IPC_MSG_SIZE) \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len += sizeof(d->len);                                                                  \
+        len = rpc_align(len, __alignof(d->data[0]));                                            \
+        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                   \
+        {                                                                                       \
+            buf[i + len] = ((uint8_t *)(d->data))[i];                                           \
+        }                                                                                       \
+        len += d->len * sizeof(d->data[0]);                                                     \
+        return len;                                                                             \
+    }                                                                                           \
+    RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t, int)     \
+    {                                                                                           \
+        if (rpc_align(len, __alignof(d->len)) > max)                                            \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len = rpc_align(len, __alignof(d->len));                                                \
+        d->len = *((typeof(d->len) *)(&buf[len]));                                              \
+        if (rpc_align(len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > max)          \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len += sizeof(d->len);                                                                  \
+        len = rpc_align(len, __alignof(d->data[0]));                                            \
+        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                   \
+        {                                                                                       \
+            ((uint8_t *)(d->data))[i] = buf[i + len];                                           \
+        }                                                                                       \
+        len += d->len * sizeof(d->data[0]);                                                     \
+        return len;                                                                             \
+    }                                                                                           \
+    RPC_TYPE_INIT_WITHOUT_IMPL(rpc_array_##len_type##_##data_type##_##length##_t)               \
+    {                                                                                           \
     }
 //!< end
 /**
@@ -304,50 +303,50 @@ RPC_ARRAY_DEF(uint32_t, uint8_t, 32)
  * @brief 引用类型的数组定义
  *
  */
-#define RPC_REF_ARRAY_DEF(len_type, data_type, length)                                             \
-    RPC_REF_ARRAY_TYPE_DEF(len_type, data_type, length);                                           \
-    RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_ref_array_##len_type##_##data_type##_##length##_t, int)    \
-    {                                                                                              \
-        if (rpc_align(len, __alignof(d->len)) + d->len > IPC_MSG_SIZE)                             \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len = rpc_align(len, __alignof(d->len));                                                   \
-        *((typeof(d->len) *)(&buf[len])) = d->len;                                                 \
-        if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > IPC_MSG_SIZE) \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len += sizeof(d->len);                                                                     \
-        len = rpc_align(len, __alignof(d->data[0]));                                               \
-        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                      \
-        {                                                                                          \
-            buf[i + len] = ((uint8_t *)(d->data))[i];                                              \
-        }                                                                                          \
-        len += d->len * sizeof(d->data[0]);                                                        \
-        return len;                                                                                \
-    }                                                                                              \
-    RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_ref_array_uint32_t_uint8_t_32_t, int)                      \
-    {                                                                                              \
-        if (rpc_align(len, __alignof(d->len)) + d->len >                                           \
-            max)                                                                                   \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len = rpc_align(len, __alignof(d->len));                                                   \
-        d->len = *((typeof(d->len) *)(&buf[len]));                                                 \
-        if (rpc_align(d->len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > max)          \
-        {                                                                                          \
-            return -ETOLONG;                                                                       \
-        }                                                                                          \
-        len += sizeof(d->len);                                                                     \
-        len = rpc_align(len, __alignof(d->data[0]));                                               \
-        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                      \
-        {                                                                                          \
-            ((uint8_t *)(d->data))[i] = buf[i + len];                                              \
-        }                                                                                          \
-        len += d->len * sizeof(d->data[0]);                                                        \
-        return len;                                                                                \
+#define RPC_REF_ARRAY_DEF(len_type, data_type, length)                                          \
+    RPC_REF_ARRAY_TYPE_DEF(len_type, data_type, length);                                        \
+    RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_ref_array_##len_type##_##data_type##_##length##_t, int) \
+    {                                                                                           \
+        if (rpc_align(len, __alignof(d->len)) > IPC_MSG_SIZE)                                   \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len = rpc_align(len, __alignof(d->len));                                                \
+        *((typeof(d->len) *)(&buf[len])) = d->len;                                              \
+        if (rpc_align(len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > IPC_MSG_SIZE) \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len += sizeof(d->len);                                                                  \
+        len = rpc_align(len, __alignof(d->data[0]));                                            \
+        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                   \
+        {                                                                                       \
+            buf[i + len] = ((uint8_t *)(d->data))[i];                                           \
+        }                                                                                       \
+        len += d->len * sizeof(d->data[0]);                                                     \
+        return len;                                                                             \
+    }                                                                                           \
+    RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_ref_array_uint32_t_uint8_t_32_t, int)                   \
+    {                                                                                           \
+        if (rpc_align(len, __alignof(d->len)) >                                                 \
+            max)                                                                                \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len = rpc_align(len, __alignof(d->len));                                                \
+        d->len = *((typeof(d->len) *)(&buf[len]));                                              \
+        if (rpc_align(len, __alignof(d->data[0]) + d->len * sizeof(d->data[0])) > max)          \
+        {                                                                                       \
+            return -ETOLONG;                                                                    \
+        }                                                                                       \
+        len += sizeof(d->len);                                                                  \
+        len = rpc_align(len, __alignof(d->data[0]));                                            \
+        for (int i = 0; i < d->len * sizeof(d->data[0]); i++)                                   \
+        {                                                                                       \
+            ((uint8_t *)(d->data))[i] = buf[i + len];                                           \
+        }                                                                                       \
+        len += d->len * sizeof(d->data[0]);                                                     \
+        return len;                                                                             \
     }
 //!< end
 
@@ -361,7 +360,16 @@ RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 32)
  * @brief Construct a new rpc type def object
  *
  */
-RPC_TYPE_DEF(obj_handler_t);
+// RPC_TYPE_DEF(obj_handler_t);
+#define RPC_OBJ_HANDLER_TYPE_DEF(type) \
+    typedef struct rpc_##type          \
+    {                                  \
+        type data;                     \
+        uint8_t del_map_flags;         \
+    } rpc_##type##_t
+
+RPC_OBJ_HANDLER_TYPE_DEF(obj_handler_t);
+
 /**
  * @brief Construct a new rpc cli msg to buf without impl object
  *
@@ -373,7 +381,7 @@ RPC_CLI_MSG_TO_BUF_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
         return -ETOLONG;
     }
     len = rpc_align(len, __alignof(d->data));
-    *((umword_t *)(buf + len)) = vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, d->data).raw;
+    *((umword_t *)(buf + len)) = vpage_create_raw3(KOBJ_ALL_RIGHTS, 0xff & (~(d->del_map_flags)), d->data).raw;
     return sizeof(d->data) + rpc_align(len, __alignof(d->data));
 }
 /**
@@ -395,7 +403,7 @@ RPC_SVR_MSG_TO_BUF_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
         return -ETOLONG;
     }
     len = rpc_align(len, __alignof(d->data));
-    *((umword_t *)(buf + len)) = vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, d->data).raw;
+    *((umword_t *)(buf + len)) = vpage_create_raw3(KOBJ_ALL_RIGHTS, 0xff & (~(d->del_map_flags)), d->data).raw;
     return sizeof(d->data) + rpc_align(len, __alignof(d->data));
 }
 /**

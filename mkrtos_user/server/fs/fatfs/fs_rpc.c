@@ -18,7 +18,7 @@ typedef struct file_desc
     FIL fp;
 } file_desc_t;
 
-#define FILE_DESC_NR 1
+#define FILE_DESC_NR 8
 static file_desc_t files[FILE_DESC_NR];
 
 void *file_temp_buf_get(void)
