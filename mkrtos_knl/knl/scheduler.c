@@ -49,6 +49,7 @@ void scheduler_add(sched_t *node)
         sched->cur_sche = NULL;
     }
 
+    MK_SET_BIT(sched->bitmap[node->prio / PRIO_MAX], node->prio);
     slist_add(&sched->prio_list[node->prio], &node->node);
 }
 void scheduler_del(sched_t *node)
@@ -59,12 +60,15 @@ void scheduler_del(sched_t *node)
     slist_del(&node->node);
     if (slist_is_empty(&sched->prio_list[node->prio]))
     {
-        /*TODO:更新最大优先级，这里可以用位图优化*/
-        for (mword_t i = PRIO_MAX - 1; i >= 0; i--)
+        MK_CLR_BIT(sched->bitmap[node->prio / PRIO_MAX], node->prio);
+        for (mword_t i = (PRIO_MAX / WORD_BITS - 1); i >= 0; i--)
         {
-            if (!slist_is_empty(&sched->prio_list[i]))
+            int ret = clz(sched->bitmap[i]);
+            if (ret != WORD_BITS)
             {
-                sched->max_prio = i;
+                int max_prio = (i + 1) * WORD_BITS - ret - 1;
+                assert(!slist_is_empty(&sched->prio_list[max_prio]));
+                sched->max_prio = max_prio;
                 break;
             }
         }

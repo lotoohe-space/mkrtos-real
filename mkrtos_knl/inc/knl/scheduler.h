@@ -10,7 +10,7 @@
 
 #include "slist.h"
 
-#define PRIO_MAX 32
+#define PRIO_MAX WORD_BITS
 
 typedef struct sched
 {
@@ -27,6 +27,7 @@ static void sched_init(sched_t *sche)
 typedef struct scheduler
 {
     slist_head_t prio_list[PRIO_MAX];
+    umword_t bitmap[PRIO_MAX / WORD_BITS];
     sched_t *cur_sche;
     int max_prio;
 } scheduler_t;

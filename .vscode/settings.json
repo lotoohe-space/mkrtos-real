@@ -185,5 +185,5 @@
         "initializer_list": "c"
     },
     "cortex-debug.showRTOS": false,
-    "cortex-debug.variableUseNaturalFormat": false,
+    "cortex-debug.variableUseNaturalFormat": true,
 }
