@@ -29,6 +29,8 @@ target_link_libraries(
     muslc
     sys
 )
+set_target_properties(libc_be PROPERTIES LINK_FLAGS "-pie ")
+
 add_dependencies(libc_be sys)
 
 

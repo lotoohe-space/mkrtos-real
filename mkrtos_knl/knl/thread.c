@@ -144,10 +144,10 @@ void thread_unbind(thread_t *th)
  */
 void thread_suspend(thread_t *th)
 {
-    if (!slist_in_list(&th->sche.node))
-    {
-        assert(slist_in_list(&th->sche.node));
-    }
+    // if (!slist_in_list(&th->sche.node))
+    // {
+    assert(slist_in_list(&th->sche.node));
+    // }
     scheduler_del(&th->sche);
     th->status = THREAD_SUSPEND;
     thread_sched();
@@ -205,10 +205,10 @@ void thread_ready(thread_t *th, bool_t is_sche)
 }
 void thread_todead(thread_t *th, bool_t is_sche)
 {
-    if (!!slist_in_list(&th->sche.node))
-    {
-        assert(!slist_in_list(&th->sche.node));
-    }
+    // if (!!slist_in_list(&th->sche.node))
+    // {
+    assert(!slist_in_list(&th->sche.node));
+    // }
     scheduler_add(&th->sche);
     th->status = THREAD_TODEAD;
     if (is_sche)

@@ -51,7 +51,7 @@ static void *mm_page_alloc(int page_nr)
                             MK_SET_BIT(mm_bitemp[m / WORD_BITS], m % WORD_BITS);
                         }
                         pthread_spin_unlock(&lock);
-                        printf("st_inx:%d, cnt:%d\n", find_inx, cnt);
+                        // printf("st_inx:%d, cnt:%d\n", find_inx, cnt);
                         return find_inx * PAGE_SIZE + (char *)heap_addr;
                     }
                 }
@@ -126,7 +126,7 @@ umword_t be_munmap(va_list ap)
     void *heap_addr = RAM_BASE() + info->i.heap_offset - info->i.data_offset;
 
     len = ALIGN(len, PAGE_SIZE);
-    printf("munmap 0x%x, 0x%x.\n", start, len);
+    // printf("munmap 0x%x, 0x%x.\n", start, len);
     mm_page_free(((umword_t)(start) - (umword_t)heap_addr) / PAGE_SIZE, len / PAGE_SIZE);
     return 0;
 }

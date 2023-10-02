@@ -43,7 +43,7 @@ void irq_test(void)
     while (1)
     {
         static int i = 0;
-        uirq_wait(obj);
+        uirq_wait(obj, 0);
         ulog_write_str(LOG_PROT, ".");
         uirq_ack(obj, TIM2_IRQn);
         if ((i++ % 20) == 0)

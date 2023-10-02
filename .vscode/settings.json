@@ -182,7 +182,10 @@
         "algorithm": "c",
         "music_control.h": "c",
         "__split_buffer": "c",
-        "initializer_list": "c"
+        "initializer_list": "c",
+        "spi2.h": "c",
+        "wk2xx.h": "c",
+        "cwchar": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,
