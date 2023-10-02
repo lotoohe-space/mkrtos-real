@@ -38,14 +38,12 @@ enum irq_sender_op
 static void irq_tigger(irq_entry_t *irq)
 {
     arch_disable_irq(irq->irq->irq_id); //!< 触发中断时关闭中断
+    irq->irq->irq_cn++;                 //!< 中断计数+1
+
     if (irq->irq->wait_thread &&
         thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND) //!< 线程在休眠时才能唤醒
     {
         thread_ready(irq->irq->wait_thread, TRUE);
-    }
-    else
-    {
-        irq->irq->irq_cn++; //!< 否则中断计数+1
     }
 }
 /**
@@ -64,9 +62,9 @@ int irq_sender_wait(irq_sender_t *irq, thread_t *th, int flags)
         irq->wait_thread = th;
         if (irq->irq_cn > 0)
         {
-            cpulock_set(status);
             irq->irq_cn = 0;
             irq->wait_thread = NULL;
+            cpulock_set(status);
         }
         else
         {
@@ -75,15 +73,17 @@ int irq_sender_wait(irq_sender_t *irq, thread_t *th, int flags)
             if (!(flags & O_NONBLOCK))
             {
                 thread_suspend(irq->wait_thread);
+                preemption();
                 ret = 0;
             }
             else
             {
                 ret = -EAGAIN;
             }
-            cpulock_set(status);
+
             irq->irq_cn = 0;
             irq->wait_thread = NULL;
+            cpulock_set(status);
             return ret;
         }
         return 0;

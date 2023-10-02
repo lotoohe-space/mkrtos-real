@@ -1,12 +1,12 @@
 /**
  * @file arch.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-25
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "arch.h"
 #include "types.h"

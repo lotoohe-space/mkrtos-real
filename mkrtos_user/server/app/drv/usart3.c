@@ -12,7 +12,7 @@
 static obj_handler_t irq_obj;
 
 #define IRQ_THREAD_PRIO 3
-#define STACK_SIZE 512
+#define STACK_SIZE 800
 static __attribute__((aligned(8))) uint8_t stack0[STACK_SIZE];
 
 static void *USART3_IRQHandler(void *arg);
@@ -71,14 +71,20 @@ static void *USART3_IRQHandler(void *arg)
         msg_tag_t tag = uirq_wait(irq_obj, 0);
         if (msg_tag_get_val(tag) >= 0)
         {
+            if (USART_GetFlagStatus(USART3, USART_FLAG_ORE) != RESET)
+            {
+                USART_ReceiveData(USART3);
+                // USART_ClearFlag(USART1, USART_FLAG_ORE); //清除溢出中断,其实没用，因为手册里讲了
+                // 通过读入USART_SR 寄存器，然后读入 USART_DR寄存器来清除标志位
+            }
+
             if (USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)
             {
-                USART_ClearITPendingBit(USART3, USART_IT_RXNE); // 清除中断标志
                 uint8_t data = USART_ReceiveData(USART3);
                 queue_push(data);
-                usart3_send_byte(data);
+                USART_ClearITPendingBit(USART3, USART_IT_RXNE); // 清除中断标志
             }
-            uirq_ack(irq_obj, USART3_IRQn);
+            tag = uirq_ack(irq_obj, USART3_IRQn);
         }
         // u_sleep_ms(1);
     }

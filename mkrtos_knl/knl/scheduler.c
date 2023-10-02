@@ -60,7 +60,7 @@ void scheduler_del(sched_t *node)
     if (slist_is_empty(&sched->prio_list[node->prio]))
     {
         /*TODO:更新最大优先级，这里可以用位图优化*/
-        for (mword_t i = node->prio - 1; i >= 0; i--)
+        for (mword_t i = PRIO_MAX - 1; i >= 0; i--)
         {
             if (!slist_is_empty(&sched->prio_list[i]))
             {

@@ -179,7 +179,10 @@
         "__tuple": "c",
         "limits": "c",
         "compare": "c",
-        "algorithm": "c"
+        "algorithm": "c",
+        "music_control.h": "c",
+        "__split_buffer": "c",
+        "initializer_list": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

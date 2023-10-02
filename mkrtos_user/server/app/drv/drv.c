@@ -16,6 +16,7 @@
 #include "uart5.h"
 #include "input_ck.h"
 #include "wk2xx_hw.h"
+#include "hmi_lcd_process.h"
 #include <assert.h>
 
 void drv_init(void)
@@ -33,4 +34,5 @@ void drv_init(void)
     wk2xx_hw_init();
 
     spl0601_init();
+    LCD_init();
 }

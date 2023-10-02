@@ -16,10 +16,11 @@
 #include "test.h"
 #include "spl06.h"
 #include "sysinfo.h"
+#include "hmi_lcd_process.h"
+#include "temp_cal.h"
 #include "usart3.h"
 #include <assert.h>
 #include <stdio.h>
-#include "temp_cal.h"
 int main(int argc, char *args[])
 {
     printf("argc:%d args[0]:%s\n", argc, args[0]);
@@ -36,13 +37,14 @@ int main(int argc, char *args[])
     {
         user_spl0601_get();
         temps_cal();
-        u_sleep_ms(1000);
-        printf("temp:%f press:%f\n", (sys_info.board_temp), (sys_info.pressure));
-        for (int i = 0; i < 4; i++)
-        {
-            printf("tmp%d:%f\n", i, sys_info.temp[i]);
-        }
-        usart3_send_string("usart3..\n");
+        UpdateUI();
+        u_sleep_ms(10);
+        // printf("temp:%f press:%f\n", (sys_info.board_temp), (sys_info.pressure));
+        // for (int i = 0; i < 4; i++)
+        // {
+        //     printf("tmp%d:%f\n", i, sys_info.temp[i]);
+        // }
+        // usart3_send_string("usart3..\n");
         toogle_led_0();
     }
     return 0;

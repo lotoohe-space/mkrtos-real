@@ -127,7 +127,7 @@ static void *USART2_IRQHandler(void *arg)
                     }
                 }
             }
-            uirq_ack(irq_obj, USART3_IRQn);
+            uirq_ack(irq_obj, USART2_IRQn);
         }
     }
 }
