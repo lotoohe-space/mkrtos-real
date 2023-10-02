@@ -107,7 +107,8 @@ void obj_unmap(obj_space_t *obj_space, vpage_t vpage, kobj_del_list_t *del_list)
         slist_foreach(pos, &kobj->mappable.node, node)
         {
             slist_del(&pos->node);
-            entry->obj = NULL;
+            pos->obj = NULL;
+            // slist_init(&pos->node);
             // 删除一个
             kobj->mappable.map_cnt--;
             if (kobj->mappable.map_cnt <= 0)
@@ -124,6 +125,7 @@ void obj_unmap(obj_space_t *obj_space, vpage_t vpage, kobj_del_list_t *del_list)
     {
         slist_del(&entry->node);
         entry->obj = NULL;
+        // slist_init(&entry->node);
         // 删除一个
         kobj->mappable.map_cnt--;
         if (kobj->mappable.map_cnt <= 0)

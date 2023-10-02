@@ -36,7 +36,7 @@ __init_libc(char **envp, char *pn)
 		}
 		else if (auxv[i] == 0xfe)
 		{
-			extern void u_env_init(void * * in_env);
+			extern void u_env_init(void **in_env);
 
 			u_env_init((void *)auxv[i + 1]);
 		}
@@ -54,13 +54,11 @@ __init_libc(char **envp, char *pn)
 	for (i = 0; pn[i]; i++)
 		if (pn[i] == '/')
 			__progname = pn + i + 1;
-
 	__init_tls(aux);
 	__init_ssp((void *)aux[AT_RANDOM]);
-
 	if (aux[AT_UID] == aux[AT_EUID] && aux[AT_GID] == aux[AT_EGID] && !aux[AT_SECURE])
 		return;
-
+#ifdef NO_LITTLE_MODE
 	struct pollfd pfd[3] = {{.fd = 0}, {.fd = 1}, {.fd = 2}};
 	int r =
 #ifdef SYS_poll
@@ -74,6 +72,7 @@ __init_libc(char **envp, char *pn)
 		if (pfd[i].revents & POLLNVAL)
 			if (__sys_open("/dev/null", O_RDWR) < 0)
 				a_crash();
+#endif
 	libc.secure = 1;
 }
 
@@ -103,7 +102,10 @@ int __libc_start_main(int (*main)(int, char **, char **), int argc, char **argv,
 	/* Barrier against hoisting application code or anything using ssp
 	 * or thread pointer prior to its initialization above. */
 	lsm2_fn *stage2 = libc_start_main_stage2;
-	__asm__("" : "+r"(stage2) : : "memory");
+	__asm__(""
+			: "+r"(stage2)
+			:
+			: "memory");
 	return stage2(main, argc, argv);
 }
 int __libc_start_main_init(int (*main)(int, char **, char **), int argc, char **argv,
@@ -121,7 +123,10 @@ int __libc_start_main_init(int (*main)(int, char **, char **), int argc, char **
 	/* Barrier against hoisting application code or anything using ssp
 	 * or thread pointer prior to its initialization above. */
 	lsm2_fn *stage2 = libc_start_main_stage2;
-	__asm__("" : "+r"(stage2) : : "memory");
+	__asm__(""
+			: "+r"(stage2)
+			:
+			: "memory");
 	return stage2(main, argc, argv);
 }
 

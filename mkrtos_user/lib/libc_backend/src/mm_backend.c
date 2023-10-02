@@ -83,7 +83,7 @@ static void mm_page_free(int st, int nr)
     pthread_spin_unlock(&lock);
 }
 
-static int sys_mmap2(void *start, size_t len, int prot, int flags, int fd, off_t _offset, umword_t *addr)
+static int _sys_mmap2(void *start, size_t len, int prot, int flags, int fd, off_t _offset, umword_t *addr)
 {
     if (fd >= 0)
     {
@@ -93,8 +93,24 @@ static int sys_mmap2(void *start, size_t len, int prot, int flags, int fd, off_t
     *addr = (umword_t)mm_page_alloc(len / PAGE_SIZE);
     return 0;
 }
+umword_t be_mmap2(void *start,
+                  size_t len,
+                  long prot,
+                  long flags,
+                  long fd,
+                  long _offset)
+{
+    umword_t addr;
 
-umword_t be_mmap2(va_list ap)
+    int ret = _sys_mmap2(start, len, prot, flags, fd, _offset, &addr);
+
+    if (ret < 0)
+    {
+        return (umword_t)ret;
+    }
+    return addr;
+}
+umword_t sys_mmap2(va_list ap)
 {
     void *start;
     size_t len;
@@ -105,22 +121,10 @@ umword_t be_mmap2(va_list ap)
 
     ARG_6_BE(ap, start, void *, len, size_t, prot, long, flags, long, fd, long, _offset, long);
 
-    umword_t addr;
-
-    int ret = sys_mmap2(start, len, prot, flags, fd, _offset, &addr);
-
-    if (ret < 0)
-    {
-        return (umword_t)ret;
-    }
-    return addr;
+    return be_mmap2(start, len, prot, flags, fd, _offset);
 }
-umword_t be_munmap(va_list ap)
+umword_t be_munmap(void *start, size_t len)
 {
-    void *start;
-    size_t len;
-
-    ARG_2_BE(ap, len, size_t, start, void *);
     app_info_t *info = app_info_get(app_start_addr);
     assert(info);
     void *heap_addr = RAM_BASE() + info->i.heap_offset - info->i.data_offset;
@@ -128,5 +132,13 @@ umword_t be_munmap(va_list ap)
     len = ALIGN(len, PAGE_SIZE);
     // printf("munmap 0x%x, 0x%x.\n", start, len);
     mm_page_free(((umword_t)(start) - (umword_t)heap_addr) / PAGE_SIZE, len / PAGE_SIZE);
-    return 0;
+}
+umword_t sys_munmap(va_list ap)
+{
+    void *start;
+    size_t len;
+
+    ARG_2_BE(ap, len, size_t, start, void *);
+
+    return be_munmap(start, len);
 }

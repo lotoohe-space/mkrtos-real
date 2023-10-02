@@ -55,7 +55,7 @@ enum ipc_op
     IPC_BIND,   //!< 绑定服务端线程
     IPC_UNBIND, //!< 解除绑定
 };
-static void wake_up_th(ipc_t *ipc);
+static int wake_up_th(ipc_t *ipc);
 static slist_head_t wait_list;
 
 /**
@@ -185,12 +185,20 @@ static int add_wait_unlock(ipc_t *ipc, slist_head_t *head, thread_t *th, umword_
  *
  * @param ipc
  */
-static void wake_up_th(ipc_t *ipc)
+static int wake_up_th(ipc_t *ipc)
 {
     slist_head_t *mslist = slist_first(&ipc->wait_send);
     ipc_wait_item_t *item = container_of(mslist, ipc_wait_item_t, node);
 
-    thread_ready(item->th, TRUE);
+    if (thread_get_status(item->th) == THREAD_TODEAD)
+    {
+        return -ESHUTDOWN;
+    }
+    else
+    {
+        thread_ready(item->th, TRUE);
+    }
+    return 0;
 }
 /**
  * @brief ipc传输时的数据拷贝
@@ -320,9 +328,16 @@ static int ipc_reply(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
         return ret;
     }
     ipc->last_cli_th->msg.tag = tag;
-    thread_ready(ipc->last_cli_th, TRUE); //!< 直接唤醒接受者
+    if (thread_get_status(ipc->last_cli_th) != THREAD_TODEAD)
+    {
+        thread_ready(ipc->last_cli_th, TRUE); //!< 直接唤醒接受者
+    }
+    else
+    {
+        ret = -EAGAIN;
+    }
     spinlock_set(&ipc->lock, status);
-    return 0;
+    return ret;
 }
 
 /**
@@ -333,19 +348,31 @@ static int ipc_reply(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
  * @param f
  * @param tag
  */
-static msg_tag_t ipc_wait(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
+static msg_tag_t ipc_wait(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t in_tag)
 {
     assert(ipc->svr_th == th);
     umword_t status;
+    msg_tag_t tag;
 
     status = spinlock_lock(&ipc->lock);
     thread_suspend(th);
     if (!slist_is_empty(&ipc->wait_send))
     {
-        wake_up_th(ipc);
+        int ret = wake_up_th(ipc);
+
+        if (-ESHUTDOWN == ret)
+        {
+            thread_ready(th, TRUE);
+            tag = msg_tag_init4(0, 0, 0, -EAGAIN);
+        }
+        else
+        {
+            preemption();
+            tag = th->msg.tag;
+        }
     }
     spinlock_set(&ipc->lock, status);
-    return th->msg.tag;
+    return tag;
 }
 /**
  * @brief ipc的系统调用

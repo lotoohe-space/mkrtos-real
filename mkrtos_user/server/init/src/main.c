@@ -5,8 +5,7 @@
 #include "u_factory.h"
 #include "u_thread.h"
 #include "u_task.h"
-#include <assert.h>
-#include <stdio.h>
+#include "u_sleep.h"
 #include "u_ipc.h"
 #include "u_hd_man.h"
 #include "u_irq_sender.h"
@@ -16,7 +15,8 @@
 #include "u_rpc_svr.h"
 #include "namespace.h"
 #include "ns_svr.h"
-
+#include <assert.h>
+#include <stdio.h>
 extern void futex_init(void);
 int main(int argc, char *args[])
 {
@@ -43,8 +43,7 @@ int main(int argc, char *args[])
     assert(ret >= 0);
     env.ns_hd = ipc_hd;
     namespace_init(ipc_hd);
-
-
+    u_sleep_init();
     ret = app_load("app", &env);
     if (ret < 0)
     {
@@ -56,7 +55,16 @@ int main(int argc, char *args[])
     {
         printf("app load fail, 0x%x\n", ret);
     }
+    // u_sleep_ms(500);
 
+    // u_sleep_ms(500);
+
+    ret = app_load("hello", &env);
+    if (ret < 0)
+    {
+        printf("app load fail, 0x%x\n", ret);
+    }
+    namespace_pre_alloc_map_fd();
     namespace_loop();
     // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); // 删除当前task，以及申请得所有对象
     // printf("exit init.\n");

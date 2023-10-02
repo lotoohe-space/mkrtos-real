@@ -2,6 +2,7 @@
 
 #include "fs_backend.h"
 #include "u_types.h"
+#include <sys/uio.h>
 
 #define ARG_1_BE(ap, arg0, type0)       \
     do                                  \
@@ -37,6 +38,23 @@
 
 long syscall_backend(long sys_inx, ...);
 
-umword_t be_mmap2(va_list ap);
-umword_t be_munmap(va_list ap);
-void be_exit(va_list ap);
+long be_read(long fd, char *buf, long size);
+long be_write(long fd, char *buf, long size);
+long be_writev(long fd, const struct iovec *iov, long iovcnt);
+long be_ioctl(long fd, long req, void *args);
+long be_set_tid_address(int *val);
+long be_set_thread_area(void *p);
+void be_exit(int code);
+umword_t be_munmap(void *start, size_t len);
+umword_t be_mmap2(void *start,
+                  size_t len,
+                  long prot,
+                  long flags,
+                  long fd,
+                  long _offset);
+
+umword_t sys_mmap2(va_list ap);
+long sys_set_tid_address(va_list ap);
+long sys_set_thread_area(va_list ap);
+void sys_exit(va_list ap);
+umword_t sys_munmap(va_list ap);

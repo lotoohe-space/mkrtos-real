@@ -185,7 +185,8 @@
         "initializer_list": "c",
         "spi2.h": "c",
         "wk2xx.h": "c",
-        "cwchar": "c"
+        "cwchar": "c",
+        "test.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

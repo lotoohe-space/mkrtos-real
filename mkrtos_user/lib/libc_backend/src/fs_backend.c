@@ -7,11 +7,11 @@
 #include <u_log.h>
 #include <u_env.h>
 #include <sys/uio.h>
-static long be_read(long fd, char *buf, long size)
+long be_read(long fd, char *buf, long size)
 {
     return -ENOSYS;
 }
-static long be_write(long fd, char *buf, long size)
+long be_write(long fd, char *buf, long size)
 {
     switch (fd)
     {
@@ -25,7 +25,7 @@ static long be_write(long fd, char *buf, long size)
     }
     return 0;
 }
-static long be_writev(long fd, const struct iovec *iov, long iovcnt)
+long be_writev(long fd, const struct iovec *iov, long iovcnt)
 {
     long wlen = 0;
     for (int i = 0; i < iovcnt; i++)
@@ -69,8 +69,9 @@ long sys_be_writev(va_list ap)
 #undef ARG1
     return be_writev(fd, iov, iovcnt);
 }
-static long be_ioctl(long fd, long req, void *args)
+long be_ioctl(long fd, long req, void *args)
 {
+    /*TODO:*/
     return 0;
 }
 long sys_be_ioctl(va_list ap)

@@ -14,7 +14,6 @@ static ns_t ns;
 void namespace_init(obj_handler_t ipc)
 {
     ns_init(&ns);
-    namespace_pre_alloc_map_fd();
     ns.ipc_hd = ipc;
 }
 
