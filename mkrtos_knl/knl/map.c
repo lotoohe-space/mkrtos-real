@@ -123,6 +123,7 @@ void obj_unmap(obj_space_t *obj_space, vpage_t vpage, kobj_del_list_t *del_list)
     }
     else
     {
+        assert(!slist_is_empty(&entry->node));
         slist_del(&entry->node);
         entry->obj = NULL;
         // slist_init(&entry->node);

@@ -13,7 +13,7 @@
 #include "mm.h"
 #include "ram_limit.h"
 #include "globals.h"
-
+#include "string.h"
 void *mm_limit_alloc(ram_limit_t *limit, size_t size)
 {
     if (ram_limit_alloc(limit, size) == FALSE)
@@ -27,6 +27,7 @@ void *mm_limit_alloc(ram_limit_t *limit, size_t size)
         ram_limit_free(limit, size);
         return NULL;
     }
+    memset(new_mem, 0, size + sizeof(size_t));
     *((size_t *)new_mem) = size;
 
     return (char *)new_mem + sizeof(size_t);

@@ -137,7 +137,7 @@ int app_load(const char *name, uenv_t *cur_env)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, cur_env->ns_hd, cur_env->ns_hd, 0);
+    tag = task_map(hd_task, cur_env->ns_hd, cur_env->ns_hd, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;

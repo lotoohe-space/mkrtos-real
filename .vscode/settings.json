@@ -188,7 +188,9 @@
         "cwchar": "c",
         "test.h": "c",
         "uart5.h": "c",
-        "wk2xx_hw.h": "c"
+        "wk2xx_hw.h": "c",
+        "cstdlib": "c",
+        "locale": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

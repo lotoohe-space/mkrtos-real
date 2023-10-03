@@ -8,6 +8,7 @@
 #include <ff.h>
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
 static FATFS fs;
 static MKFS_PARM defopt = {FM_ANY, 0, 0, 0};
 
@@ -24,13 +25,12 @@ int main(int args, char *argv[])
 
     if (res != FR_OK)
     {
-        assert(sizeof(FIL) >= FF_MAX_SS);
-        res = f_mkfs("0:", &defopt, file_temp_buf_get(), FF_MAX_SS); // 第三个参数可以设置成NULL，默认使用heap memory
+        assert(sizeof(fs.win) >= FF_MAX_SS);
+        res = f_mkfs("0:", &defopt, (void *)(fs.win), FF_MAX_SS); // 第三个参数可以设置成NULL，默认使用heap memory
         if (res != FR_OK)
         {
             ulog_write_str(u_get_global_env()->log_hd, "f_mkfs err.\n");
-            while (1)
-                ;
+            exit(-1);
         }
         else
         {
@@ -38,15 +38,12 @@ int main(int args, char *argv[])
             if (res != FR_OK)
             {
                 ulog_write_str(u_get_global_env()->log_hd, "f_mount err.\n");
-                while (1)
-                    ;
+                exit(-1);
             }
         }
     }
     ulog_write_str(u_get_global_env()->log_hd, "mount success\n");
 
     fs_svr_loop();
-    while (1)
-        ;
-    return -1;
+    return 0;
 }

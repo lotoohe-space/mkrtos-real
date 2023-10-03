@@ -21,11 +21,6 @@ typedef struct file_desc
 #define FILE_DESC_NR 8
 static file_desc_t files[FILE_DESC_NR];
 
-void *file_temp_buf_get(void)
-{
-    return (void *)(&files[0]);
-}
-
 static file_desc_t *alloc_file(int *fd)
 {
     for (int i = 0; i < FILE_DESC_NR; i++)

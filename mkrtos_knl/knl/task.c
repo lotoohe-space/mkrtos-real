@@ -49,6 +49,57 @@ task_t *thread_get_bind_task(thread_t *th)
 {
     return container_of(th->task, task_t, kobj);
 }
+static void task_unlock_2(spinlock_t *sp0, spinlock_t *sp1, int status0, int status1)
+{
+    if (sp0 < sp1)
+    {
+        spinlock_set(sp1, status1);
+        spinlock_set(sp0, status0);
+    }
+    else
+    {
+        spinlock_set(sp0, status0);
+        spinlock_set(sp1, status1);
+    }
+}
+static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
+{
+    int status0;
+    int status1;
+    if (sp0 < sp1)
+    {
+        status0 = spinlock_lock(sp0);
+        if (status0 < 0)
+        {
+            return FALSE;
+        }
+        status1 = spinlock_lock(sp1);
+        if (status1 < 0)
+        {
+            spinlock_set(sp0, status0);
+            return FALSE;
+        }
+        *st0 = status0;
+        *st1 = status1;
+    }
+    else
+    {
+        status0 = spinlock_lock(sp1);
+        if (status0 < 0)
+        {
+            return FALSE;
+        }
+        status1 = spinlock_lock(sp0);
+        if (status1 < 0)
+        {
+            spinlock_set(sp1, status0);
+            return FALSE;
+        }
+        *st0 = status1;
+        *st1 = status0;
+    }
+    return TRUE;
+}
 static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     task_t *cur_task = thread_get_current_task();
@@ -78,13 +129,20 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     case TASK_OBJ_MAP:
     {
         kobj_del_list_t del;
+        int st0, st1;
 
         kobj_del_list_init(&del);
+        int suc = task_lock_2(&tag_task->kobj.lock, &cur_task->kobj.lock, &st0, &st1);
+        if (!suc)
+        {
+            tag = msg_tag_init4(0, 0, 0, -EINVAL);
+            break;
+        }
         int ret = obj_map_src_dst(&tag_task->obj_space, &cur_task->obj_space,
                                   f->r[2], f->r[1],
                                   tag_task->lim, f->r[3], &del);
-
         kobj_del_list_to_do(&del);
+        task_unlock_2(&tag_task->kobj.lock, &cur_task->kobj.lock, st0, st1);
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
@@ -103,6 +161,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         obj_unmap(&tag_task->obj_space, vpage_create_raw(f->r[1]), &kobj_list);
         kobj_del_list_to_do(&kobj_list);
         spinlock_set(&tag_task->kobj.lock, status);
+        tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
     case TASK_ALLOC_RAM_BASE:
@@ -191,7 +250,7 @@ task_t *task_create(ram_limit_t *lim, int is_knl)
         return NULL;
     }
     task_init(tk, lim, is_knl);
-
+    printk("create task is 0x%x\n", tk);
     return tk;
 }
 
