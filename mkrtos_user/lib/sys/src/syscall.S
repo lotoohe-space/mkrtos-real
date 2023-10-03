@@ -2,11 +2,11 @@
 .text
 
 /*
-int syscall(int nr, ...)
+int mk_syscall(int nr, ...)
 */
-.global syscall
-.type syscall, %function
-syscall:
+.global mk_syscall
+.type mk_syscall, %function
+mk_syscall:
     push {r4-r7}
     mov r7, r0
     mov r0, r1

@@ -56,9 +56,7 @@ int main(int argc, char *args[])
         printf("app load fail, 0x%x\n", ret);
     }
     // u_sleep_ms(500);
-
     // u_sleep_ms(500);
-
     ret = app_load("hello", &env);
     if (ret < 0)
     {

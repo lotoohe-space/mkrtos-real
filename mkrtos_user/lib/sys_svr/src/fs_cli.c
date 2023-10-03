@@ -30,10 +30,11 @@ RPC_GENERATION_CALL3(fs_t, FS_LSEEK, lseek,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, offs,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, whence)
-int fs_open(const char *path, int flags, int mode)
+
+sd_t fs_open(const char *path, int flags, int mode)
 {
     obj_handler_t hd;
-    int ret = ns_query("fs", &hd);
+    int ret = ns_query(path, &hd);
 
     if (ret < 0)
     {
@@ -59,15 +60,10 @@ int fs_open(const char *path, int flags, int mode)
 
     return msg_tag_get_val(tag);
 }
-int fs_read(int fd, void *buf, size_t len)
+int fs_read(sd_t _fd, void *buf, size_t len)
 {
-    obj_handler_t hd;
-    int ret = ns_query("fs", &hd);
-
-    if (ret < 0)
-    {
-        return ret;
-    }
+    obj_handler_t hd = mk_sd_init_raw(_fd).hd;
+    int fd = mk_sd_init_raw(_fd).fd;
 
     rpc_int_t rpc_fd = {
         .data = fd,
@@ -102,15 +98,10 @@ int fs_read(int fd, void *buf, size_t len)
     return rlen;
 }
 
-int fs_write(int fd, void *buf, size_t len)
+int fs_write(sd_t _fd, void *buf, size_t len)
 {
-    obj_handler_t hd;
-    int ret = ns_query("fs", &hd);
-
-    if (ret < 0)
-    {
-        return ret;
-    }
+    obj_handler_t hd = mk_sd_init_raw(_fd).hd;
+    int fd = mk_sd_init_raw(_fd).fd;
 
     rpc_int_t rpc_fd = {
         .data = fd,
@@ -143,15 +134,10 @@ int fs_write(int fd, void *buf, size_t len)
 
     return wlen;
 }
-int fs_close(int fd)
+int fs_close(sd_t _fd)
 {
-    obj_handler_t hd;
-    int ret = ns_query("fs", &hd);
-
-    if (ret < 0)
-    {
-        return ret;
-    }
+    obj_handler_t hd = mk_sd_init_raw(_fd).hd;
+    int fd = mk_sd_init_raw(_fd).fd;
 
     rpc_int_t rpc_fd = {
         .data = fd,
@@ -165,15 +151,10 @@ int fs_close(int fd)
 
     return msg_tag_get_val(tag);
 }
-int fs_lseek(int fd, int offs, int whence)
+int fs_lseek(sd_t _fd, int offs, int whence)
 {
-    obj_handler_t hd;
-    int ret = ns_query("fs", &hd);
-
-    if (ret < 0)
-    {
-        return ret;
-    }
+    obj_handler_t hd = mk_sd_init_raw(_fd).hd;
+    int fd =mk_sd_init_raw(_fd).fd;
 
     rpc_int_t rpc_fd = {
         .data = fd,

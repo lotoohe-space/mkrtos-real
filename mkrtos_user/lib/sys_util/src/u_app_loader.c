@@ -107,12 +107,12 @@ int app_load(const char *name, uenv_t *cur_env)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, LOG_PROT, LOG_PROT, 0);
+    tag = task_map(hd_task, LOG_PROT, LOG_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, SYS_PROT, SYS_PROT, 0);
+    tag = task_map(hd_task, SYS_PROT, SYS_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
@@ -127,12 +127,12 @@ int app_load(const char *name, uenv_t *cur_env)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, FACTORY_PROT, FACTORY_PROT, 0);
+    tag = task_map(hd_task, FACTORY_PROT, FACTORY_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, MM_PROT, MM_PROT, 0);
+    tag = task_map(hd_task, MM_PROT, MM_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;

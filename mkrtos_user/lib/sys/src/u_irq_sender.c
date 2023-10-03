@@ -22,7 +22,7 @@ msg_tag_t uirq_bind(obj_handler_t obj_inx, umword_t irq_no, umword_t prio_sub_pr
 {
     register volatile umword_t r0 asm("r0");
 
-    syscall(syscall_prot_create(BIND_IRQ, IRQ_PROT, obj_inx),
+    mk_syscall(syscall_prot_create(BIND_IRQ, IRQ_PROT, obj_inx),
             0,
             irq_no,
             0,
@@ -41,7 +41,7 @@ msg_tag_t uirq_wait(obj_handler_t obj_inx, int flags)
 {
     register volatile umword_t r0 asm("r0");
 
-    syscall(syscall_prot_create(WAIT_IRQ, IRQ_PROT, obj_inx),
+    mk_syscall(syscall_prot_create(WAIT_IRQ, IRQ_PROT, obj_inx),
             0,
             flags,
             0,
@@ -60,7 +60,7 @@ msg_tag_t uirq_ack(obj_handler_t obj_inx, umword_t irq_no)
 {
     register volatile umword_t r0 asm("r0");
 
-    syscall(syscall_prot_create(ACK_IRQ, IRQ_PROT, obj_inx),
+    mk_syscall(syscall_prot_create(ACK_IRQ, IRQ_PROT, obj_inx),
             0,
             irq_no,
             0,

@@ -186,7 +186,9 @@
         "spi2.h": "c",
         "wk2xx.h": "c",
         "cwchar": "c",
-        "test.h": "c"
+        "test.h": "c",
+        "uart5.h": "c",
+        "wk2xx_hw.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

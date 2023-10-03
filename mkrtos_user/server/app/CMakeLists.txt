@@ -16,6 +16,7 @@ target_link_libraries(app.elf
     sys
     sys_util
     sys_svr
+    xtinymodbus
     stm32f1_bsp
     ${GCC_LIB_PATH}/libgcc.a
 )
@@ -27,6 +28,16 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/drv
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/test
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/modbus
+#xtinymodbus
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/modbus/inc/modbus_base
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/modbus/inc/modbus_rtu_master
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/modbus/inc/modbus_rtu_slave
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/modbus/inc/port
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/modbus/inc/serial
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/modbus/inc
+#end
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic

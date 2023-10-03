@@ -326,7 +326,7 @@ RPC_ARRAY_DEF(uint32_t, uint8_t, 32)
         len += d->len * sizeof(d->data[0]);                                                     \
         return len;                                                                             \
     }                                                                                           \
-    RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_ref_array_uint32_t_uint8_t_32_t, int)                   \
+    RPC_CLI_BUF_TO_MSG_WITHOUT_IMPL(rpc_ref_array_##len_type##_##data_type##_##length##_t, int)                   \
     {                                                                                           \
         if (rpc_align(len, __alignof(d->len)) >                                                 \
             max)                                                                                \
@@ -355,6 +355,8 @@ RPC_ARRAY_DEF(uint32_t, uint8_t, 32)
  *
  */
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 32)
+RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 48)
+RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 64)
 
 /**
  * @brief Construct a new rpc type def object

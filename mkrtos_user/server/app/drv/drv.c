@@ -19,14 +19,15 @@
 #include "wk2xx_hw.h"
 #include "hmi_lcd_process.h"
 #include "music_control.h"
+#include "MDM_RTU_APP.h"
 #include <assert.h>
 
 void music2_send_bytes(u8 *bytes, int len)
 {
-	/*在下面调用bsp的发送函数*/
-	wk_TxChars(2,len,bytes);
-	//等待发送完成
-	wk_wait_tx_done(2);
+    /*在下面调用bsp的发送函数*/
+    wk_TxChars(2, len, bytes);
+    // 等待发送完成
+    wk_wait_tx_done(2);
 }
 
 void drv_init(void)
@@ -40,7 +41,6 @@ void drv_init(void)
     init_usart2(115200);
     init_usart3(115200);
     init_uart4(115200);
-    init_uart5(115200);
     ext_input_check();
     wk2xx_hw_init();
     Wk_DeInit(1);
@@ -65,4 +65,6 @@ void drv_init(void)
 
     bluetooth_init_cfg(0, usart2_send_bytes);
     bluetooth_init_cfg(1, music2_send_bytes);
+
+    MDM_RTU_APPInit();
 }

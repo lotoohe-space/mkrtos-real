@@ -23,7 +23,14 @@ typedef struct ns_cli_cache
 
 static ns_cli_cache_t ns_cli_cache;
 
-static obj_handler_t find_hd(const char *path)
+/**
+ * @brief TODO:加锁
+ *
+ * @param path
+ * @param split_pos
+ * @return obj_handler_t
+ */
+static obj_handler_t find_hd(const char *path, int *split_pos)
 {
     int i = 0;
     int empty = -1;
@@ -31,8 +38,13 @@ static obj_handler_t find_hd(const char *path)
     {
         if (ns_cli_cache.cache[i].path[0] != 0)
         {
-            if (strcmp(ns_cli_cache.cache[i].path, path) == 0)
+            char *new_str = strstr(ns_cli_cache.cache[i].path, path);
+            if (new_str && (new_str == ns_cli_cache.cache[i].path))
             {
+                if (split_pos)
+                {
+                    *split_pos = (int)(new_str - ns_cli_cache.cache[i].path);
+                }
                 return ns_cli_cache.cache[i].hd;
             }
         }
@@ -81,12 +93,13 @@ int ns_register(const char *path, obj_handler_t svr_hd)
 }
 int ns_query(const char *path, obj_handler_t *svr_hd)
 {
+    int inx = 0;
     assert(path);
     assert(svr_hd);
 
     obj_handler_t newfd;
 
-    newfd = find_hd(path);
+    newfd = find_hd(path, &inx);
     if (newfd != HANDLER_INVALID)
     {
         *svr_hd = newfd;
@@ -101,8 +114,8 @@ int ns_query(const char *path, obj_handler_t *svr_hd)
     }
 
     rpc_ref_array_uint32_t_uint8_t_32_t rpc_path = {
-        .data = path,
-        .len = strlen(path) + 1,
+        .data = &path[inx],
+        .len = strlen(&path[inx]) + 1,
     };
     rpc_obj_handler_t_t rpc_svr_hd = {
         .data = newfd,

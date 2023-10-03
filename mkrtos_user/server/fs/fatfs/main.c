@@ -17,13 +17,14 @@ int main(int args, char *argv[])
     obj_handler_t ipc_hd;
     int ret = rpc_creaite_bind_ipc(THREAD_MAIN, NULL, &ipc_hd);
     assert(ret >= 0);
-    ns_register("fs", ipc_hd);
+    ns_register("/mnt", ipc_hd);
 
     fs_svr_init(ipc_hd);
     FRESULT res = f_mount(&fs, "0:", 1);
 
     if (res != FR_OK)
     {
+        assert(sizeof(FIL) >= FF_MAX_SS);
         res = f_mkfs("0:", &defopt, file_temp_buf_get(), FF_MAX_SS); // 第三个参数可以设置成NULL，默认使用heap memory
         if (res != FR_OK)
         {

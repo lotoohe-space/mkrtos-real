@@ -14,7 +14,7 @@ msg_tag_t ipc_bind(obj_handler_t obj, obj_handler_t tag_th, umword_t user_obj)
 {
     register volatile umword_t r0 asm("r0");
 
-    syscall(syscall_prot_create(IPC_BIND, IPC_PROT, obj),
+    mk_syscall(syscall_prot_create(IPC_BIND, IPC_PROT, obj),
             0,
             tag_th,
             user_obj,
@@ -34,7 +34,7 @@ msg_tag_t ipc_wait(obj_handler_t obj, umword_t *user_obj)
     register volatile umword_t r0 asm("r0");
     register volatile umword_t r1 asm("r1");
 
-    syscall(syscall_prot_create(IPC_WAIT, IPC_PROT, obj),
+    mk_syscall(syscall_prot_create(IPC_WAIT, IPC_PROT, obj),
             0,
             0,
             0,
@@ -55,7 +55,7 @@ msg_tag_t ipc_reply(obj_handler_t obj, msg_tag_t in_tag)
 {
     register volatile umword_t r0 asm("r0");
 
-    syscall(syscall_prot_create(IPC_REPLY, IPC_PROT, obj),
+    mk_syscall(syscall_prot_create(IPC_REPLY, IPC_PROT, obj),
             in_tag.raw,
             0,
             0,
@@ -74,7 +74,7 @@ msg_tag_t ipc_call(obj_handler_t obj, msg_tag_t in_tag, ipc_timeout_t timeout)
 {
     register volatile umword_t r0 asm("r0");
 
-    syscall(syscall_prot_create(IPC_CALL, IPC_PROT, obj),
+    mk_syscall(syscall_prot_create(IPC_CALL, IPC_PROT, obj),
             in_tag.raw,
             timeout.raw,
             0,
