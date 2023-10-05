@@ -221,7 +221,7 @@ static void task_release_stage2(kobject_t *kobj)
 {
     task_t *tk = container_of(kobj, task_t, kobj);
     kobj_del_list_t kobj_list;
-    task_t *cur_tk = thread_get_current_task();
+    // task_t *cur_tk = thread_get_current_task();
 
     obj_space_release(&tk->obj_space, tk->lim);
     mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);

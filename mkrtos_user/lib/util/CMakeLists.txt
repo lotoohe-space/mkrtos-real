@@ -10,17 +10,16 @@ set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
 
 file(GLOB_RECURSE deps  *.c *.S)
 add_library(
-    sys_util
+    util
     STATIC
     ${deps}
 )
 target_include_directories(
-    sys_util
+    util
     PUBLIC
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/cpio
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util/inc
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
@@ -31,13 +30,13 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
 )
 target_link_libraries(
-    sys_util
+    util
     PUBLIC
     sys
     muslc
     cpio
 )
-add_dependencies(sys_util sys)
-add_dependencies(sys_util muslc)
+add_dependencies(util sys)
+add_dependencies(util muslc)
 
 

@@ -20,9 +20,12 @@
 #include "temp_cal.h"
 #include "usart3.h"
 #include "usart2.h"
+#include "uart4.h"
 #include "rs485.h"
 #include "wk2xx.h"
 #include "auto_close.h"
+#include "u_str.h"
+#include "e180-zg120.h"
 #include <assert.h>
 #include <stdio.h>
 int main(int argc, char *args[])
@@ -37,6 +40,8 @@ int main(int argc, char *args[])
     // assert(sys_info.devID == 12);
     ulog_write_str(u_get_global_env()->log_hd, "app start..\n");
     relay_test();
+    mod_send_data(0x10de);
+
     while (1)
     {
         user_spl0601_get();
@@ -44,6 +49,15 @@ int main(int argc, char *args[])
         UpdateUI();
         usart2_loop();
         io_ctrl_loop();
+
+        e180_loop();
+
+        // if (uart4_cn > 0)
+        // {
+        //     print_hex(uart4_data, uart4_cn);
+        //     uart4_cn = 0;
+        //     recv_flags = 0;
+        // }
         // u_sleep_ms(10);
         // printf("temp:%f press:%f\n", (sys_info.board_temp), (sys_info.pressure));
         // for (int i = 0; i < 4; i++)

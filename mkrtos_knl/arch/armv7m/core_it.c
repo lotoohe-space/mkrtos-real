@@ -71,10 +71,6 @@ void HardFault_Handler(void)
   status = cpulock_lock();
   task_kill(thread_get_current_task());
   cpulock_set(status);
-  /* Go to infinite loop when Hard Fault exception occurs */
-  // while (1)
-  // {
-  // }
 }
 
 /**
@@ -100,15 +96,8 @@ void MemManage_Handler(void)
   if (SCB->CFSR & 128)
   {
     fault_addr = (addr_t)(SCB->MMFAR);
-    // printk("%x\t", SCB->MMFAR);
-
     if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
     {
-      printk("semgement fault.\n");
-      /*TODO:杀死进程*/
-      // while (1)
-      // {
-      // }
       goto end;
     }
     return;
@@ -120,11 +109,6 @@ void MemManage_Handler(void)
 
     if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
     {
-      printk("semgement fault.\n");
-      /*TODO:杀死进程*/
-      // while (1)
-      // {
-      // }
       goto end;
     }
     return;
@@ -136,8 +120,6 @@ void MemManage_Handler(void)
 
     if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
     {
-      printk("semgement fault.\n");
-      /*TODO:杀死进程*/
       goto end;
     }
     return;
@@ -147,12 +129,8 @@ void MemManage_Handler(void)
     printk("浮点惰性压栈错误\n");
   }
 
-  printk("semgement fault.\n");
-  /*TODO:杀死进程*/
-  // while (1)
-  // {
-  // }
 end:
+  printk("semgement fault.\n");
   status = cpulock_lock();
   task_kill(thread_get_current_task());
   cpulock_set(status);
@@ -165,9 +143,11 @@ end:
  */
 void BusFault_Handler(void)
 {
+  thread_t *cur_th = thread_get_current();
+
   umword_t status;
   printk("%s\n", __FUNCTION__);
-
+  cur_th = cur_th;
   /* Go to infinite loop when Bus Fault exception occurs */
   // while (1)
   // {
@@ -209,10 +189,6 @@ void UsageFault_Handler(void)
   {
     printk("Division by zero error\n");
   }
-  /* Go to infinite loop when Usage Fault exception occurs */
-  // while (1)
-  // {
-  // }
   umword_t status;
   status = cpulock_lock();
   task_kill(thread_get_current_task());

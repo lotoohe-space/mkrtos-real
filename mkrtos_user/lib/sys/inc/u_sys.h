@@ -10,9 +10,10 @@ typedef struct sys_info
 
 msg_tag_t sys_read_info(obj_handler_t obj, sys_info_t *info);
 
-#define sys_read_tick() ({          \
-    sys_info_t info;                \
-                                    \
-    sys_read_info(SYS_PROT, &info); \
-    info.sys_tick;                  \
-})
+static inline umword_t sys_read_tick(void)
+{
+    sys_info_t info;
+
+    sys_read_info(SYS_PROT, &info);
+    return info.sys_tick;
+}

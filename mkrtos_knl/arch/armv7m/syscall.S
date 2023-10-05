@@ -32,6 +32,7 @@ syscall_ret_user:
 	pop 	{r0,r1,r2,lr}
 
     msr     CONTROL, r1
+	CPSIE I
     bx      lr
 
 /**
@@ -41,6 +42,7 @@ syscall_ret_user:
 .global SVC_Handler
 .type SVC_Handler, %function
 SVC_Handler:
+CPSID   I
 	TST.W LR, #4
 	ITE EQ
  	MRSEQ R1, MSP
@@ -104,7 +106,9 @@ SYS_CALL:
     isb
     orr     lr, lr, #0x18
     bic		lr, lr, #0x04
+	CPSIE I
     bx      lr
 
 TO_END:
+CPSIE I
 	bx	lr

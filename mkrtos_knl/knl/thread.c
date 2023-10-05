@@ -175,15 +175,19 @@ void thread_dead(thread_t *th)
  */
 void thread_sched(void)
 {
+    umword_t status = cpulock_lock();
     sched_t *next_sche = scheduler_next();
     thread_t *th = thread_get_current();
 
     assert(th->magic == THREAD_MAIGC);
     if (next_sche == &th->sche)
     {
+        cpulock_set(status);
+
         return;
     }
     to_sche();
+    cpulock_set(status);
 }
 /**
  * @brief 线程进入就绪态
@@ -293,11 +297,13 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     break;
     case RUN_THREAD:
     {
+        umword_t status = cpulock_lock();
         if (!slist_in_list(&tag_th->sche.node))
         {
             tag_th->sche.prio = (f->r[1] >= PRIO_MAX ? PRIO_MAX - 1 : f->r[1]);
             thread_ready(tag_th, TRUE);
         }
+        cpulock_set(status);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
@@ -355,8 +361,12 @@ INIT_KOBJ(thread_factory_register);
  */
 task_t *thread_get_current_task(void)
 {
+    thread_t *cur = thread_get_current();
+    kobject_t *kobj = cur->task;
+
+    assert(kobj);
     return container_of(
-        thread_get_current()->task, task_t, kobj);
+        kobj, task_t, kobj);
 }
 task_t *thread_get_task(thread_t *th)
 {

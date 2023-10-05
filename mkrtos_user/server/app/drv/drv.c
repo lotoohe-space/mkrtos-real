@@ -20,6 +20,8 @@
 #include "hmi_lcd_process.h"
 #include "music_control.h"
 #include "MDM_RTU_APP.h"
+#include "e180-zg120.h"
+#include "timer.h"
 #include <assert.h>
 
 void music2_send_bytes(u8 *bytes, int len)
@@ -67,4 +69,11 @@ void drv_init(void)
     bluetooth_init_cfg(1, music2_send_bytes);
 
     MDM_RTU_APPInit();
+
+    // timer_init();
+
+    mod_reset();
+    mod_set_cod();
+    mod_reset();
+    mod_cfg_net();
 }

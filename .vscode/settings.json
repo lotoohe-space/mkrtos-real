@@ -190,8 +190,10 @@
         "uart5.h": "c",
         "wk2xx_hw.h": "c",
         "cstdlib": "c",
-        "locale": "c"
+        "locale": "c",
+        "uart4.h": "c",
+        "u_queue.h": "c"
     },
     "cortex-debug.showRTOS": false,
-    "cortex-debug.variableUseNaturalFormat": true,
+    "cortex-debug.variableUseNaturalFormat": false,
 }

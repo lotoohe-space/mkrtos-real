@@ -16,6 +16,7 @@ target_link_libraries(app.elf
     sys
     sys_util
     sys_svr
+    util
     xtinymodbus
     stm32f1_bsp
     ${GCC_LIB_PATH}/libgcc.a
@@ -51,6 +52,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/stm32f1_bsp/core_inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/hmi_lcd
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/util
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util/inc
 )
 add_dependencies(app.elf
 muslc
@@ -80,4 +82,5 @@ add_custom_target(
 add_dependencies(app_dump app.elf)
 add_dependencies(app_dump sys)
 add_dependencies(app_dump sys_util)
+add_dependencies(app_dump util)
  
