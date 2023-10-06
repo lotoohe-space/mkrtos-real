@@ -2,9 +2,7 @@
 
 #include "hmi_lcd_process.h"
 #include "stm32_sys.h"
-// #include "tim3.h"
 #include "sysinfo.h"
-// #include "save_info.h"
 #include "led.h"
 #include "relay.h"
 #include "music_control.h"

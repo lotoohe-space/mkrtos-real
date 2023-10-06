@@ -8,6 +8,9 @@
 
 #define MD_RTU_USED_OS 0 ///< Whether modbus RTU USES an operating system
 
+#define MD_STRICT_MODE 0         ///< Strict mode
+#define MD_FRAME_INTERVAL_TIME 5 ///< Ms
+
 #define MD_RTU_CRC16_FAST_MODE 1 ///< CRC check mode configuration
 
 ///< Configuration related to the slave

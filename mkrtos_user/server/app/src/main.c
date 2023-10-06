@@ -26,15 +26,15 @@
 #include "auto_close.h"
 #include "u_str.h"
 #include "e180-zg120.h"
+#include "MDM_RTU_APP.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
 int main(int argc, char *args[])
 {
     printf("argc:%d args[0]:%s\n", argc, args[0]);
-    drv_init();
     u_sleep_ms(100);
-    sys_info_read();
+    drv_init();
     // sys_info.devID = 12;
     // sys_info_save();
     // sys_info.devID = 0;
@@ -48,8 +48,9 @@ int main(int argc, char *args[])
     }
     while (1)
     {
+        MDM_RTU_Loop();
         user_spl0601_get();
-        temps_cal();
+        temp_cal();
         UpdateUI();
         usart2_loop();
         io_ctrl_loop();

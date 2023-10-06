@@ -371,6 +371,11 @@ static msg_tag_t ipc_wait(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t 
             tag = th->msg.tag;
         }
     }
+    else
+    {
+        preemption();
+        tag = th->msg.tag;
+    }
     spinlock_set(&ipc->lock, status);
     return tag;
 }

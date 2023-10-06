@@ -68,11 +68,11 @@ int namespace_query(const char *path, obj_handler_t *hd)
     {
         if (ns.ne_list[i].hd != HANDLER_INVALID)
         {
-            char *split_str = strstr(ns.ne_list[i].path, path);
-            if (split_str && (split_str == ns.ne_list[i].path))
+            char *split_str = strstr(path, ns.ne_list[i].path);
+            if (split_str && (split_str == path))
             {
                 *hd = ns.ne_list[i].hd;
-                return (int)(split_str - ns.ne_list[i].path);
+                return (int)(strlen(ns.ne_list[i].path));
             }
         }
     }

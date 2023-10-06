@@ -2,8 +2,10 @@
 #include "adc.h"
 #include "temp_cal.h"
 #include "sysinfo.h"
+#include "u_sys.h"
+#include "relay.h"
 #include <math.h>
-
+#define TEMP_ADJUST_TIMES 6000 // ms
 // Rt = R *EXP(B*(1/T1-1/T2))
 // 这里T1和T2指的是K度即开尔文温度，K度=273.15(绝对温度)+摄氏度；其中T2=(273.15+25)
 // Rt 是热敏电阻在T1温度下的阻值；
@@ -76,6 +78,27 @@ void temps_cal(void)
         for (i = 0; i < TEMPS_NUMBET; i++)
         {
             adc_cap_val[i] = 0;
+        }
+    }
+}
+static u32 temp_adjust_tick_last_update = 0;
+void temp_cal(void)
+{
+
+    temps_cal(); // 计算温度值 8路
+
+    // 调温处理
+    // 温度处理
+    if (sys_read_tick() - temp_adjust_tick_last_update >= TEMP_ADJUST_TIMES)
+    {
+        temp_adjust_tick_last_update = sys_read_tick();
+        if ((int)(sys_info.temp[0]) > sys_info.target_val)
+        {
+            relay_ctrl(5, 0);
+        }
+        else
+        {
+            relay_ctrl(5, 1);
         }
     }
 }

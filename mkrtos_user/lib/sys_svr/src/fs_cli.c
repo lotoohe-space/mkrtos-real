@@ -42,8 +42,8 @@ sd_t fs_open(const char *path, int flags, int mode)
     }
 
     rpc_ref_array_uint32_t_uint8_t_32_t rpc_path = {
-        .data = path,
-        .len = strlen(path) + 1,
+        .data = &path[ret],
+        .len = strlen(&path[ret]) + 1,
     };
     rpc_int_t rpc_flags = {
         .data = flags,
@@ -58,7 +58,7 @@ sd_t fs_open(const char *path, int flags, int mode)
         return msg_tag_get_val(tag);
     }
 
-    return msg_tag_get_val(tag);
+    return mk_sd_init2(hd, msg_tag_get_val(tag)).raw;
 }
 int fs_read(sd_t _fd, void *buf, size_t len)
 {
@@ -154,7 +154,7 @@ int fs_close(sd_t _fd)
 int fs_lseek(sd_t _fd, int offs, int whence)
 {
     obj_handler_t hd = mk_sd_init_raw(_fd).hd;
-    int fd =mk_sd_init_raw(_fd).fd;
+    int fd = mk_sd_init_raw(_fd).fd;
 
     rpc_int_t rpc_fd = {
         .data = fd,

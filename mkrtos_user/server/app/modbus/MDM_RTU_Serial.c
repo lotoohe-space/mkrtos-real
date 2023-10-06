@@ -54,7 +54,7 @@ void MDMInitSerial(void *obj, uint32 baud, uint8 dataBits, uint8 stopBit, uint8 
 	/*Hardware initialization*/
 	assert(baud == 9600);
 	Wk_SetBaud(WK_UART_NUM1, B9600);
-	init_uart5(B9600);
+	init_uart5(baud);
 }
 /*******************************************************
  *
@@ -121,4 +121,5 @@ void MDMSerialSendBytes(uint8 *bytes, uint16 num)
 	wk_TxChars(WK_UART_NUM1, num, bytes);
 	// 等待发送完成
 	wk_wait_tx_done(WK_UART_NUM1);
+
 }

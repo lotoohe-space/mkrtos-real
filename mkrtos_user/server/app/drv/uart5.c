@@ -7,6 +7,7 @@
 #include "u_hd_man.h"
 #include "u_local_thread.h"
 #include "u_sleep.h"
+#include "MDM_RTU_Serial.h"
 #include <assert.h>
 #include <fcntl.h>
 static obj_handler_t irq_obj;
@@ -23,19 +24,19 @@ void init_uart5(u32 baudRate)
     USART_InitTypeDef USART_InitStructure = {0};
     NVIC_InitTypeDef NVIC_InitStructure = {0};
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE); // 使能GPIOC时钟
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5, ENABLE); // 使能串口3时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD, ENABLE); // 使能GPIOC时钟
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5, ENABLE);                        // 使能串口3时钟
 
     USART_DeInit(UART5);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP; // 设置PA2为复用推挽输出
     GPIO_Init(GPIOC, &GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; // 设置PA3为浮空输入
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
-    GPIO_SetBits(GPIOC, GPIO_Pin_10);
+    GPIO_Init(GPIOD, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOD, GPIO_Pin_2);
 
     USART_InitStructure.USART_BaudRate = baudRate;                                  // 设置串口波特率为115200
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;                     // 字长为8位数据格式
@@ -75,8 +76,8 @@ static void *UART5_IRQHandler(void *arg)
             {
                 USART_ClearITPendingBit(UART5, USART_IT_RXNE); // 清除中断标志
                 uint8_t data = USART_ReceiveData(UART5);
-                // queue_push(data);
-                // uart5_send_byte(data);
+
+                MDMSerialRecvByte(data);
             }
             uirq_ack(irq_obj, UART5_IRQn);
         }
@@ -89,7 +90,7 @@ void uart5_send_byte(u8 byte)
     while (USART_GetFlagStatus(UART5, USART_FLAG_TXE) == RESET)
         ;
     USART_SendData(UART5, byte);
-    while (USART_GetFlagStatus(UART5, USART_FLAG_TXE) == RESET)
+    while (USART_GetFlagStatus(UART5, USART_FLAG_TC) == RESET)
         ;
 }
 void uart5_send_bytes(u8 *bytes, int len)

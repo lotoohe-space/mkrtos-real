@@ -5,4 +5,4 @@
 #define TEMP_MAX_VAL 100
 #define TEMP_MIN_VAL -40
 
-void temps_cal(void);
+void temp_cal(void);

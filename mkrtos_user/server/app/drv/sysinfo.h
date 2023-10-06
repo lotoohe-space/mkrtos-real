@@ -20,6 +20,7 @@ typedef struct
 
     uint8_t netID;
     uint8_t devID;
+    int init_val;
 } uapp_sys_info_t;
 
 extern uapp_sys_info_t sys_info;

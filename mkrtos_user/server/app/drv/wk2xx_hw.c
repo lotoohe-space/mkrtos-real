@@ -9,6 +9,7 @@
 #include "spi2.h"
 #include "delay.h"
 #include "wk2xx.h"
+#include "MDM_RTU_Serial.h"
 #include <assert.h>
 // #include "MDM_RTU_Serial.h"
 static obj_handler_t irq_obj;
@@ -100,7 +101,7 @@ static void *exti_12_irq(void *arg)
                         recv_len = wk_RxChars(4, wk_recv_buf[3]);
                         for (int i = 0; i < recv_len; i++)
                         {
-                            // MDMSerialRecvByte(wk_recv_buf[3][i]);TODO:
+                            MDMSerialRecvByte(wk_recv_buf[3][i]);
                         }
                         break;
                     }

@@ -38,12 +38,12 @@ static obj_handler_t find_hd(const char *path, int *split_pos)
     {
         if (ns_cli_cache.cache[i].path[0] != 0)
         {
-            char *new_str = strstr(ns_cli_cache.cache[i].path, path);
-            if (new_str && (new_str == ns_cli_cache.cache[i].path))
+            char *new_str = strstr(path, ns_cli_cache.cache[i].path);
+            if (new_str && (new_str == path))
             {
                 if (split_pos)
                 {
-                    *split_pos = (int)(new_str - ns_cli_cache.cache[i].path);
+                    *split_pos = (int)(strlen(ns_cli_cache.cache[i].path));
                 }
                 return ns_cli_cache.cache[i].hd;
             }
@@ -51,7 +51,7 @@ static obj_handler_t find_hd(const char *path, int *split_pos)
     }
     return HANDLER_INVALID;
 }
-static bool_t reg_hd(const char *path, obj_handler_t hd)
+static bool_t reg_hd(const char *path, obj_handler_t hd, int split_inx)
 {
     int i = 0;
     int empty = -1;
@@ -59,7 +59,8 @@ static bool_t reg_hd(const char *path, obj_handler_t hd)
     {
         if (ns_cli_cache.cache[i].path[0] == 0)
         {
-            strcpy(ns_cli_cache.cache[i].path, path);
+            strncpy(ns_cli_cache.cache[i].path, path, split_inx);
+            ns_cli_cache.cache[i].path[split_inx] = 0;
             ns_cli_cache.cache[i].hd = hd;
             return TRUE;
         }
@@ -103,7 +104,7 @@ int ns_query(const char *path, obj_handler_t *svr_hd)
     if (newfd != HANDLER_INVALID)
     {
         *svr_hd = newfd;
-        return 0;
+        return inx;
     }
 
     newfd = handler_alloc();
@@ -114,8 +115,8 @@ int ns_query(const char *path, obj_handler_t *svr_hd)
     }
 
     rpc_ref_array_uint32_t_uint8_t_32_t rpc_path = {
-        .data = &path[inx],
-        .len = strlen(&path[inx]) + 1,
+        .data = path,
+        .len = strlen(path) + 1,
     };
     rpc_obj_handler_t_t rpc_svr_hd = {
         .data = newfd,
@@ -129,7 +130,7 @@ int ns_query(const char *path, obj_handler_t *svr_hd)
         handler_free(newfd);
         return msg_tag_get_val(tag);
     }
-    if (reg_hd(path, newfd) == FALSE)
+    if (reg_hd(path, newfd, msg_tag_get_val(tag)) == FALSE)
     {
         printf("The client service cache is full.\n");
         handler_free_umap(newfd);

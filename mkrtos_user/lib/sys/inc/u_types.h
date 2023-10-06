@@ -28,7 +28,7 @@ typedef union mk_sd
     };
 } mk_sd_t;
 #define mk_sd_init_raw(val) ((mk_sd_t){.raw = val})
-#define mk_sd_init3(h, f) ((mk_sd_t){.hd = h, .fd = f})
+#define mk_sd_init2(h, f) ((mk_sd_t){.hd = h, .fd = f})
 #define mk_sd_get_hd(sd) ((obj_handler_t)((sd).hd))
 #define mk_sd_get_fd(sd) ((int)((sd).fd))
 

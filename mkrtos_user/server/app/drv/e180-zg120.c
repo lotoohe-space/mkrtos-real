@@ -6,6 +6,7 @@
 #include "u_queue.h"
 #include "u_log.h"
 #include "u_env.h"
+#include "u_sleep.h"
 #include "e180-zg120.h"
 #include <string.h>
 #include <stdio.h>
@@ -530,6 +531,7 @@ static void wait_pack(int wait_timeout)
             last_tick = sys_read_tick();
             last_len = q_queue_len(q);
         }
+        // u_sleep_ms(1);
     }
 }
 /**

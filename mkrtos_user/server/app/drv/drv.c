@@ -22,6 +22,7 @@
 #include "MDM_RTU_APP.h"
 #include "e180-zg120.h"
 #include "timer.h"
+#include "sysinfo.h"
 #include <assert.h>
 
 void music2_send_bytes(u8 *bytes, int len)
@@ -45,6 +46,7 @@ void drv_init(void)
     init_uart4(115200);
     ext_input_check();
     wk2xx_hw_init();
+    rs485_init();
     Wk_DeInit(1);
     Wk_DeInit(2);
     Wk_DeInit(3);
@@ -53,7 +55,6 @@ void drv_init(void)
     Wk_Init(2);
     Wk_Init(3);
     Wk_Init(4);
-    rs485_init();
     Wk_SetBaud(1, B115200);
     Wk_SetBaud(2, B115200);
     Wk_SetBaud(3, B115200);
@@ -62,8 +63,12 @@ void drv_init(void)
     spl0601_init();
     LCD_init();
 
-    bluetooth_set_CP(0, "02");
-    bluetooth_set_CP(1, "02");
+    if (sys_info_read() < 0)
+    {
+        sys_info_save();
+        bluetooth_set_CP(0, "02");
+        bluetooth_set_CP(1, "02");
+    }
 
     bluetooth_init_cfg(0, usart2_send_bytes);
     bluetooth_init_cfg(1, music2_send_bytes);
