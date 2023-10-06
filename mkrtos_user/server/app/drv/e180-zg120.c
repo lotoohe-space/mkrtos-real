@@ -811,6 +811,131 @@ int mod_send_data(uint16_t short_addr, uint8_t port, uint8_t dir,
     return ret_op;
 }
 
+#pragma pack(1)
+typedef struct local_send_0x11
+{
+    uint8_t port_inx;
+    uint16_t par_id;
+    uint8_t data[4];
+} local_send_0x11_t;
+/**
+ * @brief 设置短地址
+ *
+ * @param short_addr
+ * @return int
+ */
+int mod_set_local_attr_short_addr(uint16_t short_addr)
+{
+    int len;
+    int ret_op = -1;
+    uint8_t data_cache[64] = {0};
+    local_send_0x11_t pack = {
+        .port_inx = 0,
+        .par_id = 0x0001, // short addr,
+    };
+    memcpy(pack.data, &short_addr, sizeof(short_addr));
+
+    len = zigbee_gen_pack(data_cache, TYPE_CFG, 0x11, (uint8_t *)(&pack), 5);
+    zigbee_send_bytes(data_cache, len);
+
+    wait_pack(50);
+    queue_t *q = uart4_queue_get();
+
+    int ret;
+    while ((ret = zigbee_pack_get(q, data_cache)) > 0)
+    {
+        base_pack_t *pack = (base_pack_t *)data_cache;
+
+        if (pack->cmd_type == TYPE_CFG && pack->cmd_code == 0x11)
+        {
+            if (pack->data[0] == 0)
+            {
+                ret_op = 0;
+            }
+        }
+        print_hex(data_cache, ret);
+    }
+    return ret_op;
+}
+/**
+ * @brief 设置端口
+ *
+ * @param short_addr
+ * @return int
+ */
+int mod_set_local_attr_port(uint8_t port)
+{
+    int len;
+    int ret_op = -1;
+    uint8_t data_cache[64] = {0};
+    local_send_0x11_t pack = {
+        .port_inx = 0,
+        .par_id = 0x0002, // short addr,
+    };
+    memcpy(pack.data, &port, sizeof(port));
+
+    len = zigbee_gen_pack(data_cache, TYPE_CFG, 0x11, (uint8_t *)(&pack), 4);
+    zigbee_send_bytes(data_cache, len);
+
+    wait_pack(50);
+    queue_t *q = uart4_queue_get();
+
+    int ret;
+    while ((ret = zigbee_pack_get(q, data_cache)) > 0)
+    {
+        base_pack_t *pack = (base_pack_t *)data_cache;
+
+        if (pack->cmd_type == TYPE_CFG && pack->cmd_code == 0x11)
+        {
+            if (pack->data[0] == 0)
+            {
+                ret_op = 0;
+            }
+        }
+        print_hex(data_cache, ret);
+    }
+    return ret_op;
+}
+/**
+ * @brief 设置透传
+ *
+ * @param short_addr
+ * @return int
+ */
+int mod_set_local_attr_pass_through(bool_t is_pass_through)
+{
+    int len;
+    int ret_op = -1;
+    uint8_t data_cache[64] = {0};
+    local_send_0x11_t pack = {
+        .port_inx = 0,
+        .par_id = 0x0003, // short addr
+    };
+    memcpy(pack.data, &is_pass_through, sizeof(is_pass_through));
+
+    len = zigbee_gen_pack(data_cache, TYPE_CFG, 0x11, (uint8_t *)(&pack), 4);
+    zigbee_send_bytes(data_cache, len);
+
+    wait_pack(50);
+    queue_t *q = uart4_queue_get();
+
+    int ret;
+    while ((ret = zigbee_pack_get(q, data_cache)) > 0)
+    {
+        base_pack_t *pack = (base_pack_t *)data_cache;
+
+        if (pack->cmd_type == TYPE_CFG && pack->cmd_code == 0x11)
+        {
+            if (pack->data[0] == 0)
+            {
+                ret_op = 0;
+            }
+        }
+        print_hex(data_cache, ret);
+    }
+    return ret_op;
+}
+
 void e180_loop(void)
 {
     {

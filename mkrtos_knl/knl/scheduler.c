@@ -53,7 +53,7 @@ void scheduler_add(sched_t *node)
         sched->cur_sche = NULL;
     }
 
-    MK_SET_BIT(sched->bitmap[node->prio / PRIO_MAX], node->prio);
+    MK_SET_BIT(sched->bitmap[node->prio / PRIO_MAX], node->prio % PRIO_MAX);
 
     slist_add(&(sched->prio_list[node->prio]), &node->node);
 }

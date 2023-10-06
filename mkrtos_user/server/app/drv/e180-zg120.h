@@ -17,7 +17,9 @@ enum cluster
 int mod_start_cfg_net(uint8_t mode);
 int mod_send_data(uint16_t short_addr, uint8_t port, uint8_t dir,
                   uint8_t cmd_id, uint8_t *data, uint8_t len);
-
+int mod_set_local_attr_short_addr(uint16_t short_addr);
+int mod_set_local_attr_port(uint8_t port);
+int mod_set_local_attr_pass_through(bool_t is_pass_through);
 int mod_set_node_type(enum point_type p_type);
 int mod_reset(int reset_mode, uint16_t panid, uint8_t channel);
 void mod_query_status(void);
