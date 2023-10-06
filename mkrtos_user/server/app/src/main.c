@@ -28,6 +28,7 @@
 #include "e180-zg120.h"
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 int main(int argc, char *args[])
 {
     printf("argc:%d args[0]:%s\n", argc, args[0]);
@@ -40,8 +41,11 @@ int main(int argc, char *args[])
     // assert(sys_info.devID == 12);
     ulog_write_str(u_get_global_env()->log_hd, "app start..\n");
     relay_test();
-    mod_send_data(0x10de);
 
+    if (mod_send_data(0x10de, 1, 0, 0, "hello world", strlen("hello world")) >= 0)
+    {
+        printf("send ok..\n");
+    }
     while (1)
     {
         user_spl0601_get();

@@ -10,3 +10,5 @@
 #define ROUND(a, b) (((a) / (b)) + (((a) % (b)) ? 1 : 0))          //!< a/b后的值向上取整
 #define ROUND_UP(a, b) ROUND(a, b)                                 //!< a除b向上取整数
 #define ROUND_DOWN(a, b) ((a) / (b))                               //!< a/b向下取整
+
+#define ATTR_ALIGN(a) __attribute__((aligned(a)))

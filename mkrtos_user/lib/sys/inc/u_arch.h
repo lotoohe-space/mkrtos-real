@@ -1,5 +1,5 @@
 #pragma once
-
+#include "u_types.h"
 #define SYS_SCHE_HZ 1000 //!< 系统调度频率
 
 #define WORD_BYTES (sizeof(void *))
@@ -15,3 +15,8 @@
             :);                \
         _val;                  \
     })
+
+static inline uint16_t swap_u16(uint16_t data)
+{
+    return ((data >> 8) & 0xff) | ((data & 0xff) << 8);
+}

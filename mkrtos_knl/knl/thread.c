@@ -196,6 +196,8 @@ void thread_sched(void)
  */
 void thread_ready(thread_t *th, bool_t is_sche)
 {
+    umword_t status = cpulock_lock();
+
     // if (!!slist_in_list(&th->sche.node))
     // {
     assert(!slist_in_list(&th->sche.node));
@@ -206,6 +208,7 @@ void thread_ready(thread_t *th, bool_t is_sche)
     {
         thread_sched();
     }
+    cpulock_set(status);
 }
 void thread_todead(thread_t *th, bool_t is_sche)
 {

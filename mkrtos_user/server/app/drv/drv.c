@@ -72,8 +72,10 @@ void drv_init(void)
 
     // timer_init();
 
-    mod_reset();
-    mod_set_cod();
-    mod_reset();
-    mod_cfg_net();
+    mod_reset(0, 0xffff, 0);
+    mod_set_node_type(COD_TYPE);
+    mod_reset(0, 0xffff, 0);
+    mod_start_cfg_net(2);
+
+    local_read_net_node_0x22_all();
 }
