@@ -35,17 +35,13 @@ int main(int argc, char *args[])
     printf("argc:%d args[0]:%s\n", argc, args[0]);
     u_sleep_ms(100);
     drv_init();
-    // sys_info.devID = 12;
-    // sys_info_save();
-    // sys_info.devID = 0;
-    // assert(sys_info.devID == 12);
     ulog_write_str(u_get_global_env()->log_hd, "app start..\n");
-    relay_test();
+    // relay_test();
 
-    if (mod_send_data(0x10de, 1, 0, 0, "hello world", strlen("hello world")) >= 0)
-    {
-        printf("send ok..\n");
-    }
+    // if (mod_send_data(0x10de, 1, 0, 0, "hello world", strlen("hello world")) >= 0)
+    // {
+    //     printf("send ok..\n");
+    // }
     while (1)
     {
         MDM_RTU_Loop();
@@ -54,22 +50,7 @@ int main(int argc, char *args[])
         UpdateUI();
         usart2_loop();
         io_ctrl_loop();
-
         e180_loop();
-
-        // if (uart4_cn > 0)
-        // {
-        //     print_hex(uart4_data, uart4_cn);
-        //     uart4_cn = 0;
-        //     recv_flags = 0;
-        // }
-        // u_sleep_ms(10);
-        // printf("temp:%f press:%f\n", (sys_info.board_temp), (sys_info.pressure));
-        // for (int i = 0; i < 4; i++)
-        // {
-        //     printf("tmp%d:%f\n", i, sys_info.temp[i]);
-        // }
-        // usart3_send_string("usart3..\n");
     }
     return 0;
 }

@@ -8,6 +8,7 @@
 #include "u_env.h"
 #include "u_sleep.h"
 #include "e180-zg120.h"
+#include "sysinfo.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -336,22 +337,55 @@ static void cmd_local_parse(uint8_t *data)
     break;
     }
 }
+
+
+#pragma pack(1)
+typedef struct dev_info
+{
+    uint16_t head;
+    uint8_t dev_inx;
+    uint8_t dev_type;
+    uint8_t data[0];
+} dev_info_t;
+
 static void cmd_zcl_send_parse(uint8_t *data, int len)
 {
-
+    uapp_sys_info_t *info = &sys_info;  
     switch (data[0])
     {
     case 0x0F:
     {
-        printf("==========================================\n");
+        // printf("==========================================\n");
 
         zcl_request_pack_t *pack = (zcl_request_pack_t *)(data + 1);
 
         int data_len = len - 5 - 1 - sizeof(zcl_request_pack_t);
-
+        uint8_t *recv_data = data + 1 + sizeof(zcl_request_pack_t) + 1;
         printf("recv data:\n");
-        print_hex(data + 1 + sizeof(zcl_request_pack_t) + 1, data_len);
-        printf("==========================================\n");
+        print_hex(recv_data, data_len);
+        dev_info_t *dev_info = (dev_info_t *)recv_data;
+        if (dev_info->head != 0xfffe)
+        {
+            break;
+        }
+        switch (dev_info->dev_type)
+        {
+        case 0: /*温度数据*/
+        {
+            int val =  (((int *)(dev_info->data))[dev_info->dev_inx]) / 10;
+            info->zigbee_temp[0] = val;
+        }
+        break;
+        case 1:
+        {
+            int *val = (int *)(dev_info->data);
+
+            info->noise[dev_info->dev_inx] = val[0] / 10;
+            info->noise_temp[dev_info->dev_inx] = val[1];
+        }
+            break;
+        }
+        // printf("==========================================\n");
     }
     break;
     }
@@ -679,7 +713,7 @@ int mod_reset(int reset_mode, uint16_t panid, uint8_t channel)
     len = zigbee_gen_pack(data_cache, TYPE_CFG, 0x04, (uint8_t *)(&pack), sizeof(pack));
     zigbee_send_bytes(data_cache, len);
 
-    wait_pack(100);
+    wait_pack(500);
     queue_t *q = uart4_queue_get();
     int ret;
     while ((ret = zigbee_pack_get(q, data_cache)) > 0)
@@ -712,7 +746,7 @@ int mod_set_node_type(enum point_type p_type)
     len = zigbee_gen_pack(data_cache, TYPE_CFG, 0x05, &p_type, 1);
     zigbee_send_bytes(data_cache, len);
 
-    wait_pack(100);
+    wait_pack(500);
     queue_t *q = uart4_queue_get();
 
     int ret;
@@ -746,7 +780,7 @@ int mod_start_cfg_net(uint8_t mode)
     len = zigbee_gen_pack(data_cache, TYPE_CFG, 0x02, &mode, 1);
     zigbee_send_bytes(data_cache, len);
 
-    wait_pack(100);
+    wait_pack(500);
     queue_t *q = uart4_queue_get();
 
     int ret;

@@ -17,6 +17,7 @@ typedef struct
     float noise[3];
     float noise_temp[3];
     uint8_t relay[6];
+    int zigbee_temp[4];
 
     uint8_t netID;
     uint8_t devID;

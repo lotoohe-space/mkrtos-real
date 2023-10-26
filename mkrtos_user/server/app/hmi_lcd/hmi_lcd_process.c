@@ -13,7 +13,7 @@
 #include <stdlib.h>
 
 // 刷新时间
-#define HIM_LCD_TIME_100MS 200
+#define HIM_LCD_TIME_100MS 500
 // LCD串口接收BUF
 uint8_t cmd_buffer[CMD_MAX_SIZE]; // 指令缓存
 
@@ -568,6 +568,10 @@ void UpdateUI(void)
     temp_val = (((float)(temp_val + 40)) / 120.f) * 360;
     SetSliderValue(0, 39, temp_val);
     SetTextInt32(0, 41, (sys_info.noise_temp[2]), 1, 0); // 设置文本值
+
+    /*Zigbee温度*/
+    uapp_sys_info_t *info = &sys_info;
+    SetTextInt32(0, 64, info->zigbee_temp[0], 1, 0); // 设置文本值
 
     //	SetTextInt32(0, 100, ABS(sys_info.noise[0] - sys_info.noise[1]), 1, 0);
 

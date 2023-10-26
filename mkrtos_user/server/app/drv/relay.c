@@ -2,6 +2,7 @@
 #include "u_types.h"
 #include "sysinfo.h"
 #include "stm32_sys.h"
+#include "relay.h"
 #include <assert.h>
 
 void relay_init(void)
@@ -23,6 +24,13 @@ void relay_init(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+    relay_ctrl(0, 0);
+    relay_ctrl(1, 0);
+    relay_ctrl(2, 0);
+    relay_ctrl(3, 0);
+    relay_ctrl(4, 0);
+    relay_ctrl(5, 0);
 }
 void relay_ctrl(uint8_t index, uint8_t state)
 {
