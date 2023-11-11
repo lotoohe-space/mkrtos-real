@@ -192,7 +192,14 @@
         "cstdlib": "c",
         "locale": "c",
         "uart4.h": "c",
-        "u_queue.h": "c"
+        "u_queue.h": "c",
+        "dirent.h": "c",
+        "iosfwd": "c",
+        "drv_adc.h": "c",
+        "mrboard.h": "c",
+        "mrapi.h": "c",
+        "device_port.h": "c",
+        "spi.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

@@ -16,6 +16,7 @@ target_link_libraries(hello.elf
     sys
     sys_util
     sys_svr
+    mr
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -64,4 +65,5 @@ add_custom_target(
 add_dependencies(shell_dump hello.elf)
 add_dependencies(shell_dump sys)
 add_dependencies(shell_dump sys_util)
+add_dependencies(shell_dump mr)
  

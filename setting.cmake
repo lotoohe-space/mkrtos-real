@@ -20,22 +20,22 @@ set(CMAKE_SIZE "${CROSS_COMPILE}size" CACHE PATH "" FORCE)
 
 
 # -mfloat-abi=soft  -u _printf_float 
-set(CMAKE_C_FLAGS "-mcpu=cortex-m3 -mthumb -O0 -g3 -lc -lrdimon -msoft-float -u _printf_float \
+set(CMAKE_C_FLAGS "-mcpu=cortex-m3 -mthumb -O0 -g3 -lc -lrdimon -msoft-float -u _printf_float -D=MKRTOS \
 -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
---gc-sections -fno-stack-protector \
+ -fno-stack-protector -Wl,--gc-sections \
 " CACHE STRING "" FORCE)
 
-set(CMAKE_CXX_FLAGS "-mcpu=cortex-m3 -mthumb -mno-thumb-interwork \
+set(CMAKE_CXX_FLAGS "-mcpu=cortex-m3 -mthumb -mno-thumb-interwork -D=MKRTOS \
 -mfix-cortex-m3-ldrd -O0 -g -std=c++11 \
 -fmessage-length=0 -Xlinker --print-map -Wall -W -fno-stack-protector -g \ 
 -mfloat-abi=soft -lc -lrdimon -u _printf_float \
--ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker -Wl,-gc-sections \
+-ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker \
 " CACHE STRING "" FORCE)
 
-set(CMAKE_ASM_FLAGS "-mcpu=cortex-m3 -mthumb -O0 -g -mfloat-abi=soft -lc -lrdimon \
+set(CMAKE_ASM_FLAGS "-mcpu=cortex-m3 -mthumb -O0 -g -mfloat-abi=soft -lc -lrdimon -D=MKRTOS \
 -u _printf_float -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
--nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker --gc-sections -fno-stack-protector \
+-nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  -fno-stack-protector \
 " CACHE STRING "" FORCE)
 
 set(BOARD_NAME "$ENV{BOARD}")

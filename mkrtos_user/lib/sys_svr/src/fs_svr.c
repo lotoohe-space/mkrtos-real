@@ -81,9 +81,91 @@ RPC_GENERATION_DISPATCH3(fs_t, FS_LSEEK, lseek,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, whence)
 
+/*ftruncate*/
+RPC_GENERATION_OP2(fs_t, FS_FTRUNCATE, ftruncate,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, offs)
+{
+    int ret = fs_svr_ftruncate(fd->data, offs->data);
+    return ret;
+}
+
+RPC_GENERATION_DISPATCH2(fs_t, FS_FTRUNCATE, ftruncate,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, offs)
+
+/*fsync*/
+RPC_GENERATION_OP1(fs_t, FS_SYNC, fsync,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd)
+{
+    fs_svr_sync(fd->data);
+    return 0;
+}
+
+RPC_GENERATION_DISPATCH1(fs_t, FS_SYNC, fsync,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd)
+/*readdir*/
+RPC_GENERATION_OP2(fs_t, FS_READDIR, readdir,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
+                   rpc_dirent_t_t, rpc_dirent_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, dir)
+{
+    return fs_svr_readdir(fd, &dir->data);
+}
+
+RPC_GENERATION_DISPATCH2(fs_t, FS_READDIR, readdir,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
+                         rpc_dirent_t_t, rpc_dirent_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, dir)
+
+/*mkdir*/
+RPC_GENERATION_OP1(fs_t, FS_MKDIR, mkdir,
+                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path)
+{
+    path->data[path->len - 1] = 0;
+    return fs_svr_mkdir(path->data);
+}
+
+RPC_GENERATION_DISPATCH1(fs_t, FS_MKDIR, mkdir,
+                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path)
+/*unlink*/
+RPC_GENERATION_OP1(fs_t, FS_UNLINK, unlink,
+                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path)
+{
+    path->data[path->len - 1] = 0;
+    return fs_svr_unlink(path->data);
+}
+
+RPC_GENERATION_DISPATCH1(fs_t, FS_UNLINK, unlink,
+                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path)
+/*rename*/
+RPC_GENERATION_OP2(fs_t, FS_RENAME, rename,
+                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, oldpath,
+                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, newpath)
+{
+    oldpath->data[oldpath->len - 1] = 0;
+    newpath->data[newpath->len - 1] = 0;
+    return fs_svr_renmae((char *)(oldpath->data), (char *)(newpath->data));
+}
+
+RPC_GENERATION_DISPATCH2(fs_t, FS_RENAME, rename,
+                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, oldpath,
+                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, newpath)
+
+/*fstat*/
+RPC_GENERATION_OP2(fs_t, FS_STAT, fstat,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
+                   rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, stat)
+{
+    return fs_svr_fstat(fd->data, &stat->data);
+}
+
+RPC_GENERATION_DISPATCH2(fs_t, FS_STAT, fstat,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
+                         rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, stat)
+
 /*dispatch*/
-RPC_DISPATCH5(fs_t, typeof(FS_OPEN), FS_OPEN, open, FS_READ, read,
-              FS_WRITE, write, FS_CLOSE, close, FS_LSEEK, lseek)
+RPC_DISPATCH12(fs_t, typeof(FS_OPEN), FS_OPEN, open, FS_READ, read,
+              FS_WRITE, write, FS_CLOSE, close, FS_LSEEK, lseek, FS_FTRUNCATE, ftruncate,
+              FS_SYNC, fsync, FS_READDIR, readdir, FS_MKDIR, mkdir, FS_UNLINK, unlink, FS_RENAME, rename, FS_STAT, fstat)
 
 void fs_init(fs_t *fs)
 {

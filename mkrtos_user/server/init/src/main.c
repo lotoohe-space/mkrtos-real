@@ -44,22 +44,22 @@ int main(int argc, char *args[])
     env.ns_hd = ipc_hd;
     namespace_init(ipc_hd);
     u_sleep_init();
-    ret = app_load("app", &env);
+    // ret = app_load("app", &env);
+    // if (ret < 0)
+    // {
+    //     printf("app load fail, 0x%x\n", ret);
+    //     // ulog_write_str(LOG_PROT, "app load fail.\n");
+    // }
+    ret = app_load("mr_drv", &env);
     if (ret < 0)
     {
         printf("app load fail, 0x%x\n", ret);
-        // ulog_write_str(LOG_PROT, "app load fail.\n");
     }
-    // ret = app_load("hello", &env);
+    // ret = app_load("fatfs", &env);
     // if (ret < 0)
     // {
     //     printf("app load fail, 0x%x\n", ret);
     // }
-    ret = app_load("fatfs", &env);
-    if (ret < 0)
-    {
-        printf("app load fail, 0x%x\n", ret);
-    }
     // u_sleep_ms(500);
     // u_sleep_ms(500);
 

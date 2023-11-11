@@ -14,7 +14,7 @@ FRESULT delete_node (
 {
     UINT i, j;
     FRESULT fr;
-    DIR dir;
+    FATFS_DIR dir;
 
 
     fr = f_opendir(&dir, path); /* Open the sub-directory to make it empty */

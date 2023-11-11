@@ -6,6 +6,7 @@
 #include "u_env.h"
 #include <stdio.h>
 #include <fcntl.h>
+#include <errno.h>
 static fs_t fs;
 
 void fs_svr_init(obj_handler_t ipc)
@@ -15,11 +16,16 @@ void fs_svr_init(obj_handler_t ipc)
 }
 typedef struct file_desc
 {
-    FIL fp;
+    union
+    {
+        FIL fp;
+        FATFS_DIR dir;
+    };
+    uint8_t type; //!< 0:file 1:dir
 } file_desc_t;
 
-#define FILE_DESC_NR 8
-static file_desc_t files[FILE_DESC_NR];
+#define FILE_DESC_NR 8                  //!< 最多同时可以打开多少个文件
+static file_desc_t files[FILE_DESC_NR]; //!< 预先设置的文件描述符
 
 static file_desc_t *alloc_file(int *fd)
 {
@@ -45,7 +51,36 @@ static file_desc_t *file_get(int fd)
     }
     return files + fd;
 }
-
+static int fatfs_err_conv(FRESULT res)
+{
+    switch (res)
+    {
+    case FR_OK:
+        return 0;
+    case FR_DISK_ERR:
+        return -EIO;
+    case FR_NO_FILE:
+        return -ENOENT;
+    case FR_NO_PATH:
+        return -ENOENT;
+    case FR_INVALID_NAME:
+        return -EINVAL;
+    case FR_DENIED:
+        return -EPERM;
+    case FR_EXIST:
+        return -EEXIST;
+    case FR_WRITE_PROTECTED:
+        return -EIO;
+    case FR_TIMEOUT:
+        return -ETIMEDOUT;
+    case FR_NOT_ENOUGH_CORE:
+        return -ENOMEM;
+    case FR_INVALID_PARAMETER:
+        return -EINVAL;
+    default:
+        return -1;
+    }
+}
 int fs_svr_open(const char *path, int flags, int mode)
 {
     // printf("open %s.\n", path);
@@ -88,11 +123,27 @@ int fs_svr_open(const char *path, int flags, int mode)
 
     if (ret != FR_OK)
     {
-        ulog_write_str(u_get_global_env()->log_hd, "open fail..\n");
-        free_file(fd);
+        if (ret == FR_NO_FILE)
+        {
+            // 打开的是一个目录，则作为一个目录打开
+            ret = f_opendir(&file->dir, path);
+            if (ret != FR_OK)
+            {
+                ulog_write_str(u_get_global_env()->log_hd, "open fail..\n");
+                free_file(fd);
+                return fatfs_err_conv(ret);
+            }
+            file->type = 1;
+            ulog_write_str(u_get_global_env()->log_hd, "open dir..\n");
+        }
+    }
+    else
+    {
+        file->type = 0;
+        ulog_write_str(u_get_global_env()->log_hd, "open file..\n");
     }
 
-    return -ret;
+    return fatfs_err_conv(ret);
 }
 
 int fs_svr_read(int fd, void *buf, size_t len)
@@ -104,11 +155,15 @@ int fs_svr_read(int fd, void *buf, size_t len)
     {
         return -ENOENT;
     }
+    if (file->type != 0)
+    {
+        return -EACCES;
+    }
     FRESULT ret = f_read(&file->fp, buf, len, &br);
 
     if (ret != FR_OK)
     {
-        return -ret;
+        return fatfs_err_conv(ret);
     }
     return br;
 }
@@ -121,11 +176,15 @@ int fs_svr_write(int fd, void *buf, size_t len)
     {
         return -ENOENT;
     }
+    if (file->type != 0)
+    {
+        return -EACCES;
+    }
     FRESULT ret = f_write(&file->fp, buf, len, &bw);
 
     if (ret != FR_OK)
     {
-        return -ret;
+        return fatfs_err_conv(ret);
     }
     return bw;
 }
@@ -137,7 +196,15 @@ void fs_svr_close(int fd)
     {
         return;
     }
-    f_close(&file->fp);
+    switch (file->type)
+    {
+    case 0:
+        f_close(&file->fp);
+        break;
+    case 1:
+        f_closedir(&file->dir);
+        break;
+    }
 }
 int fs_svr_lseek(int fd, int offs, int whence)
 {
@@ -148,6 +215,10 @@ int fs_svr_lseek(int fd, int offs, int whence)
     if (!file)
     {
         return -ENOENT;
+    }
+    if (file->type != 0)
+    {
+        return -EACCES;
     }
     switch (whence)
     {
@@ -177,8 +248,64 @@ int fs_svr_lseek(int fd, int offs, int whence)
     }
     FRESULT ret = f_lseek(&file->fp, new_offs);
 
-    return -ret;
+    return fatfs_err_conv(ret);
 }
+int fs_svr_ftruncate(int fd, off_t off)
+{
+    file_desc_t *file = file_get(fd);
+
+    if (!file)
+    {
+        return -ENOENT;
+    }
+    if (file->type != 0)
+    {
+        return -EACCES;
+    }
+    FRESULT ret = f_truncate(&file->fp);
+
+    return fatfs_err_conv(ret);
+}
+void fs_svr_sync(int fd)
+{
+    file_desc_t *file = file_get(fd);
+
+    if (!file)
+    {
+        return;
+    }
+    if (file->type != 0)
+    {
+        return;
+    }
+    f_sync(&file->fp);
+}
+int fs_svr_readdir(int fd, dirent_t *dir)
+{
+    file_desc_t *file = file_get(fd);
+
+    if (!file)
+    {
+        return -ENOENT;
+    }
+}
+int fs_svr_mkdir(char *path)
+{
+    return -ENOSYS;
+}
+int fs_svr_unlink(char *path)
+{
+    return -ENOSYS;
+}
+int fs_svr_renmae(char *oldname, char *newname)
+{
+    return -ENOSYS;
+}
+int fs_svr_fstat(int fd, stat_t *stat)
+{
+    return -ENOSYS;
+}
+
 void fs_svr_loop(void)
 {
     rpc_loop(fs.ipc, &fs.svr);

@@ -30,7 +30,7 @@ typedef struct app_info
 
 static inline app_info_t *app_info_get(void *addr)
 {
-    app_info_t *app = (app_info_t *)addr;
+    app_info_t *app = (app_info_t *)((umword_t)addr & (~0x3UL));
     const char *magic = APP_MAGIC;
     for (int i = 0; i < sizeof(app->magic) - 1; i++)
     {
