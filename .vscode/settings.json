@@ -201,7 +201,12 @@
         "device_port.h": "c",
         "spi.h": "c",
         "mr_board.h": "c",
-        "mr_config.h": "c"
+        "mr_config.h": "c",
+        "drv_svr.h": "c",
+        "drv_types.h": "c",
+        "ios": "c",
+        "mr_def.h": "c",
+        "drv_rpc.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

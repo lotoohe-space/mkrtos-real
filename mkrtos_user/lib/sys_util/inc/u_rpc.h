@@ -179,6 +179,9 @@ static inline void rpc_memcpy(void *dst, void *src, size_t size)
     RPC_CLI_TYPE_TRAN_TO_SVR_TYPE(rpc_##type##_t, rpc_##type##_t)
 
 RPC_TYPE_DEF_ALL(int)      //!< 定义所有的
+RPC_TYPE_DEF_ALL(uint32_t)      //!< 定义所有的
+RPC_TYPE_DEF_ALL(size_t)      //!< 定义所有的
+RPC_TYPE_DEF_ALL(umword_t)      //!< 定义所有的
 RPC_TYPE_DEF_ALL(dirent_t) //!< 目录类型
 RPC_TYPE_DEF_ALL(stat_t)
 

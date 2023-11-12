@@ -47,7 +47,7 @@ void scheduler_add(sched_t *node)
     assert(node->prio >= 0);
     assert(node->prio < PRIO_MAX);
 
-    if (node->prio != sched->max_prio)
+    if (node->prio > sched->max_prio)
     {
         sched->max_prio = node->prio;
         sched->cur_sche = NULL;
