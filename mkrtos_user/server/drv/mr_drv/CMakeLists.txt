@@ -39,8 +39,8 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/mr_drv/inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mr-library/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mr-library
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mr/include
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mr
 )
 add_dependencies(
     mr_drv.elf
