@@ -199,7 +199,9 @@
         "mrboard.h": "c",
         "mrapi.h": "c",
         "device_port.h": "c",
-        "spi.h": "c"
+        "spi.h": "c",
+        "mr_board.h": "c",
+        "mr_config.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,
