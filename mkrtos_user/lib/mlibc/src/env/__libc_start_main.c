@@ -79,9 +79,13 @@ __init_libc(char **envp, char *pn)
 static void libc_start_init(void)
 {
 	_init();
+	extern void *app_start_addr;
+    unsigned long start_addr = ((unsigned long)app_start_addr) & (~3UL);
+	
 	uintptr_t a = (uintptr_t)&__init_array_start;
-	for (; a < (uintptr_t)&__init_array_end; a += sizeof(void (*)()))
-		(*(void (**)(void))a)();
+	for (; a < (uintptr_t)&__init_array_end; a += sizeof(void (*)())) {
+		((void (*)(void))((uintptr_t)(*(void (**)(void))a) + start_addr | 0x1UL))();
+	}
 }
 
 weak_alias(libc_start_init, __libc_start_init);

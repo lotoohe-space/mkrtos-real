@@ -11,9 +11,7 @@ extern void rt_hw_board_init(void);
 extern int dfs_init(void);
 int main(void)
 {
-    fs_backend_init();
     printf("test\n");
-    u_drv_init();
     /* init board */
     rt_hw_board_init();
     dfs_init();

@@ -35,7 +35,6 @@ void music2_send_bytes(u8 *bytes, int len)
 
 void drv_init(void)
 {
-    u_drv_init();
     led_init();
     relay_init();
     IIC_Init();

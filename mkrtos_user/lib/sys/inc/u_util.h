@@ -12,3 +12,4 @@
 #define ROUND_DOWN(a, b) ((a) / (b))                               //!< a/b向下取整
 
 #define ATTR_ALIGN(a) __attribute__((aligned(a)))
+#define AUTO_CALL(prio) __attribute__((constructor(prio)))

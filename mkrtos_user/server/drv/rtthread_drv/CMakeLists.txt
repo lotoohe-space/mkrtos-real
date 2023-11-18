@@ -40,11 +40,11 @@ target_link_libraries(
     rtthread_drv.elf
     PUBLIC
     start
+    muslc
+    --whole-archive
     sys
     sys_util
     sys_svr
-    muslc
-    --whole-archive
     src
     drivers
     stm32f103_onenet_nbiot

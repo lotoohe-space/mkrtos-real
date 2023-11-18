@@ -14,7 +14,6 @@ static MKFS_PARM defopt = {FM_ANY, 0, 0, 0};
 
 int main(int args, char *argv[])
 {
-    u_drv_init();
     obj_handler_t ipc_hd;
     int ret = rpc_creaite_bind_ipc(THREAD_MAIN, NULL, &ipc_hd);
     assert(ret >= 0);
