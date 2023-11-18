@@ -7,5 +7,5 @@ struct __dirstream
 	volatile int lock[1];
 	/* Any changes to this struct must preserve the property:
 	 * offsetof(struct __dirent, buf) % sizeof(off_t) == 0 */
-	char buf[2048];
+	char buf[512];
 };

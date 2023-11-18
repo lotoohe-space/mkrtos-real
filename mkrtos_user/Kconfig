@@ -1,0 +1,3 @@
+
+source "mkrtos_user/server/drv/rtthread_drv/Kconfig"
+

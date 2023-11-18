@@ -3,12 +3,12 @@ cmake_minimum_required(VERSION 3.13)
 
 
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/dietlibc-0.34/arm/softfpu)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/dietlibc-0.34/softfpu)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/dietlibc-0.34/)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/dietlibc-0.34/arm/)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/dietlibc-0.34/include)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/src/dietlibc-0.34/arm/softfpu)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/src/dietlibc-0.34/softfpu)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/src/dietlibc-0.34/)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/src/dietlibc-0.34/arm/)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/src/dietlibc-0.34/include)
 
 add_subdirectory(src)
 

@@ -1,0 +1,8 @@
+mainmenu "MKRTOS Project Configuration"
+
+config RTT_DIR
+    string
+    default "./"
+
+source "mkrtos_user/Kconfig"
+

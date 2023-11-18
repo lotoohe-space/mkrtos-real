@@ -44,16 +44,21 @@ int main(int argc, char *args[])
     env.ns_hd = ipc_hd;
     namespace_init(ipc_hd);
     u_sleep_init();
-    ret = app_load("mr_drv", &env);
+    // ret = app_load("mr_drv", &env);
+    // if (ret < 0)
+    // {
+    //     printf("%s load fail, 0x%x\n", "mr_drv", ret);
+    // }
+    ret = app_load("rtthread_drv", &env);
     if (ret < 0)
     {
         printf("%s load fail, 0x%x\n", "mr_drv", ret);
     }
-    ret = app_load("hello", &env);
-    if (ret < 0)
-    {
-        printf("%s load fail, 0x%x\n", "hello", ret);
-    }
+    // ret = app_load("hello", &env);
+    // if (ret < 0)
+    // {
+    //     printf("%s load fail, 0x%x\n", "hello", ret);
+    // }
     // ret = app_load("app", &env);
     // if (ret < 0)
     // {

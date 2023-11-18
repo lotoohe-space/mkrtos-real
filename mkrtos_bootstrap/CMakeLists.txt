@@ -23,7 +23,7 @@ add_executable(bootstrap.elf
 )
 
 set_target_properties(bootstrap.elf PROPERTIES LINK_FLAGS 
-"-T ${CMAKE_CURRENT_SOURCE_DIR}/stm32f205rft6_link.lds --gc-section ")
+"-T ${CMAKE_CURRENT_LIST_DIR}/stm32f205rft6_link.lds --gc-section ")
 
 if (${BOARD_NAME} STREQUAL "STM32F1x")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F10X_XL ")

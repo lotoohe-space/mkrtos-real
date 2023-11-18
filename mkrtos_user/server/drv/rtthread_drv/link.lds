@@ -14,6 +14,8 @@ SECTIONS
         KEEP(*(SORT(.auto_init*)))
         _mr_auto_init_end = .;
 
+
+
         KEEP(*(.init))
         KEEP(*(.fini))
 
@@ -40,6 +42,13 @@ SECTIONS
         __rel_start__ = .;
         *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)
         __rel_end__ = .;
+
+        /* section information for initial. */
+        . = ALIGN(4);
+        __rt_init_start = .;
+        KEEP(*(SORT(.rti_fn*)))
+        __rt_init_end = .;
+        . = ALIGN(4);
     }
     .ARM.exidx : {
         . = ALIGN(4);
@@ -119,6 +128,7 @@ SECTIONS
         /* This is used by the startup in order to initialize the .bss secion */
         . = ALIGN(4);
         __bss_end__ = .;
+        __bss_end = .;
     }
     _end = .;
 }

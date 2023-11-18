@@ -9,5 +9,5 @@ add_library(dietlibc_libstdio OBJECT ${deps})
 target_include_directories(
     dietlibc_libstdio
     PUBLIC
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/)
+    include_directories(${CMAKE_CURRENT_LIST_DIR}/)
 )

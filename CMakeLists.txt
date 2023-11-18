@@ -3,6 +3,8 @@ set(CMAKE_C_COMPILER_WORKS TRUE)
 set(CMAKE_CXX_COMPILER_WORKS TRUE)
 SET(CMAKE_SYSTEM_NAME Linux) 
 set(CMAKE_SYSTEM_PROCESSOR arm)
+
+include(kconfig.cmake)
 include(setting.cmake)
 enable_language(ASM C CXX)
 project(mkrtos)

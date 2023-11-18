@@ -11,7 +11,7 @@ target_include_directories(
     dietlibc_arm
     PUBLIC
 
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/)
-    # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-    # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/softfpu)
+    include_directories(${CMAKE_CURRENT_LIST_DIR}/)
+    # include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
+    # include_directories(${CMAKE_CURRENT_LIST_DIR}/softfpu)
 )

@@ -83,7 +83,15 @@ void timeout_times_tick(void)
 
         slist_foreach(item, &ipc->wait_send, node) //!< 第二次循环等待irq里面的等待者
         {
-            if (item->sleep_times != 0 && (--item->sleep_times) == 0)
+            if (item->sleep_times > 0)
+            {
+                if ((--item->sleep_times) == 0)
+                {
+                    //!< 超时时间满后直接唤醒等待者
+                    thread_ready(item->th, TRUE);
+                }
+            }
+            else
             {
                 //!< 超时时间满后直接唤醒等待者
                 thread_ready(item->th, TRUE);

@@ -33,8 +33,8 @@
 int main(int argc, char *args[])
 {
     printf("argc:%d args[0]:%s\n", argc, args[0]);
-    u_sleep_ms(100);
     drv_init();
+    u_sleep_ms(100);
     ulog_write_str(u_get_global_env()->log_hd, "app start..\n");
     // relay_test();
 

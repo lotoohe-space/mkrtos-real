@@ -388,11 +388,13 @@ rt_err_t rt_mutex_control(rt_mutex_t mutex, int cmd, void *arg);
 
 rt_inline rt_thread_t rt_mutex_get_owner(rt_mutex_t mutex)
 {
-    return mutex->owner;
+    // return mutex->owner;
+    return NULL;//TODO:
 }
 rt_inline rt_ubase_t rt_mutex_get_hold(rt_mutex_t mutex)
 {
-    return mutex->hold;
+    // return mutex->hold;
+    return 0;//TODO:
 }
 
 #endif /* RT_USING_MUTEX */
