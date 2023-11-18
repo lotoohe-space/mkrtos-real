@@ -1,0 +1,8 @@
+menu "Libc backend"
+
+config MKRTOS_LIBC_FD_MAP_NR
+    int "fd map layer size"
+    default 32
+    help
+        Set the number of mapping layers, the larger the number of FD available to the user.
+endmenu

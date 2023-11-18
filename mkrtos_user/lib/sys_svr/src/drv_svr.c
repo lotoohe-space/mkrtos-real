@@ -32,7 +32,7 @@ RPC_GENERATION_DISPATCH1(drv_t, DRV_CLOSE, close,
 RPC_GENERATION_OP3(drv_t, DRV_READ, read,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
                    rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data,
-                   rpc_uint32_t_t, rpc_uint32_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
+                   rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
 {
     return dev_read(desc->data, data->data, size->data);
 }
@@ -40,13 +40,13 @@ RPC_GENERATION_OP3(drv_t, DRV_READ, read,
 RPC_GENERATION_DISPATCH3(drv_t, DRV_READ, read,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
                          rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data,
-                         rpc_uint32_t_t, rpc_uint32_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
+                         rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
 
 /*ssize_t mr_dev_write(int desc, const void *buf, size_t size);*/
 RPC_GENERATION_OP3(drv_t, DRV_WRITE, write,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
                    rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data,
-                   rpc_uint32_t_t, rpc_uint32_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
+                   rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
 {
     return dev_write(desc->data, data->data, size->data);
 }
@@ -54,21 +54,21 @@ RPC_GENERATION_OP3(drv_t, DRV_WRITE, write,
 RPC_GENERATION_DISPATCH3(drv_t, DRV_WRITE, write,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
                          rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data,
-                         rpc_uint32_t_t, rpc_uint32_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
+                         rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
 
 /*int mr_dev_ioctl(int desc, int cmd, void *args);*/
 RPC_GENERATION_OP3(drv_t, DRV_IOCTL, ioctl,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
-                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data,
-                   rpc_uint32_t_t, rpc_uint32_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
+                   rpc_mword_t_t, rpc_mword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, data,
+                   rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
 {
-    return dev_ioctl(desc->data, data->data, size->data);
+    return dev_ioctl(desc->data, (int)(data->data), (void *)(size->data));
 }
 
 RPC_GENERATION_DISPATCH3(drv_t, DRV_IOCTL, ioctl,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
-                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data,
-                         rpc_uint32_t_t, rpc_uint32_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
+                         rpc_mword_t_t, rpc_mword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, data,
+                         rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
 
 /*dispatch*/
 RPC_DISPATCH5(drv_t, typeof(DRV_OPEN), DRV_OPEN, open, DRV_CLOSE, close, DRV_READ, read, DRV_WRITE, write, DRV_IOCTL, ioctl)

@@ -3,7 +3,9 @@
 #include "u_types.h"
 #include "u_prot.h"
 #include "u_ipc.h"
-typedef msg_tag_t (*rpc_dispatch_func)(void *obj, msg_tag_t tag, ipc_msg_t *msg);
+
+struct rpc_svr_obj;
+typedef msg_tag_t (*rpc_dispatch_func)(struct rpc_svr_obj *obj, msg_tag_t tag, ipc_msg_t *msg);
 
 typedef struct rpc_svr_obj
 {

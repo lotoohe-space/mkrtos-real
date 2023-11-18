@@ -241,7 +241,9 @@
         "uart_config.h": "c",
         "drv_crypto.h": "c",
         "drv_log.h": "c",
-        "drv_usart.h": "c"
+        "drv_usart.h": "c",
+        "__locale": "c",
+        "__string": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

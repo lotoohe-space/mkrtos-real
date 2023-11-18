@@ -1,6 +1,7 @@
 
 #include "fs_backend.h"
 #include "syscall_backend.h"
+#include "fs_cli.h"
 #include <stdarg.h>
 #include <errno.h>
 #include <u_prot.h>

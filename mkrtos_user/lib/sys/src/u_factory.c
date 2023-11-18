@@ -1,6 +1,7 @@
 #include "u_types.h"
 #include "u_prot.h"
 #include "u_factory.h"
+#include "u_arch.h"
 
 enum
 {
@@ -10,7 +11,7 @@ msg_tag_t factory_create_irq_sender(obj_handler_t obj, vpage_t vpage)
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(FACTORY_CREATE_KOBJ, FACTORY_PROT, obj),
+    mk_syscall(syscall_prot_create(FACTORY_CREATE_KOBJ, FACTORY_PROT, obj).raw,
             0,
             IRQ_PROT,
             vpage.raw,
@@ -25,7 +26,7 @@ msg_tag_t factory_create_thread(obj_handler_t obj, vpage_t vpage)
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(FACTORY_CREATE_KOBJ, FACTORY_PROT, obj),
+    mk_syscall(syscall_prot_create(FACTORY_CREATE_KOBJ, FACTORY_PROT, obj).raw,
             0,
             THREAD_PROT,
             vpage.raw,
@@ -40,7 +41,7 @@ msg_tag_t factory_create_task(obj_handler_t obj, vpage_t vpage)
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(FACTORY_CREATE_KOBJ, FACTORY_PROT, obj),
+    mk_syscall(syscall_prot_create(FACTORY_CREATE_KOBJ, FACTORY_PROT, obj).raw,
             0,
             TASK_PROT,
             vpage.raw,
@@ -55,7 +56,7 @@ msg_tag_t factory_create_ipc(obj_handler_t obj, vpage_t vpage)
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(FACTORY_CREATE_KOBJ, FACTORY_PROT, obj),
+    mk_syscall(syscall_prot_create(FACTORY_CREATE_KOBJ, FACTORY_PROT, obj).raw,
             0,
             IPC_PROT,
             vpage.raw,

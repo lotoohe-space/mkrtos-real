@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_STDPERIPH_DRIVER=1 -DSTM32F10X_XL \
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -w -DUSE_STDPERIPH_DRIVER=1 -DSTM32F10X_XL \
 -fPIC -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
  -D__dietlibc__ -D__arm__ -D__WORDSIZE=32 -D__ARM_ARCH_7M__ \
 " )

@@ -5,6 +5,7 @@
 #include "u_env.h"
 #include "u_prot.h"
 #include "u_hd_man.h"
+#include <ns_cli.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -17,15 +18,15 @@ RPC_GENERATION_CALL1(drv_t, DRV_CLOSE, close,
 RPC_GENERATION_CALL3(drv_t, DRV_READ, read,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data,
-                     rpc_uint32_t_t, rpc_uint32_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
+                     rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
 RPC_GENERATION_CALL3(drv_t, DRV_WRITE, write,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data,
-                     rpc_uint32_t_t, rpc_uint32_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
+                     rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
 RPC_GENERATION_CALL3(drv_t, DRV_IOCTL, ioctl,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
-                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data,
-                     rpc_uint32_t_t, rpc_uint32_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
+                     rpc_mword_t_t, rpc_mword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, data,
+                     rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
 
 int dev_fs_open(const char *path, uint32_t oflags)
 {
@@ -38,7 +39,7 @@ int dev_fs_open(const char *path, uint32_t oflags)
     }
 
     rpc_ref_array_uint32_t_uint8_t_32_t rpc_path = {
-        .data = &path[ret],
+        .data = (uint8_t *)(&path[ret]),
         .len = strlen(&path[ret]) + 1,
     };
     rpc_uint32_t_t rpc_flags = {
@@ -102,7 +103,7 @@ int dev_fs_write(int desc, const void *buf, size_t size)
         .data = fd,
     };
     rpc_ref_array_uint32_t_uint8_t_32_t rpc_data = {
-        .data = buf,
+        .data = (uint8_t *)buf,
         .len = size,
     };
     rpc_size_t_t rpc_flags = {
@@ -123,8 +124,8 @@ int dev_fs_ioctl(int desc, int cmd, void *args)
     rpc_int_t rpc_desc = {
         .data = fd,
     };
-    rpc_int_t rpc_cmd = {
-        .data = fd,
+    rpc_mword_t_t rpc_cmd = {
+        .data = cmd,
     };
     rpc_umword_t_t rpc_args = {
         .data = (umword_t)args,

@@ -14,6 +14,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/libc_backend/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
@@ -28,6 +29,7 @@ target_link_libraries(
     PUBLIC
     muslc
     sys
+    sys_svr
 )
 set_target_properties(libc_be PROPERTIES LINK_FLAGS "-pie ")
 

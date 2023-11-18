@@ -20,3 +20,5 @@ static inline uint16_t swap_u16(uint16_t data)
 {
     return ((data >> 8) & 0xff) | ((data & 0xff) << 8);
 }
+
+int mk_syscall(unsigned long nr, ...);

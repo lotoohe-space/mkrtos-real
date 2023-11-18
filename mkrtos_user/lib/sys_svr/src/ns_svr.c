@@ -3,6 +3,7 @@
 #include "ns_types.h"
 #include "u_rpc.h"
 #include "u_rpc_svr.h"
+#include "u_arch.h"
 #include "u_hd_man.h"
 #include <stdio.h>
 

@@ -1,5 +1,6 @@
 #include "u_types.h"
 #include "u_prot.h"
+#include "u_arch.h"
 #include "u_task.h"
 enum task_op_code
 {
@@ -12,7 +13,7 @@ msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx)
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(TASK_OBJ_MAP, TASK_PROT, dst_task),
+    mk_syscall(syscall_prot_create(TASK_OBJ_MAP, TASK_PROT, dst_task).raw,
             0,
             obj_inx,
             0,
@@ -32,7 +33,7 @@ msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t 
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(TASK_OBJ_MAP, TASK_PROT, dst_task),
+    mk_syscall(syscall_prot_create(TASK_OBJ_MAP, TASK_PROT, dst_task).raw,
             0,
             src_obj,
             dst_obj,
@@ -52,7 +53,7 @@ msg_tag_t task_unmap(obj_handler_t task_han, vpage_t vpage)
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(TASK_OBJ_UNMAP, TASK_PROT, task_han),
+    mk_syscall(syscall_prot_create(TASK_OBJ_UNMAP, TASK_PROT, task_han).raw,
             0,
             vpage.raw,
             0,
@@ -68,7 +69,7 @@ msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *all
     register volatile umword_t r0 asm("r0");
     register volatile umword_t r1 asm("r1");
 
-    mk_syscall(syscall_prot_create(TASK_ALLOC_RAM_BASE, TASK_PROT, task_han),
+    mk_syscall(syscall_prot_create(TASK_ALLOC_RAM_BASE, TASK_PROT, task_han).raw,
             0,
             size,
             0,

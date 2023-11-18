@@ -81,7 +81,7 @@ int ns_register(const char *path, obj_handler_t svr_hd)
     assert(path);
 
     rpc_ref_array_uint32_t_uint8_t_32_t rpc_path = {
-        .data = path,
+        .data = (uint8_t *)path,
         .len = strlen(path) + 1,
     };
     rpc_obj_handler_t_t rpc_svr_hd = {
@@ -115,7 +115,7 @@ int ns_query(const char *path, obj_handler_t *svr_hd)
     }
 
     rpc_ref_array_uint32_t_uint8_t_32_t rpc_path = {
-        .data = path,
+        .data = (uint8_t *)path,
         .len = strlen(path) + 1,
     };
     rpc_obj_handler_t_t rpc_svr_hd = {

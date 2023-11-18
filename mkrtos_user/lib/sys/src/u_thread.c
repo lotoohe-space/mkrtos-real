@@ -15,7 +15,7 @@ msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg)
     register volatile umword_t r1 asm("r1");
     register volatile umword_t r2 asm("r2");
 
-    mk_syscall(syscall_prot_create(MSG_BUG_SET, THREAD_PROT, obj),
+    mk_syscall(syscall_prot_create(MSG_BUG_SET, THREAD_PROT, obj).raw,
             0,
             msg,
             0,
@@ -34,7 +34,7 @@ msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len)
     register volatile umword_t r1 asm("r1");
     register volatile umword_t r2 asm("r2");
 
-    mk_syscall(syscall_prot_create4(MSG_BUG_GET, THREAD_PROT, obj, TRUE),
+    mk_syscall(syscall_prot_create4(MSG_BUG_GET, THREAD_PROT, obj, TRUE).raw,
             0,
             0,
             0,
@@ -60,7 +60,7 @@ msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(SET_EXEC_REGS, THREAD_PROT, obj),
+    mk_syscall(syscall_prot_create(SET_EXEC_REGS, THREAD_PROT, obj).raw,
             0,
             pc,
             sp,
@@ -79,7 +79,7 @@ msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(RUN_THREAD, THREAD_PROT, obj),
+    mk_syscall(syscall_prot_create(RUN_THREAD, THREAD_PROT, obj).raw,
             0,
             prio,
             0,
@@ -94,7 +94,7 @@ msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj)
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(BIND_TASK, THREAD_PROT, obj),
+    mk_syscall(syscall_prot_create(BIND_TASK, THREAD_PROT, obj).raw,
             0,
             tk_obj,
             0,

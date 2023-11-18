@@ -1,6 +1,7 @@
 #include "u_mm.h"
 #include "u_types.h"
 #include "u_prot.h"
+#include "u_arch.h"
 
 enum mm_op
 {
@@ -16,7 +17,7 @@ void *mm_alloc_page(obj_handler_t obj_inx, umword_t pnf_nr, uint8_t attrs)
     register volatile umword_t r1 asm("r1");
     register volatile umword_t r2 asm("r2");
     register volatile umword_t r3 asm("r3");
-    mk_syscall(syscall_prot_create(MM_ALLOC, MM_PROT, obj_inx),
+    mk_syscall(syscall_prot_create(MM_ALLOC, MM_PROT, obj_inx).raw,
             0,
             pnf_nr,
             attrs,
@@ -40,7 +41,7 @@ void *mm_alloc_page(obj_handler_t obj_inx, umword_t pnf_nr, uint8_t attrs)
 }
 void mm_free_page(obj_handler_t obj_inx, void *addr, umword_t pfn_nr)
 {
-    mk_syscall(syscall_prot_create(MM_FREE, MM_PROT, obj_inx),
+    mk_syscall(syscall_prot_create(MM_FREE, MM_PROT, obj_inx).raw,
             0,
             addr,
             pfn_nr,
@@ -52,7 +53,7 @@ msg_tag_t mm_align_alloc(obj_handler_t obj_inx, void *addr, umword_t size)
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(MM_ALIGN_ALLOC, MM_PROT, obj_inx),
+    mk_syscall(syscall_prot_create(MM_ALIGN_ALLOC, MM_PROT, obj_inx).raw,
             0,
             addr,
             size,

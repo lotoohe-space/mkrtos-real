@@ -3,6 +3,7 @@
 #include "u_log.h"
 #include "u_prot.h"
 #include "u_types.h"
+#include "u_arch.h"
 #include "u_util.h"
 #include <string.h>
 enum log_op
@@ -19,7 +20,7 @@ static msg_tag_t ulog_read_bytes_raw(obj_handler_t obj_inx, umword_t data[5], in
     register volatile umword_t r3 asm("r3");
     register volatile umword_t r4 asm("r4");
     register volatile umword_t r5 asm("r5");
-    mk_syscall(syscall_prot_create(READ_DATA, LOG_PROT, obj_inx),
+    mk_syscall(syscall_prot_create(READ_DATA, LOG_PROT, obj_inx).raw,
             msg_tag_init4(0, 0, 0, 0).raw,
             len,
             0,
@@ -71,7 +72,7 @@ void ulog_write_bytes(obj_handler_t obj_inx, const uint8_t *data, umword_t len)
         if (i > 0)
         {
             umword_t *write_word_buf = (umword_t *)write_buf;
-            mk_syscall(syscall_prot_create(WRITE_DATA, LOG_PROT, obj_inx),
+            mk_syscall(syscall_prot_create(WRITE_DATA, LOG_PROT, obj_inx).raw,
                     msg_tag_init4(0, ROUND_UP(i, WORD_BYTES), 0, 0).raw,
                     write_word_buf[0],
                     write_word_buf[1],
