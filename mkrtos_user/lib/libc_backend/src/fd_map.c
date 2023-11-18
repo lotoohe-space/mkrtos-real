@@ -4,12 +4,8 @@
 #include <malloc.h>
 #include <errno.h>
 #include <pthread.h>
-typedef struct fd_map_entry
-{
-    uint16_t svr_fd;
-    uint16_t priv_fd;
-    uint8_t flags;
-} fd_map_entry_t;
+#include <fd_map.h>
+#include <string.h>
 
 #define FD_MAP_ROW_CN 16
 #define FD_MAP_ROW_NR 16
@@ -30,7 +26,7 @@ typedef struct fd_map
 
 static fd_map_t fd_map;
 
-int fd_map_alloc(uint16_t svr_fd, uint16_t priv_fd)
+int fd_map_alloc(uint16_t svr_fd, uint16_t priv_fd, enum fd_type type)
 {
     int alloc_fd = 0;
 
@@ -71,16 +67,31 @@ next:;
             pthread_spin_unlock(&fd_map.lock);
             return -EAGAIN;
         }
+        memset(fd_map.row[row_inx], 0, sizeof(fd_map_row_t));
     }
     assert(fd_map.row[row_inx]->entry[inx].flags == 0);
     fd_map.row[row_inx]->entry[inx].flags = 1;
     fd_map.row[row_inx]->entry[inx].svr_fd = svr_fd;
     fd_map.row[row_inx]->entry[inx].priv_fd = priv_fd;
+    fd_map.row[row_inx]->entry[inx].type = type;
+    fd_map.free_fd++;
     pthread_spin_unlock(&fd_map.lock);
 
     return alloc_fd;
 }
+int fd_map_get(int fd, fd_map_entry_t *new_entry)
+{
+    assert(new_entry);
+    if (fd >= FD_MAP_TOTAL)
+    {
+        return -1;
+    }
+    int row_inx = fd / FD_MAP_ROW_CN;
+    int inx = fd % FD_MAP_ROW_CN;
 
+    *new_entry = fd_map.row[row_inx]->entry[inx];
+    return 0;
+}
 int fd_map_update(int fd, fd_map_entry_t *new_entry)
 {
     if (fd >= FD_MAP_TOTAL)
@@ -115,6 +126,10 @@ int fd_map_free(int fd, fd_map_entry_t *ret_entry)
             *ret_entry = fd_map.row[row_inx]->entry[inx];
         }
         fd_map.row[row_inx]->entry[inx].flags = 0;
+        if (fd_map.free_fd > fd)
+        {
+            fd_map.free_fd = fd;
+        }
         pthread_spin_unlock(&fd_map.lock);
     }
     else

@@ -4,6 +4,8 @@
 #include "u_ipc.h"
 #include "u_task.h"
 #include "u_env.h"
+#include "u_log.h"
+#include "u_thread.h"
 #include <pthread_impl.h>
 
 long be_set_tid_address(int *val)
@@ -12,7 +14,7 @@ long be_set_tid_address(int *val)
 
     if (pt)
     {
-        pt->ctid = val;
+        pt->ctid = (unsigned long)val;
     }
     return THREAD_MAIN;
 }

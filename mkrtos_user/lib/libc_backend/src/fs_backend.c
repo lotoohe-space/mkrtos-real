@@ -8,31 +8,100 @@
 #include <u_log.h>
 #include <u_env.h>
 #include <sys/uio.h>
+#include <assert.h>
+#include "fd_map.h"
+
+void fs_backend_init(void)
+{
+    assert(fd_map_alloc(0, 0, FD_TTY) >= 0);
+    assert(fd_map_alloc(0, 1, FD_TTY) >= 0);
+    assert(fd_map_alloc(0, 2, FD_TTY) >= 0);
+}
+
 long be_read(long fd, char *buf, long size)
 {
+    fd_map_entry_t u_fd;
+    int ret = fd_map_get(fd, &u_fd);
+
+    if (ret < 0)
+    {
+        return -EBADF;
+    }
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {
+        /*TODO:*/
+    }
+    break;
+    case FD_FS:
+    {
+        return fs_read(fd, buf, size);
+    }
+    break;
+    default:
+        return -ENOSYS;
+    }
+
     return -ENOSYS;
 }
 long be_write(long fd, char *buf, long size)
 {
-    switch (fd)
+    fd_map_entry_t u_fd;
+    int ret = fd_map_get(fd, &u_fd);
+
+    if (ret < 0)
     {
-    case 0:
-    case 1:
-    case 2:
+        return -EBADF;
+    }
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {
         ulog_write_bytes(u_get_global_env()->log_hd, buf, size);
         return size;
+    }
+    break;
+    case FD_FS:
+    {
+        return fs_write(fd, buf, size);
+    }
+    break;
     default:
         return -ENOSYS;
     }
-    return 0;
+    return -ENOSYS;
 }
 long be_writev(long fd, const struct iovec *iov, long iovcnt)
 {
     long wlen = 0;
     for (int i = 0; i < iovcnt; i++)
     {
-        ulog_write_bytes(u_get_global_env()->log_hd, iov[i].iov_base, iov[i].iov_len);
-        wlen += iov[i].iov_len;
+        fd_map_entry_t u_fd;
+        int ret = fd_map_get(fd, &u_fd);
+
+        if (ret < 0)
+        {
+            return -EBADF;
+        }
+        switch (u_fd.type)
+        {
+        case FD_TTY:
+        {
+            ulog_write_bytes(u_get_global_env()->log_hd, iov[i].iov_base, iov[i].iov_len);
+            wlen += iov[i].iov_len;
+        }
+        break;
+        case FD_FS:
+        {
+            int wsize = fs_write(fd, iov[i].iov_base, iov[i].iov_len);
+
+            wlen += wsize;
+        }
+        break;
+        default:
+            return -ENOSYS;
+        }
     }
     return wlen;
 }

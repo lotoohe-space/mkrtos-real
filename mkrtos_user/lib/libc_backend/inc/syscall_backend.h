@@ -38,6 +38,8 @@
 
 long syscall_backend(long sys_inx, ...);
 
+void fs_backend_init(void);
+
 long be_read(long fd, char *buf, long size);
 long be_write(long fd, char *buf, long size);
 long be_writev(long fd, const struct iovec *iov, long iovcnt);

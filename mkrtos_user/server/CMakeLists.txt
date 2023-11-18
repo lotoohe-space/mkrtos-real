@@ -8,6 +8,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 ")
 set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
 
+include_directories(
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/libc_backend/inc
+)
 
 add_subdirectory(init)
 # add_subdirectory(shell)

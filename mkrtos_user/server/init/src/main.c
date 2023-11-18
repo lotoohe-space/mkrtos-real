@@ -15,11 +15,13 @@
 #include "u_rpc_svr.h"
 #include "namespace.h"
 #include "ns_svr.h"
+#include "syscall_backend.h"
 #include <assert.h>
 #include <stdio.h>
 extern void futex_init(void);
 int main(int argc, char *args[])
 {
+    fs_backend_init();
     // futex_init();
     ulog_write_str(LOG_PROT, "init..\n");
 #if 0

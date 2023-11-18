@@ -5,6 +5,7 @@
 #include "u_mm.h"
 #include "u_app.h"
 #include "u_log.h"
+#include "u_arch.h"
 #include <pthread_impl.h>
 #include <assert.h>
 static pthread_spinlock_t lock;
@@ -16,8 +17,8 @@ static void *mm_page_alloc(int page_nr)
     mword_t find_inx = -1;
     app_info_t *info = app_info_get(app_start_addr);
     assert(info);
-    void *heap_addr = RAM_BASE() + info->i.heap_offset - info->i.data_offset;
-    size_t max_page_nr = (info->i.heap_size) / PAGE_SIZE;
+    void *heap_addr = (void *)((umword_t)RAM_BASE() + info->i.heap_offset - info->i.data_offset);
+    size_t max_page_nr = (info->i.heap_size) / MK_PAGE_SIZE;
     if (max_page_nr > sizeof(mm_bitemp) * WORD_BITS)
     {
         ulog_write_str(LOG_PROT, "mm bitmap is to small.\n");
@@ -38,7 +39,7 @@ static void *mm_page_alloc(int page_nr)
                         find_inx = i * WORD_BITS + j;
                     }
                     cnt++;
-                    if (find_inx + cnt >= max_page_nr)
+                    if (find_inx + cnt > max_page_nr)
                     {
                         pthread_spin_unlock(&lock);
                         return NULL;
@@ -72,7 +73,7 @@ static void mm_page_free(int st, int nr)
 {
     app_info_t *info = app_info_get(app_start_addr);
     assert(info);
-    void *heap_addr = RAM_BASE() + info->i.heap_offset - info->i.data_offset;
+    void *heap_addr = (void *)((umword_t)RAM_BASE() + info->i.heap_offset - info->i.data_offset);
     size_t max_page_nr = (info->i.heap_size) / PAGE_SIZE;
 
     pthread_spin_lock(&lock);
@@ -127,7 +128,7 @@ umword_t be_munmap(void *start, size_t len)
 {
     app_info_t *info = app_info_get(app_start_addr);
     assert(info);
-    void *heap_addr = RAM_BASE() + info->i.heap_offset - info->i.data_offset;
+    void *heap_addr = (void *)((umword_t)RAM_BASE() + info->i.heap_offset - info->i.data_offset);
 
     len = ALIGN(len, PAGE_SIZE);
     // printf("munmap 0x%x, 0x%x.\n", start, len);

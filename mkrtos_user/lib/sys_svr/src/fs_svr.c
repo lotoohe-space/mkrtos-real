@@ -109,7 +109,7 @@ RPC_GENERATION_OP2(fs_t, FS_READDIR, readdir,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                    rpc_dirent_t_t, rpc_dirent_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, dir)
 {
-    return fs_svr_readdir(fd, &dir->data);
+    return fs_svr_readdir(fd->data, &dir->data);
 }
 
 RPC_GENERATION_DISPATCH2(fs_t, FS_READDIR, readdir,

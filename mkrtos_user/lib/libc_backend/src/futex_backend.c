@@ -80,7 +80,7 @@ static futex_lock_t *futex_set_addr(futex_t *ft, void *uaddr, obj_handler_t hd)
         if (ft->fl_list[i].uaddr == uaddr)
         {
             // ft->fl_list[i].uaddr = uaddr;
-            if (!futex_find_thread(&ft->fl_list[i], hd))
+            if (!futex_find_thread(&ft->fl_list[i].fqt, hd))
             {
                 fq_enqueue(&ft->fl_list[i].fqt, hd);
             }

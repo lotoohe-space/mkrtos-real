@@ -3,12 +3,15 @@
 #include <board.h>
 #include <u_drv.h>
 #include <stdio.h>
+#include <syscall_backend.h>
+
 /* defined the LED0 pin: PC0 */
 #define LED0_PIN GET_PIN(C, 0)
 extern void rt_hw_board_init(void);
 extern int dfs_init(void);
 int main(void)
 {
+    fs_backend_init();
     printf("test\n");
     u_drv_init();
     /* init board */

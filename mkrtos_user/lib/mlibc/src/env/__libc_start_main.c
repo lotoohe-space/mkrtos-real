@@ -120,6 +120,8 @@ int __libc_start_main_init(int (*main)(int, char **, char **), int argc, char **
 	extern void u_env_default_init(void);
 	u_env_default_init();
 
+	libc.page_size = 512;
+
 	/* Barrier against hoisting application code or anything using ssp
 	 * or thread pointer prior to its initialization above. */
 	lsm2_fn *stage2 = libc_start_main_stage2;

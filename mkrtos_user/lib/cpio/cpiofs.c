@@ -57,7 +57,7 @@ umword_t cpio_find_file(umword_t st, umword_t en, const char *name)
     {
         file_info = (cpio_fs_t *)i;
 
-        if (check_magic(file_info) < 0)
+        if (check_magic((char *)file_info) < 0)
         {
             return 0;
         }

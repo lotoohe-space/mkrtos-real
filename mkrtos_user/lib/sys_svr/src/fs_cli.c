@@ -42,7 +42,7 @@ sd_t fs_open(const char *path, int flags, int mode)
     }
 
     rpc_ref_array_uint32_t_uint8_t_32_t rpc_path = {
-        .data = &path[ret],
+        .data = (uint8_t *)(&path[ret]),
         .len = strlen(&path[ret]) + 1,
     };
     rpc_int_t rpc_flags = {
