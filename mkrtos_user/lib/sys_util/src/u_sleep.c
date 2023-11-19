@@ -24,5 +24,5 @@ void u_sleep_init(void)
 
 void u_sleep_ms(size_t ms)
 {
-    ipc_call(hd, msg_tag_init4(0, 0, 0, 0), ipc_timeout_create2(ms / (1000 / SYS_SCHE_HZ), 0));
+    ipc_send(hd, msg_tag_init4(0, 0, 0, 0), ipc_timeout_create2(ms / (1000 / SYS_SCHE_HZ), 0));
 }

@@ -21,8 +21,6 @@
 extern void futex_init(void);
 int main(int argc, char *args[])
 {
-    fs_backend_init();
-    // futex_init();
     ulog_write_str(LOG_PROT, "init..\n");
 #if 0
     ulog_test();
@@ -35,9 +33,9 @@ int main(int argc, char *args[])
     mm_test();
     app_test();
     mpu_test();
-    ipc_test();
     thread_press_test();
     kobj_create_press_test();
+    ipc_test();
 #endif
     uenv_t env = *u_get_global_env();
     obj_handler_t ipc_hd;

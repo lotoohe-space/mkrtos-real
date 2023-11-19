@@ -54,6 +54,7 @@ enum ipc_op
     IPC_REPLY,  //!< 服务端回复信息
     IPC_BIND,   //!< 绑定服务端线程
     IPC_UNBIND, //!< 解除绑定
+    IPC_SEND,   //!<
 };
 static int wake_up_th(ipc_t *ipc);
 static slist_head_t wait_list;
@@ -94,7 +95,10 @@ void timeout_times_tick(void)
             else
             {
                 //!< 超时时间满后直接唤醒等待者
-                thread_ready(item->th, TRUE);
+                if (item->th->status == THREAD_SUSPEND)
+                {
+                    thread_ready(item->th, TRUE);
+                }
             }
         }
         spinlock_set(&ipc->lock, status);
@@ -150,11 +154,9 @@ static void ipc_wait_item_init(ipc_wait_item_t *item, ipc_t *ipc, thread_t *th, 
  * @param head
  * @param th
  * @param times 超时时间，为0代表一直超时
- * @param lock
- * @param status
  * @return int
  */
-static int add_wait_unlock(ipc_t *ipc, slist_head_t *head, thread_t *th, umword_t times, spinlock_t *lock, int status)
+static int add_wait_unlock(ipc_t *ipc, slist_head_t *head, thread_t *th, umword_t times, bool_t set_last_th)
 {
     int ret = 0;
     ipc_wait_item_t item;
@@ -169,8 +171,9 @@ static int add_wait_unlock(ipc_t *ipc, slist_head_t *head, thread_t *th, umword_
     }
     slist_add_append(head, &item.node);
     thread_suspend(th);
-    spinlock_set(lock, status);
+    preemption();
     slist_del(&item.node);
+    // spinlock_set(lock, status);
     if (times)
     {
         if (slist_is_empty(head))
@@ -204,7 +207,10 @@ static int wake_up_th(ipc_t *ipc)
     }
     else
     {
-        thread_ready(item->th, TRUE);
+        if (item->th->status == THREAD_SUSPEND)
+        {
+            thread_ready(item->th, TRUE);
+        }
     }
     return 0;
 }
@@ -275,14 +281,15 @@ static msg_tag_t ipc_call(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t 
     msg_tag_t tmp_tag;
 
     assert(th != ipc->svr_th);
-__check:
     status = spinlock_lock(&ipc->lock);
+__check:
     if (ipc->svr_th == NULL || ipc->svr_th->status != THREAD_SUSPEND)
     {
         ret = add_wait_unlock(ipc, &ipc->wait_send, th,
-                              timeout.send_timeout, &ipc->lock, status);
+                              timeout.send_timeout, FALSE);
         if (ret < 0)
         {
+            spinlock_set(&ipc->lock, status);
             return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, ret);
         }
         goto __check;
@@ -298,16 +305,51 @@ __check:
     ipc->svr_th->msg.tag = tag;
     thread_ready(ipc->svr_th, TRUE); //!< 直接唤醒接受者
     ipc->last_cli_th = th;           //!< 设置上一次发送的客户端
-    ret = add_wait_unlock(ipc, &ipc->recv_send, th, timeout.recv_timeout, &ipc->lock, status);
+    ret = add_wait_unlock(ipc, &ipc->recv_send, th, timeout.recv_timeout, TRUE);
     if (ret < 0)
     {
         // ref_counter_dec_and_release(&ipc->last_cli_th->ref, &ipc->last_cli_th->kobj);
         ipc->last_cli_th = NULL;
+        spinlock_set(&ipc->lock, status);
         return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, ret);
     }
-    // spinlock_set(&ipc->lock, status);
     tmp_tag = th->msg.tag;
+    // ipc->last_cli_th = NULL;
+    spinlock_set(&ipc->lock, status);
+    return tmp_tag;
+}
+static msg_tag_t ipc_send(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag, ipc_timeout_t timeout)
+{
+    umword_t status;
+    int ret = -1;
+    msg_tag_t tmp_tag;
+
+    assert(th != ipc->svr_th);
+    status = spinlock_lock(&ipc->lock);
+__check:
+    if (ipc->svr_th == NULL || ipc->svr_th->status != THREAD_SUSPEND)
+    {
+        ret = add_wait_unlock(ipc, &ipc->wait_send, th,
+                              timeout.send_timeout, FALSE);
+        if (ret < 0)
+        {
+            spinlock_set(&ipc->lock, status);
+            return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, ret);
+        }
+        goto __check;
+    }
+    //!< 发送数据给svr_th
+    ret = ipc_data_copy(ipc->svr_th, th, tag); //!< 拷贝数据
+    if (ret < 0)
+    {
+        //!< 拷贝失败
+        spinlock_set(&ipc->lock, status);
+        return msg_tag_init4(MSG_TAG_KNL_ERR, 0, 0, ret);
+    }
+    ipc->svr_th->msg.tag = tag;
+    thread_ready(ipc->svr_th, TRUE); //!< 直接唤醒接受者
     ipc->last_cli_th = NULL;
+    spinlock_set(&ipc->lock, status);
     return tmp_tag;
 }
 /**
@@ -327,6 +369,11 @@ static int ipc_reply(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag)
     }
     assert(th == ipc->svr_th); // 服务端才能回复
     status = spinlock_lock(&ipc->lock);
+    if (ipc->last_cli_th == NULL)
+    {
+        spinlock_set(&ipc->lock, status);
+        return -1;
+    }
     //!< 发送数据给svr_th
     int ret = ipc_data_copy(ipc->last_cli_th, th, tag); //!< 拷贝数据
 
@@ -420,6 +467,24 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         {
             ref_counter_inc(&th->ref);                                       //!< 引用计数+1
             tag = ipc_call(ipc, th, f, in_tag, ipc_timeout_create(f->r[1])); //!< ipc call
+            ref_counter_dec_and_release(&th->ref, &th->kobj);                //!< 引用计数-1
+            if (msg_tag_get_val(tag) == -ESHUTDOWN)
+            {
+                thread_dead(th);
+            }
+        }
+    }
+    break;
+    case IPC_SEND:
+    {
+        if (th == ipc->svr_th)
+        {
+            tag = msg_tag_init4(0, 0, 0, -EACCES);
+        }
+        else
+        {
+            ref_counter_inc(&th->ref);                                       //!< 引用计数+1
+            tag = ipc_send(ipc, th, f, in_tag, ipc_timeout_create(f->r[1])); //!< ipc call
             ref_counter_dec_and_release(&th->ref, &th->kobj);                //!< 引用计数-1
             if (msg_tag_get_val(tag) == -ESHUTDOWN)
             {
@@ -530,6 +595,7 @@ static void ipc_init(ipc_t *ipc, ram_limit_t *lim)
     kobject_init(&ipc->kobj, IPC_TYPE);
     slist_init(&ipc->wait_send);
     slist_init(&ipc->recv_send);
+    slist_init(&ipc->node);
     spinlock_init(&ipc->lock);
     ipc->lim = lim;
     ipc->svr_th = NULL;

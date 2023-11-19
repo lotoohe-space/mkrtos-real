@@ -33,13 +33,16 @@ static inline mword_t slist_is_empty(slist_head_t *list)
  */
 static inline bool_t slist_in_list(slist_head_t *item)
 {
-	if (slist_is_empty(item)) {
+	if (slist_is_empty(item))
+	{
 		return FALSE;
 	}
-	if (item->prev->next != item) {
+	if (item->prev->next != item)
+	{
 		return FALSE;
 	}
-	if (item->next->prev != item) {
+	if (item->next->prev != item)
+	{
 		return FALSE;
 	}
 	return TRUE;
@@ -59,9 +62,9 @@ static inline void slist_add(slist_head_t *head, slist_head_t *item)
 }
 static inline void slist_add_append(slist_head_t *head, slist_head_t *item)
 {
-    slist_head_t *tail = head->prev;
+	slist_head_t *tail = head->prev;
 
-    return slist_add(tail, item);
+	return slist_add(tail, item);
 }
 /**
  * @brief 获取第一个节点
@@ -93,5 +96,14 @@ static inline void slist_del(slist_head_t *item)
 /**
  * @brief 遍历每一个节点获得struct的入口
  */
-#define slist_foreach(pos, head, member) \
-	for (pos = slist_entry((head)->next, typeof(*pos), member); &(pos)->member != (head) && !slist_is_empty(head); pos = slist_entry((pos)->member.next, typeof(*pos), member))
+#define slist_foreach(pos, head, member)                        \
+	for (pos = slist_entry((head)->next, typeof(*pos), member); \
+		 &(pos)->member != (head) && !slist_is_empty(head);     \
+		 pos = slist_entry((pos)->member.next, typeof(*pos), member))
+
+#define slist_foreach_not_next(pos, head, member)               \
+	for (pos = slist_entry((head)->next, typeof(*pos), member); \
+		 &(pos)->member != (head) && !slist_is_empty(head);)
+
+#define slist_next_entry(pos, head, member) \
+	slist_entry((pos)->member.next, typeof(*pos), member)

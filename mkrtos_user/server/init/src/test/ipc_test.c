@@ -98,6 +98,7 @@ static void thread_test_func2(void)
         strcpy(buf, "I am th2.\n");
         ipc_call(ipc_hd, msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0), ipc_timeout_create2(0, 0));
         printf("th2:%s", buf);
+        // hard_sleep();
     }
     printf("thread_test_func2.\n");
     task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
@@ -108,12 +109,14 @@ static void thread_test_func3(void)
 {
     char *buf;
     umword_t len;
-    thread_msg_buf_get(th3_hd, (umword_t *)(&buf), NULL);
+    thread_msg_buf_get(th3_hd, (umword_t *)(&buf), &len);
+    memset(buf, 0, len);
     while (1)
     {
         strcpy(buf, "I am th3.\n");
         ipc_call(ipc_hd, msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0), ipc_timeout_create2(0, 0));
         printf("th3:%s", buf);
+        // hard_sleep();
     }
     printf("thread_test_func2.\n");
     task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th3_hd));

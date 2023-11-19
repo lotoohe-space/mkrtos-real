@@ -20,6 +20,7 @@
 #include <pthread.h>
 #include <futex.h>
 #include <assert.h>
+#include <limits.h>
 #define FT_NR 16
 
 static obj_handler_t hd_futex_ipc;
@@ -110,13 +111,65 @@ static futex_lock_t *futex_find(futex_t *ft, void *uaddr)
     }
     return NULL;
 }
-void futex_svr_thread(void)
+
+static void futex_svr_thread(void)
 {
+    ipc_msg_t *msg;
+    uint32_t *uaddr;
+    int futex_op;
+    uint32_t val;
+    const struct timespec *timeout; /*or val2*/
+    uint32_t uaddr2;
+    uint32_t val3;
+
     ulog_write_str(LOG_PROT, "futex running..\n");
+    thread_msg_buf_get(-1, (umword_t *)(&msg), NULL);
     while (1)
     {
         ipc_wait(hd_futex_ipc, 0);
         /*TODO:处理锁信息*/
+        uaddr = (uint32_t *)(msg->msg_buf[0]);
+        futex_op = msg->msg_buf[1];
+        val = msg->msg_buf[2];
+        timeout = (const struct timespec *)(msg->msg_buf[3]); /*or val2*/
+        uaddr2 = msg->msg_buf[4];
+        val3 = msg->msg_buf[5];
+
+        futex_op = futex_op & 0x7f;
+        switch (futex_op)
+        {
+        case FUTEX_REQUEUE:
+        {
+            if (val3 == *uaddr)
+            {
+                futex_lock_t *flt = futex_find(&ft, uaddr);
+                int rel_cnt = 0;
+                int wake_cnt = 0;
+
+                if (flt)
+                {
+                    wake_cnt = val = INT_MAX ? fq_queue_len(&flt->fqt) : val;
+
+                    for (int i = 0; i < wake_cnt; i++)
+                    {
+                        obj_handler_t hd;
+                        int ret = fq_dequeue(&flt->fqt, &hd);
+
+                        if (ret != 0)
+                        {
+                            continue;
+                        }
+                        if (fq_queue_len(&flt->fqt) == 0)
+                        {
+                            flt->uaddr = 0;
+                        }
+                        /*TODO: ipc_send()*/
+                    }
+                }
+            }
+        }
+        break;
+        }
 
         ipc_reply(hd_futex_ipc, msg_tag_init4(0, 0, 0, 0));
     }
@@ -135,7 +188,9 @@ int be_futex(uint32_t *uaddr, int futex_op, uint32_t val,
         total = timeout->tv_sec * 1000 + timeout->tv_nsec / 1000 / 1000;
     }
     umword_t st_val;
-    ipc_msg_t *msg = (ipc_msg_t *)futex_thread_msg_bug;
+    ipc_msg_t *msg;
+
+    thread_msg_buf_get(-1, (umword_t *)(&msg), NULL);
 
     msg->msg_buf[0] = (umword_t)uaddr;
     msg->msg_buf[1] = (umword_t)futex_op;
