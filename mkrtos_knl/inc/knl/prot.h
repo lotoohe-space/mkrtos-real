@@ -20,7 +20,8 @@
 #define IPC_PROT 5
 #define MM_PROT 6
 #define SYS_PROT 7
-#define IRQ_PROT 8
+#define FUTEX_PROT 8
+#define IRQ_PROT 9
 
 #define FACTORY_PORT_START FACTORY_PROT
 #define FACTORY_FUNC_MAX (IRQ_PROT + 1)

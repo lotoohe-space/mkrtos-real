@@ -49,25 +49,6 @@ LoopCopyDataInit:
     cmp     r2, r3
     bcc     CopyDataInit
 
-    /* initial stack */
-    ldr     r0, =#0x23232323
-    ldr     r1, = __data_start__
-    ldr     r2, = __stack_start__
-    sub     r2, r2, r1
-    add     r2, r2, r9
-    ldr     r3, = __stack_end__
-    sub     r3, r3, r1
-    add     r3, r3, r9
-    b       LoopInitStack
-    /* fill the stack segment with '#'. */
-FillStack:
-    str     r0, [r2], #4
-LoopInitStack:
-    cmp     r2, r3
-    bcc     FillStack
-    mov     r0, r12
-    push    {r0, r4}
-
     mov     r0, r9
     adr     r1, _start_
     bic     r1, r1, #1

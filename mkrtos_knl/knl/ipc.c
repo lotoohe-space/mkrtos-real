@@ -318,6 +318,16 @@ __check:
     spinlock_set(&ipc->lock, status);
     return tmp_tag;
 }
+/**
+ * @brief ipc发送操作
+ *
+ * @param ipc
+ * @param th
+ * @param f
+ * @param tag
+ * @param timeout
+ * @return msg_tag_t
+ */
 static msg_tag_t ipc_send(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag, ipc_timeout_t timeout)
 {
     umword_t status;

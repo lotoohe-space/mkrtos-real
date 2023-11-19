@@ -17,6 +17,7 @@
 #include "thread.h"
 #include "misc.h"
 #include "spinlock.h"
+#include "string.h"
 enum task_op_code
 {
     TASK_OBJ_MAP,
@@ -41,6 +42,7 @@ int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size)
         printk("Failed to request process memory.\n");
         return -ENOMEM;
     }
+    memset(ram, 0, size + THREAD_MSG_BUG_LEN);
     mm_space_set_ram_block(&tk->mm_space, ram, size + THREAD_MSG_BUG_LEN);
     printk("task alloc size is %d, base is 0x%x\n", size + THREAD_MSG_BUG_LEN, ram);
     return 0;

@@ -26,6 +26,7 @@ typedef unsigned long obj_addr_t;
 typedef umword_t uintptr_t;
 typedef umword_t addr_t;
 typedef umword_t obj_handler_t;
+typedef umword_t time_t;
 #ifndef NULL
 #define NULL ((void *)0)
 #endif

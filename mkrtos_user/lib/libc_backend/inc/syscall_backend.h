@@ -3,6 +3,8 @@
 #include "fs_backend.h"
 #include "u_types.h"
 #include <sys/uio.h>
+#include <time.h>
+// #include <unistd.h>
 
 #define ARG_1_BE(ap, arg0, type0)       \
     do                                  \
@@ -60,3 +62,6 @@ long sys_set_tid_address(va_list ap);
 long sys_set_thread_area(va_list ap);
 void sys_exit(va_list ap);
 umword_t sys_munmap(va_list ap);
+int be_futex(uint32_t *uaddr, int futex_op, uint32_t val,
+             const struct timespec *timeout, uint32_t uaddr2, uint32_t val3);
+// int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *ptid, void *tls, pid_t *ctid);

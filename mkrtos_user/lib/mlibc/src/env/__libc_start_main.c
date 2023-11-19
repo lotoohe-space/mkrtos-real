@@ -112,6 +112,7 @@ int __libc_start_main(int (*main)(int, char **, char **), int argc, char **argv,
 			: "memory");
 	return stage2(main, argc, argv);
 }
+static size_t fake_auxv[20];
 int __libc_start_main_init(int (*main)(int, char **, char **), int argc, char **argv,
 						   void (*init_dummy)(), void (*fini_dummy)(), void (*ldso_dummy)())
 {
@@ -123,8 +124,9 @@ int __libc_start_main_init(int (*main)(int, char **, char **), int argc, char **
 	// __init_libc(envp, argv[0]);
 	extern void u_env_default_init(void);
 	u_env_default_init();
-
 	libc.page_size = 512;
+	libc.auxv = fake_auxv;
+	__init_tls(fake_auxv);
 
 	/* Barrier against hoisting application code or anything using ssp
 	 * or thread pointer prior to its initialization above. */

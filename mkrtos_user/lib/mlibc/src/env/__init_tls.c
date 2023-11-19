@@ -102,6 +102,7 @@ static void static_init_tls(size_t *aux)
 	Phdr *phdr, *tls_phdr = 0;
 	size_t base = 0;
 	void *mem;
+	struct tls_module *tmp_tls;
 
 	for (p = (void *)aux[AT_PHDR], n = aux[AT_PHNUM]; n; n--, p += aux[AT_PHENT])
 	{
@@ -117,33 +118,33 @@ static void static_init_tls(size_t *aux)
 			__default_stacksize =
 				phdr->p_memsz < DEFAULT_STACK_MAX ? phdr->p_memsz : DEFAULT_STACK_MAX;
 	}
-
+	tmp_tls = &main_tls;
 	if (tls_phdr)
 	{
-		main_tls.image = (void *)(base + tls_phdr->p_vaddr);
-		main_tls.len = tls_phdr->p_filesz;
-		main_tls.size = tls_phdr->p_memsz;
-		main_tls.align = tls_phdr->p_align;
+		tmp_tls->image = (void *)(base + tls_phdr->p_vaddr);
+		tmp_tls->len = tls_phdr->p_filesz;
+		tmp_tls->size = tls_phdr->p_memsz;
+		tmp_tls->align = tls_phdr->p_align;
 		libc.tls_cnt = 1;
-		libc.tls_head = &main_tls;
+		libc.tls_head = tmp_tls;
 	}
 
-	main_tls.size += (-main_tls.size - (uintptr_t)main_tls.image) & (main_tls.align - 1);
+	tmp_tls->size += (-tmp_tls->size - (uintptr_t)tmp_tls->image) & (tmp_tls->align - 1);
 #ifdef TLS_ABOVE_TP
-	main_tls.offset = GAP_ABOVE_TP;
-	main_tls.offset += (-GAP_ABOVE_TP + (uintptr_t)main_tls.image) & (main_tls.align - 1);
+	tmp_tls->offset = GAP_ABOVE_TP;
+	tmp_tls->offset += (-GAP_ABOVE_TP + (uintptr_t)tmp_tls->image) & (tmp_tls->align - 1);
 #else
-	main_tls.offset = main_tls.size;
+	tmp_tls->offset = tmp_tls->size;
 #endif
-	if (main_tls.align < MIN_TLS_ALIGN)
-		main_tls.align = MIN_TLS_ALIGN;
+	if (tmp_tls->align < MIN_TLS_ALIGN)
+		tmp_tls->align = MIN_TLS_ALIGN;
 
-	libc.tls_align = main_tls.align;
+	libc.tls_align = tmp_tls->align;
 	libc.tls_size = 2 * sizeof(void *) + sizeof(struct pthread)
 #ifdef TLS_ABOVE_TP
-						+ main_tls.offset
+						+ tmp_tls->offset
 #endif
-						+ main_tls.size + main_tls.align + MIN_TLS_ALIGN - 1 &
+						+ tmp_tls->size + tmp_tls->align + MIN_TLS_ALIGN - 1 &
 					-MIN_TLS_ALIGN;
 
 	if (libc.tls_size > sizeof builtin_tls)

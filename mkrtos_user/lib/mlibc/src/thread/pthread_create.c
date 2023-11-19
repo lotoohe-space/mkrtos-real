@@ -208,6 +208,8 @@ struct start_args
 	void *start_arg;
 	volatile int control;
 	unsigned long sig_mask[_NSIG / 8 / sizeof(long)];
+	void *tp;
+	void *none;
 };
 #ifndef NO_LITTLE_MODE
 #include "syscall_backend.h"
@@ -215,6 +217,11 @@ struct start_args
 static int start(void *p)
 {
 	struct start_args *args = p;
+#ifdef NO_LITTLE_MODE
+	int r = __set_thread_area(args->tp);
+#else
+	int r = be_set_thread_area(args->tp);
+#endif
 	int state = args->control;
 	if (state)
 	{
@@ -384,6 +391,7 @@ int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict att
 	struct start_args *args = (void *)stack;
 	args->start_func = entry;
 	args->start_arg = arg;
+	args->tp = TP_ADJ(new);
 	args->control = attr._a_sched ? 1 : 0;
 
 	/* Application signals (but not the synccall signal) must be
@@ -401,7 +409,7 @@ int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict att
 	__tl_lock();
 	if (!libc.threads_minus_1++)
 		libc.need_locks = 1;
-	ret = __clone((c11 ? start_c11 : start), stack, flags, args, &new->tid, TP_ADJ(new), &__thread_list_lock);
+	ret = __clone__((c11 ? start_c11 : start), stack, flags, args, &new->tid, TP_ADJ(new), &__thread_list_lock);
 
 	/* All clone failures translate to EAGAIN. If explicit scheduling
 	 * was requested, attempt it before unlocking the thread list so

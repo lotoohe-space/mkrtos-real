@@ -79,7 +79,10 @@ static inline void thread_set_msg_bug(thread_t *th, void *msg)
 {
     th->msg.msg = msg;
 }
-
+static inline void *thread_get_msg_buf(thread_t *th)
+{
+    return th->msg.msg;
+}
 static inline enum thread_state thread_get_status(thread_t *th)
 {
     return th->status;

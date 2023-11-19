@@ -37,6 +37,7 @@ int main(int argc, char *args[])
     kobj_create_press_test();
     ipc_test();
 #endif
+    pthread_lock_test();
     uenv_t env = *u_get_global_env();
     obj_handler_t ipc_hd;
     int ret = rpc_creaite_bind_ipc(THREAD_MAIN, NULL, &ipc_hd);

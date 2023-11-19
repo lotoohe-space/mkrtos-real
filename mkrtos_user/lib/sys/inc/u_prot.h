@@ -9,7 +9,8 @@
 #define IPC_PROT 5
 #define MM_PROT 6
 #define SYS_PROT 7
-#define IRQ_PROT 8
+#define FUTEX_PROT 8
+#define IRQ_PROT 9
 
 #define THREAD_MAIN THREAD_PROT
 #define TASK_THIS TASK_PROT

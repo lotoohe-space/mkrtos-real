@@ -33,7 +33,9 @@ add_executable(mkrtos.elf
 target_link_libraries(
     mkrtos.elf
     PUBLIC
+    --whole-archive
     knl
+    --no-whole-archive
     arch
     drv
     lib

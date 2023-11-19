@@ -87,11 +87,11 @@ void MemManage_Handler(void)
   // printk("%s\n", __FUNCTION__);
   if (SCB->CFSR & 0x1)
   {
-    printk("指令访问错误\n");
+    printk("instr 0x%x access is error.\n", fault_addr);
   }
   if (SCB->CFSR & 2)
   {
-    printk("数据访问错误\n");
+    printk("data 0x%x access is error.\n", fault_addr);
   }
   if (SCB->CFSR & 128)
   {

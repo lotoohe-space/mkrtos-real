@@ -243,7 +243,11 @@
         "drv_log.h": "c",
         "drv_usart.h": "c",
         "__locale": "c",
-        "__string": "c"
+        "__string": "c",
+        "limits.h": "c",
+        "ctime": "c",
+        "pthread_impl.h": "c",
+        "time.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

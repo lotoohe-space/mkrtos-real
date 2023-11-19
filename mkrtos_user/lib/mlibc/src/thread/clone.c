@@ -1,7 +1,17 @@
 #include <errno.h>
 #include "pthread_impl.h"
-
-int __clone(int (*func)(void *), void *stack, int flags, void *arg, ...)
+#include <syscall_backend.h>
+int __clone__(int (*func)(void *), void *stack, int flags, void *arg, ...)
 {
-	return -ENOSYS;
+	pid_t *ptid;
+	void *tls;
+	pid_t *ctid;
+
+	va_list ap;
+
+	va_start(ap, arg);
+	ARG_3_BE(ap, ptid, long, tls, long, ctid, long);
+	va_end(ap);
+
+	return be_clone(func, stack, flags, arg, ptid, tls, ctid);
 }

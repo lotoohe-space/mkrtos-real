@@ -15,7 +15,8 @@
 
 #define pthread __pthread
 
-struct pthread {
+struct pthread
+{
 	/* Part 1 -- these fields may be external or
 	 * internal (accessed via asm) ABI. Do not change. */
 	struct pthread *self;
@@ -37,8 +38,8 @@ struct pthread {
 	volatile int detach_state;
 	volatile int cancel;
 	volatile unsigned char canceldisable, cancelasync;
-	unsigned char tsd_used:1;
-	unsigned char dlerror_flag:1;
+	unsigned char tsd_used : 1;
+	unsigned char dlerror_flag : 1;
 	unsigned char *map_base;
 	size_t map_size;
 	void *stack;
@@ -47,7 +48,8 @@ struct pthread {
 	void *result;
 	struct __ptcb *cancelbuf;
 	void **tsd;
-	struct {
+	struct
+	{
 		volatile void *volatile head;
 		long off;
 		volatile void *volatile pending;
@@ -69,22 +71,23 @@ struct pthread {
 	unsigned long hd;
 };
 
-enum {
+enum
+{
 	DT_EXITED = 0,
 	DT_EXITING,
 	DT_JOINABLE,
 	DT_DETACHED,
 };
 
-#define __SU (sizeof(size_t)/sizeof(int))
+#define __SU (sizeof(size_t) / sizeof(int))
 
 #define _a_stacksize __u.__s[0]
 #define _a_guardsize __u.__s[1]
 #define _a_stackaddr __u.__s[2]
-#define _a_detach __u.__i[3*__SU+0]
-#define _a_sched __u.__i[3*__SU+1]
-#define _a_policy __u.__i[3*__SU+2]
-#define _a_prio __u.__i[3*__SU+3]
+#define _a_detach __u.__i[3 * __SU + 0]
+#define _a_sched __u.__i[3 * __SU + 1]
+#define _a_policy __u.__i[3 * __SU + 2]
+#define _a_prio __u.__i[3 * __SU + 3]
 #define _m_type __u.__i[0]
 #define _m_lock __u.__vi[1]
 #define _m_waiters __u.__vi[2]
@@ -132,13 +135,13 @@ enum {
 #define SIGCANCEL 33
 #define SIGSYNCCALL 34
 
-#define SIGALL_SET ((sigset_t *)(const unsigned long long [2]){ -1,-1 })
-#define SIGPT_SET \
-	((sigset_t *)(const unsigned long [_NSIG/8/sizeof(long)]){ \
-	[sizeof(long)==4] = 3UL<<(32*(sizeof(long)>4)) })
-#define SIGTIMER_SET \
-	((sigset_t *)(const unsigned long [_NSIG/8/sizeof(long)]){ \
-	 0x80000000 })
+#define SIGALL_SET ((sigset_t *)(const unsigned long long[2]){-1, -1})
+#define SIGPT_SET                                                 \
+	((sigset_t *)(const unsigned long[_NSIG / 8 / sizeof(long)]){ \
+		[sizeof(long) == 4] = 3UL << (32 * (sizeof(long) > 4))})
+#define SIGTIMER_SET                                              \
+	((sigset_t *)(const unsigned long[_NSIG / 8 / sizeof(long)]){ \
+		0x80000000})
 
 void *__tls_get_addr(tls_mod_off_t *);
 hidden int __init_tp(void *);
@@ -167,18 +170,34 @@ hidden void __unmapself(void *, size_t);
 hidden int __timedwait(volatile int *, int, clockid_t, const struct timespec *, int);
 hidden int __timedwait_cp(volatile int *, int, clockid_t, const struct timespec *, int);
 hidden void __wait(volatile int *, volatile int *, int, int);
+#ifndef NO_LITTLE_MODE
+#include <syscall_backend.h>
+#endif
 static inline void __wake(volatile void *addr, int cnt, int priv)
 {
-	if (priv) priv = FUTEX_PRIVATE;
-	if (cnt<0) cnt = INT_MAX;
-	__syscall(SYS_futex, addr, FUTEX_WAKE|priv, cnt) != -ENOSYS ||
-	__syscall(SYS_futex, addr, FUTEX_WAKE, cnt);
+	if (priv)
+		priv = FUTEX_PRIVATE;
+	if (cnt < 0)
+		cnt = INT_MAX;
+#ifdef NO_LITTLE_MODE
+	__syscall(SYS_futex, addr, FUTEX_WAKE | priv, cnt) != -ENOSYS ||
+		__syscall(SYS_futex, addr, FUTEX_WAKE, cnt);
+#else
+	be_futex((uint32_t *)addr, FUTEX_WAKE | priv, cnt, 0, 0, 0);
+	be_futex((uint32_t *)addr, FUTEX_WAKE, cnt, 0, 0, 0);
+#endif
 }
 static inline void __futexwait(volatile void *addr, int val, int priv)
 {
-	if (priv) priv = FUTEX_PRIVATE;
-	__syscall(SYS_futex, addr, FUTEX_WAIT|priv, val, 0) != -ENOSYS ||
-	__syscall(SYS_futex, addr, FUTEX_WAIT, val, 0);
+	if (priv)
+		priv = FUTEX_PRIVATE;
+#ifdef NO_LITTLE_MODE
+	__syscall(SYS_futex, addr, FUTEX_WAIT | priv, val, 0) != -ENOSYS ||
+		__syscall(SYS_futex, addr, FUTEX_WAIT, val, 0);
+#else
+	be_futex((uint32_t *)addr, FUTEX_WAKE | priv, val, 0, 0, 0);
+	be_futex((uint32_t *)addr, FUTEX_WAKE, val, 0, 0, 0);
+#endif
 }
 
 hidden void __acquire_ptc(void);
@@ -199,9 +218,9 @@ extern hidden unsigned __default_guardsize;
 #define DEFAULT_STACK_SIZE 131072
 #define DEFAULT_GUARD_SIZE 8192
 
-#define DEFAULT_STACK_MAX (8<<20)
-#define DEFAULT_GUARD_MAX (1<<20)
+#define DEFAULT_STACK_MAX (8 << 20)
+#define DEFAULT_GUARD_MAX (1 << 20)
 
-#define __ATTRP_C11_THREAD ((void*)(uintptr_t)-1)
+#define __ATTRP_C11_THREAD ((void *)(uintptr_t)-1)
 
 #endif
