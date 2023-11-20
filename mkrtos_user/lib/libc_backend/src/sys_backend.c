@@ -28,6 +28,21 @@
 #include <assert.h>
 #include <errno.h>
 #include <pthread_impl.h>
+#include <atomic.h>
+static int pthread_cnt = 1;
+
+void pthread_cnt_inc(void)
+{
+    a_inc(&pthread_cnt);
+}
+int pthread_cnt_dec(void)
+{
+    return a_fetch_add(&pthread_cnt, -1);
+}
+int pthread_get(void)
+{
+    return pthread_cnt;
+}
 
 extern void __pthread_new_thread_entry__(void);
 int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *ptid, void *tls, pid_t *ctid)
@@ -83,7 +98,47 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
     ph->hd = th1_hd;
     ph->ctid = (umword_t)ctid;
     *ptid = th1_hd;
+    pthread_cnt_inc();
     thread_run(th1_hd, 2); // 优先级默认为2
 
     return 0;
+}
+#define FUTEX_WAKE_CLEAR 10
+
+void be_exit(long exit_code)
+{
+    struct pthread *pt = __pthread_self();
+    int th_hd = pt->hd;
+    int *old_ctid = (int *)(pt->ctid);
+
+    if (th_hd != THREAD_MAIN)
+    {
+        if (old_ctid)
+        {
+            be_futex(old_ctid, FUTEX_WAKE_CLEAR, 1, 0, 0, 0);
+        }
+        if (pthread_cnt_dec() == 1)
+        {
+            /*删除整个进程*/
+            goto del_task;
+        }
+        else
+        {
+            task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th_hd));
+        }
+    }
+    else
+    {
+    del_task:
+        /*TODO:删除其它东西*/
+        task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); //!< 删除当前task，以及申请得所有对象
+        a_crash();                                                                 //!< 强制退出
+    }
+}
+void sys_exit(va_list ap)
+{
+    long exit_code;
+
+    ARG_1_BE(ap, exit_code, long);
+    be_exit(exit_code);
 }

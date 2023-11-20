@@ -59,13 +59,4 @@ unsigned long get_thread_area(void)
 
     return i_msg->user[0];
 }
-void be_exit(int code)
-{
-    /*TODO:暂时先这样*/
-    task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS));
-    ulog_write_str(u_get_global_env()->log_hd, "It shouldn't go here.\n");
-}
-void sys_exit(va_list ap)
-{
-    be_exit(0);
-}
+

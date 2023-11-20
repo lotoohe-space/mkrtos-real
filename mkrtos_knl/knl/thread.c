@@ -93,8 +93,8 @@ static void thread_release_stage2(kobject_t *kobj)
 
     if (cur_th == th)
     {
-        thread_sched();
         scheduler_reset();
+        thread_sched();
     }
 }
 

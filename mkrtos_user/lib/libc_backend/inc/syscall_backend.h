@@ -48,7 +48,6 @@ long be_writev(long fd, const struct iovec *iov, long iovcnt);
 long be_ioctl(long fd, long req, void *args);
 long be_set_tid_address(int *val);
 long be_set_thread_area(void *p);
-void be_exit(int code);
 umword_t be_munmap(void *start, size_t len);
 umword_t be_mmap2(void *start,
                   size_t len,
@@ -64,4 +63,7 @@ void sys_exit(va_list ap);
 umword_t sys_munmap(va_list ap);
 int be_futex(uint32_t *uaddr, int futex_op, uint32_t val,
              const struct timespec *timeout, uint32_t uaddr2, uint32_t val3);
-// int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *ptid, void *tls, pid_t *ctid);
+
+void pthread_cnt_inc(void);
+int pthread_cnt_dec(void);
+int pthread_get(void);

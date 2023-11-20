@@ -29,7 +29,7 @@ static void hard_sleep(void)
 }
 static void *thread_test_func(void* arg)
 {
-    while (1)
+    // while (1)
     {
         pthread_mutex_lock(&lock);
         printf("thread 1 ..\n");
@@ -39,7 +39,7 @@ static void *thread_test_func(void* arg)
 }
 static void *thread_test_func2(void* arg)
 {
-    while (1)
+    // while (1)
     {
         pthread_mutex_lock(&lock);
         printf("thread 2 ..\n");

@@ -23,7 +23,7 @@ bool_t is_rw_access(void *addr, size_t size, bool_t ignore_null)
     task_t *cur_task = thread_get_current_task();
 
     mm_space_get_ram_block(&cur_task->mm_space, &mem, &mem_size);
-    if (mem >= addr && ((char *)addr + size) < (char *)mem + mem_size)
+    if (mem <= addr && ((char *)addr + size) < (char *)mem + mem_size)
     {
         return TRUE;
     }
