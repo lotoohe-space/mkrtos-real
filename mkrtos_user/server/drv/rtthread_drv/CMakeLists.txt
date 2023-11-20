@@ -48,6 +48,7 @@ target_link_libraries(
     sys_util
     sys_svr
     src
+    util
     drivers
     stm32f103_onenet_nbiot
     stm32f1xx_hal

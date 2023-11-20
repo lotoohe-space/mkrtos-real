@@ -8,7 +8,25 @@ enum thread_op
     BIND_TASK,
     MSG_BUG_GET,
     MSG_BUG_SET,
+    YIELD,
 };
+msg_tag_t thread_yield(obj_handler_t obj)
+{
+    register volatile umword_t r0 asm("r0");
+
+    mk_syscall(syscall_prot_create4(YIELD, THREAD_PROT, obj, TRUE).raw,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0", "r1", "r2");
+    return msg_tag_init(r0);
+}
 msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg)
 {
     register volatile umword_t r0 asm("r0");
@@ -16,12 +34,12 @@ msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg)
     register volatile umword_t r2 asm("r2");
 
     mk_syscall(syscall_prot_create(MSG_BUG_SET, THREAD_PROT, obj).raw,
-            0,
-            msg,
-            0,
-            0,
-            0,
-            0);
+               0,
+               msg,
+               0,
+               0,
+               0,
+               0);
     asm __volatile__(""
                      :
                      :
@@ -35,12 +53,12 @@ msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len)
     register volatile umword_t r2 asm("r2");
 
     mk_syscall(syscall_prot_create4(MSG_BUG_GET, THREAD_PROT, obj, TRUE).raw,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0);
+               0,
+               0,
+               0,
+               0,
+               0,
+               0);
     asm __volatile__(""
                      :
                      :
@@ -61,12 +79,12 @@ msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t
     register volatile umword_t r0 asm("r0");
 
     mk_syscall(syscall_prot_create(SET_EXEC_REGS, THREAD_PROT, obj).raw,
-            0,
-            pc,
-            sp,
-            ram,
-            cp_stack,
-            0);
+               0,
+               pc,
+               sp,
+               ram,
+               cp_stack,
+               0);
     asm __volatile__(""
                      :
                      :
@@ -80,12 +98,12 @@ msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
     register volatile umword_t r0 asm("r0");
 
     mk_syscall(syscall_prot_create(RUN_THREAD, THREAD_PROT, obj).raw,
-            0,
-            prio,
-            0,
-            0,
-            0,
-            0);
+               0,
+               prio,
+               0,
+               0,
+               0,
+               0);
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
@@ -95,11 +113,11 @@ msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj)
     register volatile umword_t r0 asm("r0");
 
     mk_syscall(syscall_prot_create(BIND_TASK, THREAD_PROT, obj).raw,
-            0,
-            tk_obj,
-            0,
-            0,
-            0, 0);
+               0,
+               tk_obj,
+               0,
+               0,
+               0, 0);
     asm __volatile__(""
                      :
                      :

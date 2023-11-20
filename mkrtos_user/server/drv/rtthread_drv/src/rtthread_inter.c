@@ -49,7 +49,12 @@ void *rt_realloc(void *ptr, rt_size_t newsize)
 }
 void rt_schedule(void)
 {
-    u_sleep_ms(0);
+    thread_yield(-1);
+}
+rt_err_t rt_thread_yield(void)
+{
+    thread_yield(-1);
+    return 0;
 }
 static umword_t intr_status = 0;
 rt_base_t rt_hw_interrupt_disable(void)
@@ -112,6 +117,15 @@ rt_err_t rt_thread_bind_mkrtos(rt_thread_t th)
     i_msg->user[1] = (umword_t)th;
 }
 rt_err_t rt_thread_suspend_with_flag(rt_thread_t thread, int suspend_flag)
+{
+    //! 这里锁两次，第二次加锁将会导致挂起
+    printf("[drv]%s:%d\n", __func__, __LINE__);
+    thread->stat = RT_THREAD_SUSPEND;
+    pthread_mutex_lock(&thread->suspend_lock);
+    thread->stat = 0;
+    return 0;
+}
+rt_err_t rt_thread_suspend(rt_thread_t thread)
 {
     //! 这里锁两次，第二次加锁将会导致挂起
     printf("[drv]%s:%d\n", __func__, __LINE__);
@@ -207,7 +221,7 @@ rt_err_t rt_mq_delete(rt_mq_t mq)
 #include <pthread.h>
 #include <time.h>
 #include <unistd.h>
-#define STACK_SIZE 1024
+#define STACK_SIZE 2048
 
 static obj_handler_t timer_hd = HANDLER_INVALID;
 static char timer_thmsg_buf[MSG_BUG_LEN];
@@ -230,6 +244,7 @@ static struct rt_timer *timer_alloc(struct rt_timer *tim, void (*func_cb)(void *
             timer_list[i]->func_cb = func_cb;
             timer_list[i]->exp_times = exp_times;
             timer_list[i]->flags = flags;
+            timer_list[i]->start_times = 0;
             pthread_spin_unlock(&timer_lock);
             return timer_list[i];
         }
@@ -260,16 +275,9 @@ void rt_timer_check(void)
     {
         if (timer_list[i] &&
             timer_list[i]->start_times != 0 &&
-            timer_list[i]->exp_times + timer_list[i]->start_times >= now_tick)
+            now_tick >= timer_list[i]->exp_times + timer_list[i]->start_times)
         {
-            if ((timer_list[i]->flags & RT_TIMER_FLAG_ONE_SHOT) == 0)
-            {
-                pthread_spin_unlock(&timer_lock);
-                timer_list[i]->func_cb(timer_list[i]->data);
-                pthread_spin_lock(&timer_lock);
-                timer_list[i] = NULL;
-            }
-            else if (timer_list[i]->flags & RT_TIMER_FLAG_PERIODIC)
+            if (timer_list[i]->flags & RT_TIMER_FLAG_PERIODIC)
             {
                 pthread_spin_unlock(&timer_lock);
                 timer_list[i]->func_cb(timer_list[i]->data);
@@ -279,6 +287,13 @@ void rt_timer_check(void)
                     timer_list[i]->start_times = sys_read_tick();
                 }
             }
+            else if ((timer_list[i]->flags & RT_TIMER_FLAG_ONE_SHOT) == 0)
+            {
+                pthread_spin_unlock(&timer_lock);
+                timer_list[i]->func_cb(timer_list[i]->data);
+                pthread_spin_lock(&timer_lock);
+                timer_list[i] = NULL;
+            }
             else
             {
                 /*Error.*/
@@ -287,6 +302,7 @@ void rt_timer_check(void)
     }
     pthread_spin_unlock(&timer_lock);
 }
+
 void rt_timer_init(rt_timer_t timer,
                    const char *name,
                    void (*timeout)(void *parameter),
@@ -297,7 +313,7 @@ void rt_timer_init(rt_timer_t timer,
     assert(timeout);
     if (timer_hd == HANDLER_INVALID)
     {
-        int ret = u_thread_create(&timer_hd, timer_stack, STACK_SIZE, timer_thmsg_buf, timer_func, 2);
+        int ret = u_thread_create(&timer_hd, timer_stack, STACK_SIZE, timer_thmsg_buf, timer_func);
 
         if (ret < 0)
         {
@@ -312,7 +328,23 @@ void rt_timer_init(rt_timer_t timer,
         errno = -ENOMEM;
         return;
     }
-    printf("%s name %s tick %d flag 0x%x.\n", name, time, flag);
+    u_thread_run(timer_hd, 2);
+    printf("%s name %s tick %d flag 0x%x.\n", __func__, name, time, flag);
+}
+rt_timer_t rt_timer_create(const char *name,
+                           void (*timeout)(void *parameter),
+                           void *parameter,
+                           rt_tick_t time,
+                           rt_uint8_t flag)
+{
+    rt_timer_t t = rt_malloc(sizeof(*t));
+
+    if (t == NULL)
+    {
+        return NULL;
+    }
+    rt_timer_init(t, name, timeout, parameter, time, flag);
+    return t;
 }
 rt_err_t rt_timer_start(rt_timer_t timer)
 {

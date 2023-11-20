@@ -250,6 +250,7 @@ enum thread_op
     BIND_TASK,
     MSG_BUG_GET,
     MSG_BUG_SET,
+    YIELD,
 };
 static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
@@ -321,6 +322,12 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         thread_bind(tag_th, task_kobj);
         tag = msg_tag_init4(0, 0, 0, 0);
         printk("thread bind to %d\n", f->r[1]);
+    }
+    break;
+    case YIELD:
+    {
+        thread_sched();
+        tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
     }

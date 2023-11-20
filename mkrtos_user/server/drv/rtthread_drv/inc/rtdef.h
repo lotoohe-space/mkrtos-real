@@ -914,7 +914,7 @@ struct rt_spinlock
      */
     struct rt_thread
     {
-        pthread_t th;    /**< use pthread*/
+        // pthread_t th;    /**< use pthread*/
         rt_list_t tlist; /**< the thread list */
 
         int stat;
