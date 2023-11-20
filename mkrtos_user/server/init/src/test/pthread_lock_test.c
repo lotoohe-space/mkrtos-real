@@ -14,68 +14,53 @@
 #include <string.h>
 #define DEBUG_IPC_CALL 1
 
-static umword_t th1_hd = 0;
-static umword_t th2_hd = 0;
-static umword_t ipc_hd = 0;
 static pthread_mutex_t lock;
+static pthread_t pth;
+static pthread_t pth2;
 
-static char msg_buf0[MSG_BUG_LEN];
-static char msg_buf1[MSG_BUG_LEN];
 #define STACK_SIZE 2048
 static __attribute__((aligned(8))) uint8_t stack0[STACK_SIZE];
 static __attribute__((aligned(8))) uint8_t stack1[STACK_SIZE];
 
 static void hard_sleep(void)
 {
-
     for (volatile int i; i < 10000000; i++)
         ;
 }
-static void thread_test_func(void)
+static void *thread_test_func(void* arg)
 {
-    char *buf;
-    umword_t len;
-    thread_msg_buf_get(th1_hd, (umword_t *)(&buf), NULL);
     while (1)
     {
         pthread_mutex_lock(&lock);
         printf("thread 1 ..\n");
         pthread_mutex_unlock(&lock);
     }
-    printf("thread_test_func.\n");
-    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th1_hd));
-    printf("Error\n");
+    return NULL;
 }
-static void thread_test_func2(void)
+static void *thread_test_func2(void* arg)
 {
-    char *buf;
-    umword_t len;
-    thread_msg_buf_get(th2_hd, (umword_t *)(&buf), NULL);
     while (1)
     {
         pthread_mutex_lock(&lock);
         printf("thread 2 ..\n");
         pthread_mutex_unlock(&lock);
     }
-    printf("thread_test_func2.\n");
-    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
-    printf("Error\n");
-}
-static pthread_t pth;
-static void *func_test(void *arg)
-{
     return NULL;
 }
+
 /**
  *
  */
 void pthread_lock_test(void)
 {
-    pthread_mutex_init(&lock, NULL);
     pthread_attr_t attr;
+
+    pthread_mutex_init(&lock, NULL);
     pthread_attr_init(&attr);
     pthread_attr_setstack(&attr, stack0, STACK_SIZE);
-    pthread_create(&pth, &attr, func_test, NULL);
+    pthread_create(&pth, &attr, thread_test_func, NULL);
+    pthread_attr_setstack(&attr, stack1, STACK_SIZE);
+    pthread_create(&pth2, &attr, thread_test_func2, NULL);
 
     // th1_hd = handler_alloc();
     // assert(th1_hd != HANDLER_INVALID);

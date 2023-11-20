@@ -42,7 +42,6 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
 
     ph = (struct pthread *)((char *)tls - sizeof(struct pthread));
 
-
     th1_hd = handler_alloc();
     if (th1_hd == HANDLER_INVALID)
     {
@@ -64,8 +63,9 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
     stack = (char *)stack - MSG_BUG_LEN;
     umword_t *stack_tmp = (umword_t *)stack;
 
+    // 设置调用参数等
     *(--stack_tmp) = (umword_t)args;
-    *(--stack_tmp) = (umword_t)0;
+    *(--stack_tmp) = (umword_t)0; // 保留
     *(--stack_tmp) = (umword_t)func;
 
     tag = thread_exec_regs(th1_hd, (umword_t)__pthread_new_thread_entry__, (umword_t)stack_tmp, RAM_BASE(), 0);
@@ -80,7 +80,10 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
         handler_free_umap(th1_hd);
         return msg_tag_get_prot(tag);
     }
-    thread_run(th1_hd, 2);
+    ph->hd = th1_hd;
+    ph->ctid = (umword_t)ctid;
+    *ptid = th1_hd;
+    thread_run(th1_hd, 2); // 优先级默认为2
 
     return 0;
 }

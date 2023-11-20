@@ -1,4 +1,14 @@
-
+/**
+ * @file futex.c
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief futex在内核中实现
+ * @note TODO: 可以使用hashmap优化
+ * @version 0.1
+ * @date 2023-11-20
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
 #include "types.h"
 #include "init.h"
 #include "prot.h"
@@ -13,10 +23,13 @@
 #include "globals.h"
 #include "string.h"
 #include "ipc.h"
+#include "err.h"
+#include <access.h>
 
 #define INT_MAX 0x7fffffff
 
 #define FT_ADDR_NR 16 //!< 最多加锁的对象
+
 #define FUTEX_WAIT 0
 #define FUTEX_WAKE 1
 #define FUTEX_FD 2
@@ -58,6 +71,50 @@ typedef struct futex
 } futex_t;
 static futex_t futex_obj;
 static void futex_init(futex_t *ft);
+typedef struct futex_wait_item
+{
+    slist_head_t node;
+    thread_t *th;
+    umword_t sleep_times;
+} futex_wait_item_t;
+static slist_head_t wait_list;
+
+/**
+ * @brief 初始化一个超时等待队列
+ *
+ */
+static void futex_wait_list_init(void)
+{
+    slist_init(&wait_list);
+}
+INIT_KOBJ(futex_wait_list_init);
+/**
+ * @brief 检查超时队列
+ *
+ */
+void futex_timeout_times_tick(void)
+{
+    futex_wait_item_t *item;
+
+    slist_foreach(item, &wait_list, node) //!< 第一次循环等待的ipc
+    {
+        if (item->sleep_times > 0)
+        {
+            if ((--item->sleep_times) == 0)
+            {
+                //!< 超时时间满后直接唤醒等待者
+                thread_ready(item->th, TRUE);
+            }
+        }
+        else
+        {
+            if (item->th->status == THREAD_SUSPEND)
+            {
+                thread_ready(item->th, TRUE);
+            }
+        }
+    }
+}
 static void futex_reg(void)
 {
     futex_init(&futex_obj);
@@ -130,8 +187,9 @@ static futex_lock_t *futex_find(futex_t *fst, void *uaddr)
     }
     return NULL;
 }
+
 static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t val,
-                         const struct timespec *timeout, uint32_t uaddr2, uint32_t val3, int tid)
+                         umword_t timeout /*val2*/, uint32_t uaddr2, uint32_t val3, int tid)
 
 {
     thread_t *cur_th = thread_get_current();
@@ -143,6 +201,11 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     {
     case FUTEX_REQUEUE:
     {
+        if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
+        {
+            spinlock_set(&fst->lock, status);
+            return -EACCES;
+        }
         if (val3 == *uaddr)
         {
             futex_lock_t *flt = futex_find(fst, uaddr);
@@ -198,6 +261,11 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     break;
     case FUTEX_WAIT:
     {
+        if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
+        {
+            spinlock_set(&fst->lock, status);
+            return -EACCES;
+        }
         if (val == *uaddr)
         {
             ref_counter_inc(&cur_th->ref);
@@ -207,8 +275,33 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
                 spinlock_set(&fst->lock, status);
                 return -ENOMEM;
             }
-            thread_suspend(cur_th); // TODO:考虑超时时间
-            preemption();
+            if (timeout != 0)
+            {
+                //! 加入到等待队列中
+                futex_wait_item_t item = {
+                    .th = cur_th,
+                    .sleep_times = timeout,
+                };
+
+                slist_init(&item.node);
+                slist_add_append(&wait_list, &item.node);
+                thread_suspend(cur_th);
+                preemption();
+                slist_del(&item.node);
+                if (timeout <= 0)
+                {
+                    ref_counter_dec_and_release(&cur_th->ref, &cur_th->kobj);
+                    spinlock_set(&fst->lock, status);
+                    return -ETIMEDOUT;
+                }
+            }
+            else
+            {
+                // 一直等待
+                thread_suspend(cur_th);
+                preemption();
+            }
+
             ref_counter_dec_and_release(&cur_th->ref, &cur_th->kobj);
         }
         else
@@ -249,6 +342,11 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     case FUTEX_UNLOCK_PI:
     case FUTEX_WAKE_CLEAR:
     {
+        if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
+        {
+            spinlock_set(&fst->lock, status);
+            return -EACCES;
+        }
         futex_lock_t *flt = futex_find(fst, uaddr);
         int rel_cnt = 0;
 
@@ -277,6 +375,11 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     }
     case FUTEX_LOCK_PI:
     {
+        if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
+        {
+            spinlock_set(&fst->lock, status);
+            return -EACCES;
+        }
         if (*uaddr = 0)
         {
             *uaddr = tid;
@@ -320,7 +423,7 @@ static void futex_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_ta
         uint32_t *uaddr = (uint32_t *)(msg->msg_buf[0]);
         int futex_op = msg->msg_buf[1];
         uint32_t val = msg->msg_buf[2];
-        const struct timespec *timeout = (const struct timespec *)(msg->msg_buf[3]);
+        umword_t timeout = msg->msg_buf[3];
         uint32_t uaddr2 = msg->msg_buf[4];
         uint32_t val3 = msg->msg_buf[5];
         int tid = msg->msg_buf[6];
@@ -334,16 +437,10 @@ static void futex_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_ta
 }
 static void futex_release_stage1(kobject_t *kobj)
 {
-    // futex_t *futex = container_of(kobj, futex_t, kobj);
-
-    // kobject_invalidate(kobj);
-    /*TODO:唤醒所有挂起的线程*/
+    /*TODO:删除task所占用的futex资源*/
 }
 static void futex_release_stage2(kobject_t *kobj)
 {
-    // futex_t *ipc = container_of(kobj, futex_t, kobj);
-
-    // mm_limit_free(ipc->lim, kobj);
     printk("futex don't release.\n");
 }
 static void futex_init(futex_t *ft)
@@ -354,29 +451,3 @@ static void futex_init(futex_t *ft)
     ft->kobj.stage_1_func = futex_release_stage1;
     ft->kobj.stage_2_func = futex_release_stage2;
 }
-// static futex_t *futex_create(ram_limit_t *lim)
-// {
-//     futex_t *ft = mm_limit_alloc(lim, sizeof(futex_t));
-
-//     if (!ft)
-//     {
-//         return NULL;
-//     }
-//     memset(ft, 0, sizeof(futex_t));
-//     futex_init(ft, lim);
-//     return ft;
-// }
-// static kobject_t *futex_create_func(ram_limit_t *lim, umword_t arg0, umword_t arg1,
-//                                     umword_t arg2, umword_t arg3)
-// {
-//     return &futex_create(lim)->kobj;
-// }
-/**
- * @brief 工厂注册函数
- *
- */
-// static void futex_factory_register(void)
-// {
-//     factory_register(futex_create_func, FUTEX_PROT);
-// }
-// INIT_KOBJ(futex_factory_register);

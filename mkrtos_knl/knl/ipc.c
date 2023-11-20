@@ -63,7 +63,7 @@ static slist_head_t wait_list;
  * @brief 初始化一个超时等待队列
  *
  */
-void timeout_wait_list_init(void)
+static void timeout_wait_list_init(void)
 {
     slist_init(&wait_list);
 }

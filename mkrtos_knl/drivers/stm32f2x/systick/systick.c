@@ -2,7 +2,7 @@
 #include "arch.h"
 #include "thread.h"
 #include "ipc.h"
-
+#include "futex.h"
 static umword_t sys_tick_cnt;
 
 umword_t sys_tick_cnt_get(void)
@@ -14,6 +14,7 @@ void SysTick_Handler(void)
 {
     // 进行上下文切换
     thread_sched();
-    timeout_times_tick();
     sys_tick_cnt++;
+    timeout_times_tick();
+    futex_timeout_times_tick();
 }

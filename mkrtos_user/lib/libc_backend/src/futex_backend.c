@@ -30,20 +30,20 @@ int be_futex(uint32_t *uaddr, int futex_op, uint32_t val,
     struct pthread *pt = __pthread_self();
     ipc_timeout_t to = ipc_timeout_create2(0, 0);
     umword_t total = 0;
+    umword_t st_val;
     sys_info_t sys_info;
+    msg_tag_t tag;
 
     if (timeout && !(futex_op & FUTEX_REQUEUE))
     {
         to = ipc_timeout_create2(timeout->tv_sec * 1000 + timeout->tv_nsec / 1000 / 1000, 0);
         total = timeout->tv_sec * 1000 + timeout->tv_nsec / 1000 / 1000;
     }
-    umword_t st_val;
 
 _try_again:
-
     sys_read_info(SYS_PROT, &sys_info);
     st_val = sys_info.sys_tick;
-    msg_tag_t tag = futex_ctrl(FUTEX_PROT, uaddr, futex_op, val, (void *)timeout, uaddr2, val3, pt->tid);
+    tag = futex_ctrl(FUTEX_PROT, uaddr, futex_op, val, total, uaddr2, val3, pt->tid);
     if (msg_tag_get_val(tag) == -EWTIMEDOUT)
     {
         umword_t en_val;

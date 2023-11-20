@@ -10,6 +10,7 @@ message(
   ${CMAKE_SOURCE_DIR}/build/log.txt "\n"
   ${CMAKE_SOURCE_DIR}/build/.config "\n"
   )
+
 execute_process(
   COMMAND
   ${PYTHON_EXECUTABLE} 
