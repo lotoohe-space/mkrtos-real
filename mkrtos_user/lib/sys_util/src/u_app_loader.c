@@ -191,13 +191,12 @@ int app_load(const char *name, uenv_t *cur_env)
     uenv->rev1 = HANDLER_INVALID;
     uenv->rev2 = HANDLER_INVALID;
 
-    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)sp_addr_top, ram_base, 1);
+    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)sp_addr_top - sizeof(void*), ram_base, 1);
     assert(msg_tag_get_prot(tag) >= 0);
 
     /*启动线程运行*/
     tag = thread_run(hd_thread, 2);
     assert(msg_tag_get_prot(tag) >= 0);
-
     // umword_t len;
     // thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
     // strcpy((char *)buf, "hello shell.\n");

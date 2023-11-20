@@ -76,6 +76,7 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
         return msg_tag_get_prot(tag);
     }
     stack = (char *)stack - MSG_BUG_LEN;
+    stack = (void *)(((umword_t)stack - sizeof(void *)) & (~(sizeof(void *) * 2 - 1)));
     umword_t *stack_tmp = (umword_t *)stack;
 
     // 设置调用参数等

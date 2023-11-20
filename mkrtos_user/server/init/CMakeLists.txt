@@ -9,10 +9,12 @@ target_link_libraries(init.elf
     PUBLIC
     start_init
     muslc
+    --whole-archive
     sys
     sys_util
     sys_svr
     cpio
+    --no-whole-archive
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(

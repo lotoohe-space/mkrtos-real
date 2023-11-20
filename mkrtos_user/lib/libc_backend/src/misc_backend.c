@@ -7,7 +7,8 @@
 #include "u_log.h"
 #include "u_thread.h"
 #include <pthread_impl.h>
-
+#include <errno.h>
+#include <u_sleep.h>
 long be_set_tid_address(int *val)
 {
     struct pthread *pt = pthread_self();
@@ -59,4 +60,51 @@ unsigned long get_thread_area(void)
 
     return i_msg->user[0];
 }
+long be_nanosleep(
+    const struct timespec *req,
+    struct timespec *rem)
+{
+    size_t ms;
 
+    if (req == NULL)
+    {
+        return -EFAULT;
+    }
+    if (req->tv_nsec < 0 || req->tv_nsec > 999999999 || req->tv_sec < 0)
+    {
+        return -EINVAL;
+    }
+    ms = (req->tv_sec * 1000) + (req->tv_nsec / 1000000);
+    u_sleep_ms(ms);
+    return 0;
+}
+long be_clock_nanosleep(clockid_t clock_id,
+                        long flags,
+                        const struct timespec *req,
+                        struct timespec *rem)
+{
+    size_t ms;
+
+    if (req == NULL)
+    {
+        return -EFAULT;
+    }
+    if (req->tv_nsec < 0 || req->tv_nsec > 999999999 || req->tv_sec < 0)
+    {
+        return -EINVAL;
+    }
+    ms = (req->tv_sec * 1000000) + (req->tv_nsec / 1000);
+    u_sleep_ms(ms);
+    return 0;
+}
+long sys_clock_nanosleep(va_list ap)
+{
+    clockid_t clock_id;
+    long flags;
+    const struct timespec *req;
+    struct timespec *rem;
+
+    ARG_4_BE(ap, clock_id, clockid_t, flags, long, req, const struct timespec *, rem, struct timespec *);
+
+    return be_clock_nanosleep(clock_id, flags, req, rem);
+}

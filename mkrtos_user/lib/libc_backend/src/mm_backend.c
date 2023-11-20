@@ -86,12 +86,17 @@ static void mm_page_free(int st, int nr)
 
 static int _sys_mmap2(void *start, size_t len, int prot, int flags, int fd, off_t _offset, umword_t *addr)
 {
+    assert(addr);
     if (fd >= 0)
     {
         return -ENOSYS;
     }
     len = ALIGN(len, PAGE_SIZE);
     *addr = (umword_t)mm_page_alloc(len / PAGE_SIZE);
+    if (*addr == 0)
+    {
+        return -ENOMEM;
+    }
     return 0;
 }
 umword_t be_mmap2(void *start,

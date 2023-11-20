@@ -209,7 +209,7 @@ struct start_args
 	volatile int control;
 	unsigned long sig_mask[_NSIG / 8 / sizeof(long)];
 	void *tp;
-	void *none;
+	// void *none;
 };
 #ifndef NO_LITTLE_MODE
 #include "syscall_backend.h"
@@ -386,7 +386,7 @@ int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict att
 	/* Setup argument structure for the new thread on its stack.
 	 * It's safe to access from the caller only until the thread
 	 * list is unlocked. */
-	stack -= (uintptr_t)stack % sizeof(uintptr_t);
+	stack -= (uintptr_t)stack % (sizeof(uintptr_t) << 1);
 	stack -= sizeof(struct start_args);
 	struct start_args *args = (void *)stack;
 	args->start_func = entry;

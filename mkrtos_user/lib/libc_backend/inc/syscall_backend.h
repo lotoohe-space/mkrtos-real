@@ -27,6 +27,15 @@
         arg2 = (type2)va_arg(ap, long);                     \
     } while (0)
 
+#define ARG_4_BE(ap, arg0, type0, arg1, type1, arg2, type2, arg3, type3) \
+    do                                                                   \
+    {                                                                    \
+        arg0 = (type0)va_arg(ap, long);                                  \
+        arg1 = (type1)va_arg(ap, long);                                  \
+        arg2 = (type2)va_arg(ap, long);                                  \
+        arg3 = (type3)va_arg(ap, long);                                  \
+    } while (0)
+
 #define ARG_6_BE(ap, arg0, type0, arg1, type1, arg2, type2, arg3, type3, arg4, type4, arg5, type5) \
     do                                                                                             \
     {                                                                                              \

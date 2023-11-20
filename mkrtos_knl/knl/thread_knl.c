@@ -84,7 +84,7 @@ static void knl_init_2(void)
             assert(obj_map_root(kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, i)));
         }
     }
-    init_thread->sche.prio = 3;
+    init_thread->sche.prio = 2;
     thread_ready(init_thread, FALSE);
 }
 INIT_STAGE2(knl_init_2);

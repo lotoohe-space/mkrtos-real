@@ -39,9 +39,9 @@ add_executable(
 target_link_libraries(
     rtthread_drv.elf
     PUBLIC
-    start
     muslc
     --whole-archive
+    start
     sys
     sys_util
     sys_svr
