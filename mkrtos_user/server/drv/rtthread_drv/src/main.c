@@ -4,14 +4,16 @@
 #include <u_drv.h>
 #include <stdio.h>
 #include <syscall_backend.h>
-
+#include <rtthread_inter.h>
 /* defined the LED0 pin: PC0 */
 #define LED0_PIN GET_PIN(C, 0)
 extern void rt_hw_board_init(void);
 extern int dfs_init(void);
+static struct rt_thread main_rtt;
 int main(void)
 {
     printf("test\n");
+    rt_thread_bind_mkrtos(&main_rtt);
     /* init board */
     rt_hw_board_init();
     dfs_init();

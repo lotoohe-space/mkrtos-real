@@ -12,6 +12,8 @@ include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/
     ${CMAKE_CURRENT_LIST_DIR}/inc
     ${CMAKE_CURRENT_LIST_DIR}/components/drivers/include
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util/inc
+
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/rtthread_drv/bsp/stm32/stm32f103-onenet-nbiot/board
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/rtthread_drv/bsp/stm32/libraries/STM32F1xx_HAL/CMSIS/Device/ST/STM32F1xx/Include
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/rtthread_drv/bsp/stm32/libraries/HAL_Drivers

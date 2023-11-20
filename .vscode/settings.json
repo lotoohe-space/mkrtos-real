@@ -247,7 +247,8 @@
         "limits.h": "c",
         "ctime": "c",
         "pthread_impl.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "u_thread_util.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

@@ -7,6 +7,10 @@
 #include <u_task.h>
 #include <u_hd_man.h>
 #include <u_thread_util.h>
+void u_thread_del(obj_handler_t th_hd)
+{
+    task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th_hd));
+}
 int u_thread_create(obj_handler_t *th_hd, void *stack, umword_t stack_size, void *msg_buf, void (*thread_func)(void), int prio)
 {
     assert(th_hd);
@@ -31,7 +35,7 @@ int u_thread_create(obj_handler_t *th_hd, void *stack, umword_t stack_size, void
         handler_free_umap(th1_hd);
         return msg_tag_get_prot(tag);
     }
-    tag = thread_exec_regs(th1_hd, (umword_t)thread_func, (umword_t)stack + stack_size, RAM_BASE(), 0);
+    tag = thread_exec_regs(th1_hd, (umword_t)thread_func, (umword_t)stack + stack_size - sizeof(void *), RAM_BASE(), 0);
     if (msg_tag_get_prot(tag) < 0)
     {
         handler_free_umap(th1_hd);
