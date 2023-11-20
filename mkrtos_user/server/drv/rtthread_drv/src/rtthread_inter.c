@@ -57,6 +57,8 @@ rt_err_t rt_thread_yield(void)
     return 0;
 }
 static umword_t intr_status = 0;
+static bool_t to_suspend;
+static bool_t to_run;
 rt_base_t rt_hw_interrupt_disable(void)
 {
     rt_base_t old = intr_status;
@@ -72,7 +74,31 @@ rt_base_t rt_hw_interrupt_disable(void)
 }
 void rt_hw_interrupt_enable(rt_base_t level)
 {
+    rt_thread_t thread;
+
+    thread = rt_thread_self();
+    if (level == 0)
+    {
+        if (to_run)
+        {
+            to_run = 0;
+            pthread_mutex_unlock(&thread->suspend_lock);
+            u_sleep_ms(1);
+            pthread_mutex_lock(&thread->suspend_lock);
+        }
+    }
     intr_status = level;
+    if (level == 0)
+    {
+
+        if (to_suspend)
+        {
+            thread->stat = RT_THREAD_SUSPEND;
+            to_suspend = 0;
+            pthread_mutex_lock(&thread->suspend_lock);
+            thread->stat = 0;
+        }
+    }
 }
 rt_bool_t rt_hw_interrupt_is_disabled(void)
 {
@@ -113,32 +139,81 @@ rt_err_t rt_thread_bind_mkrtos(rt_thread_t th)
     th->tlist.next = th->tlist.prev = &th->tlist;
     th->stat = 0;
 
-    thread_msg_buf_get(-1, (umword_t *)(&i_msg), NULL);
+    thread_msg_buf_get(pthread_hd_get(th->th), (umword_t *)(&i_msg), NULL);
     i_msg->user[1] = (umword_t)th;
+}
+rt_err_t rt_thread_init(struct rt_thread *thread,
+                        const char *name,
+                        void (*entry)(void *parameter),
+                        void *parameter,
+                        void *stack_start,
+                        rt_uint32_t stack_size,
+                        rt_uint8_t priority,
+                        rt_uint32_t tick)
+{
+    pthread_attr_t attr;
+
+    pthread_attr_init(&attr);
+    pthread_attr_setstack(&attr, stack_start, stack_size);
+    pthread_attr_set_flag(&attr, PTHREAD_DONT_RUN);
+    int ret = pthread_create(&thread->th, &attr, (void *(*)(void *))entry, NULL);
+
+    if (ret >= 0)
+    {
+        rt_thread_bind_mkrtos(thread);
+    }
+    return ret;
+}
+rt_err_t rt_thread_startup(rt_thread_t thread)
+{
+    printf("[drv]%s:%d\n", __func__, __LINE__);
+    thread_run(pthread_hd_get(thread->th), 2);
+    return 0;
 }
 rt_err_t rt_thread_suspend_with_flag(rt_thread_t thread, int suspend_flag)
 {
     //! 这里锁两次，第二次加锁将会导致挂起
-    printf("[drv]%s:%d\n", __func__, __LINE__);
-    thread->stat = RT_THREAD_SUSPEND;
-    pthread_mutex_lock(&thread->suspend_lock);
-    thread->stat = 0;
+    if (!rt_hw_interrupt_is_disabled())
+    {
+        printf("[drv]%s:%d\n", __func__, __LINE__);
+        thread->stat = RT_THREAD_SUSPEND;
+        pthread_mutex_lock(&thread->suspend_lock);
+        thread->stat = 0;
+    }
+    else
+    {
+        to_suspend = 1;
+    }
     return 0;
 }
 rt_err_t rt_thread_suspend(rt_thread_t thread)
 {
     //! 这里锁两次，第二次加锁将会导致挂起
-    printf("[drv]%s:%d\n", __func__, __LINE__);
-    thread->stat = RT_THREAD_SUSPEND;
-    pthread_mutex_lock(&thread->suspend_lock);
-    thread->stat = 0;
+    if (!rt_hw_interrupt_is_disabled())
+    {
+        printf("[drv]%s:%d\n", __func__, __LINE__);
+        thread->stat = RT_THREAD_SUSPEND;
+        pthread_mutex_lock(&thread->suspend_lock);
+        thread->stat = 0;
+    }
+    else
+    {
+        to_suspend = 1;
+    }
     return 0;
 }
 rt_err_t rt_thread_resume(rt_thread_t thread)
 {
-    pthread_mutex_unlock(&thread->suspend_lock);
-    pthread_mutex_lock(&thread->suspend_lock);
-    printf("[drv]%s:%d\n", __func__, __LINE__);
+    if (!rt_hw_interrupt_is_disabled())
+    {
+        pthread_mutex_unlock(&thread->suspend_lock);
+        pthread_mutex_lock(&thread->suspend_lock);
+        printf("[drv]%s:%d\n", __func__, __LINE__);
+    }
+    else
+    {
+        to_run = 1;
+    }
     return 0;
 }
 

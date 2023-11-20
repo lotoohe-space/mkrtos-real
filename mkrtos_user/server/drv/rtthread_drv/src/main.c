@@ -14,13 +14,16 @@ static struct rt_thread main_rtt;
 int main(void)
 {
     printf("test\n");
+    main_rtt.th = pthread_self();
     rt_thread_bind_mkrtos(&main_rtt);
     /* init board */
     rt_hw_board_init();
     dfs_init();
 
+#if 0
     rtthread_drv_test();
-
+#endif
+    completion_sample();
     /* set LED0 pin mode to output */
     rt_pin_mode(LED0_PIN, PIN_MODE_OUTPUT);
 

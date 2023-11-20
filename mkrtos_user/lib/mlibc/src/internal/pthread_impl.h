@@ -88,6 +88,7 @@ enum
 #define _a_sched __u.__i[3 * __SU + 1]
 #define _a_policy __u.__i[3 * __SU + 2]
 #define _a_prio __u.__i[3 * __SU + 3]
+#define _a_flag __u.__i[9]
 #define _m_type __u.__i[0]
 #define _m_lock __u.__vi[1]
 #define _m_waiters __u.__vi[2]

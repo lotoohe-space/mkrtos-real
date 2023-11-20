@@ -75,8 +75,11 @@ extern "C" {
 
 
 #define PTHREAD_NULL ((pthread_t)0)
+#define PTHREAD_DONT_RUN 0x1
 
+#include <u_types.h>
 
+obj_handler_t pthread_hd_get(pthread_t th);
 int pthread_create(pthread_t *__restrict, const pthread_attr_t *__restrict, void *(*)(void *), void *__restrict);
 int pthread_detach(pthread_t);
 _Noreturn void pthread_exit(void *);
@@ -149,6 +152,7 @@ int pthread_setspecific(pthread_key_t, const void *);
 int pthread_attr_init(pthread_attr_t *);
 int pthread_attr_destroy(pthread_attr_t *);
 
+int pthread_attr_set_flag(pthread_attr_t *a, int flag);
 int pthread_attr_getguardsize(const pthread_attr_t *__restrict, size_t *__restrict);
 int pthread_attr_setguardsize(pthread_attr_t *, size_t);
 int pthread_attr_getstacksize(const pthread_attr_t *__restrict, size_t *__restrict);

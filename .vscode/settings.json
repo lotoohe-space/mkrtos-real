@@ -248,7 +248,10 @@
         "ctime": "c",
         "pthread_impl.h": "c",
         "time.h": "c",
-        "u_thread_util.h": "c"
+        "u_thread_util.h": "c",
+        "__mutex_base": "c",
+        "mutex": "c",
+        "__threading_support": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

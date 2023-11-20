@@ -43,7 +43,15 @@ int pthread_get(void)
 {
     return pthread_cnt;
 }
-
+struct start_args
+{
+    void *(*start_func)(void *);
+    void *start_arg;
+    volatile int control;
+    unsigned long sig_mask[_NSIG / 8 / sizeof(long)];
+    void *tp;
+    int start_flag;
+};
 extern void __pthread_new_thread_entry__(void);
 int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *ptid, void *tls, pid_t *ctid)
 {
@@ -54,6 +62,7 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
     msg_tag_t tag;
     obj_handler_t th1_hd;
     struct pthread *ph;
+    struct start_args *st_args = args;
 
     ph = (struct pthread *)((char *)tls - sizeof(struct pthread));
 
@@ -100,7 +109,10 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
     ph->ctid = (umword_t)ctid;
     *ptid = th1_hd;
     pthread_cnt_inc();
-    thread_run(th1_hd, 2); // 优先级默认为2
+    if (!(st_args->start_flag & PTHREAD_DONT_RUN))
+    {
+        thread_run(th1_hd, 2); // 优先级默认为2
+    }
 
     return 0;
 }

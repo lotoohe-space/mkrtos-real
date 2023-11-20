@@ -209,7 +209,7 @@ struct start_args
 	volatile int control;
 	unsigned long sig_mask[_NSIG / 8 / sizeof(long)];
 	void *tp;
-	// void *none;
+	int start_flag;
 };
 #ifndef NO_LITTLE_MODE
 #include "syscall_backend.h"
@@ -393,6 +393,7 @@ int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict att
 	args->start_arg = arg;
 	args->tp = TP_ADJ(new);
 	args->control = attr._a_sched ? 1 : 0;
+	args->start_flag = attr._a_flag;
 
 	/* Application signals (but not the synccall signal) must be
 	 * blocked before the thread list lock can be taken, to ensure
