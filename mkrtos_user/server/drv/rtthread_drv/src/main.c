@@ -6,6 +6,9 @@
 #include <syscall_backend.h>
 #include <rtthread_inter.h>
 #include <test.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <assert.h>
 /* defined the LED0 pin: PC0 */
 #define LED0_PIN GET_PIN(C, 0)
 extern void rt_hw_board_init(void);
@@ -22,8 +25,10 @@ int main(void)
 
 #if 0
     completion_sample();
-#endif
     rtthread_drv_test();
+#endif
+    dfs_test();
+
     /* set LED0 pin mode to output */
     rt_pin_mode(LED0_PIN, PIN_MODE_OUTPUT);
 

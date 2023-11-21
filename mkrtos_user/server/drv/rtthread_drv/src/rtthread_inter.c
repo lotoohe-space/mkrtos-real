@@ -482,11 +482,11 @@ rt_err_t rt_timer_control(rt_timer_t timer, int cmd, void *arg)
 }
 rt_tick_t rt_timer_next_timeout_tick(void)
 {
-    pthread_spin_lock(&timer_lock);
     umword_t sys_tick;
     int min = INT32_MAX;
 
     sys_tick = sys_read_tick();
+    pthread_spin_lock(&timer_lock);
     for (int i = 0; i < TIMER_LIST_NR; i++)
     {
         if (timer_list[i] &&

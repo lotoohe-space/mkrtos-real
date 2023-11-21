@@ -60,7 +60,7 @@ void init_uart5(u32 baudRate)
     assert(irq_obj != HANDLER_INVALID);
     msg_tag_t tag = factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, irq_obj));
     assert(msg_tag_get_val(tag) >= 0);
-    uirq_bind(irq_obj, UART5_IRQn, (1 << 16) | 1);
+    uirq_bind(irq_obj, UART5_IRQn, u_irq_prio_create(1, 1));
 
     int ret = thread_create(IRQ_THREAD_PRIO, UART5_IRQHandler, (umword_t)(stack0 + STACK_SIZE), NULL);
     assert(ret >= 0);
