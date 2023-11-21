@@ -13,8 +13,7 @@
 /* 完成量控制块 */
 static struct rt_completion completion;
 
-__attribute__((aligned(RT_ALIGN_SIZE)))
-static char thread1_stack[2048];
+__attribute__((aligned(RT_ALIGN_SIZE))) static char thread1_stack[2048];
 static struct rt_thread thread1;
 
 /* 线程 1 入口函数 */
@@ -27,8 +26,7 @@ static void thread1_completion_wait(void *param)
     rt_kprintf("thread1 leave.\n");
 }
 
-__attribute__((aligned(RT_ALIGN_SIZE)))
-static char thread2_stack[2048];
+__attribute__((aligned(RT_ALIGN_SIZE))) static char thread2_stack[2048];
 static struct rt_thread thread2;
 
 /* 线程 2 入口 */

@@ -60,6 +60,8 @@ void rtthread_drv_test(void)
 
     assert(rt_thread_self != 0);
 
+    
+
 #if 0
     rt_thread_resume(rt_thread_self());
     rt_thread_suspend(rt_thread_self());

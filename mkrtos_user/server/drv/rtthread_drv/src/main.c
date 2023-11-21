@@ -21,9 +21,9 @@ int main(void)
     dfs_init();
 
 #if 0
-    rtthread_drv_test();
-#endif
     completion_sample();
+#endif
+    rtthread_drv_test();
     /* set LED0 pin mode to output */
     rt_pin_mode(LED0_PIN, PIN_MODE_OUTPUT);
 

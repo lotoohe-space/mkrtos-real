@@ -36,8 +36,8 @@ int main(int argc, char *args[])
     thread_press_test();
     kobj_create_press_test();
     ipc_test();
-    pthread_lock_test();
     pthread_cond_lock_test();
+    pthread_lock_test();
 #endif
     uenv_t env = *u_get_global_env();
     obj_handler_t ipc_hd;

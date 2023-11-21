@@ -117,11 +117,11 @@ int app_load(const char *name, uenv_t *cur_env)
     {
         goto end_del_obj;
     }
-    // tag = task_map(hd_task, hd_ipc, hd_ipc, 0);
-    // if (msg_tag_get_prot(tag) < 0)
-    // {
-    //     goto end_del_obj;
-    // }
+    tag = task_map(hd_task, FUTEX_PROT, FUTEX_PROT, KOBJ_DELETE_RIGHT);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
     tag = task_map(hd_task, hd_thread, THREAD_MAIN, 0);
     if (msg_tag_get_prot(tag) < 0)
     {

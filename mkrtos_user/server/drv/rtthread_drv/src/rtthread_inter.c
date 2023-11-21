@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <u_thread.h>
 #include <u_ipc.h>
-
+#include <atomic.h>
 extern unsigned long get_thread_area(void);
 
 rt_weak void *rt_calloc(rt_size_t count, rt_size_t size)
@@ -57,34 +57,31 @@ rt_err_t rt_thread_yield(void)
     return 0;
 }
 static umword_t intr_status = 0;
-static bool_t to_suspend;
-static bool_t to_run;
+static rt_thread_t to_suspend;
+static rt_thread_t to_run;
 rt_base_t rt_hw_interrupt_disable(void)
 {
-    rt_base_t old = intr_status;
+    rt_base_t old;
+    unsigned long area = get_thread_area();
 
-    if (intr_status != 0)
+    if (intr_status == area)
     {
-        while (intr_status != get_thread_area())
-            ;
+        return intr_status;
     }
-    intr_status = get_thread_area();
+    while (old = a_cas((volatile int *)(&intr_status), 0, area))
+        ;
 
     return old;
 }
 void rt_hw_interrupt_enable(rt_base_t level)
 {
-    rt_thread_t thread;
-
-    thread = rt_thread_self();
     if (level == 0)
     {
         if (to_run)
         {
+            rt_thread_t tmp = to_run;
             to_run = 0;
-            pthread_mutex_unlock(&thread->suspend_lock);
-            u_sleep_ms(1);
-            pthread_mutex_lock(&thread->suspend_lock);
+            pthread_mutex_unlock(&tmp->suspend_lock);
         }
     }
     intr_status = level;
@@ -93,10 +90,12 @@ void rt_hw_interrupt_enable(rt_base_t level)
 
         if (to_suspend)
         {
-            thread->stat = RT_THREAD_SUSPEND;
+            rt_thread_t tmp = to_suspend;
+
+            tmp->stat = RT_THREAD_SUSPEND;
             to_suspend = 0;
-            pthread_mutex_lock(&thread->suspend_lock);
-            thread->stat = 0;
+            pthread_mutex_lock(&tmp->suspend_lock);
+            tmp->stat = 0;
         }
     }
 }
@@ -182,7 +181,7 @@ rt_err_t rt_thread_suspend_with_flag(rt_thread_t thread, int suspend_flag)
     }
     else
     {
-        to_suspend = 1;
+        to_suspend = thread;
     }
     return 0;
 }
@@ -198,7 +197,7 @@ rt_err_t rt_thread_suspend(rt_thread_t thread)
     }
     else
     {
-        to_suspend = 1;
+        to_suspend = thread;
     }
     return 0;
 }
@@ -207,12 +206,11 @@ rt_err_t rt_thread_resume(rt_thread_t thread)
     if (!rt_hw_interrupt_is_disabled())
     {
         pthread_mutex_unlock(&thread->suspend_lock);
-        pthread_mutex_lock(&thread->suspend_lock);
         printf("[drv]%s:%d\n", __func__, __LINE__);
     }
     else
     {
-        to_run = 1;
+        to_run = thread;
     }
     return 0;
 }
