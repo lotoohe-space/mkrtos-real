@@ -11,6 +11,7 @@ export BOOTFS_ADDR_OFFSET=0x20000
 export KNL_TEXT=0x8000000
 export KNL_DATA=0x20000000
 export KNL_DATA_SIZE=64K
+export ARCH=cortex-m3
 export BOARD=STM32F1x
 
 set -e
