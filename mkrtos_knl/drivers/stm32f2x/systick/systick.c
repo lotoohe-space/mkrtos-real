@@ -15,6 +15,7 @@ void SysTick_Handler(void)
     // 进行上下文切换
     thread_sched();
     sys_tick_cnt++;
+    thread_timeout_check(1);
     timeout_times_tick();
     futex_timeout_times_tick();
 }

@@ -1,6 +1,7 @@
 #include "u_prot.h"
 #include "u_types.h"
 #include "u_thread.h"
+#include "u_ipc.h"
 enum thread_op
 {
     SET_EXEC_REGS,
@@ -9,7 +10,80 @@ enum thread_op
     MSG_BUG_GET,
     MSG_BUG_SET,
     YIELD,
+    DO_IPC,
 };
+enum IPC_TYPE
+{
+    IPC_CALL,
+    IPC_REPLY,
+    IPC_WAIT,
+    IPC_RECV,
+    IPC_SEND,
+};
+msg_tag_t thread_ipc_wait(void)
+{
+    register volatile umword_t r0 asm("r0");
+    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, -1, TRUE).raw,
+               0,
+               IPC_WAIT,
+               0,
+               0,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
+    return msg_tag_init(r0);
+}
+msg_tag_t thread_ipc_reply(msg_tag_t in_tag, ipc_timeout_t timeout)
+{
+    register volatile umword_t r0 asm("r0");
+    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, -1, TRUE).raw,
+               in_tag.raw,
+               IPC_REPLY,
+               0,
+               timeout.raw,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
+    return msg_tag_init(r0);
+}
+msg_tag_t thread_ipc_send(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout)
+{
+    register volatile umword_t r0 asm("r0");
+    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, -1, TRUE).raw,
+               in_tag.raw,
+               IPC_SEND,
+               target_th_obj,
+               timeout.raw,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
+    return msg_tag_init(r0);
+}
+msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout)
+{
+    register volatile umword_t r0 asm("r0");
+    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, -1, TRUE).raw,
+               in_tag.raw,
+               IPC_CALL,
+               target_th_obj,
+               timeout.raw,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : "r0");
+    return msg_tag_init(r0);
+}
 msg_tag_t thread_yield(obj_handler_t obj)
 {
     register volatile umword_t r0 asm("r0");

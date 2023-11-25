@@ -2,13 +2,18 @@
 
 #include "u_types.h"
 #include "u_prot.h"
-
+#include "u_ipc.h"
 msg_tag_t thread_yield(obj_handler_t obj);
 msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg);
 msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len);
 msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t ram, umword_t cp_stack);
 msg_tag_t thread_run(obj_handler_t obj, uint8_t prio);
 msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj);
+
+msg_tag_t thread_ipc_wait(void);
+msg_tag_t thread_ipc_reply(msg_tag_t in_tag, ipc_timeout_t timeout);
+msg_tag_t thread_ipc_send(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
+msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
 
 #define thread_get_cur_ipc_msg()                \
     (                                           \

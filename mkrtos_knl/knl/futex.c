@@ -445,7 +445,7 @@ static void futex_release_stage2(kobject_t *kobj)
 }
 static void futex_init(futex_t *ft)
 {
-    kobject_init(&ft->kobj, IPC_TYPE);
+    kobject_init(&ft->kobj, FUTEX_TYPE);
     spinlock_init(&ft->lock);
     ft->kobj.invoke_func = futex_syscall;
     ft->kobj.stage_1_func = futex_release_stage1;

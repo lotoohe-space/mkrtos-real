@@ -23,6 +23,18 @@
 #include "thread_armv7m.h"
 #include "assert.h"
 #include "err.h"
+#include "map.h"
+enum thread_op
+{
+    SET_EXEC_REGS,
+    RUN_THREAD,
+    BIND_TASK,
+    MSG_BUG_GET,
+    MSG_BUG_SET,
+    YIELD,
+    DO_IPC,
+};
+
 static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f);
 static bool_t thread_put(kobject_t *kobj);
 static void thread_release_stage1(kobject_t *kobj);
@@ -36,7 +48,8 @@ void thread_init(thread_t *th, ram_limit_t *lim)
 {
     kobject_init(&th->kobj, THREAD_TYPE);
     sched_init(&th->sche);
-    // slist_init(&th->wait);
+    slist_init(&th->wait_send);
+    slist_init(&th->wait_head);
     ref_counter_init(&th->ref);
     ref_counter_inc(&th->ref);
     th->lim = lim;
@@ -58,30 +71,28 @@ static void thread_release_stage1(kobject_t *kobj)
     thread_t *cur = thread_get_current();
     kobject_invalidate(kobj);
 
-    if (cur == th)
+    if (cur != th)
     {
-        if (th->status == THREAD_READY || th->status == THREAD_TODEAD)
+        //! 线程在运行中，则挂起线程
+        if (th->status == THREAD_READY)
         {
-            thread_dead(th);
+            thread_suspend(th);
         }
     }
-    else
-    {
-        if (th->status == THREAD_TODEAD) //!< 如果在TODEAD状态则等待其死亡
-        {
-            while (th->status != THREAD_DEAD)
-            {
-                //!< 循环等待其死亡
-                thread_sched();
-                preemption();
-            }
-        }
-        else if (th->status == THREAD_READY)
-        {
-            thread_dead(th);
-        }
-    }
+    thread_t *pos;
 
+    slist_foreach_not_next(pos, &th->wait_head, wait_send)
+    {
+        assert(pos->status == THREAD_SUSPEND);
+        thread_t *next = slist_next_entry(pos, &th->wait_head, wait_send);
+
+        pos->ipc_status = THREAD_IPC_ABORT;
+        thread_ready(pos, TRUE);
+
+        slist_del(&pos->wait_send);
+        pos = next;
+    }
+    slist_del(&th->wait_send); //!< 从链表中删除
     thread_unbind(th);
 }
 static void thread_release_stage2(kobject_t *kobj)
@@ -243,15 +254,346 @@ thread_t *thread_create(ram_limit_t *ram)
     printk("create thread 0x%x\n", th);
     return th;
 }
-enum thread_op
+enum IPC_TYPE
 {
-    SET_EXEC_REGS,
-    RUN_THREAD,
-    BIND_TASK,
-    MSG_BUG_GET,
-    MSG_BUG_SET,
-    YIELD,
+    IPC_CALL,
+    IPC_REPLY,
+    IPC_WAIT,
+    IPC_RECV,
+    IPC_SEND,
 };
+void thread_timeout_check(ssize_t tick)
+{
+    thread_t *pos;
+    thread_t *th = thread_get_current();
+
+    slist_foreach_not_next(pos, &th->wait_head, wait_send)
+    {
+        assert(pos->status == THREAD_SUSPEND);
+        thread_t *next = slist_next_entry(pos, &th->wait_head, wait_send);
+
+        if (pos->ipc_times > 0)
+        {
+            pos->ipc_times -= tick;
+            if (pos->ipc_times <= 0)
+            {
+                pos->ipc_status = THREAD_TIMEOUT;
+                thread_ready(pos, TRUE);
+
+                slist_del(&pos->wait_send);
+            }
+        }
+        pos = next;
+    }
+}
+/**
+ * @brief ipc传输时的数据拷贝
+ *
+ * @param dst_th
+ * @param src_th
+ * @param tag
+ * @return int
+ */
+static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
+{
+    void *src = src_th->msg.msg;
+    void *dst = dst_th->msg.msg;
+    ipc_msg_t *src_ipc;
+    ipc_msg_t *dst_ipc;
+
+    src_ipc = src;
+    dst_ipc = dst;
+
+    if (tag.map_buf_len > 0)
+    {
+        kobj_del_list_t del;
+        int map_len = tag.map_buf_len;
+
+        kobj_del_list_init(&del);
+        task_t *src_tk = thread_get_bind_task(src_th);
+        task_t *dst_tk = thread_get_bind_task(dst_th);
+        for (int i = 0; i < map_len; i++)
+        {
+            int ret = 0;
+
+            vpage_t dst_page = vpage_create_raw(dst_ipc->map_buf[i]);
+            vpage_t src_page = vpage_create_raw(src_ipc->map_buf[i]);
+
+            if (src_page.flags & VPAGE_FLAGS_MAP)
+            {
+                ret = obj_map_src_dst(&dst_tk->obj_space, &src_tk->obj_space,
+                                      vpage_get_obj_handler(dst_page),
+                                      vpage_get_obj_handler(src_page),
+                                      dst_tk->lim,
+                                      vpage_get_attrs(src_page), &del);
+            }
+
+            if (ret < 0)
+            {
+                return ret;
+            }
+        }
+        kobj_del_list_to_do(&del);
+    }
+    memcpy(dst_ipc->msg_buf, src_ipc->msg_buf, MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
+    return 0;
+}
+
+/**
+ * @brief 当前线程接收数据
+ *
+ * @return int
+ */
+static int thread_ipc_recv(msg_tag_t *ret_msg)
+{
+    assert(ret_msg);
+    thread_t *cur_th = thread_get_current();
+    umword_t lock_status;
+
+    lock_status = cpulock_lock();
+    cur_th->ipc_status = THREAD_RECV; //!< 因为接收挂起
+
+    thread_suspend(cur_th); //!< 挂起
+    if (!slist_is_empty(&cur_th->wait_head))
+    {
+        slist_head_t *mslist = slist_first(&cur_th->wait_head);
+        thread_t *send_th = container_of(mslist, thread_t, wait_send);
+
+        slist_del(mslist); //!< 删除唤醒的线程
+        thread_ready(send_th, TRUE);
+    }
+    preemption(); //!< 进行调度
+    cur_th->ipc_status = THREAD_NONE;
+    *ret_msg = cur_th->msg.tag;
+    cpulock_set(lock_status);
+
+    return 0;
+}
+
+/**
+ * @brief 当前线程回复数据给上一次的发送者，回复完成后则释放上一次的接收者指针
+ *
+ * @param in_tag
+ * @return int
+ */
+static int thread_ipc_reply(msg_tag_t in_tag)
+{
+    thread_t *cur_th = thread_get_current();
+    umword_t status;
+
+    if (cur_th->last_send_th == NULL)
+    {
+        return -1;
+    }
+    status = cpulock_lock();
+    if (cur_th->last_send_th == NULL)
+    {
+        cpulock_set(status);
+        return -1;
+    }
+    assert(cur_th->last_send_th->status == THREAD_SUSPEND);
+    assert(cur_th->last_send_th->ipc_status == THREAD_RECV);
+    //!< 发送数据给上一次的发送者
+    int ret = ipc_data_copy(cur_th->last_send_th, cur_th, in_tag); //!< 拷贝数据
+
+    if (ret < 0)
+    {
+        cpulock_set(status);
+        return ret;
+    }
+    cur_th->last_send_th->msg.tag = in_tag;
+    thread_ready(cur_th->last_send_th, TRUE); //!< 直接唤醒接受者
+    ref_counter_dec_and_release(&cur_th->last_send_th->ref, &cur_th->last_send_th->kobj);
+    cur_th->last_send_th = NULL;
+    cpulock_set(status);
+    return ret;
+}
+static int thread_ipc_send(obj_handler_t target_th_hd, msg_tag_t in_tag, ipc_timeout_t timout)
+{
+    int ret = -EINVAL;
+    task_t *cur_task = thread_get_current_task();
+    thread_t *cur_th = thread_get_current();
+    mword_t lock_stats = spinlock_lock(&cur_task->kobj.lock);
+    thread_t *recv_kobj;
+
+    if (lock_stats < 0)
+    {
+        //!< 锁已经无效了
+        return -EACCES;
+    }
+    ref_counter_inc(&cur_task->ref_cn);
+    recv_kobj = (thread_t *)obj_space_lookup_kobj_cmp_type(&cur_task->obj_space, target_th_hd, THREAD_TYPE);
+    if (!recv_kobj) /*比较类型*/
+    {
+        return -ENOENT;
+    }
+again_check:
+    if (recv_kobj->status == THREAD_READY)
+    {
+        cur_th->ipc_status = THREAD_SEND; //!< 因为发送挂起
+        cur_th->ipc_times = timout.send_timeout;
+        thread_suspend(cur_th);                                      //!< 挂起
+        slist_add_append(&recv_kobj->wait_head, &cur_th->wait_send); //!< 放到等待队列中
+        preemption();                                                //!< 进行调度
+        if (cur_th->ipc_status == THREAD_IPC_ABORT)
+        {
+            ret = -ESHUTDOWN;
+            goto end;
+        }
+        else if (cur_th->ipc_status == THREAD_TIMEOUT)
+        {
+            ret = -EWTIMEDOUT;
+            goto end;
+        }
+        cur_th->ipc_status = THREAD_NONE;
+        goto again_check;
+    }
+    else if (recv_kobj->status == THREAD_SUSPEND && recv_kobj->ipc_status == THREAD_RECV)
+    {
+        //!< 开始发送数据
+        ret = ipc_data_copy(recv_kobj, cur_th, in_tag); //!< 拷贝数据
+        if (ret < 0)
+        {
+            //!< 拷贝失败
+            goto end;
+        }
+        thread_ready(recv_kobj, TRUE); //!< 直接唤醒接受者
+        preemption();                  //!< 进行调度
+    }
+    ret = 0;
+end:
+    spinlock_set(&cur_task->kobj.lock, lock_stats);
+    ref_counter_dec_and_release(&cur_task->ref_cn, &cur_task->kobj);
+    return ret;
+}
+static int thread_ipc_call(obj_handler_t target_th_hd, msg_tag_t in_tag, msg_tag_t *ret_tag, ipc_timeout_t timout)
+{
+    assert(ret_tag);
+    int ret = -EINVAL;
+    task_t *cur_task = thread_get_current_task();
+    thread_t *cur_th = thread_get_current();
+    thread_t *recv_kobj;
+    mword_t lock_stats = spinlock_lock(&cur_task->kobj.lock);
+
+    if (lock_stats < 0)
+    {
+        //!< 锁已经无效了
+        return -EACCES;
+    }
+    ref_counter_inc(&cur_task->ref_cn);
+    recv_kobj = (thread_t *)obj_space_lookup_kobj_cmp_type(&cur_task->obj_space, target_th_hd, THREAD_TYPE);
+    if (!recv_kobj) /*比较类型*/
+    {
+        ret = -ENOENT;
+        goto end;
+    }
+again_check:
+    if (recv_kobj->status == THREAD_READY)
+    {
+        cur_th->ipc_status = THREAD_SEND; //!< 因为发送挂起
+        cur_th->ipc_times = timout.send_timeout;
+        thread_suspend(cur_th);                                      //!< 挂起
+        slist_add_append(&recv_kobj->wait_head, &cur_th->wait_send); //!< 放到等待队列中
+        preemption();                                                //!< 进行调度
+        if (cur_th->ipc_status == THREAD_IPC_ABORT)
+        {
+            cur_th->ipc_status = THREAD_NONE;
+            ret = -ESHUTDOWN;
+            goto end;
+        }
+        else if (cur_th->ipc_status == THREAD_TIMEOUT)
+        {
+            ret = -EWTIMEDOUT;
+            goto end;
+        }
+        cur_th->ipc_status = THREAD_NONE;
+        goto again_check;
+    }
+    else if (recv_kobj->status == THREAD_SUSPEND && recv_kobj->ipc_status == THREAD_RECV)
+    {
+        //!< 开始发送数据
+        ret = ipc_data_copy(recv_kobj, cur_th, in_tag); //!< 拷贝数据
+        if (ret < 0)
+        {
+            //!< 拷贝失败
+            goto end;
+        }
+        recv_kobj->last_send_th = cur_th; //!< 设置接收者的上一次发送者是谁
+        ref_counter_inc(&cur_th->ref);    //!< 作为发送者增加一次引用
+        thread_ready(recv_kobj, TRUE);    //!< 直接唤醒接受者
+        thread_ipc_recv(ret_tag);         //!< 当前线程进行接收
+        preemption();                     //!< 进行调度
+    }
+    ret = 0;
+end:
+    spinlock_set(&cur_task->kobj.lock, lock_stats);
+    ref_counter_dec_and_release(&cur_task->ref_cn, &cur_task->kobj);
+    return ret;
+}
+/**
+ * @brief 执行ipc
+ *
+ * @param kobj
+ * @param in_tag
+ * @param f
+ * @return int
+ */
+static msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f)
+{
+    assert(kobj);
+    task_t *cur_task = thread_get_current_task();
+    thread_t *cur_th = thread_get_current();
+    umword_t ipc_type = f->r[1];
+    obj_handler_t th_hd = 0;
+    int ret = -EINVAL;
+
+    switch (ipc_type)
+    {
+    case IPC_CALL:
+    {
+        msg_tag_t in_tag = msg_tag_init(f->r[0]);
+        msg_tag_t recv_tag;
+        th_hd = f->r[2];
+        ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->r[3]);
+
+        ret = thread_ipc_call(th_hd, in_tag, &recv_tag, ipc_tm_out);
+        if (ret < 0)
+        {
+            return msg_tag_init4(0, 0, 0, ret);
+        }
+        return recv_tag;
+    }
+    case IPC_REPLY:
+    {
+        msg_tag_t in_tag = msg_tag_init(f->r[0]);
+
+        ret = thread_ipc_reply(in_tag);
+        return msg_tag_init4(0, 0, 0, ret);
+    }
+    case IPC_RECV:
+    case IPC_WAIT:
+    {
+        msg_tag_t ret_msg;
+
+        thread_ipc_recv(&ret_msg);
+        return ret_msg;
+    }
+    case IPC_SEND:
+    {
+        msg_tag_t in_tag = msg_tag_init(f->r[0]);
+        ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->r[3]);
+        th_hd = f->r[2];
+
+        ret = thread_ipc_send(th_hd, in_tag, ipc_tm_out);
+        return msg_tag_init4(0, 0, 0, ret);
+    }
+    default:
+        ret = -ENOSYS;
+        break;
+    }
+
+    return msg_tag_init4(0, 0, 0, ret);
+}
 static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
@@ -328,6 +670,11 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     {
         thread_sched();
         tag = msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
+    case DO_IPC:
+    {
+        tag = thread_do_ipc(&cur_th->kobj, f);
     }
     break;
     }

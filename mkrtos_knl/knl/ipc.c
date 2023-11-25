@@ -277,8 +277,8 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
 static msg_tag_t ipc_call(ipc_t *ipc, thread_t *th, entry_frame_t *f, msg_tag_t tag, ipc_timeout_t timeout)
 {
     umword_t status;
-    int ret = -1;
     msg_tag_t tmp_tag;
+    int ret = -1;
 
     assert(th != ipc->svr_th);
     status = spinlock_lock(&ipc->lock);

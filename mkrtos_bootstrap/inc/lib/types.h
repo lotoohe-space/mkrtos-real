@@ -15,11 +15,13 @@ typedef long long int64_t;
 typedef unsigned long umword_t;
 typedef unsigned short uhmword_t;
 typedef long mword_t;
+typedef short uhumword_t;
 
 typedef signed long int intptr_t;
 typedef unsigned long int uintptr_t;
 
 typedef umword_t size_t;
+typedef mword_t ssize_t;
 typedef umword_t ptr_t;
 typedef char bool_t;
 typedef unsigned long obj_addr_t;
