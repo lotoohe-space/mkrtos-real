@@ -8,7 +8,7 @@ void printf_test(void)
     float a = 1.1;
     float b = 1.2;
     float c = a + b;
-    // printf("%c %d %f\n", 'a', 1234, 1.1);
-    // c = c;
-    // printf("%c %d %lf\n", 'a', 1234, 1.1); 浮点打印有问题
+    printf("%c %d %f\n", 'a', 1234, 1.1);
+    c = c;
+    printf("%c %d %lf\n", 'a', 1234, 1.1);
 }

@@ -31,7 +31,8 @@ static void thread_test_func(void)
     umword_t len;
     thread_msg_buf_get(th1_hd, (umword_t *)(&buf), NULL);
     printf("thread_test_func.\n");
-    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th1_hd));
+    // task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th1_hd));
+    handler_free_umap(th1_hd);
     printf("Error\n");
 }
 static void thread_test_func2(void)
@@ -40,7 +41,8 @@ static void thread_test_func2(void)
     umword_t len;
     thread_msg_buf_get(th2_hd, (umword_t *)(&buf), NULL);
     printf("thread_test_func2.\n");
-    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
+    // task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
+    handler_free_umap(th2_hd);
     printf("Error\n");
 }
 

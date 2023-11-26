@@ -95,7 +95,9 @@ static void thread_release_stage1(kobject_t *kobj)
         {
             thread_suspend(th);
         }
-    }else {
+    }
+    else
+    {
         if (cur->status == THREAD_READY)
         {
             thread_suspend(th);
@@ -125,7 +127,10 @@ static void thread_release_stage1(kobject_t *kobj)
         slist_del(&pos->wait_node);
         pos = next;
     }
-    slist_del(&th->wait_node); //!< 从链表中删除
+    if (slist_in_list(&th->wait_node))
+    {
+        slist_del(&th->wait_node); //!< 从链表中删除
+    }
     thread_unbind(th);
 }
 static void thread_release_stage2(kobject_t *kobj)
@@ -724,6 +729,11 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     break;
     case RUN_THREAD:
     {
+        if (thread_get_bind_task(tag_th) == NULL)
+        {
+            tag = msg_tag_init4(0, 0, 0, -EACCES);
+            break;
+        }
         umword_t status = cpulock_lock();
         if (!slist_in_list(&tag_th->sche.node))
         {
