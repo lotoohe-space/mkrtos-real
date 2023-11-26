@@ -29,23 +29,21 @@ int main(int argc, char *args[])
     thread_test();
     thread_exit_test();
     map_test();
-    ipc_timeout_test();
     mm_test();
     app_test();
     mpu_test();
     thread_press_test();
     kobj_create_press_test();
-    ipc_test();
     pthread_cond_lock_test();
     pthread_lock_test();
+    u_sleep_ms(1000);
+    ipc_test();
+    ipc_obj_test();
 #endif
     uenv_t env = *u_get_global_env();
-    obj_handler_t ipc_hd;
-    int ret = rpc_creaite_bind_ipc(THREAD_MAIN, NULL, &ipc_hd);
-    assert(ret >= 0);
-    env.ns_hd = ipc_hd;
-    namespace_init(ipc_hd);
-    u_sleep_init();
+    env.ns_hd = namespace_init();
+    int ret;
+    ret = ret;
     // ret = app_load("mr_drv", &env);
     // if (ret < 0)
     // {
@@ -77,8 +75,5 @@ int main(int argc, char *args[])
 
     namespace_pre_alloc_map_fd();
     namespace_loop();
-    // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); // 删除当前task，以及申请得所有对象
-    // printf("exit init.\n");
-    // ulog_write_str(LOG_PROT, "app load fail.\n");
     return 0;
 }

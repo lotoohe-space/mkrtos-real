@@ -39,6 +39,7 @@ enum knl_obj_type
     MM_TYPE,
     FACTORY_TYPE,
     SYS_TYPE,
+    FUTEX_TYPE,
 };
 
 typedef struct kobject

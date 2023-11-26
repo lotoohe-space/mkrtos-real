@@ -96,33 +96,36 @@ void MemManage_Handler(void)
   if (SCB->CFSR & 128)
   {
     fault_addr = (addr_t)(SCB->MMFAR);
-    if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
-    {
-      goto end;
-    }
-    return;
+    // if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
+    // {
+    //   goto end;
+    // }
+    // return;
+    goto end;
   }
   if ((SCB->CFSR & 8))
   {
     printk("出栈错误\n");
-    fault_addr = arch_get_user_sp();
+    // fault_addr = arch_get_user_sp();
 
-    if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
-    {
-      goto end;
-    }
-    return;
+    // if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
+    // {
+    //   goto end;
+    // }
+    // return;
+    goto end;
   }
   if (SCB->CFSR & 16)
   {
     printk("压栈错误\n");
-    fault_addr = arch_get_user_sp();
+    // fault_addr = arch_get_user_sp();
 
-    if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
-    {
-      goto end;
-    }
-    return;
+    // if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
+    // {
+    //   goto end;
+    // }
+    // return;
+    goto end;
   }
   if (SCB->CFSR & 32)
   {

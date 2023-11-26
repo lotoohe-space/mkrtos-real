@@ -32,8 +32,8 @@
         RPC_CLI_MSG_TO_BUF_IN(rpc_type1, cli_type1, var1, dir1, (uint8_t *)msg_ipc->msg_buf, off);                                  \
         PRC_CLI_FILL_MAP_BUF(rpc_type1, cli_type1, var1, dir1, (uint8_t *)msg_ipc->map_buf, off_buf);                               \
         /*msg_tag_t tag = dispatch_test(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), 0), msg_ipc); */ \
-        msg_tag_t tag = ipc_call(hd, msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), 0),                                             \
-                                 ipc_timeout_create2(0, 0));                                                                        \
+        msg_tag_t tag = thread_ipc_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), 0), hd,          \
+                                        ipc_timeout_create2(0, 0));                                                                 \
                                                                                                                                     \
         if (msg_tag_get_val(tag) < 0)                                                                                               \
         {                                                                                                                           \

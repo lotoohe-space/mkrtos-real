@@ -65,7 +65,6 @@ int app_load(const char *name, uenv_t *cur_env)
     umword_t ram_base;
     obj_handler_t hd_task = handler_alloc();
     obj_handler_t hd_thread = handler_alloc();
-    // obj_handler_t hd_ipc = handler_alloc();
 
     if (hd_task == HANDLER_INVALID)
     {
@@ -75,10 +74,6 @@ int app_load(const char *name, uenv_t *cur_env)
     {
         goto end;
     }
-    // if (hd_ipc == HANDLER_INVALID)
-    // {
-    //     goto end;
-    // }
 
     tag = factory_create_task(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_task));
     if (msg_tag_get_prot(tag) < 0)
@@ -90,13 +85,6 @@ int app_load(const char *name, uenv_t *cur_env)
     {
         goto end_del_obj;
     }
-    // tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_ipc));
-    // if (msg_tag_get_prot(tag) < 0)
-    // {
-    //     goto end_del_obj;
-    // }
-    // printf("ipc hd is %d\n", hd_ipc);
-
     tag = task_alloc_ram_base(hd_task, app->i.ram_size, &ram_base);
     if (msg_tag_get_prot(tag) < 0)
     {
@@ -152,12 +140,6 @@ int app_load(const char *name, uenv_t *cur_env)
     {
         goto end_del_obj;
     }
-
-    // tag = ipc_bind(hd_ipc, hd_thread, 0);
-    // if (msg_tag_get_prot(tag) < 0)
-    // {
-    //     goto end_del_obj;
-    // }
     void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 
@@ -197,11 +179,6 @@ int app_load(const char *name, uenv_t *cur_env)
     /*启动线程运行*/
     tag = thread_run(hd_thread, 2);
     assert(msg_tag_get_prot(tag) >= 0);
-    // umword_t len;
-    // thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
-    // strcpy((char *)buf, "hello shell.\n");
-    // ipc_call(hd_ipc, msg_tag_init4(0, ROUND_UP(strlen((char *)buf), WORD_BYTES), 0, 0), ipc_timeout_create2(0, 0));
-    // printf("test ok\n");
     return 0;
 end_del_obj:
     if (hd_task != HANDLER_INVALID)

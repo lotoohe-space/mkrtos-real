@@ -9,10 +9,9 @@
 #include <errno.h>
 static fs_t fs;
 
-void fs_svr_init(obj_handler_t ipc)
+void fs_svr_init(void)
 {
     fs_init(&fs);
-    fs.ipc = ipc;
 }
 typedef struct file_desc
 {
@@ -308,5 +307,5 @@ int fs_svr_fstat(int fd, stat_t *stat)
 
 void fs_svr_loop(void)
 {
-    rpc_loop(fs.ipc, &fs.svr);
+    rpc_loop();
 }

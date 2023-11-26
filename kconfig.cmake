@@ -8,7 +8,7 @@ message(
   ${CMAKE_SOURCE_DIR}/build/auto.conf "\n"
   ${CMAKE_SOURCE_DIR}/build/autoconf.h "\n"
   ${CMAKE_SOURCE_DIR}/build/log.txt "\n"
-  ${CMAKE_SOURCE_DIR}/build/.config "\n"
+  ${CMAKE_SOURCE_DIR}/.config "\n"
   )
 
 execute_process(
@@ -19,7 +19,7 @@ execute_process(
   ${CMAKE_SOURCE_DIR}/build/auto.conf 
   ${CMAKE_SOURCE_DIR}/build/autoconf.h 
   ${CMAKE_SOURCE_DIR}/build/log.txt 
-  ${CMAKE_SOURCE_DIR}/build/.config 
+  ${CMAKE_SOURCE_DIR}/.config 
   
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   # The working directory is set to the app dir such that the user

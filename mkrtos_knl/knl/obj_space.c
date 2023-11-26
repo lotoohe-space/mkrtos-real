@@ -103,3 +103,17 @@ kobject_t *obj_space_lookup_kobj(obj_space_t *obj_space, obj_addr_t inx)
     }
     return obj_map_kobj_get(entry_obj->obj);
 }
+kobject_t *obj_space_lookup_kobj_cmp_type(obj_space_t *obj_space, obj_addr_t inx, enum knl_obj_type obj_type)
+{
+    kobject_t *kobj = obj_space_lookup_kobj(obj_space, inx);
+
+    if (!kobj)
+    {
+        return NULL;
+    }
+    if (kobj->kobj_type != obj_type)
+    {
+        return NULL;
+    }
+    return kobj;
+}

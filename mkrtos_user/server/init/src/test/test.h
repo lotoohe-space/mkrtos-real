@@ -11,7 +11,7 @@ void printf_test(void);
 void ipc_test(void);
 void thread_exit_test(void);
 void map_test(void);
-void ipc_timeout_test(void);
+void ipc_obj_test(void);
 void irq_test(void);
 void thread_press_test(void);
 void kobj_create_press_test(void);

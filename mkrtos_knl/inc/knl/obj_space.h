@@ -69,3 +69,4 @@ void obj_space_del(obj_space_t *obj_space, obj_addr_t inx);
 obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobject_t *kobj, obj_addr_t inx, uint8_t attrs);
 obj_map_entry_t *obj_space_lookup(obj_space_t *obj_space, obj_addr_t inx);
 kobject_t *obj_space_lookup_kobj(obj_space_t *obj_space, obj_addr_t inx);
+kobject_t *obj_space_lookup_kobj_cmp_type(obj_space_t *obj_space, obj_addr_t inx, enum knl_obj_type obj_type);

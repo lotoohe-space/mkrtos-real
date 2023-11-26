@@ -19,7 +19,7 @@ typedef struct region_info
 typedef struct mm_space
 {
     region_info_t pt_regions[REGION_NUM]; //!< mpu内存保护块
-    mm_pages_t mm_pages;                  //!< 模拟分页内存
+    // mm_pages_t mm_pages;                  //!< 模拟分页内存
     void *mm_block;                       //!< task 的私有内存块
     size_t mm_block_size;                 //!< 私有内存块的大小
 } mm_space_t;

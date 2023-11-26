@@ -2,12 +2,19 @@
 #include <mr_api.h>
 #include <drv_types.h>
 #include "drv_rpc.h"
+#include <assert.h>
 static drv_t drv;
+static obj_handler_t ipc_hd;
 
-void drv_svr_init(obj_handler_t ipc)
+obj_handler_t drv_svr_init(void)
 {
     drv_init(&drv);
-    drv.ipc = ipc;
+    int ret;
+    printf("mr drv init...\n");
+    ret = rpc_creaite_bind_ipc(THREAD_MAIN, &drv, &ipc_hd);
+    assert(ret >= 0);
+
+    return ipc_hd;
 }
 
 int dev_open(const char *name, uint32_t oflags)
@@ -41,5 +48,5 @@ int dev_ioctl(int desc, int cmd, void *args)
 
 void drv_svr_loop(void)
 {
-    rpc_loop(drv.ipc, &drv.svr);
+    rpc_loop();
 }
