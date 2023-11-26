@@ -45,9 +45,9 @@ int cli_ns_register(const char *name, obj_handler_t hd)
     ((char *)(&ipc_msg->msg_buf[2]))[IPC_MSG_SIZE - WORD_BYTES * 2 - 1] = 0;
 
     // 发送ipc
-    tag = ipc_call(u_get_global_env()->ns_hd,
-                   msg_tag_init4(0, 2 + ROUND_UP(len, WORD_BYTES), 1, 0),
-                   ipc_timeout_create2(0, 0));
+    tag = thread_ipc_call(
+        msg_tag_init4(0, 2 + ROUND_UP(len, WORD_BYTES), 1, 0), u_get_global_env()->ns_hd,
+        ipc_timeout_create2(0, 0));
     return msg_tag_get_val(tag);
 }
 int cli_ns_query(const char *name, obj_handler_t *ret_hd)
@@ -80,9 +80,9 @@ int cli_ns_query(const char *name, obj_handler_t *ret_hd)
     ((char *)(&ipc_msg->msg_buf[2]))[IPC_MSG_SIZE - WORD_BYTES * 2 - 1] = 0;
 
     // 发送ipc
-    tag = ipc_call(u_get_global_env()->ns_hd,
-                   msg_tag_init4(0, 2 + ROUND_UP(len, WORD_BYTES), 0, 0),
-                   ipc_timeout_create2(0, 0));
+    tag = thread_ipc_call(
+        msg_tag_init4(0, 2 + ROUND_UP(len, WORD_BYTES), 0, 0), u_get_global_env()->ns_hd,
+        ipc_timeout_create2(0, 0));
 
     if (msg_tag_get_val(tag) < 0)
     {

@@ -1,4 +1,4 @@
 #pragma once
 #include <u_types.h>
-void drv_svr_init(obj_handler_t ipc);
+obj_handler_t drv_svr_init(void);
 void drv_svr_loop(void);

@@ -20,20 +20,25 @@ enum IPC_TYPE
     IPC_RECV,
     IPC_SEND,
 };
-msg_tag_t thread_ipc_wait(void)
+msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj)
 {
     register volatile umword_t r0 asm("r0");
+    register volatile umword_t r1 asm("r1");
     mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, -1, TRUE).raw,
                0,
                IPC_WAIT,
                0,
-               0,
+               timeout.raw,
                0,
                0);
     asm __volatile__(""
                      :
                      :
-                     : "r0");
+                     : "r0", "r1");
+    if (obj)
+    {
+        *obj = r1;
+    }
     return msg_tag_init(r0);
 }
 msg_tag_t thread_ipc_reply(msg_tag_t in_tag, ipc_timeout_t timeout)
@@ -55,10 +60,10 @@ msg_tag_t thread_ipc_reply(msg_tag_t in_tag, ipc_timeout_t timeout)
 msg_tag_t thread_ipc_send(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout)
 {
     register volatile umword_t r0 asm("r0");
-    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, -1, TRUE).raw,
+    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, target_th_obj, TRUE).raw,
                in_tag.raw,
                IPC_SEND,
-               target_th_obj,
+               0,
                timeout.raw,
                0,
                0);
@@ -71,10 +76,10 @@ msg_tag_t thread_ipc_send(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_tim
 msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout)
 {
     register volatile umword_t r0 asm("r0");
-    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, -1, TRUE).raw,
+    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, target_th_obj, TRUE).raw,
                in_tag.raw,
                IPC_CALL,
-               target_th_obj,
+               0,
                timeout.raw,
                0,
                0);

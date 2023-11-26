@@ -114,6 +114,6 @@ void app_test(void)
     umword_t len;
     thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
     strcpy((char *)buf, "hello shell.\n");
-    ipc_call(hd_ipc, msg_tag_init4(0, ROUND_UP(strlen((char *)buf), WORD_BYTES), 0, 0), ipc_timeout_create2(0, 0));
+    thread_ipc_call(msg_tag_init4(0, ROUND_UP(strlen((char *)buf), WORD_BYTES), 0, 0), hd_ipc, ipc_timeout_create2(0, 0));
     printf("test ok\n");
 }

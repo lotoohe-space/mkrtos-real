@@ -6,7 +6,6 @@
 typedef struct fs
 {
     rpc_svr_obj_t svr;
-    obj_handler_t ipc;
 } fs_t;
 
 void fs_init(fs_t *fs);

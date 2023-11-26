@@ -49,28 +49,28 @@ int rpc_creaite_bind_ipc(obj_handler_t th, void *obj, obj_handler_t *ret_ipc_hd)
  * @param svr_obj
  * @param dispatch
  */
-void rpc_loop(obj_handler_t ipc_hd, rpc_svr_obj_t *svr_obj)
+void rpc_loop(void)
 {
     umword_t obj;
     msg_tag_t tag;
     umword_t buf;
     ipc_msg_t *msg;
-
-    assert(svr_obj);
+    rpc_svr_obj_t *svr_obj;
 
     thread_msg_buf_get(-1, &buf, NULL);
     msg = (ipc_msg_t *)buf;
     while (1)
     {
-        tag = ipc_wait(ipc_hd, &obj);
+        tag = thread_ipc_wait(ipc_timeout_create2(0, 0), &obj);
         if (msg_tag_get_val(tag) < 0)
         {
             continue;
         }
+        svr_obj = (rpc_svr_obj_t *)obj;
         if (svr_obj->dispatch)
         {
             tag = svr_obj->dispatch(svr_obj, tag, msg);
         }
-        ipc_reply(ipc_hd, tag);
+        thread_ipc_reply(tag, ipc_timeout_create2(0, 0));
     }
 }

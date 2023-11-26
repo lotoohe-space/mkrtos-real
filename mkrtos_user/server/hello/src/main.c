@@ -23,7 +23,6 @@ void drv_test(void)
 
 int main(int argc, char *args[])
 {
-    u_sleep_init();
     u_sleep_ms(100);
     // printf("Hello world.\n");
     ulog_write_str(u_get_global_env()->log_hd, "hello is runing...\n");

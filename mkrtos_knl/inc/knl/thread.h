@@ -127,10 +127,10 @@ typedef struct thread
     ref_counter_t ref; //!< 引用计数
 
     msg_buf_t msg;          //!< 每个线程独有的消息缓存区
-    slist_head_t wait_send; //!< 节点
-    slist_head_t wait_head; //!< 里面是等待发送给当前线程数据的线程们。
+    slist_head_t wait_node; //!< 节点
     mword_t ipc_times;      //!< ipc时间
     thread_t *last_send_th; //!< 当前线程上次接收到谁的数据
+    umword_t user_id;       //!< 接收到的user_id
 
     enum thread_state status;         //!< 线程状态
     enum thread_ipc_state ipc_status; //!< ipc状态
@@ -185,3 +185,4 @@ void thread_todead(thread_t *th, bool_t is_sche);
 void thread_ready(thread_t *th, bool_t is_sche);
 
 void thread_timeout_check(ssize_t tick);
+msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id);

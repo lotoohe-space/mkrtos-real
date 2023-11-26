@@ -1,7 +1,6 @@
 
 #include "arch.h"
 #include "thread.h"
-#include "ipc.h"
 #include "futex.h"
 static umword_t sys_tick_cnt;
 
@@ -16,6 +15,5 @@ void SysTick_Handler(void)
     thread_sched();
     sys_tick_cnt++;
     thread_timeout_check(1);
-    timeout_times_tick();
     futex_timeout_times_tick();
 }

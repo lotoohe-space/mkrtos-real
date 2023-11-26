@@ -19,5 +19,4 @@ typedef struct ns
     rpc_svr_obj_t svr;
     namespace_entry_t ne_list[NAMESAPCE_NR]; //!< 服务列表
     obj_handler_t hd;                        //!< 存储临时用于映射的hd
-    obj_handler_t ipc_hd;                    //!< 服务的ipc hd
 } ns_t;
