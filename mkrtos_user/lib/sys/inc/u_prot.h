@@ -84,7 +84,7 @@ typedef union vpage
     };
 } vpage_t;
 
-#define VPAGE_FLAGS_MAP 0x1 //!< 是否ipc时立刻映射
+#define VPAGE_FLAGS_MAP 0x1 //!< 是否ipc时立刻映射, 可以在ipc通信时忽略进行ipc，这样不会报错
 
 static inline vpage_t vpage_create_raw(umword_t raw)
 {

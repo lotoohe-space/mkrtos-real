@@ -4,7 +4,6 @@
 void mm_test(void);
 void ulog_test(void);
 void factory_test(void);
-void thread_test(void);
 void app_test(void);
 void mpu_test(void);
 void printf_test(void);
