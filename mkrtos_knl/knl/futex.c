@@ -24,6 +24,7 @@
 #include "string.h"
 #include "ipc.h"
 #include "err.h"
+#include "slist.h"
 #include <access.h>
 
 #define INT_MAX 0x7fffffff
@@ -59,15 +60,15 @@ struct timespec
  */
 typedef struct futex_lock
 {
-    uint32_t *uaddr;   //!< 锁的地址
-    futex_queue_t fqt; //!< 锁的等待队列
+    uint32_t *uaddr; //!< 锁的地址
+    slist_head_t thread_list_head;
+    size_t cnt;
 } futex_lock_t;
 
 typedef struct futex
 {
     kobject_t kobj;
     futex_lock_t fl_list[FT_ADDR_NR]; //!< 存储加锁的地址
-    spinlock_t lock;
 } futex_t;
 static futex_t futex_obj;
 static void futex_init(futex_t *ft);
@@ -75,7 +76,7 @@ typedef struct futex_wait_item
 {
     slist_head_t node;
     thread_t *th;
-    umword_t sleep_times;
+    mword_t sleep_times;
 } futex_wait_item_t;
 static slist_head_t wait_list;
 
@@ -96,23 +97,24 @@ void futex_timeout_times_tick(void)
 {
     futex_wait_item_t *item;
 
-    slist_foreach(item, &wait_list, node) //!< 第一次循环等待的ipc
+    slist_foreach_not_next(item, &wait_list, node) //!< 第一次循环等待的ipc
     {
+        futex_wait_item_t *next = slist_next_entry(item, &wait_list, node);
         if (item->sleep_times > 0)
         {
             if ((--item->sleep_times) == 0)
             {
+                slist_del(&item->node);
                 //!< 超时时间满后直接唤醒等待者
                 thread_ready(item->th, TRUE);
             }
         }
         else
         {
-            if (item->th->status == THREAD_SUSPEND)
-            {
-                thread_ready(item->th, TRUE);
-            }
+            slist_del(&item->node);
+            thread_ready(item->th, TRUE);
         }
+        item = next;
     }
 }
 static void futex_reg(void)
@@ -122,24 +124,41 @@ static void futex_reg(void)
 }
 INIT_KOBJ(futex_reg);
 
-static bool_t futex_find_thread(futex_queue_t *fq, thread_t *thread_hd)
+static bool_t futex_find_thread(futex_lock_t *flt, thread_t *thread_hd)
 {
-    int find = 0;
-    int len;
+    thread_t *pos;
 
-    len = fq_queue_len(fq);
-    for (int i = 0; i < len; i++)
+    slist_foreach(pos, &flt->thread_list_head, futex_node)
     {
-        umword_t out;
-
-        fq_dequeue(fq, &out);
-        if (out == (umword_t)thread_hd)
+        if (pos == thread_hd)
         {
-            find = 1;
+            return TRUE;
         }
-        fq_enqueue(fq, out);
     }
-    return find;
+    return FALSE;
+}
+static void futex_enqueue(futex_lock_t *flt, thread_t *th)
+{
+    slist_add_append(&flt->thread_list_head, &th->futex_node);
+    flt->cnt++;
+}
+static int futex_dequeue(futex_lock_t *flt, thread_t **th)
+{
+    assert(th);
+    if (slist_is_empty(&flt->thread_list_head))
+    {
+        return -1;
+    }
+    slist_head_t *first = slist_first(&flt->thread_list_head);
+    slist_del(first);
+    flt->cnt--;
+    *th = container_of(first, thread_t, futex_node);
+
+    return 0;
+}
+static size_t futex_cnt(futex_lock_t *flt)
+{
+    return flt->cnt;
 }
 /**
  * @brief 查找一个地址，如果已经有了，则加入等待，否则增加一个信息，并加入等待
@@ -157,9 +176,9 @@ static futex_lock_t *futex_set_addr(futex_t *ft, void *uaddr, thread_t *hd)
     {
         if (ft->fl_list[i].uaddr == uaddr)
         {
-            if (!futex_find_thread(&ft->fl_list[i].fqt, hd))
+            if (!futex_find_thread(&ft->fl_list[i], hd))
             {
-                fq_enqueue(&ft->fl_list[i].fqt, (umword_t)hd);
+                futex_enqueue(&ft->fl_list[i], hd);
             }
             return &ft->fl_list[i];
         }
@@ -171,7 +190,7 @@ static futex_lock_t *futex_set_addr(futex_t *ft, void *uaddr, thread_t *hd)
     if (empty_inx != -1)
     {
         ft->fl_list[empty_inx].uaddr = uaddr;
-        fq_enqueue(&ft->fl_list[empty_inx].fqt, (umword_t)hd);
+        futex_enqueue(&ft->fl_list[empty_inx], hd);
         return &ft->fl_list[empty_inx];
     }
     return NULL;
@@ -196,14 +215,14 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     futex_op = futex_op & 0x7f;
     umword_t status;
 
-    status = spinlock_lock(&fst->lock);
+    status = spinlock_lock(&fst->kobj.lock);
     switch (futex_op)
     {
     case FUTEX_REQUEUE:
     {
         if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
         {
-            spinlock_set(&fst->lock, status);
+            spinlock_set(&fst->kobj.lock, status);
             return -EACCES;
         }
         if (val3 == *uaddr)
@@ -214,47 +233,47 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
 
             if (flt)
             {
-                wake_cnt = val = INT_MAX ? fq_queue_len(&flt->fqt) : val;
+                wake_cnt = val = INT_MAX ? futex_cnt(flt) : val;
 
                 for (int i = 0; i < wake_cnt; i++)
                 {
                     thread_t *th;
-                    int ret = fq_dequeue(&flt->fqt, (umword_t *)&th);
+                    int ret = futex_dequeue(flt, &th);
 
                     if (ret != 0)
                     {
                         continue;
                     }
-                    if (fq_queue_len(&flt->fqt) == 0)
+                    if (futex_cnt(flt) == 0)
                     {
                         flt->uaddr = 0;
                     }
                     thread_ready(th, TRUE);
                 }
-                if (fq_queue_len(&flt->fqt) <= 0)
+                if (futex_cnt(flt) <= 0)
                 {
-                    spinlock_set(&fst->lock, status);
+                    spinlock_set(&fst->kobj.lock, status);
                     return wake_cnt;
                 }
-                int requeue_cn = fq_queue_len(&flt->fqt);
+                int requeue_cn = futex_cnt(flt);
                 rel_cnt = requeue_cn;
                 for (int i = 0; i < rel_cnt; i++)
                 {
                     thread_t *th;
-                    int ret = fq_dequeue(&flt->fqt, (umword_t *)&th);
+                    int ret = futex_dequeue(flt, &th);
 
                     if (ret != 0)
                     {
                         continue;
                     }
-                    if (fq_queue_len(&flt->fqt) == 0)
+                    if (futex_cnt(flt) == 0)
                     {
                         flt->uaddr = 0;
                     }
                     futex_set_addr(fst, (void *)uaddr2, th);
                 }
             }
-            spinlock_set(&fst->lock, status);
+            spinlock_set(&fst->kobj.lock, status);
             return wake_cnt;
         }
     }
@@ -263,16 +282,16 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     {
         if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
         {
-            spinlock_set(&fst->lock, status);
+            spinlock_set(&fst->kobj.lock, status);
             return -EACCES;
         }
-        if (val == *uaddr)
+        if (val == *uaddr) //!< 检查值是否时期望值
         {
-            ref_counter_inc(&cur_th->ref);
+            ref_counter_inc(&cur_th->ref); //!< 指定线程引用计数+1
             if (futex_set_addr(fst, uaddr, cur_th) == NULL)
             {
                 ref_counter_dec_and_release(&cur_th->ref, &cur_th->kobj);
-                spinlock_set(&fst->lock, status);
+                spinlock_set(&fst->kobj.lock, status);
                 return -ENOMEM;
             }
             if (timeout != 0)
@@ -287,12 +306,17 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
                 slist_add_append(&wait_list, &item.node);
                 thread_suspend(cur_th);
                 preemption();
-                slist_del(&item.node);
-                if (timeout <= 0)
+                if (item.sleep_times <= 0)
                 {
                     ref_counter_dec_and_release(&cur_th->ref, &cur_th->kobj);
-                    spinlock_set(&fst->lock, status);
+                    spinlock_set(&fst->kobj.lock, status);
                     return -ETIMEDOUT;
+                }
+                if (cur_th->ipc_status == THREAD_IPC_ABORT)
+                {
+                    cur_th->ipc_status = THREAD_NONE;
+                    spinlock_set(&fst->kobj.lock, status);
+                    return 0;
                 }
             }
             else
@@ -300,13 +324,19 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
                 // 一直等待
                 thread_suspend(cur_th);
                 preemption();
+                if (cur_th->ipc_status == THREAD_IPC_ABORT)
+                {
+                    cur_th->ipc_status = THREAD_NONE;
+                    spinlock_set(&fst->kobj.lock, status);
+                    return 0;
+                }
             }
 
             ref_counter_dec_and_release(&cur_th->ref, &cur_th->kobj);
         }
         else
         {
-            spinlock_set(&fst->lock, status);
+            spinlock_set(&fst->kobj.lock, status);
             return -EAGAIN;
         }
         break;
@@ -319,16 +349,16 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
 
         if (flt)
         {
-            rel_cnt = val = INT_MAX ? fq_queue_len(&flt->fqt) : val;
+            rel_cnt = val = INT_MAX ? futex_cnt(flt) : val;
 
             for (int i = 0; i < rel_cnt; i++)
             {
                 thread_t *th;
-                int ret = fq_dequeue(&flt->fqt, (umword_t *)(&th));
+                int ret = futex_dequeue(flt, (&th));
 
                 if (ret == 0)
                 {
-                    if (fq_queue_len(&flt->fqt) == 0)
+                    if (futex_cnt(flt) == 0)
                     {
                         flt->uaddr = 0;
                     }
@@ -336,7 +366,7 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
                 }
             }
         }
-        spinlock_set(&fst->lock, status);
+        spinlock_set(&fst->kobj.lock, status);
         return rel_cnt;
     }
     case FUTEX_UNLOCK_PI:
@@ -344,7 +374,7 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     {
         if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
         {
-            spinlock_set(&fst->lock, status);
+            spinlock_set(&fst->kobj.lock, status);
             return -EACCES;
         }
         futex_lock_t *flt = futex_find(fst, uaddr);
@@ -352,16 +382,16 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
 
         if (flt)
         {
-            rel_cnt = val = INT_MAX ? fq_queue_len(&flt->fqt) : val;
+            rel_cnt = val = INT_MAX ? futex_cnt(flt) : val;
 
             for (int i = 0; i < rel_cnt; i++)
             {
                 thread_t *th;
-                int ret = fq_dequeue(&flt->fqt, (umword_t *)(&th));
+                int ret = futex_dequeue(flt, (&th));
 
                 if (ret == 0)
                 {
-                    if (fq_queue_len(&flt->fqt) == 0)
+                    if (futex_cnt(flt) == 0)
                     {
                         flt->uaddr = 0;
                     }
@@ -370,14 +400,14 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
             }
         }
         *uaddr = 0;
-        spinlock_set(&fst->lock, status);
+        spinlock_set(&fst->kobj.lock, status);
         return rel_cnt;
     }
     case FUTEX_LOCK_PI:
     {
         if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
         {
-            spinlock_set(&fst->lock, status);
+            spinlock_set(&fst->kobj.lock, status);
             return -EACCES;
         }
         if (*uaddr = 0)
@@ -391,10 +421,10 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
         break;
     }
     default:
-        spinlock_set(&fst->lock, status);
+        spinlock_set(&fst->kobj.lock, status);
         return -ENOSYS;
     }
-    spinlock_set(&fst->lock, status);
+    spinlock_set(&fst->kobj.lock, status);
     return 0;
 }
 static void futex_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
@@ -435,9 +465,44 @@ static void futex_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_ta
     }
     f->r[0] = tag.raw;
 }
+
+static void futex_unmap(obj_space_t *obj_space, kobject_t *kobj)
+{
+    task_t *task = container_of(obj_space, task_t, obj_space);
+    futex_t *futex = container_of(kobj, futex_t, kobj);
+    printk("%s:%d\n", __func__, __LINE__);
+
+    umword_t status = spinlock_lock(&futex->kobj.lock);
+    for (int i = 0; i < FT_ADDR_NR; i++)
+    {
+        thread_t *pos;
+
+        if (futex->fl_list[i].uaddr)
+        {
+            slist_foreach_not_next(pos, &futex->fl_list[i].thread_list_head, futex_node)
+            {
+                thread_t *next = slist_next_entry(pos, &futex->fl_list[i].thread_list_head, futex_node);
+                task_t *bind_task = thread_get_bind_task(pos);
+
+                if (bind_task == task)
+                {
+                    assert(pos->status == THREAD_SUSPEND);
+                    slist_del(&pos->futex_node);
+                    pos->status == THREAD_IPC_ABORT;
+                    thread_ready(pos, TRUE);
+                }
+                pos = next;
+            }
+        }
+    }
+    spinlock_set(&futex->kobj.lock, status);
+}
 static void futex_release_stage1(kobject_t *kobj)
 {
-    /*TODO:删除task所占用的futex资源*/
+}
+static bool_t futex_release_put(kobject_t *kobj)
+{
+    return FALSE;
 }
 static void futex_release_stage2(kobject_t *kobj)
 {
@@ -446,8 +511,13 @@ static void futex_release_stage2(kobject_t *kobj)
 static void futex_init(futex_t *ft)
 {
     kobject_init(&ft->kobj, FUTEX_TYPE);
-    spinlock_init(&ft->lock);
+    for (int i = 0; i < FT_ADDR_NR; i++)
+    {
+        slist_init(&ft->fl_list[i].thread_list_head);
+    }
     ft->kobj.invoke_func = futex_syscall;
+    ft->kobj.unmap_func = futex_unmap;
     ft->kobj.stage_1_func = futex_release_stage1;
     ft->kobj.stage_2_func = futex_release_stage2;
+    ft->kobj.put_func = futex_release_put;
 }

@@ -10,23 +10,23 @@
 #include <string.h>
 #include <assert.h>
 
-RPC_GENERATION_CALL3(fs_t, FS_OPEN, open,
+RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_OPEN, open,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mode)
-RPC_GENERATION_CALL3(fs_t, FS_READ, read,
+RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_READ, read,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 
-RPC_GENERATION_CALL3(fs_t, FS_WRITE, write,
+RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_WRITE, write,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, buf,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 
-RPC_GENERATION_CALL1(fs_t, FS_CLOSE, close,
+RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_CLOSE, close,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd)
-RPC_GENERATION_CALL3(fs_t, FS_LSEEK, lseek,
+RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_LSEEK, lseek,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, offs,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, whence)

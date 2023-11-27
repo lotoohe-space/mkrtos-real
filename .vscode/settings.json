@@ -253,7 +253,8 @@
         "mutex": "c",
         "__threading_support": "c",
         "spinlock.h": "c",
-        "mr_api.h": "c"
+        "mr_api.h": "c",
+        "u_app_loader.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

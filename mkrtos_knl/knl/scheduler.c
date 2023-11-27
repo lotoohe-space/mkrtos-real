@@ -41,7 +41,7 @@ void scheduler_add(sched_t *node)
 {
     thread_t *node_th = container_of(node, thread_t, sche);
 
-    assert(node_th->magic == THREAD_MAIGC);
+    assert(node_th->magic == THREAD_MAGIC);
 
     scheduler_t *sched = scheduler_get_current();
     assert(node->prio >= 0);
@@ -118,7 +118,7 @@ sp_info_t *schde_to(void *usp, void *ksp, umword_t sp_type)
     sched_t *next = sche->cur_sche;
     thread_t *next_th = container_of(next, thread_t, sche);
 
-    assert(next_th->magic == THREAD_MAIGC);
+    assert(next_th->magic == THREAD_MAGIC);
 
     if (sched_reset)
     {

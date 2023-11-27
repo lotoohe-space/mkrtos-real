@@ -3,6 +3,7 @@
 #include "u_types.h"
 #include "u_prot.h"
 #include "u_thread.h"
+#include <pthread.h>
 
 struct rpc_svr_obj;
 typedef msg_tag_t (*rpc_dispatch_func)(struct rpc_svr_obj *obj, msg_tag_t tag, ipc_msg_t *msg);
@@ -19,5 +20,19 @@ static inline int rpc_svr_obj_init(rpc_svr_obj_t *obj, rpc_dispatch_func dis, mw
     obj->prot = prot;
 }
 
+#define META_PROT_NR 4
+typedef struct meta
+{
+    rpc_svr_obj_t svr;
+    rpc_svr_obj_t *svr_list[META_PROT_NR];
+    umword_t svr_list_prot[META_PROT_NR];
+    pthread_spinlock_t lock;
+} meta_t;
+
+int rpc_meta_init(obj_handler_t th, obj_handler_t *ret_ipc_hd);
+void meta_unreg_svr_obj_raw(meta_t *meta, umword_t prot);
+void meta_unreg_svr_obj(umword_t prot);
+int meta_reg_svr_obj(rpc_svr_obj_t *svr_obj, umword_t prot);
+int meta_reg_svr_obj_raw(meta_t *meta, rpc_svr_obj_t *svr_obj, umword_t prot);
 int rpc_creaite_bind_ipc(obj_handler_t th, void *obj, obj_handler_t *ipc_hd);
 void rpc_loop(void);

@@ -97,18 +97,21 @@ void obj_unmap(obj_space_t *obj_space, vpage_t vpage, kobj_del_list_t *del_list)
     {
         return;
     }
+    if (kobj->unmap_func)
+    {
+        kobj->unmap_func(obj_space, kobj);
+    }
     if ((vpage.attrs & KOBJ_DELETE_RIGHT) &&
         (obj_map_entry_get_attr(entry) & KOBJ_DELETE_RIGHT))
     {
         //!< 代表删除所有
         obj_map_entry_t *pos;
-    again:
 
-        slist_foreach(pos, &kobj->mappable.node, node)
+        slist_foreach_not_next(pos, &kobj->mappable.node, node)
         {
+            obj_map_entry_t *next = slist_next_entry(pos, &kobj->mappable.node, node);
             slist_del(&pos->node);
             pos->obj = NULL;
-            // slist_init(&pos->node);
             // 删除一个
             kobj->mappable.map_cnt--;
             if (kobj->mappable.map_cnt <= 0)
@@ -118,7 +121,7 @@ void obj_unmap(obj_space_t *obj_space, vpage_t vpage, kobj_del_list_t *del_list)
                     kobj_del_list_add(del_list, &kobj->del_node);
                 }
             }
-            goto again;
+            pos = next;
         }
     }
     else
@@ -126,7 +129,6 @@ void obj_unmap(obj_space_t *obj_space, vpage_t vpage, kobj_del_list_t *del_list)
         assert(!slist_is_empty(&entry->node));
         slist_del(&entry->node);
         entry->obj = NULL;
-        // slist_init(&entry->node);
         // 删除一个
         kobj->mappable.map_cnt--;
         if (kobj->mappable.map_cnt <= 0)

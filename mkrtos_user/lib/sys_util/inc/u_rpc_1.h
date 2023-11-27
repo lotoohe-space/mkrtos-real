@@ -11,7 +11,7 @@
  * @brief 该宏用于生成一个客户端的调用函数（传递一个参数）
  *
  */
-#define RPC_GENERATION_CALL1(struct_type, op, func_name, cli_type0, svr_type0, dir0, rpc_type0, name0)                             \
+#define RPC_GENERATION_CALL1(struct_type, prot, op, func_name, cli_type0, svr_type0, dir0, rpc_type0, name0)                       \
     msg_tag_t struct_type##_##func_name##_call(obj_handler_t hd, cli_type0 *var0)                                                  \
     {                                                                                                                              \
         void *buf;                                                                                                                 \
@@ -31,7 +31,7 @@
         RPC_CLI_MSG_TO_BUF_IN(rpc_type0, cli_type0, var0, dir0, (uint8_t *)msg_ipc->msg_buf, off);                                 \
         PRC_CLI_FILL_MAP_BUF(rpc_type0, cli_type0, var0, dir0, (uint8_t *)msg_ipc->map_buf, off_map);                              \
         /*msg_tag_t tag = dispatch_test(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_map, WORD_BYTES), 0), msg_ipc);*/ \
-        msg_tag_t tag = thread_ipc_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_map, WORD_BYTES), 0), hd,         \
+        msg_tag_t tag = thread_ipc_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_map, WORD_BYTES), prot), hd,      \
                                         ipc_timeout_create2(0, 0));                                                                \
                                                                                                                                    \
         if (msg_tag_get_val(tag) < 0)                                                                                              \
@@ -46,7 +46,7 @@
  * @brief 该宏用于生成服务端的分发函数（一个参数）
  *
  */
-#define RPC_GENERATION_DISPATCH1(struct_type, op, func_name,                                               \
+#define RPC_GENERATION_DISPATCH1(struct_type, prot, op, func_name,                                         \
                                  cli_type0, svr_type0, dir0, rpc_type0, name0)                             \
     msg_tag_t struct_type##_##func_name##_dispatch(struct_type *obj, msg_tag_t tag, ipc_msg_t *ipc_msg)    \
     {                                                                                                      \
@@ -80,5 +80,5 @@
  * @brief 该宏用于生成一个服务端的实现（一个参数）
  *
  */
-#define RPC_GENERATION_OP1(struct_type, op, func_name, cli_type0, svr_type0, dir0, rpc_type0, name0) \
+#define RPC_GENERATION_OP1(struct_type, prot, op, func_name, cli_type0, svr_type0, dir0, rpc_type0, name0) \
     short struct_type##_##func_name##_op(struct_type *obj, svr_type0 *name0)

@@ -19,6 +19,10 @@ int fq_empty(futex_queue_t *q)
         return 0;
     }
 }
+bool_t fq_is_full(futex_queue_t *q)
+{
+    return (q->rear + 1) % FUTEX_QUEUE_LEN == q->front;
+}
 int fq_enqueue(futex_queue_t *q, umword_t e)
 {
     if (((q->rear + 1) % FUTEX_QUEUE_LEN) == q->front)
@@ -42,4 +46,20 @@ int fq_dequeue(futex_queue_t *q, umword_t *e)
 int fq_queue_len(futex_queue_t *q)
 {
     return (q->rear - q->front + FUTEX_QUEUE_LEN) % FUTEX_QUEUE_LEN;
+}
+int fq_queue_iter(futex_queue_t *q, futex_iter_func iter_func, void *data)
+{
+    assert(iter_func);
+    int i;
+    int j = q->front;
+    int e = (q->rear - q->front + FUTEX_QUEUE_LEN) % FUTEX_QUEUE_LEN;
+    for (i = 0; i < e; i++)
+    {
+        int ret = iter_func(q->m[j], data);
+        if (ret < 0)
+        {
+            return ret;
+        }
+        j = (j + 1) % FUTEX_QUEUE_LEN;
+    }
 }

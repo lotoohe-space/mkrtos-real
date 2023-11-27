@@ -67,6 +67,7 @@ void thread_init(thread_t *th, ram_limit_t *lim)
     kobject_init(&th->kobj, THREAD_TYPE);
     sched_init(&th->sche);
     slist_init(&th->wait_node);
+    slist_init(&th->futex_node);
     ref_counter_init(&th->ref);
     ref_counter_inc(&th->ref);
     th->lim = lim;
@@ -74,7 +75,7 @@ void thread_init(thread_t *th, ram_limit_t *lim)
     th->kobj.put_func = thread_put;
     th->kobj.stage_1_func = thread_release_stage1;
     th->kobj.stage_2_func = thread_release_stage2;
-    th->magic = THREAD_MAIGC;
+    th->magic = THREAD_MAGIC;
 }
 static bool_t thread_put(kobject_t *kobj)
 {
@@ -228,7 +229,7 @@ void thread_sched(void)
     sched_t *next_sche = scheduler_next();
     thread_t *th = thread_get_current();
 
-    assert(th->magic == THREAD_MAIGC);
+    assert(th->magic == THREAD_MAGIC);
     if (next_sche == &th->sche)
     {
         cpulock_set(status);

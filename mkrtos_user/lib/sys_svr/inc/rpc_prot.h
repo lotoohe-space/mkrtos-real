@@ -31,3 +31,5 @@
 #define DRV_WRITE ((uint16_t)2) //!< 写入设备
 #define DRV_CLOSE ((uint16_t)3) //!< 关闭设备
 #define DRV_IOCTL ((uint16_t)4) //!< 控制设备
+
+#define META_PROT 0x0004

@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#define RPC_GENERATION_CALL2(struct_type, op, func_name,                                                                            \
+#define RPC_GENERATION_CALL2(struct_type, prot, op, func_name,                                                                      \
                              cli_type0, svr_type0, dir0, rpc_type0, name0,                                                          \
                              cli_type1, svr_type1, dir1, rpc_type1, name1)                                                          \
     msg_tag_t struct_type##_##func_name##_call(obj_handler_t hd, cli_type0 *var0, cli_type1 *var1)                                  \
@@ -32,7 +32,7 @@
         RPC_CLI_MSG_TO_BUF_IN(rpc_type1, cli_type1, var1, dir1, (uint8_t *)msg_ipc->msg_buf, off);                                  \
         PRC_CLI_FILL_MAP_BUF(rpc_type1, cli_type1, var1, dir1, (uint8_t *)msg_ipc->map_buf, off_buf);                               \
         /*msg_tag_t tag = dispatch_test(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), 0), msg_ipc); */ \
-        msg_tag_t tag = thread_ipc_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), 0), hd,          \
+        msg_tag_t tag = thread_ipc_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), prot), hd,       \
                                         ipc_timeout_create2(0, 0));                                                                 \
                                                                                                                                     \
         if (msg_tag_get_val(tag) < 0)                                                                                               \
@@ -45,7 +45,7 @@
         return tag;                                                                                                                 \
     }
 
-#define RPC_GENERATION_DISPATCH2(struct_type, op, func_name,                                               \
+#define RPC_GENERATION_DISPATCH2(struct_type, prot, op, func_name,                                         \
                                  cli_type0, svr_type0, dir0, rpc_type0, name0,                             \
                                  cli_type1, svr_type1, dir1, rpc_type1, name1)                             \
     msg_tag_t struct_type##_##func_name##_dispatch(struct_type *obj, msg_tag_t tag, ipc_msg_t *ipc_msg)    \
@@ -86,7 +86,7 @@
         return msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_map, WORD_BYTES), ret_val);        \
     }
 
-#define RPC_GENERATION_OP2(struct_type, op, func_name,                   \
+#define RPC_GENERATION_OP2(struct_type, prot, op, func_name,             \
                            cli_type0, svr_type0, dir0, rpc_type0, name0, \
                            cli_type1, svr_type1, dir1, rpc_type1, name1) \
     short struct_type##_##func_name##_op(struct_type *obj, svr_type0 *name0, svr_type1 *name1)

@@ -57,8 +57,11 @@ add_custom_target(
     cp init.bin ${CMAKE_SOURCE_DIR}/build/output/init
     COMMAND
     cp init.elf ${CMAKE_SOURCE_DIR}/build/output/init.elf
+    COMMAND
+    cp ${CMAKE_CURRENT_LIST_DIR}/src/init.cfg ${CMAKE_SOURCE_DIR}/build/output/cpio/
 )
 
 add_dependencies(init_dump init.elf)
 add_dependencies(init.elf muslc)
+
  
