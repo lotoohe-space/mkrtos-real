@@ -11,8 +11,11 @@
 #include "assert.h"
 struct kobject;
 typedef struct kobject kobject_t;
+struct obj_space;
+typedef struct obj_space obj_space_t;
 
 typedef void (*syscall_func)(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f);
+typedef void (*obj_unmap_func)(obj_space_t *obj_space_obj, kobject_t *kobj);
 typedef void (*obj_release_stage_1_func)(kobject_t *kobj);
 typedef void (*obj_release_stage_2_func)(kobject_t *kobj);
 typedef bool_t (*obj_release_put)(kobject_t *kobj);
@@ -51,6 +54,7 @@ typedef struct kobject
     obj_release_stage_1_func stage_1_func;
     obj_release_stage_2_func stage_2_func;
     obj_release_put put_func;
+    obj_unmap_func unmap_func;
     enum knl_obj_type kobj_type;
 } kobject_t;
 

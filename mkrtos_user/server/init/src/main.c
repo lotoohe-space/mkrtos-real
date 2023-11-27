@@ -22,23 +22,23 @@ extern void futex_init(void);
 int main(int argc, char *args[])
 {
     ulog_write_str(LOG_PROT, "init..\n");
-#if 1
-    // ulog_test();
-    // factory_test();
-    // printf_test();
-    // thread_exit_test();
-    // map_test();
+#if 0
+    ulog_test();
+    factory_test();
+    printf_test();
+    thread_exit_test();
+    map_test();
 
-    // mm_test();
-    // app_test();
-    // mpu_test();
-    // thread_press_test();
-    // kobj_create_press_test();
-    // pthread_cond_lock_test();
-    // pthread_lock_test();
-    // u_sleep_ms(1000);
-    // ipc_test();
-    // ipc_obj_test();
+    mm_test();
+    app_test();
+    mpu_test();
+    thread_press_test();
+    kobj_create_press_test();
+    u_sleep_ms(1000);
+    ipc_test();
+    ipc_obj_test();
+    pthread_cond_lock_test();
+    pthread_lock_test();
 #endif
     uenv_t env = *u_get_global_env();
     env.ns_hd = namespace_init();

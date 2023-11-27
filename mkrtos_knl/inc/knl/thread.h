@@ -116,7 +116,7 @@ typedef struct msg_buf
     msg_tag_t tag; //!< 存放发送的临时标识
 } msg_buf_t;
 
-#define THREAD_MAIGC 0xdeadead //!< 用于栈溢出检测
+#define THREAD_MAGIC 0xdeadead //!< 用于栈溢出检测
 typedef struct thread
 {
     kobject_t kobj;    //!< 内核对象节点
@@ -125,6 +125,8 @@ typedef struct thread
     sp_info_t sp;      //!< sp信息
     ram_limit_t *lim;  //!< 内存限制
     ref_counter_t ref; //!< 引用计数
+
+    slist_head_t futex_node; //!< futex使用
 
     msg_buf_t msg;          //!< 每个线程独有的消息缓存区
     slist_head_t wait_node; //!< 节点
