@@ -27,7 +27,7 @@ umword_t app_stack_push(umword_t *stack, umword_t val)
 void app_test(void)
 {
     msg_tag_t tag;
-    umword_t addr = cpio_find_file((umword_t)0x8020000, (umword_t)0x8040000, TEST_APP_NAME);
+    umword_t addr = cpio_find_file((umword_t)0x8020000, (umword_t)0x8040000, TEST_APP_NAME, NULL);
     assert(addr);
 
     app_info_t *app = (app_info_t *)addr;

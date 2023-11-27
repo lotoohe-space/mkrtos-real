@@ -16,6 +16,7 @@
 #include "namespace.h"
 #include "ns_svr.h"
 #include "syscall_backend.h"
+#include "parse_cfg.h"
 #include <assert.h>
 #include <stdio.h>
 extern void futex_init(void);
@@ -43,22 +44,24 @@ int main(int argc, char *args[])
     uenv_t env = *u_get_global_env();
     env.ns_hd = namespace_init();
     int ret;
-    ret = ret;
-    ret = app_load("mr_drv", &env);
-    if (ret < 0)
-    {
-        printf("%s load fail, 0x%x\n", "mr_drv", ret);
-    }
+
+    ret = parse_cfg("init.cfg", &env);
+    printf("run app num is %d.\n", ret);
+    // ret = app_load("mr_drv", &env);
+    // if (ret < 0)
+    // {
+    //     printf("%s load fail, 0x%x\n", "mr_drv", ret);
+    // }
     // ret = app_load("rtthread_drv", &env);
     // if (ret < 0)
     // {
     //     printf("%s load fail, 0x%x\n", "mr_drv", ret);
     // }
-    ret = app_load("hello", &env);
-    if (ret < 0)
-    {
-        printf("%s load fail, 0x%x\n", "hello", ret);
-    }
+    // ret = app_load("hello", &env);
+    // if (ret < 0)
+    // {
+    //     printf("%s load fail, 0x%x\n", "hello", ret);
+    // }
     // ret = app_load("app", &env);
     // if (ret < 0)
     // {

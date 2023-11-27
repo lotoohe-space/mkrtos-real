@@ -499,8 +499,10 @@ static void futex_unmap(obj_space_t *obj_space, kobject_t *kobj)
 }
 static void futex_release_stage1(kobject_t *kobj)
 {
-    /*TODO:删除task所占用的futex资源*/
-    /*删除的任务可能不是当前任务*/
+}
+static bool_t futex_release_put(kobject_t *kobj)
+{
+    return FALSE;
 }
 static void futex_release_stage2(kobject_t *kobj)
 {
@@ -517,4 +519,5 @@ static void futex_init(futex_t *ft)
     ft->kobj.unmap_func = futex_unmap;
     ft->kobj.stage_1_func = futex_release_stage1;
     ft->kobj.stage_2_func = futex_release_stage2;
+    ft->kobj.put_func = futex_release_put;
 }

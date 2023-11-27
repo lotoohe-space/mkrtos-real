@@ -26,7 +26,6 @@ static void print_raw(const char *str)
 {
     for (int i = 0; str[i]; i++)
     {
-        // xputc(str[i]);
         uart_putc(uart_get_global(), str[i]);
     }
 }
@@ -37,7 +36,6 @@ static void print_raw(const char *str)
  */
 void putc(int c)
 {
-    // xputc(c);
     uart_putc(uart_get_global(), c);
 }
 int getc(void)
