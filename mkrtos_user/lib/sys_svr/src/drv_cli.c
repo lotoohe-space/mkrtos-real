@@ -10,20 +10,20 @@
 #include <string.h>
 #include <assert.h>
 
-RPC_GENERATION_CALL2(drv_t, DRV_OPEN, open,
+RPC_GENERATION_CALL2(drv_t, FS_PROT, DRV_OPEN, open,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, name,
                      rpc_uint32_t_t, rpc_uint32_t_t, RPC_DIR_IN, RPC_TYPE_DATA, oflags)
-RPC_GENERATION_CALL1(drv_t, DRV_CLOSE, close,
+RPC_GENERATION_CALL1(drv_t, FS_PROT, DRV_CLOSE, close,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc)
-RPC_GENERATION_CALL3(drv_t, DRV_READ, read,
+RPC_GENERATION_CALL3(drv_t, FS_PROT, DRV_READ, read,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data,
                      rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
-RPC_GENERATION_CALL3(drv_t, DRV_WRITE, write,
+RPC_GENERATION_CALL3(drv_t, FS_PROT, DRV_WRITE, write,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data,
                      rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
-RPC_GENERATION_CALL3(drv_t, DRV_IOCTL, ioctl,
+RPC_GENERATION_CALL3(drv_t, FS_PROT, DRV_IOCTL, ioctl,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, desc,
                      rpc_mword_t_t, rpc_mword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, data,
                      rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)

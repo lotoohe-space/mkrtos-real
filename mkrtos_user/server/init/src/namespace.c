@@ -9,18 +9,13 @@
 #include "ns_types.h"
 #include "ns_svr.h"
 #include "namespace.h"
-
+#include "u_rpc_svr.h"
 static ns_t ns;
-static obj_handler_t ipc_hd;
-obj_handler_t namespace_init(void)
+void namespace_init(void)
 {
-    int ret;
-
     ns_init(&ns);
+    meta_reg_svr_obj(&ns.svr, NS_PROT);
     printf("ns svr init...\n");
-    ret = rpc_creaite_bind_ipc(THREAD_MAIN, &ns, &ipc_hd);
-    assert(ret >= 0);
-    return ipc_hd;
 }
 
 static int namespace_alloc(const char *path, obj_handler_t hd)

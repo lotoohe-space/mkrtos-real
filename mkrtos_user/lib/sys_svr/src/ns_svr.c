@@ -7,7 +7,7 @@
 #include "u_hd_man.h"
 #include <stdio.h>
 
-RPC_GENERATION_OP2(ns_t, NS_REGISTER_OP, register,
+RPC_GENERATION_OP2(ns_t, NS_PROT, NS_REGISTER_OP, register,
                    rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                    rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, svr_hd)
 {
@@ -24,11 +24,11 @@ RPC_GENERATION_OP2(ns_t, NS_REGISTER_OP, register,
     }
     return ret;
 }
-RPC_GENERATION_DISPATCH2(ns_t, NS_REGISTER_OP, register,
+RPC_GENERATION_DISPATCH2(ns_t, NS_PROT, NS_REGISTER_OP, register,
                          rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                          rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, svr_hd)
 
-RPC_GENERATION_OP2(ns_t, NS_QUERY_OP, query,
+RPC_GENERATION_OP2(ns_t, NS_PROT, NS_QUERY_OP, query,
                    rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                    rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_INOUT, RPC_TYPE_BUF, cli_hd)
 {
@@ -46,10 +46,10 @@ RPC_GENERATION_OP2(ns_t, NS_QUERY_OP, query,
     return ret;
 }
 
-RPC_GENERATION_DISPATCH2(ns_t, NS_QUERY_OP, query,
+RPC_GENERATION_DISPATCH2(ns_t, NS_PROT, NS_QUERY_OP, query,
                          rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                          rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_INOUT, RPC_TYPE_BUF, cli_hd)
-RPC_DISPATCH2(ns_t, typeof(NS_REGISTER_OP), NS_REGISTER_OP, register, NS_QUERY_OP, query)
+RPC_DISPATCH2(ns_t, NS_PROT, typeof(NS_REGISTER_OP), NS_REGISTER_OP, register, NS_QUERY_OP, query)
 
 void ns_init(ns_t *ns)
 {
