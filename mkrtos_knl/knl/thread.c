@@ -47,6 +47,22 @@ static bool_t thread_put(kobject_t *kobj);
 static void thread_release_stage1(kobject_t *kobj);
 static void thread_release_stage2(kobject_t *kobj);
 
+typedef struct thread_wait_entry
+{
+    slist_head_t node;
+    slist_head_t node_timeout;
+    thread_t *th;
+    mword_t times;
+} thread_wait_entry_t;
+
+static inline void thread_wait_entry_init(thread_wait_entry_t *entry, thread_t *th, mword_t times)
+{
+    slist_init(&entry->node);
+    slist_init(&entry->node_timeout);
+    entry->th = th;
+    entry->times = times;
+}
+
 static slist_head_t wait_send_queue;
 static slist_head_t wait_recv_queue;
 
@@ -66,8 +82,8 @@ void thread_init(thread_t *th, ram_limit_t *lim)
 {
     kobject_init(&th->kobj, THREAD_TYPE);
     sched_init(&th->sche);
-    slist_init(&th->wait_node);
     slist_init(&th->futex_node);
+    slist_init(&th->wait_send_head);
     ref_counter_init(&th->ref);
     ref_counter_inc(&th->ref);
     th->lim = lim;
@@ -104,34 +120,37 @@ static void thread_release_stage1(kobject_t *kobj)
             thread_suspend(th);
         }
     }
-    thread_t *pos;
+    thread_wait_entry_t *pos;
 
-    slist_foreach_not_next(pos, &wait_send_queue, wait_node)
+    slist_foreach_not_next(pos, &wait_send_queue, node_timeout)
     {
-        assert(pos->status == THREAD_SUSPEND);
-        thread_t *next = slist_next_entry(pos, &th->wait_head, wait_node);
+        assert(pos->th->status == THREAD_SUSPEND);
+        thread_wait_entry_t *next = slist_next_entry(pos, &wait_send_queue, node_timeout);
 
-        pos->ipc_status = THREAD_IPC_ABORT;
-        thread_ready(pos, TRUE);
+        pos->th->ipc_status = THREAD_IPC_ABORT;
+        thread_ready(pos->th, TRUE);
 
-        slist_del(&pos->wait_node);
+        slist_del(&pos->node_timeout);
+        if (slist_in_list(&pos->node))
+        {
+            slist_del(&pos->node);
+        }
         pos = next;
     }
-    slist_foreach_not_next(pos, &wait_recv_queue, wait_node)
-    {
-        assert(pos->status == THREAD_SUSPEND);
-        thread_t *next = slist_next_entry(pos, &th->wait_head, wait_node);
+    thread_wait_entry_t *pos2;
 
-        pos->ipc_status = THREAD_IPC_ABORT;
-        thread_ready(pos, TRUE);
-
-        slist_del(&pos->wait_node);
-        pos = next;
-    }
-    if (slist_in_list(&th->wait_node))
+    slist_foreach_not_next(pos2, &wait_recv_queue, node)
     {
-        slist_del(&th->wait_node); //!< 从链表中删除
+        assert(pos2->th->status == THREAD_SUSPEND);
+        thread_wait_entry_t *next = slist_next_entry(pos2, &wait_recv_queue, node);
+
+        pos2->th->ipc_status = THREAD_IPC_ABORT;
+        thread_ready(pos2->th, TRUE);
+
+        slist_del(&pos2->node);
+        pos2 = next;
     }
+
     thread_unbind(th);
 }
 static void thread_release_stage2(kobject_t *kobj)
@@ -301,45 +320,47 @@ thread_t *thread_create(ram_limit_t *ram)
  */
 void thread_timeout_check(ssize_t tick)
 {
-    thread_t *pos;
-    // thread_t *th = thread_get_current();
+    thread_wait_entry_t *pos;
 
-    slist_foreach_not_next(pos, &wait_send_queue, wait_node)
+    slist_foreach_not_next(pos, &wait_send_queue, node_timeout)
     {
-        assert(pos->status == THREAD_SUSPEND);
-        thread_t *next = slist_next_entry(pos, &wait_send_queue, wait_node);
-
-        if (pos->ipc_times > 0)
+        assert(pos->th->status == THREAD_SUSPEND);
+        thread_wait_entry_t *next = slist_next_entry(pos, &wait_send_queue, node_timeout);
+        if (pos->times > 0)
         {
-            pos->ipc_times -= tick;
-            if (pos->ipc_times <= 0)
+            pos->times -= tick;
+            if (pos->times <= 0)
             {
-                pos->ipc_status = THREAD_TIMEOUT;
-                thread_ready(pos, TRUE);
+                pos->th->ipc_status = THREAD_TIMEOUT;
+                thread_ready(pos->th, TRUE);
 
-                slist_del(&pos->wait_node);
+                slist_del(&pos->node_timeout);
+                if (slist_in_list(&pos->node))
+                {
+                    slist_del(&pos->node);
+                }
             }
         }
         pos = next;
     }
-
-    slist_foreach_not_next(pos, &wait_recv_queue, wait_node)
+    thread_wait_entry_t *pos2;
+    slist_foreach_not_next(pos2, &wait_recv_queue, node)
     {
-        assert(pos->status == THREAD_SUSPEND);
-        thread_t *next = slist_next_entry(pos, &wait_recv_queue, wait_node);
+        assert(pos2->th->status == THREAD_SUSPEND);
+        thread_wait_entry_t *next = slist_next_entry(pos2, &wait_recv_queue, node);
 
-        if (pos->ipc_times > 0)
+        if (pos2->times > 0)
         {
-            pos->ipc_times -= tick;
-            if (pos->ipc_times <= 0)
+            pos2->times -= tick;
+            if (pos2->times <= 0)
             {
-                pos->ipc_status = THREAD_TIMEOUT;
-                thread_ready(pos, TRUE);
+                pos2->th->ipc_status = THREAD_TIMEOUT;
+                thread_ready(pos2->th, TRUE);
 
-                slist_del(&pos->wait_node);
+                slist_del(&pos2->node);
             }
         }
-        pos = next;
+        pos2 = next;
     }
 }
 /**
@@ -411,22 +432,28 @@ static int thread_ipc_recv(msg_tag_t *ret_msg, ipc_timeout_t timeout, umword_t *
 
     lock_status = cpulock_lock();
     cur_th->ipc_status = THREAD_RECV; //!< 因为接收挂起
-    if (!slist_is_empty(&wait_send_queue))
+    if (!slist_is_empty(&cur_th->wait_send_head))
     {
         //!< 有发送者
-        slist_head_t *mslist = slist_first(&wait_send_queue);
-        thread_t *send_th = container_of(mslist, thread_t, wait_node);
+        slist_head_t *mslist = slist_first(&cur_th->wait_send_head);
+        thread_wait_entry_t *wait = container_of(mslist, thread_wait_entry_t, node);
 
         slist_del(mslist); //!< 删除唤醒的线程
-        thread_ready(send_th, TRUE);
+        if (slist_in_list(&wait->node_timeout))
+        {
+            slist_del(&wait->node_timeout);
+        }
+        thread_ready(wait->th, TRUE);
     }
     else
     {
         //!< 加入等待队列
         if (timeout.recv_timeout)
         {
-            cur_th->ipc_times = timeout.recv_timeout;
-            slist_add_append(&wait_recv_queue, &cur_th->wait_node); //!< 放到等待队列中
+            thread_wait_entry_t wait;
+
+            thread_wait_entry_init(&wait, cur_th, timeout.recv_timeout);
+            slist_add_append(&wait_recv_queue, &wait.node); //!< 放到等待队列中
         }
     }
     thread_suspend(cur_th); //!< 挂起
@@ -505,11 +532,15 @@ static int thread_ipc_send(thread_t *to_th, msg_tag_t in_tag, ipc_timeout_t timo
 again_check:
     if (recv_kobj->status == THREAD_READY)
     {
+        thread_wait_entry_t wait;
+
         cur_th->ipc_status = THREAD_SEND; //!< 因为发送挂起
-        cur_th->ipc_times = timout.send_timeout;
-        thread_suspend(cur_th);                                 //!< 挂起
-        slist_add_append(&wait_send_queue, &cur_th->wait_node); //!< 放到等待队列中
-        preemption();                                           //!< 进行调度
+
+        thread_wait_entry_init(&wait, cur_th, timout.send_timeout);
+        slist_add_append(&recv_kobj->wait_send_head, &wait.node); //!< 放到线程的等待队列中
+        slist_add_append(&wait_send_queue, &wait.node_timeout);
+        thread_suspend(cur_th); //!< 挂起
+        preemption();           //!< 进行调度
         if (cur_th->ipc_status == THREAD_IPC_ABORT)
         {
             cur_th->ipc_status = THREAD_NONE;
@@ -526,11 +557,11 @@ again_check:
     }
     else if (recv_kobj->status == THREAD_SUSPEND && recv_kobj->ipc_status == THREAD_RECV)
     {
-        if (slist_in_list(&recv_kobj->wait_node))
-        {
-            //!< 如果已经在队列中，则删除
-            slist_del(&recv_kobj->wait_node);
-        }
+        // if (slist_in_list(&recv_kobj->wait_node))
+        // {
+        //     //!< 如果已经在队列中，则删除
+        //     slist_del(&recv_kobj->wait_node);
+        // }
         //!< 开始发送数据
         ret = ipc_data_copy(recv_kobj, cur_th, in_tag); //!< 拷贝数据
         if (ret < 0)
@@ -563,11 +594,15 @@ static int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag
 again_check:
     if (recv_kobj->status == THREAD_READY)
     {
+        thread_wait_entry_t wait;
+
         cur_th->ipc_status = THREAD_SEND; //!< 因为发送挂起
-        cur_th->ipc_times = timout.send_timeout;
-        thread_suspend(cur_th);                                 //!< 挂起
-        slist_add_append(&wait_send_queue, &cur_th->wait_node); //!< 放到等待队列中
-        preemption();                                           //!< 进行调度
+
+        thread_wait_entry_init(&wait, cur_th, timout.send_timeout);
+        slist_add_append(&recv_kobj->wait_send_head, &wait.node); //!< 放到线程的等待队列中
+        slist_add_append(&wait_send_queue, &wait.node_timeout);
+        thread_suspend(cur_th); //!< 挂起
+        preemption();
         if (cur_th->ipc_status == THREAD_IPC_ABORT)
         {
             cur_th->ipc_status = THREAD_NONE;
@@ -584,11 +619,11 @@ again_check:
     }
     else if (recv_kobj->status == THREAD_SUSPEND && recv_kobj->ipc_status == THREAD_RECV)
     {
-        if (slist_in_list(&recv_kobj->wait_node))
-        {
-            //!< 如果已经在队列中，则删除
-            slist_del(&recv_kobj->wait_node);
-        }
+        // if (slist_in_list(&recv_kobj->wait_node))
+        // {
+        //     //!< 如果已经在队列中，则删除
+        //     slist_del(&recv_kobj->wait_node);
+        // }
         //!< 开始发送数据
         ret = ipc_data_copy(recv_kobj, cur_th, in_tag); //!< 拷贝数据
         if (ret < 0)
@@ -747,8 +782,8 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     break;
     case BIND_TASK:
     {
-        kobject_t *task_kobj = obj_space_lookup_kobj(&task->obj_space, f->r[1]);
-        if (task_kobj == NULL /*TODO:检测kobj类型*/)
+        kobject_t *task_kobj = obj_space_lookup_kobj_cmp_type(&task->obj_space, f->r[1], TASK_TYPE);
+        if (task_kobj == NULL)
         {
             f->r[0] = msg_tag_init4(0, 0, 0, -ENOENT).raw;
             return;
