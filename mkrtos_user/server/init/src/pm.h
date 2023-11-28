@@ -1,6 +1,5 @@
-
 /**
- * @file parse_cfg.h
+ * @file pm.h
  * @author zhangzheng (1358745329@qq.com)
  * @brief 
  * @version 0.1
@@ -9,7 +8,6 @@
  * @copyright Copyright (c) 2023
  * 
  */
+#pragma once
 
-#include <u_env.h>
-
-int parse_cfg(const char *parse_cfg_file_name, uenv_t *env);
+void pm_init(void);

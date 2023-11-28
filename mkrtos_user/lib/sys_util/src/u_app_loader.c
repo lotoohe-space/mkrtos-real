@@ -173,7 +173,7 @@ int app_load(const char *name, uenv_t *cur_env)
     uenv->rev1 = HANDLER_INVALID;
     uenv->rev2 = HANDLER_INVALID;
 
-    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)sp_addr_top - sizeof(void*), ram_base, 1);
+    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)sp_addr_top - sizeof(void *), ram_base, 1);
     assert(msg_tag_get_prot(tag) >= 0);
 
     /*启动线程运行*/
@@ -181,13 +181,13 @@ int app_load(const char *name, uenv_t *cur_env)
     assert(msg_tag_get_prot(tag) >= 0);
     return 0;
 end_del_obj:
-    if (hd_task != HANDLER_INVALID)
-    {
-        task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_task));
-    }
     if (hd_thread != HANDLER_INVALID)
     {
         task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_thread));
+    }
+    if (hd_task != HANDLER_INVALID)
+    {
+        task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_task));
     }
     // if (hd_ipc != HANDLER_INVALID)
     // {

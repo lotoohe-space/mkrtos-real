@@ -32,4 +32,7 @@
 #define DRV_CLOSE ((uint16_t)3) //!< 关闭设备
 #define DRV_IOCTL ((uint16_t)4) //!< 控制设备
 
-#define META_PROT 0x0004
+#define META_PROT 0x0004 //!< 元协议
+
+#define PM_PROT 0x0005           //!< 进程管理协议
+#define PM_RUN_APP ((uint16_t)0) //!< 启动应用程序

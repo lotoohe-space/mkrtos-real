@@ -10,8 +10,8 @@
 int main(int argc, char *args[])
 {
     ns_register("/dev", drv_svr_init());
-    printf("mr drv start success...\n");
     mr_auto_init();
+    printf("mr drv start success...\n");
     drv_svr_loop();
     return 0;
 }

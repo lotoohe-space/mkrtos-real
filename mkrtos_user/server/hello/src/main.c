@@ -3,8 +3,9 @@
 #include "u_log.h"
 #include "u_env.h"
 #include "u_sleep.h"
+#include "pm_cli.h"
 #include "drv_cli.h"
-
+#include <unistd.h>
 #include <mr_api.h>
 #include <assert.h>
 void drv_test(void)
@@ -23,8 +24,10 @@ void drv_test(void)
 
 int main(int argc, char *args[])
 {
-    u_sleep_ms(100);
-    // printf("Hello world.\n");
+    printf("Hello world.\n");
+    usleep(100000);
+    // while (pm_run_app("hello", 0) < 0)
+    //     usleep(100000);
     ulog_write_str(u_get_global_env()->log_hd, "hello is runing...\n");
     drv_test();
     ulog_write_str(u_get_global_env()->log_hd, "Hello world.\n");

@@ -8,9 +8,9 @@ static obj_handler_t ipc_hd;
 
 obj_handler_t drv_svr_init(void)
 {
-    drv_init(&drv);
     int ret;
-    printf("mr drv init...\n");
+
+    drv_init(&drv);
     ret = rpc_creaite_bind_ipc(THREAD_MAIN, &drv, &ipc_hd);
     assert(ret >= 0);
 

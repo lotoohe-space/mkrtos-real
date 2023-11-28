@@ -25,9 +25,8 @@
 #include "ipc.h"
 #include "err.h"
 #include "slist.h"
-#include <access.h>
-
-#define INT_MAX 0x7fffffff
+#include "access.h"
+#include "limits.h"
 
 #define FT_ADDR_NR 16 //!< 最多加锁的对象
 
@@ -70,6 +69,7 @@ typedef struct futex
     kobject_t kobj;
     futex_lock_t fl_list[FT_ADDR_NR]; //!< 存储加锁的地址
 } futex_t;
+
 static futex_t futex_obj;
 static void futex_init(futex_t *ft);
 typedef struct futex_wait_item
@@ -78,6 +78,7 @@ typedef struct futex_wait_item
     thread_t *th;
     mword_t sleep_times;
 } futex_wait_item_t;
+
 static slist_head_t wait_list;
 
 /**

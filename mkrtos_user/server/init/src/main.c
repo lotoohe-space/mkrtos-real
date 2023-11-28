@@ -1,4 +1,13 @@
-
+/**
+ * @file main.c
+ * @author zhangzheng (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-11-28
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include "u_log.h"
 #include "u_prot.h"
 #include "u_mm.h"
@@ -11,6 +20,7 @@
 #include "u_irq_sender.h"
 #include "u_app_loader.h"
 #include "u_rpc_svr.h"
+#include "pm.h"
 
 #include "test/test.h"
 #include "u_rpc_svr.h"
@@ -54,6 +64,7 @@ int main(int argc, char *args[])
     env = u_get_global_env();
     rpc_meta_init(THREAD_MAIN, &env->ns_hd);
     namespace_init();
+    pm_init();
 
     ret = parse_cfg(DEFAULT_INIT_CFG, env);
     printf("run app num is %d.\n", ret);

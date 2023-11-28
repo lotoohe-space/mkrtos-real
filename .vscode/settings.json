@@ -254,7 +254,8 @@
         "__threading_support": "c",
         "spinlock.h": "c",
         "mr_api.h": "c",
-        "u_app_loader.h": "c"
+        "u_app_loader.h": "c",
+        "process_manager.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

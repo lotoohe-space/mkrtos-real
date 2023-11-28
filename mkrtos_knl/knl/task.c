@@ -159,9 +159,11 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
+        // ref_counter_inc(&tag_task->ref_cn);
         kobj_del_list_init(&kobj_list);
         obj_unmap(&tag_task->obj_space, vpage_create_raw(f->r[1]), &kobj_list);
         kobj_del_list_to_do(&kobj_list);
+        // ref_counter_dec_and_release(&tag_task->ref_cn, &tag_task->kobj);
         spinlock_set(&tag_task->kobj.lock, status);
         tag = msg_tag_init4(0, 0, 0, 0);
     }

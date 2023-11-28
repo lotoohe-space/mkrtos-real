@@ -695,7 +695,11 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
         msg_tag_t ret_msg;
         ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->r[3]);
 
-        thread_ipc_recv(&ret_msg, ipc_tm_out, &f->r[1]);
+        int ret = thread_ipc_recv(&ret_msg, ipc_tm_out, &f->r[1]);
+        if (ret < 0)
+        {
+            return msg_tag_init4(0, 0, 0, ret);
+        }
         return ret_msg;
     }
     case IPC_SEND:

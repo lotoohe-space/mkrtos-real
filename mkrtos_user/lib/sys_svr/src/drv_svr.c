@@ -34,7 +34,13 @@ RPC_GENERATION_OP3(drv_t, FS_PROT, DRV_READ, read,
                    rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data,
                    rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size)
 {
-    return dev_read(desc->data, data->data, size->data);
+    int ret = dev_read(desc->data, data->data, size->data);
+
+    if (ret >= 0)
+    {
+        data->len = ret;
+    }
+    return ret;
 }
 
 RPC_GENERATION_DISPATCH3(drv_t, FS_PROT, DRV_READ, read,
