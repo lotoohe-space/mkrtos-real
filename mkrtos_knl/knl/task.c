@@ -24,6 +24,8 @@ enum task_op_code
     TASK_OBJ_UNMAP,
     TASK_ALLOC_RAM_BASE,
     TASK_OBJ_VALID,
+    TASK_SET_PID,
+    TASK_GET_PID,
 };
 static bool_t task_put(kobject_t *kobj);
 static void task_release_stage1(kobject_t *kobj);
@@ -182,6 +184,25 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         spinlock_set(&tag_task->kobj.lock, status);
     }
     break;
+    case TASK_SET_PID:
+    {
+        if (tag_task->pid == (pid_t)(-1))
+        {
+            tag_task->pid = f->r[0];
+            tag = msg_tag_init4(0, 0, 0, 0);
+        }
+        else
+        {
+            tag = msg_tag_init4(0, 0, 0, -EACCES);
+        }
+    }
+    break;
+    case TASK_GET_PID:
+    {
+        f->r[1] = tag_task->pid;
+        tag = msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
     default:
         break;
     }
@@ -199,6 +220,7 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     mm_space_init(&task->mm_space, is_knl);
     ref_counter_init(&task->ref_cn);
     ref_counter_inc(&task->ref_cn);
+    task->pid = (pid_t)(-1);
     task->lim = ram;
     task->kobj.invoke_func = task_syscall_func;
     task->kobj.put_func = task_put;

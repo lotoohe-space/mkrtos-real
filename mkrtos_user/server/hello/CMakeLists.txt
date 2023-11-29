@@ -25,6 +25,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/hello/src/test
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
@@ -66,4 +67,7 @@ add_dependencies(shell_dump hello.elf)
 add_dependencies(shell_dump sys)
 add_dependencies(shell_dump sys_util)
 add_dependencies(shell_dump mr)
+add_dependencies(shell_dump sys_svr)
+add_dependencies(shell_dump start)
+add_dependencies(shell_dump muslc)
  

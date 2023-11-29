@@ -61,10 +61,12 @@ int main(int argc, char *args[])
 
     ulog_write_str(LOG_PROT, "init..\n");
     test();
+    task_set_pid(TASK_THIS, 0);
     env = u_get_global_env();
     rpc_meta_init(THREAD_MAIN, &env->ns_hd);
     namespace_init();
     pm_init();
+
 
     ret = parse_cfg(DEFAULT_INIT_CFG, env);
     printf("run app num is %d.\n", ret);

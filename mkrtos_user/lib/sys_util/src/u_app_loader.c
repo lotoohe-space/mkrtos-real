@@ -140,6 +140,11 @@ int app_load(const char *name, uenv_t *cur_env)
     {
         goto end_del_obj;
     }
+    tag = task_set_pid(hd_task, hd_task); //!< 设置进程的pid就是进程hd号码
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
     void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 
@@ -189,10 +194,6 @@ end_del_obj:
     {
         task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_task));
     }
-    // if (hd_ipc != HANDLER_INVALID)
-    // {
-    //     task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_ipc));
-    // }
 end:
     if (hd_task != HANDLER_INVALID)
     {
@@ -202,8 +203,5 @@ end:
     {
         handler_free(hd_thread);
     }
-    // if (hd_ipc != HANDLER_INVALID)
-    // {
-    // }
     return -ENOMEM;
 }

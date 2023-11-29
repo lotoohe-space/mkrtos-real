@@ -377,6 +377,8 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
     void *dst = dst_th->msg.msg;
     ipc_msg_t *src_ipc;
     ipc_msg_t *dst_ipc;
+    task_t *src_tk = thread_get_bind_task(src_th);
+    task_t *dst_tk = thread_get_bind_task(dst_th);
 
     src_ipc = src;
     dst_ipc = dst;
@@ -387,8 +389,7 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
         int map_len = tag.map_buf_len;
 
         kobj_del_list_init(&del);
-        task_t *src_tk = thread_get_bind_task(src_th);
-        task_t *dst_tk = thread_get_bind_task(dst_th);
+
         for (int i = 0; i < map_len; i++)
         {
             int ret = 0;
@@ -412,6 +413,7 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
         }
         kobj_del_list_to_do(&del);
     }
+    dst_ipc->user[2] = task_pid_get(src_tk);
     memcpy(dst_ipc->msg_buf, src_ipc->msg_buf, MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
     dst_th->msg.tag = tag;
     return 0;
