@@ -70,6 +70,7 @@ static void knl_init_2(void)
     void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 
+    task_set_pid(&init_task, 0);
     thread_set_msg_bug(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
     thread_bind(init_thread, &init_task->kobj);
     thread_user_pf_set(init_thread, (void *)(KNL_TEXT + INIT_OFFSET), (void *)((umword_t)sp_addr_top - 8),

@@ -27,3 +27,4 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl);
 task_t *task_create(ram_limit_t *lim, int is_knl);
 int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size);
 void task_kill(task_t *tk);
+int task_set_pid(task_t *task, pid_t pid);

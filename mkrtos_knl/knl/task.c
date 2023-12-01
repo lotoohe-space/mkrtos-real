@@ -104,6 +104,20 @@ static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
     }
     return TRUE;
 }
+int task_set_pid(task_t *task, pid_t pid)
+{
+    task_t *cur_task = thread_get_current_task();
+
+    if (cur_task->pid == 0)
+    {
+        task->pid = pid;
+        return 0;
+    }
+    else
+    {
+        return -EACCES;
+    }
+}
 static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     task_t *cur_task = thread_get_current_task();
@@ -186,15 +200,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     break;
     case TASK_SET_PID:
     {
-        if (tag_task->pid == (pid_t)(-1))
-        {
-            tag_task->pid = f->r[0];
-            tag = msg_tag_init4(0, 0, 0, 0);
-        }
-        else
-        {
-            tag = msg_tag_init4(0, 0, 0, -EACCES);
-        }
+        tag = msg_tag_init4(0, 0, 0, task_set_pid(tag_task, f->r[0]));
     }
     break;
     case TASK_GET_PID:
