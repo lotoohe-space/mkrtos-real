@@ -2,6 +2,7 @@
 #include "u_rpc_svr.h"
 #include "fs_svr.h"
 #include "ff.h"
+#include "cons_cli.h"
 #include "u_log.h"
 #include "u_env.h"
 #include <stdio.h>
@@ -128,18 +129,18 @@ int fs_svr_open(const char *path, int flags, int mode)
             ret = f_opendir(&file->dir, path);
             if (ret != FR_OK)
             {
-                ulog_write_str(u_get_global_env()->log_hd, "open fail..\n");
+                cons_write_str("open fail..\n");
                 free_file(fd);
                 return fatfs_err_conv(ret);
             }
             file->type = 1;
-            ulog_write_str(u_get_global_env()->log_hd, "open dir..\n");
+            cons_write_str("open dir..\n");
         }
     }
     else
     {
         file->type = 0;
-        ulog_write_str(u_get_global_env()->log_hd, "open file..\n");
+        cons_write_str("open file..\n");
     }
 
     return fatfs_err_conv(ret);

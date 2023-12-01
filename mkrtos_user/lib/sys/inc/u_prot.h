@@ -15,7 +15,9 @@
 #define THREAD_MAIN THREAD_PROT
 #define TASK_THIS TASK_PROT
 
-#define MSG_TAG_KNL_ERR 0x8
+//! flags in MSG_TAG
+#define MSG_TAG_KNL_ERR 0x8  //!< 内核代表的错误
+#define MSG_TAG_NO_RELAY 0x4 //!< 不进行回复
 
 typedef union msg_tag
 {

@@ -5,6 +5,7 @@
 #include "u_thread.h"
 #include "u_rpc_svr.h"
 #include "rpc_prot.h"
+#include "u_err.h"
 #include <errno.h>
 #include <assert.h>
 #include <stdio.h>

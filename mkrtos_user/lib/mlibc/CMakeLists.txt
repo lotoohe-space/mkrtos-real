@@ -24,6 +24,7 @@ target_link_libraries(
     muslc
     PUBLIC
     libc_be
+    sys_svr
 )
 set_target_properties(muslc PROPERTIES LINK_FLAGS "-pie ")
 target_include_directories(
@@ -31,6 +32,8 @@ target_include_directories(
     BEFORE
     PUBLIC
     # ${CMAKE_SOURCE_DIR}/user/libc/backend
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
+
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/src/internal

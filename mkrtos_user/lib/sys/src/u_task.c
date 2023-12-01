@@ -30,13 +30,13 @@ msg_tag_t task_set_pid(obj_handler_t dst_task, umword_t pid)
 
     return tag;
 }
-msg_tag_t task_get_pid(obj_handler_t dst_task, umword_t *pid, int inx)
+msg_tag_t task_get_pid(obj_handler_t dst_task, umword_t *pid)
 {
     register volatile umword_t r0 asm("r0");
     register volatile umword_t r1 asm("r1");
 
     mk_syscall(syscall_prot_create(TASK_GET_PID, TASK_PROT, dst_task).raw,
-               inx,
+               0,
                0,
                0,
                0,

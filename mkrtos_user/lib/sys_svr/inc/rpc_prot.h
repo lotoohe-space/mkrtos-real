@@ -36,3 +36,8 @@
 
 #define PM_PROT 0x0005           //!< 进程管理协议
 #define PM_RUN_APP ((uint16_t)0) //!< 启动应用程序
+
+#define CONS_PROT 0x0006
+#define CONS_WRITE ((uint16_t)0)
+#define CONS_READ ((uint16_t)1)
+#define CONS_ACTIVE ((uint16_t)2)

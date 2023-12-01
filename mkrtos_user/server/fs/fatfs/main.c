@@ -4,6 +4,7 @@
 #include "u_prot.h"
 #include "u_env.h"
 #include "u_drv.h"
+#include "cons_cli.h"
 #include "fs_rpc.h"
 #include <ff.h>
 #include <stdio.h>
@@ -28,7 +29,7 @@ int main(int args, char *argv[])
         res = f_mkfs("0:", &defopt, (void *)(fs.win), FF_MAX_SS); // 第三个参数可以设置成NULL，默认使用heap memory
         if (res != FR_OK)
         {
-            ulog_write_str(u_get_global_env()->log_hd, "f_mkfs err.\n");
+            cons_write_str("f_mkfs err.\n");
             exit(-1);
         }
         else
@@ -36,12 +37,12 @@ int main(int args, char *argv[])
             res = f_mount(&fs, "0:", 1);
             if (res != FR_OK)
             {
-                ulog_write_str(u_get_global_env()->log_hd, "f_mount err.\n");
+                cons_write_str("f_mount err.\n");
                 exit(-1);
             }
         }
     }
-    ulog_write_str(u_get_global_env()->log_hd, "mount success\n");
+    cons_write_str("mount success\n");
 
     fs_svr_loop();
     return 0;

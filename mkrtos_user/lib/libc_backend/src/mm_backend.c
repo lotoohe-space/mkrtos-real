@@ -4,7 +4,7 @@
 #include "u_ipc.h"
 #include "u_mm.h"
 #include "u_app.h"
-#include "u_log.h"
+#include "cons_cli.h"
 #include "u_arch.h"
 #include <pthread_impl.h>
 #include <assert.h>
@@ -21,7 +21,7 @@ static void *mm_page_alloc(int page_nr)
     size_t max_page_nr = (info->i.heap_size) / MK_PAGE_SIZE;
     if (max_page_nr > sizeof(mm_bitemp) * WORD_BITS)
     {
-        ulog_write_str(LOG_PROT, "mm bitmap is to small.\n");
+        cons_write_str("mm bitmap is to small.\n");
     }
     // printf("heap is 0x%x, max page nr is %d.\n", heap_addr, max_page_nr);
     pthread_spin_lock(&lock);

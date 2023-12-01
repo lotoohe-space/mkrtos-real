@@ -21,7 +21,7 @@
 #include "u_app_loader.h"
 #include "u_rpc_svr.h"
 #include "pm.h"
-
+#include "cons.h"
 #include "test/test.h"
 #include "u_rpc_svr.h"
 #include "namespace.h"
@@ -65,7 +65,7 @@ int main(int argc, char *args[])
     rpc_meta_init(THREAD_MAIN, &env->ns_hd);
     namespace_init();
     pm_init();
-
+    console_init();
 
     ret = parse_cfg(DEFAULT_INIT_CFG, env);
     printf("run app num is %d.\n", ret);

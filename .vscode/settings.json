@@ -255,7 +255,10 @@
         "spinlock.h": "c",
         "mr_api.h": "c",
         "u_app_loader.h": "c",
-        "process_manager.h": "c"
+        "process_manager.h": "c",
+        "fs_svr.h": "c",
+        "pm_svr.h": "c",
+        "cons_cli.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

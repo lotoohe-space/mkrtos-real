@@ -95,7 +95,7 @@ int app_load(const char *name, uenv_t *cur_env)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, LOG_PROT, LOG_PROT, KOBJ_DELETE_RIGHT);
+    tag = task_map(hd_task, cur_env->ns_hd, LOG_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
@@ -173,7 +173,7 @@ int app_load(const char *name, uenv_t *cur_env)
 
     // set user env.
     uenv_t *uenv = (uenv_t *)((char *)buf_bk + ARG_WORD_NR * 4 + 16 + 16);
-    uenv->log_hd = LOG_PROT;
+    uenv->log_hd = cur_env->ns_hd;
     uenv->ns_hd = cur_env->ns_hd;
     uenv->rev1 = HANDLER_INVALID;
     uenv->rev2 = HANDLER_INVALID;

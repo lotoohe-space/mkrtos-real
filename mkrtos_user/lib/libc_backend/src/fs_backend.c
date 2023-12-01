@@ -7,6 +7,8 @@
 #include <u_prot.h>
 #include <u_log.h>
 #include <u_env.h>
+#include <u_task.h>
+#include <cons_cli.h>
 #include <sys/uio.h>
 #include <assert.h>
 #include <u_util.h>
@@ -60,7 +62,17 @@ long be_write(long fd, char *buf, long size)
     {
     case FD_TTY:
     {
-        ulog_write_bytes(u_get_global_env()->log_hd, buf, size);
+        pid_t pid;
+
+        task_get_pid(TASK_THIS, (umword_t *)(&pid));
+        if (pid == 0)
+        {
+            ulog_write_bytes(u_get_global_env()->log_hd, buf, size);
+        }
+        else
+        {
+            cons_write(buf, size);
+        }
         return size;
     }
     break;
@@ -90,7 +102,17 @@ long be_writev(long fd, const struct iovec *iov, long iovcnt)
         {
         case FD_TTY:
         {
-            ulog_write_bytes(u_get_global_env()->log_hd, iov[i].iov_base, iov[i].iov_len);
+            pid_t pid;
+
+            task_get_pid(TASK_THIS, (umword_t *)(&pid));
+            if (pid == 0)
+            {
+                ulog_write_bytes(u_get_global_env()->log_hd, iov[i].iov_base, iov[i].iov_len);
+            }
+            else
+            {
+                cons_write(iov[i].iov_base, iov[i].iov_len);
+            }
             wlen += iov[i].iov_len;
         }
         break;

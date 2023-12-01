@@ -220,13 +220,12 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
 {
     assert(task);
     assert(ram);
-
     kobject_init(&task->kobj, TASK_TYPE);
     obj_space_init(&task->obj_space, ram);
     mm_space_init(&task->mm_space, is_knl);
     ref_counter_init(&task->ref_cn);
     ref_counter_inc(&task->ref_cn);
-    task->pid = (pid_t)(-1);
+    task->pid = 0;
     task->lim = ram;
     task->kobj.invoke_func = task_syscall_func;
     task->kobj.put_func = task_put;
