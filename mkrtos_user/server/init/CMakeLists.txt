@@ -14,6 +14,7 @@ target_link_libraries(init.elf
     sys_util
     sys_svr
     cpio
+    util
     --no-whole-archive
     ${GCC_LIB_PATH}/libgcc.a
 )
@@ -35,6 +36,7 @@ target_include_directories(
 )
 add_dependencies(init.elf
 muslc
+util
 )
 set_target_properties(init.elf PROPERTIES LINK_FLAGS
 "-T ${CMAKE_CURRENT_LIST_DIR}/link.lds -pie --gc-section  -no-dynamic-linker "

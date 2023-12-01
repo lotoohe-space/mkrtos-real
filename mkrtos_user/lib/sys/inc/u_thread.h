@@ -70,3 +70,5 @@ msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_tim
             thread_msg_buf_get(-1, &buf, NULL); \
             ((ipc_msg_t *)buf);                 \
         })
+
+#define thread_get_src_pid() thread_get_cur_ipc_msg()->user[2]
