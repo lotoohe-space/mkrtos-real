@@ -6,7 +6,9 @@
 #include <unistd.h>
 #include <semaphore.h>
 #include "syscall.h"
-
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
 struct args {
 	sem_t sem;
 	int sock;
@@ -68,7 +70,7 @@ int mq_notify(mqd_t mqd, const struct sigevent *sev)
 	sigfillset(&allmask);
 	pthread_sigmask(SIG_BLOCK, &allmask, &origmask);
 	if (pthread_create(&td, &attr, start, &args)) {
-		__syscall(SYS_close, s);
+		be_close(s);
 		pthread_sigmask(SIG_SETMASK, &origmask, 0);
 		errno = EAGAIN;
 		return -1;
@@ -80,7 +82,7 @@ int mq_notify(mqd_t mqd, const struct sigevent *sev)
 	sem_destroy(&args.sem);
 
 	if (args.err) {
-		__syscall(SYS_close, s);
+		be_close(s);
 		pthread_join(td, 0);
 		pthread_setcancelstate(cs, 0);
 		errno = args.err;

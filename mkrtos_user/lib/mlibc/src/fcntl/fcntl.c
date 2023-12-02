@@ -29,7 +29,7 @@ int fcntl(int fd, int cmd, ...)
 		}
 		ret = __syscall(SYS_fcntl, fd, F_DUPFD_CLOEXEC, 0);
 		if (ret != -EINVAL) {
-			if (ret >= 0) __syscall(SYS_close, ret);
+			if (ret >= 0) be_close(ret);
 			return __syscall_ret(-EINVAL);
 		}
 		ret = __syscall(SYS_fcntl, fd, F_DUPFD, arg);

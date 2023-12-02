@@ -61,7 +61,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid)
         printf("app format is error.\n");
         return -1;
     }
-    printf("%s addr is 0x%x\n", name, app);
+    printf("%s addr is [0x%x]\n", name, app);
     umword_t ram_base;
     obj_handler_t hd_task = handler_alloc();
     obj_handler_t hd_thread = handler_alloc();

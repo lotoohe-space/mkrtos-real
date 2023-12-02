@@ -110,13 +110,13 @@ static int child(void *args_vp)
 				ret = __syscall(SYS_dup, p);
 				if (ret < 0)
 					goto fail;
-				__syscall(SYS_close, p);
+				be_close(p);
 				p = ret;
 			}
 			switch (op->cmd)
 			{
 			case FDOP_CLOSE:
-				__syscall(SYS_close, op->fd);
+				be_close(op->fd);
 				break;
 			case FDOP_DUP2:
 				fd = op->srcfd;
@@ -147,7 +147,7 @@ static int child(void *args_vp)
 				{
 					if ((ret = __sys_dup2(fd, op->fd)) < 0)
 						goto fail;
-					__syscall(SYS_close, fd);
+					be_close(fd);
 				}
 				break;
 			case FDOP_CHDIR:

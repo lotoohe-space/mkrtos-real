@@ -2,7 +2,9 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
-
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
 FILE *fopen(const char *restrict filename, const char *restrict mode)
 {
 	FILE *f;
@@ -26,6 +28,6 @@ FILE *fopen(const char *restrict filename, const char *restrict mode)
 	f = __fdopen(fd, mode);
 	if (f) return f;
 
-	__syscall(SYS_close, fd);
+	be_close(fd);
 	return 0;
 }

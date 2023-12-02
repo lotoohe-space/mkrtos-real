@@ -2,7 +2,9 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include "stdio_impl.h"
-
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
 #define MAXTRIES 100
 
 FILE *tmpfile(void)
@@ -21,7 +23,7 @@ FILE *tmpfile(void)
 			__syscall(SYS_unlinkat, AT_FDCWD, s, 0);
 #endif
 			f = __fdopen(fd, "w+");
-			if (!f) __syscall(SYS_close, fd);
+			if (!f) be_close(fd);
 			return f;
 		}
 	}

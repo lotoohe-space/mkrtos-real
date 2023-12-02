@@ -4,6 +4,7 @@
 #include "u_types.h"
 #include <sys/uio.h>
 #include <time.h>
+#include <sys/stat.h>
 // #include <unistd.h>
 
 #define ARG_1_BE(ap, arg0, type0)       \
@@ -51,6 +52,9 @@ long syscall_backend(long sys_inx, ...);
 
 void fs_backend_init(void);
 
+long be_lseek(long fd, long offset, long whence);
+int be_open(const char *path, int flags, mode_t mode);
+int be_close(int fd);
 long be_read(long fd, char *buf, long size);
 long be_write(long fd, char *buf, long size);
 long be_readv(long fd, const struct iovec *iov, long iovcnt);

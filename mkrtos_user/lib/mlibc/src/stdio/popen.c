@@ -5,7 +5,9 @@
 #include <spawn.h>
 #include "stdio_impl.h"
 #include "syscall.h"
-
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
 extern char **__environ;
 
 FILE *popen(const char *cmd, const char *mode)
@@ -27,8 +29,8 @@ FILE *popen(const char *cmd, const char *mode)
 	if (pipe2(p, O_CLOEXEC)) return NULL;
 	f = fdopen(p[op], mode);
 	if (!f) {
-		__syscall(SYS_close, p[0]);
-		__syscall(SYS_close, p[1]);
+		be_close(p[0]);
+		be_close(p[1]);
 		return NULL;
 	}
 
@@ -44,7 +46,7 @@ FILE *popen(const char *cmd, const char *mode)
 				f->pipe_pid = pid;
 				if (!strchr(mode, 'e'))
 					fcntl(p[op], F_SETFD, 0);
-				__syscall(SYS_close, p[1-op]);
+				be_close(p[1-op]);
 				__ofl_unlock();
 				return f;
 			}
@@ -54,7 +56,7 @@ fail:
 		posix_spawn_file_actions_destroy(&fa);
 	}
 	fclose(f);
-	__syscall(SYS_close, p[1-op]);
+	be_close(p[1-op]);
 
 	errno = e;
 	return 0;

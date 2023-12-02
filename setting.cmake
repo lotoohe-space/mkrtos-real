@@ -21,7 +21,7 @@ set(CMAKE_SIZE "${CROSS_COMPILE}size" CACHE PATH "" FORCE)
 set(MKRTOS_ARCH $ENV{ARCH})
 
 # -mfloat-abi=soft  -u _printf_float 
-set(CMAKE_C_FLAGS "-mcpu=${MKRTOS_ARCH} -mthumb -Os -g3 -lc -lrdimon -msoft-float -u _printf_float -D=MKRTOS \
+set(CMAKE_C_FLAGS "-mcpu=${MKRTOS_ARCH} -mthumb -O0 -g3 -lc -lrdimon -msoft-float -u _printf_float -D=MKRTOS \
 -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -mfix-cortex-m3-ldrd \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
  -fno-stack-protector -Wl,--gc-sections \

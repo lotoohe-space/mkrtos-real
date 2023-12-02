@@ -264,7 +264,8 @@
         "shell_cfg.h": "c",
         "__memory": "c",
         "optional": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "__dirent.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

@@ -9,7 +9,7 @@
 
 #include "ff.h"		/* Obtains integer types */
 #include "diskio.h" /* Declarations of disk functions */
-// #include "ram_disk.h"
+#include "ram_disk.h"
 #include <stdio.h>
 /* Definitions of physical drive number for each drive */
 #define DEV_RAM 0 /* Example: Map Ramdisk to physical drive 0 */

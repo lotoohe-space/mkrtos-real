@@ -516,7 +516,7 @@
 #define SYS_personality 136
 #define SYS_setfsuid 138
 #define SYS_setfsgid 139
-#define SYS__llseek 140
+// #define SYS__llseek 140
 #define SYS_getdents 141
 #define SYS__newselect 142
 #define SYS_flock 143

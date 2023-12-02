@@ -15,12 +15,14 @@ static MKFS_PARM defopt = {FM_ANY, 0, 0, 0};
 
 int main(int args, char *argv[])
 {
-    obj_handler_t ipc_hd;
-    int ret = rpc_creaite_bind_ipc(THREAD_MAIN, NULL, &ipc_hd);
-    assert(ret >= 0);
-    ns_register("/mnt", ipc_hd);
+    obj_handler_t hd;
+    int ret;
 
-    fs_svr_init(ipc_hd);
+    ret = rpc_meta_init(THREAD_MAIN, &hd);
+    assert(ret >= 0);
+    fs_svr_init();
+    ns_register("/mnt", hd);
+
     FRESULT res = f_mount(&fs, "0:", 1);
 
     if (res != FR_OK)

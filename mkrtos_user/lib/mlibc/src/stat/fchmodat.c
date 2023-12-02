@@ -2,7 +2,9 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "syscall.h"
-
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
 int fchmodat(int fd, const char *path, mode_t mode, int flag)
 {
 	if (!flag) return syscall(SYS_fchmodat, fd, path, mode, flag);
@@ -32,6 +34,6 @@ int fchmodat(int fd, const char *path, mode_t mode, int flag)
 		else ret = syscall(SYS_fchmodat, AT_FDCWD, proc, mode);
 	}
 
-	__syscall(SYS_close, fd2);
+	be_close(fd2);
 	return ret;
 }

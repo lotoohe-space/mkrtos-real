@@ -95,7 +95,7 @@ msg_tag_t dispatch_test(msg_tag_t tag, ipc_msg_t *msg)
     tag = test_svr_t_query_dispatch(&test, tag, msg);
 }
 #endif
-RPC_GENERATION_OP2(test_svr_t, 0, query,
+RPC_GENERATION_OP2(test_svr_t, 0, 0, query,
                    rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_OUT, RPC_TYPE_BUF, var0,
                    rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
 {
@@ -104,10 +104,10 @@ RPC_GENERATION_OP2(test_svr_t, 0, query,
     return 2;
 }
 
-RPC_GENERATION_DISPATCH2(test_svr_t, 0, query,
+RPC_GENERATION_DISPATCH2(test_svr_t, 0, 0, query,
                          rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_OUT, RPC_TYPE_BUF, var0,
                          rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
-RPC_GENERATION_CALL2(test_svr_t, 0, query,
+RPC_GENERATION_CALL2(test_svr_t, 0, 0, query,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_OUT, RPC_TYPE_BUF, var0,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
 

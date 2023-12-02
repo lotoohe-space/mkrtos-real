@@ -39,14 +39,14 @@
  * @brief 是否使用shell伴生对象
  *        一些扩展的组件(文件系统支持，日志工具等)需要使用伴生对象
  */
-#define     SHELL_USING_COMPANION       1
+#define     SHELL_USING_COMPANION       0
 #endif /** SHELL_USING_COMPANION */
 
 #ifndef SHELL_SUPPORT_END_LINE
 /**
  * @brief 支持shell尾行模式
  */
-#define     SHELL_SUPPORT_END_LINE      0
+#define     SHELL_SUPPORT_END_LINE      1
 #endif /** SHELL_SUPPORT_END_LINE */
 
 #ifndef SHELL_HELP_LIST_USER
@@ -107,7 +107,7 @@
  *        启用后，可以通过`exec [addr] [args]`直接执行对应地址的函数
  * @attention 如果地址错误，可能会直接引起程序崩溃
  */
-#define     SHELL_EXEC_UNDEF_FUNC       1
+#define     SHELL_EXEC_UNDEF_FUNC       0
 #endif /** SHELL_EXEC_UNDEF_FUNC */
 
 #ifndef SHELL_PARAMETER_MAX_NUMBER

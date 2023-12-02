@@ -8,11 +8,13 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <assert.h>
+#include "rpc_prot.h"
 static fs_t fs;
-
 void fs_svr_init(void)
 {
     fs_init(&fs);
+    meta_reg_svr_obj(&fs.svr, FS_PROT);
 }
 typedef struct file_desc
 {
@@ -140,7 +142,7 @@ int fs_svr_open(const char *path, int flags, int mode)
     else
     {
         file->type = 0;
-        cons_write_str("open file..\n");
+        // cons_write_str("open file..\n");
     }
 
     return fatfs_err_conv(ret);

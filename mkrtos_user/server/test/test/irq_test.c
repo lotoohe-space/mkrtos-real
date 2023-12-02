@@ -33,7 +33,7 @@ void irq_test(void)
     assert(obj != HANDLER_INVALID);
     msg_tag_t tag = factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, obj));
     assert(msg_tag_get_val(tag) >= 0);
-    uirq_bind(obj, TIM2_IRQn, 0);
+    uirq_bind(obj, TIM2_IRQn, u_irq_prio_create(0, 0));
 
     tag = mm_align_alloc(MM_PROT, (void *)0x40000000, 0x50000000 - 0x40000000);
     assert(msg_tag_get_val(tag) >= 0);

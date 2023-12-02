@@ -64,7 +64,7 @@ int faccessat(int fd, const char *filename, int amode, int flag)
 	__block_all_sigs(&set);
 
 	pid = __clone(checker, stack + sizeof stack, 0, &c);
-	__syscall(SYS_close, p[1]);
+	be_close(p[1]);
 
 #ifdef NO_LITTLE_MODE
 	if (pid < 0 || __syscall(SYS_read, p[0], &ret, sizeof ret) != sizeof(ret))
@@ -73,7 +73,7 @@ int faccessat(int fd, const char *filename, int amode, int flag)
 	if (pid < 0 || be_read(p[0], &ret, sizeof ret) != sizeof(ret))
 		ret = -EBUSY;
 #endif
-	__syscall(SYS_close, p[0]);
+	be_close(p[0]);
 	__syscall(SYS_wait4, pid, &status, __WCLONE, 0);
 
 	__restore_sigs(&set);

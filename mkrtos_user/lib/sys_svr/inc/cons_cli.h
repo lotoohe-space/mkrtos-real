@@ -1,4 +1,5 @@
 #pragma once
+#include <u_types.h>
 #include <string.h>
 int cons_write(const uint8_t *data, int len);
 static inline int cons_write_str(const char *str)

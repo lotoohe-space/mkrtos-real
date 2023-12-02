@@ -21,6 +21,47 @@ void fs_backend_init(void)
     assert(fd_map_alloc(0, 1, FD_TTY) >= 0);
     assert(fd_map_alloc(0, 2, FD_TTY) >= 0);
 }
+int be_open(const char *path, int flags, mode_t mode)
+{
+    int fd = fs_open(path, flags, mode);
+
+    if (fd < 0)
+    {
+        return fd;
+    }
+    int user_fd = fd_map_alloc(0, fd, FD_FS);
+
+    if (user_fd < 0)
+    {
+        be_close(user_fd);
+    }
+    return user_fd;
+}
+int be_close(int fd)
+{
+    fd_map_entry_t u_fd;
+    int ret = fd_map_free(fd, &u_fd);
+
+    if (ret < 0)
+    {
+        return -EBADF;
+    }
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {
+    }
+    break;
+    case FD_FS:
+    {
+        return fs_close(u_fd.priv_fd);
+    }
+    break;
+    default:
+        return -ENOSYS;
+    }
+    return 0;
+}
 static int be_tty_read(char *buf, long size)
 {
     pid_t pid;
@@ -75,7 +116,7 @@ long be_read(long fd, char *buf, long size)
     break;
     case FD_FS:
     {
-        return fs_read(fd, buf, size);
+        return fs_read(u_fd.priv_fd, buf, size);
     }
     break;
     default:
@@ -113,7 +154,7 @@ long be_write(long fd, char *buf, long size)
     break;
     case FD_FS:
     {
-        return fs_write(fd, buf, size);
+        return fs_write(u_fd.priv_fd, buf, size);
     }
     break;
     default:
@@ -164,7 +205,7 @@ long be_readv(long fd, const struct iovec *iov, long iovcnt)
         break;
         case FD_FS:
         {
-            int rsize = fs_read(fd, iov[i].iov_base, iov[i].iov_len);
+            int rsize = fs_read(u_fd.priv_fd, iov[i].iov_base, iov[i].iov_len);
 
             wlen += rsize;
         }
@@ -207,7 +248,7 @@ long be_writev(long fd, const struct iovec *iov, long iovcnt)
         break;
         case FD_FS:
         {
-            int wsize = fs_write(fd, iov[i].iov_base, iov[i].iov_len);
+            int wsize = fs_write(u_fd.priv_fd, iov[i].iov_base, iov[i].iov_len);
 
             wlen += wsize;
         }
@@ -266,4 +307,29 @@ long sys_be_ioctl(va_list ap)
     ARG_3_BE(ap, fd, long, request, long, args, ARG2);
 #undef ARG2
     return be_ioctl(fd, request, args);
+}
+long be_lseek(long fd, long offset, long whence)
+{
+    fd_map_entry_t u_fd;
+    int ret = fd_map_get(fd, &u_fd);
+
+    if (ret < 0)
+    {
+        return -EBADF;
+    }
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {
+    }
+    break;
+    case FD_FS:
+    {
+        return fs_lseek(u_fd.priv_fd, offset, whence);
+    }
+    break;
+    default:
+        return -ENOSYS;
+    }
+    return 0;
 }

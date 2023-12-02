@@ -5,11 +5,12 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_STDPERIPH_DRIVER=1 -DSTM32F10X_XL ")
 file(
     GLOB deps  
     ff15/source/*.c  
-    ext_disk_drv/*.c 
+    # ext_disk_drv/*.c 
+    ram_disk_drv/*.c
     *.c
 )
 
-list(REMOVE_ITEM deps mkrtos_user/server/fs/fatfs/ram_disk_drv/*.*)
+# list(REMOVE_ITEM deps mkrtos_user/server/fs/fatfs/ram_disk_drv/*.*)
 
 add_executable(
     fatfs.elf
