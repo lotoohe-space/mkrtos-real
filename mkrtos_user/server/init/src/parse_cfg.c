@@ -17,6 +17,9 @@
 #include <u_app_loader.h>
 #include <u_env.h>
 #include <string.h>
+#include <sys/types.h>
+#include <cons_svr.h>
+
 static int find_line_end(const char *str, size_t size)
 {
     for (int i = 0; i < size; i++)
@@ -66,13 +69,15 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
                 {
                     name[MIN(line_inx, sizeof(name)) - 1] = 0;
                 }
-                int ret = app_load(name, env);
+                pid_t pid;
+                int ret = app_load(name, env, &pid);
                 if (ret < 0)
                 {
                     printf("%s load fail, 0x%x\n", name, ret);
                 }
                 else
                 {
+                    console_active(pid);
                     run_cn++;
                 }
             }

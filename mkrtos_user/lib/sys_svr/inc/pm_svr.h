@@ -1,12 +1,12 @@
 /**
  * @file pm_svr.h
  * @author ATShining (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-11-28
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #pragma once
 
@@ -17,5 +17,7 @@ typedef struct pm
     rpc_svr_obj_t svr_obj;
 } pm_t;
 
+#define PM_APP_BG_RUN 0x1
+
 void pm_svr_obj_init(pm_t *pm);
-int pm_rpc_run_app(const char *path);
+int pm_rpc_run_app(const char *path, int flags);

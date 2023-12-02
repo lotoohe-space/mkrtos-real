@@ -1,4 +1,5 @@
 ENTRY(_start_)
+
 SECTIONS
 {
     .text : {

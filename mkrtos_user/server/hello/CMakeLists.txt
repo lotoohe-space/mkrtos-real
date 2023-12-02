@@ -46,7 +46,7 @@ set_target_properties(hello.elf PROPERTIES LINK_FLAGS
 #--no-warn-rwx-segments
 )
 add_custom_target(
-    shell_dump ALL
+    hello_dump ALL
     COMMAND
     ${CMAKE_OBJDUMP} -s -S hello.elf > ${CMAKE_SOURCE_DIR}/build/output/hello.S
     COMMAND
@@ -63,11 +63,11 @@ add_custom_target(
     cp hello.elf ${CMAKE_SOURCE_DIR}/build/output/hello.elf
 )
 
-add_dependencies(shell_dump hello.elf)
-add_dependencies(shell_dump sys)
-add_dependencies(shell_dump sys_util)
-add_dependencies(shell_dump mr)
-add_dependencies(shell_dump sys_svr)
-add_dependencies(shell_dump start)
-add_dependencies(shell_dump muslc)
+add_dependencies(hello_dump hello.elf)
+add_dependencies(hello_dump sys)
+add_dependencies(hello_dump sys_util)
+add_dependencies(hello_dump mr)
+add_dependencies(hello_dump sys_svr)
+add_dependencies(hello_dump start)
+add_dependencies(hello_dump muslc)
  

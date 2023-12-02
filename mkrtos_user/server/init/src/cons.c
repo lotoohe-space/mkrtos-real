@@ -122,7 +122,7 @@ int console_read(uint8_t *data, size_t len)
  * @brief 激活控制台为发送者进程
  *
  */
-void console_active(void)
+void console_active(pid_t pid)
 {
-    cons_obj.active_pid = thread_get_src_pid();
+    cons_obj.active_pid = pid;
 }

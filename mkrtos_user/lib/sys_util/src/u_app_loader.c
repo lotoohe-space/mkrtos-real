@@ -16,7 +16,7 @@
 #include <elf.h>
 #include <stdio.h>
 #include <errno.h>
-
+#include <sys/types.h>
 /**
  * @brief 向栈中存放数据
  *
@@ -37,7 +37,7 @@ static umword_t app_stack_push(umword_t *stack, umword_t val)
  * @param name app的名字
  * @return int
  */
-int app_load(const char *name, uenv_t *cur_env)
+int app_load(const char *name, uenv_t *cur_env, pid_t *pid)
 {
     msg_tag_t tag;
     sys_info_t sys_info;
@@ -144,6 +144,10 @@ int app_load(const char *name, uenv_t *cur_env)
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
+    }
+    if (pid)
+    {
+        *pid = hd_task;
     }
     void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;

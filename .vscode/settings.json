@@ -259,7 +259,12 @@
         "fs_svr.h": "c",
         "pm_svr.h": "c",
         "cons_cli.h": "c",
-        "access.h": "c"
+        "access.h": "c",
+        "shell.h": "c",
+        "shell_cfg.h": "c",
+        "__memory": "c",
+        "optional": "c",
+        "system_error": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

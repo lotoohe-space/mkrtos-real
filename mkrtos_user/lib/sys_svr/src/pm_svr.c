@@ -24,7 +24,7 @@ RPC_GENERATION_OP2(pm_t, PM_PROT, PM_RUN_APP, run_app,
     int16_t ret = -1;
 
     path->data[path->len - 1] = 0;
-    ret = pm_rpc_run_app(path->data);
+    ret = pm_rpc_run_app(path->data, flags->data);
     return ret;
 }
 

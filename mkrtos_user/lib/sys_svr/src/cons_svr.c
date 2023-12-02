@@ -18,26 +18,28 @@ RPC_GENERATION_OP1(cons_t, CONS_PROT, CONS_WRITE, write,
 RPC_GENERATION_DISPATCH1(cons_t, CONS_PROT, CONS_WRITE, write,
                          rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data)
 /*read*/
-RPC_GENERATION_OP1(cons_t, CONS_PROT, CONS_READ, read,
-                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data)
+RPC_GENERATION_OP2(cons_t, CONS_PROT, CONS_READ, read,
+                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 {
     int16_t ret = -1;
 
-    ret = console_read(data->data, data->len);
-    if (ret > 0)
+    ret = console_read(data->data, len->data);
+    if (ret >= 0)
     {
         data->len = ret;
     }
     return ret;
 }
 
-RPC_GENERATION_DISPATCH1(cons_t, CONS_PROT, CONS_READ, read,
-                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data)
+RPC_GENERATION_DISPATCH2(cons_t, CONS_PROT, CONS_READ, read,
+                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 /*active*/
 RPC_GENERATION_OP1(cons_t, CONS_PROT, CONS_ACTIVE, active,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
 {
-    console_active();
+    console_active(thread_get_src_pid());
     return 0;
 }
 

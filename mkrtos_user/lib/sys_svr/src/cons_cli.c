@@ -10,8 +10,9 @@
 
 RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_WRITE, write,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data)
-RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_READ, read,
-                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data)
+RPC_GENERATION_CALL2(cons_t, CONS_PROT, CONS_READ, read,
+                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data,
+                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 
 RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_ACTIVE, active,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
@@ -19,6 +20,8 @@ RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_ACTIVE, active,
 int cons_write(const uint8_t *data, int len)
 {
     int rlen = 0;
+    uenv_t *env = u_get_global_env();
+
     while (rlen < len)
     {
         int r_once_len = 0;
@@ -31,7 +34,7 @@ int cons_write(const uint8_t *data, int len)
         rpc_int_t rpc_len = {
             .data = r_once_len,
         };
-        msg_tag_t tag = cons_t_write_call(u_get_global_env()->ns_hd, &rpc_buf);
+        msg_tag_t tag = cons_t_write_call(env->log_hd, &rpc_buf);
 
         if (msg_tag_get_val(tag) < 0)
         {
@@ -48,11 +51,19 @@ int cons_read(uint8_t *data, int len)
 {
     rpc_ref_array_uint32_t_uint8_t_32_t rpc_path = {
         .data = (uint8_t *)data,
-        .len = len > 32 ? 32 : len,
     };
-    msg_tag_t tag = cons_t_read_call(u_get_global_env()->ns_hd, &rpc_path);
+    rpc_int_t rpc_len = {
+        .data = len > 32 ? 32 : len,
+    };
+    uenv_t *env = u_get_global_env();
 
-    return msg_tag_get_val(tag);
+    msg_tag_t tag = cons_t_read_call(env->log_hd, &rpc_path, &rpc_len);
+
+    if (msg_tag_get_val(tag) < 0)
+    {
+        return msg_tag_get_val(tag);
+    }
+    return rpc_path.len;
 }
 int cons_active(void)
 {
