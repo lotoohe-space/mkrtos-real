@@ -35,10 +35,10 @@ target_link_libraries(
     PUBLIC
     --whole-archive
     knl
-    --no-whole-archive
     arch
-    drv
     lib
+    drv
+    --no-whole-archive
 )
 add_dependencies(mkrtos.elf arch)
 add_dependencies(mkrtos.elf drv)
@@ -77,3 +77,9 @@ add_custom_target(
 )
 add_dependencies(mkrtos.elf link_file_dump)
 add_dependencies(mkrtos_dump mkrtos.elf)
+add_dependencies(mkrtos_dump knl)
+add_dependencies(mkrtos_dump arch)
+add_dependencies(mkrtos_dump lib)
+add_dependencies(mkrtos_dump drv) 
+
+

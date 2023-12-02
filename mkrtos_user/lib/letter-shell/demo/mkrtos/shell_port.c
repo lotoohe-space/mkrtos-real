@@ -38,10 +38,8 @@ signed short userShellWrite(char *data, unsigned short len)
  */
 signed short userShellRead(char *data, unsigned short len)
 {
-    int ret = 0;
-    while (ret <= 0)
+    while (cons_read((uint8_t *)data, len) <= 0)
     {
-        ret = cons_read((uint8_t *)data, len);
         u_sleep_ms(5);
     }
 }

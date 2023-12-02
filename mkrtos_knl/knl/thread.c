@@ -73,6 +73,7 @@ static void thread_timeout_init(void)
     slist_init(&wait_send_queue);
     slist_init(&wait_recv_queue);
 }
+
 INIT_KOBJ(thread_timeout_init);
 
 /**
@@ -433,6 +434,7 @@ static int thread_ipc_recv(msg_tag_t *ret_msg, ipc_timeout_t timeout, umword_t *
     assert(ret_user_id);
     thread_t *cur_th = thread_get_current();
     umword_t lock_status;
+    thread_wait_entry_t wait;
 
     lock_status = cpulock_lock();
     cur_th->ipc_status = THREAD_RECV; //!< 因为接收挂起
@@ -454,7 +456,6 @@ static int thread_ipc_recv(msg_tag_t *ret_msg, ipc_timeout_t timeout, umword_t *
         //!< 加入等待队列
         if (timeout.recv_timeout)
         {
-            thread_wait_entry_t wait;
 
             thread_wait_entry_init(&wait, cur_th, timeout.recv_timeout);
             slist_add_append(&wait_recv_queue, &wait.node); //!< 放到等待队列中
@@ -855,7 +856,7 @@ static kobject_t *thread_create_func(ram_limit_t *lim, umword_t arg0, umword_t a
  * @brief 工厂注册函数
  *
  */
-void thread_factory_register(void)
+static void thread_factory_register(void)
 {
     factory_register(thread_create_func, THREAD_PROT);
 }
