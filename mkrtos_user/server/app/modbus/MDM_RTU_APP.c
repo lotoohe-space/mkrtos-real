@@ -1,6 +1,6 @@
 /**
  * @file MDM_RTU_APP.c
- * @author zhangzheng (1358745329@qq.com)
+ * @author ATShining (1358745329@qq.com)
  * @brief https://github.com/lotoohe-space/XTinyModbus
  * @version 0.1
  * @date 2023-10-03

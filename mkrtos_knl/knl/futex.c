@@ -1,6 +1,6 @@
 /**
  * @file futex.c
- * @author zhangzheng (1358745329@qq.com)
+ * @author ATShining (1358745329@qq.com)
  * @brief futex在内核中实现
  * @note TODO: 可以使用hashmap优化
  * @version 0.1

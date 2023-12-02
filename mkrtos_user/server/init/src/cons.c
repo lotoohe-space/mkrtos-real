@@ -17,7 +17,7 @@
 #include <u_thread.h>
 
 static ATTR_ALIGN(8) uint8_t cons_stack[512];
-static uint8_t cons_msg_buf[MSG_BUG_LEN];
+// static uint8_t cons_msg_buf[MSG_BUG_LEN];
 static cons_t cons_obj;
 static obj_handler_t cons_th;
 
@@ -48,7 +48,7 @@ void console_init(void)
 {
     cons_svr_obj_init(&cons_obj);
     meta_reg_svr_obj(&cons_obj.svr, CONS_PROT);
-    u_thread_create(&cons_th, cons_stack, sizeof(cons_stack), cons_msg_buf, console_read_func);
+    u_thread_create(&cons_th, cons_stack, sizeof(cons_stack), NULL, console_read_func);
     u_thread_run(cons_th, 2);
     printf("cons svr init...\n");
 }

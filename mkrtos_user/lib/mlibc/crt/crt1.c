@@ -15,7 +15,7 @@ void _start_c(long *p, void *start_addr)
 {
 	int argc = p[0];
 	char **argv = (void *)(p + 1);
-	app_start_addr = start_addr; // zhangzheng add.
+	app_start_addr = start_addr; // ATShining add.
 
 	__libc_start_main(main, argc, argv, _init, _fini, 0);
 }

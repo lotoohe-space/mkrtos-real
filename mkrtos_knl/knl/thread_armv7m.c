@@ -1,6 +1,6 @@
 /**
  * @file thread_armv7m.c
- * @author zhangzheng (135874329@qq.com)
+ * @author ATShining (135874329@qq.com)
  * @brief
  * @version 0.1
  * @date 2023-09-29

@@ -1,6 +1,6 @@
 /**
  * @file sys.c
- * @author zhangzheng (1358745329@qq.com)
+ * @author ATShining (1358745329@qq.com)
  * @brief 内核的信息输出对象，用户态使用该对象进行数据输出。
  * @version 0.1
  * @date 2023-09-16

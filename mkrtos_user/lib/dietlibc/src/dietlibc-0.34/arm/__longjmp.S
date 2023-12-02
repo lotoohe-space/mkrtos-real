@@ -6,7 +6,7 @@
 FUNC_START	__longjmp
 	mov	ip, r0
 	movs	r0, r1
-	//zhangzheng
+	//ATShining
 	it		eq
 	moveq	r0, #1
 #ifndef __SOFTFP__
@@ -24,7 +24,7 @@ FUNC_START	__longjmp
 #  warning "sigjmp will not restore iwmmxt coprocessor registers"
 #endif
 
-	//zhangzheng ldmia   ip!, {r4-r11, sp, pc}
+	//ATShining ldmia   ip!, {r4-r11, sp, pc}
 	ldmia   ip!, {r4-r11}
     ldmia   ip!, {r2}
     mov sp,r2

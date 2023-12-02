@@ -1,6 +1,6 @@
 /**
  * @file heap_stack.c
- * @author zhangzheng (1358745329@qq.com)
+ * @author ATShining (1358745329@qq.com)
  * @brief 
  * @version 0.1
  * @date 2023-11-28

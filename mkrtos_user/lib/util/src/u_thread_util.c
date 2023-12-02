@@ -42,11 +42,15 @@ int u_thread_create(obj_handler_t *th_hd, void *stack, umword_t stack_size, void
         handler_free_umap(th1_hd);
         return msg_tag_get_prot(tag);
     }
-    tag = thread_msg_buf_set(th1_hd, msg_buf);
-    if (msg_tag_get_prot(tag) < 0)
+    if (msg_buf)
     {
-        handler_free_umap(th1_hd);
-        return msg_tag_get_prot(tag);
+        //!< 有些线程不需要msg_buf
+        tag = thread_msg_buf_set(th1_hd, msg_buf);
+        if (msg_tag_get_prot(tag) < 0)
+        {
+            handler_free_umap(th1_hd);
+            return msg_tag_get_prot(tag);
+        }
     }
     *th_hd = th1_hd;
     return 0;

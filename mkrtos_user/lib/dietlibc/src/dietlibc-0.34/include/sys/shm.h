@@ -61,7 +61,7 @@ struct shm_info {
 };
 
 #if defined(__i386__) || defined(__mips__) || defined(__arm__) || defined(__powerpc__) || defined (__powerpc64__) || defined(__s390__) || defined(__hppa__) || defined(__x86_64__) || defined(__ia64__)
-#define PAGE_SIZE 256UL //TODO:zhangzheng PAGE_SIZE 4096UL
+#define PAGE_SIZE 256UL //TODO:ATShining PAGE_SIZE 4096UL
 #define PAGE_SHIFT 8 //TODO:12
 #elif defined(__aarch64__)
 /* Technically, this is wrong, as page size might vary, and is not known when compiling stuff.
