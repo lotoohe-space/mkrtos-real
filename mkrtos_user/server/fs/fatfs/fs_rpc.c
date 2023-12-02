@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <assert.h>
+#include <string.h>
 #include "rpc_prot.h"
 static fs_t fs;
 void fs_svr_init(void)
@@ -125,7 +126,7 @@ int fs_svr_open(const char *path, int flags, int mode)
 
     if (ret != FR_OK)
     {
-        if (ret == FR_NO_FILE)
+        if (ret == FR_NO_FILE || ret == FR_INVALID_NAME)
         {
             // 打开的是一个目录，则作为一个目录打开
             ret = f_opendir(&file->dir, path);
@@ -136,7 +137,7 @@ int fs_svr_open(const char *path, int flags, int mode)
                 return fatfs_err_conv(ret);
             }
             file->type = 1;
-            cons_write_str("open dir..\n");
+            // cons_write_str("open dir..\n");
         }
     }
     else
@@ -290,6 +291,26 @@ int fs_svr_readdir(int fd, dirent_t *dir)
     {
         return -ENOENT;
     }
+    FILINFO info;
+    FRESULT ret = f_readdir(&file->dir, &info);
+
+    if (ret != FR_OK || info.fname[0] == 0)
+    {
+        return -ENOENT;
+    }
+    strncpy(dir->d_name, info.fname, sizeof(dir->d_name));
+    dir->d_name[sizeof(dir->d_name) - 1] = 0;
+    dir->d_reclen = sizeof(*dir);
+    dir->d_off = 0;
+    if (info.fattrib & AM_DIR)
+    { /* Directory */
+        dir->d_type = DT_DIR;
+    }
+    else
+    { /* File */
+        dir->d_type = DT_CHR;
+    }
+    return sizeof(*dir);
 }
 int fs_svr_mkdir(char *path)
 {

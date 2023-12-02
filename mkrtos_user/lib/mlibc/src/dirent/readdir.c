@@ -3,18 +3,22 @@
 #include <stddef.h>
 #include "__dirent.h"
 #include "syscall.h"
-
-typedef char dirstream_buf_alignment_check[1-2*(int)(
-	offsetof(struct __dirstream, buf) % sizeof(off_t))];
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
+typedef char dirstream_buf_alignment_check[1 - 2 * (int)(offsetof(struct __dirstream, buf) % sizeof(off_t))];
 
 struct dirent *readdir(DIR *dir)
 {
 	struct dirent *de;
-	
-	if (dir->buf_pos >= dir->buf_end) {
-		int len = __syscall(SYS_getdents, dir->fd, dir->buf, sizeof dir->buf);
-		if (len <= 0) {
-			if (len < 0 && len != -ENOENT) errno = -len;
+
+	if (dir->buf_pos >= dir->buf_end)
+	{
+		int len = be_getdents(dir->fd, dir->buf, sizeof dir->buf);
+		if (len <= 0)
+		{
+			if (len < 0 && len != -ENOENT)
+				errno = -len;
 			return 0;
 		}
 		dir->buf_end = len;

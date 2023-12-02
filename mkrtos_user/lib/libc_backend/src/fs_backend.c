@@ -321,6 +321,7 @@ long be_lseek(long fd, long offset, long whence)
     {
     case FD_TTY:
     {
+        return -ENOSYS;
     }
     break;
     case FD_FS:
@@ -332,4 +333,31 @@ long be_lseek(long fd, long offset, long whence)
         return -ENOSYS;
     }
     return 0;
+}
+
+long be_getdents(long fd, char *buf, size_t size)
+{
+    fd_map_entry_t u_fd;
+    int ret = fd_map_get(fd, &u_fd);
+
+    if (ret < 0)
+    {
+        return -EBADF;
+    }
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {
+        return -ENOSYS;
+    }
+    break;
+    case FD_FS:
+    {
+        ret = fs_readdir(u_fd.priv_fd, (struct dirent *)buf);
+    }
+    break;
+    default:
+        return -ENOSYS;
+    }
+    return ret;
 }

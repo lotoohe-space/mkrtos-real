@@ -15,7 +15,7 @@ add_library(LetterShell
                ../../src/shell_companion.c
                ../../src/shell_ext.c
                ../../src/shell_cmd_list.c
-               # ../../extensions/fs_support/shell_fs.c
+               ../../extensions/fs_support/shell_fs.c
                ../../extensions/log/log.c
             #    ../../extensions/telnet/telnetd.c
                ../../extensions/shell_enhance/shell_passthrough.c

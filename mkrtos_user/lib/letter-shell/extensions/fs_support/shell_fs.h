@@ -18,7 +18,7 @@
 
 #define     SHELL_COMPANION_ID_FS           -1
 
-#define     SHELL_FS_LIST_FILE_BUFFER_MAX   4096
+#define     SHELL_FS_LIST_FILE_BUFFER_MAX   128
 
 /**
  * @brief shell文件系统支持结构体

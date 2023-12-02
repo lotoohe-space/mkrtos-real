@@ -10,8 +10,6 @@
 #include <stdio.h>
 void fs_test(void)
 {
-    int i = 1000;
-    while (i--)
     {
         char tmp[4] = "123";
         int fd = open("/mnt/1.txt", O_CREAT | O_RDWR, 0777);
@@ -24,6 +22,14 @@ void fs_test(void)
         assert(rlen == 4);
         assert(strcmp(tmp, "123") == 0);
         close(fd);
+    }
+    {
+        DIR *dir = opendir("/mnt/");
+        assert(dir);
+        struct dirent *d = readdir(dir);
+        assert(d);
+        printf("%s\n", d->d_name);
+        closedir(dir);
     }
     printf("%s ok.\n", __func__);
 }

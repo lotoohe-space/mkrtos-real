@@ -39,7 +39,7 @@
  * @brief 是否使用shell伴生对象
  *        一些扩展的组件(文件系统支持，日志工具等)需要使用伴生对象
  */
-#define     SHELL_USING_COMPANION       0
+#define     SHELL_USING_COMPANION       1
 #endif /** SHELL_USING_COMPANION */
 
 #ifndef SHELL_SUPPORT_END_LINE

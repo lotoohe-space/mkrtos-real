@@ -265,7 +265,9 @@
         "__memory": "c",
         "optional": "c",
         "system_error": "c",
-        "__dirent.h": "c"
+        "__dirent.h": "c",
+        "shell_fs.h": "c",
+        "shell_passthrough.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,
