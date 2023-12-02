@@ -13,7 +13,7 @@
 #include <assert.h>
 #include <u_util.h>
 #include "fd_map.h"
-
+#include "u_sleep.h"
 AUTO_CALL(101)
 void fs_backend_init(void)
 {
@@ -21,7 +21,42 @@ void fs_backend_init(void)
     assert(fd_map_alloc(0, 1, FD_TTY) >= 0);
     assert(fd_map_alloc(0, 2, FD_TTY) >= 0);
 }
+static int be_tty_read(char *buf, long size)
+{
+    pid_t pid;
+    int len;
+    int r_len = 0;
 
+    if (size == 0)
+    {
+        return 0;
+    }
+    task_get_pid(TASK_THIS, (umword_t *)(&pid));
+
+    while (r_len < size)
+    {
+        if (pid == 0)
+        {
+            len = ulog_read_bytes(u_get_global_env()->log_hd, buf + r_len, size - r_len);
+        }
+        else
+        {
+            len = cons_read(buf + r_len, size - r_len);
+        }
+        if (len < 0)
+        {
+            return len;
+        }
+        else if (len == 0)
+        {
+            u_sleep_ms(10);
+            continue;
+        }
+        r_len += len;
+        break;
+    }
+    return r_len;
+}
 long be_read(long fd, char *buf, long size)
 {
     fd_map_entry_t u_fd;
@@ -35,7 +70,7 @@ long be_read(long fd, char *buf, long size)
     {
     case FD_TTY:
     {
-        /*TODO:*/
+        return be_tty_read(buf, size);
     }
     break;
     case FD_FS:
@@ -85,6 +120,60 @@ long be_write(long fd, char *buf, long size)
         return -ENOSYS;
     }
     return -ENOSYS;
+}
+long be_readv(long fd, const struct iovec *iov, long iovcnt)
+{
+    long wlen = 0;
+    for (int i = 0; i < iovcnt; i++)
+    {
+        fd_map_entry_t u_fd;
+        int ret = fd_map_get(fd, &u_fd);
+
+        if (ret < 0)
+        {
+            return -EBADF;
+        }
+        switch (u_fd.type)
+        {
+        case FD_TTY:
+        {
+            pid_t pid;
+            int read_cn;
+
+            task_get_pid(TASK_THIS, (umword_t *)(&pid));
+            if (pid == 0)
+            {
+                read_cn = ulog_read_bytes(u_get_global_env()->log_hd, iov[i].iov_base, iov[i].iov_len);
+            }
+            else
+            {
+            again_read:
+                read_cn = cons_read(iov[i].iov_base, iov[i].iov_len);
+                if (read_cn < 0)
+                {
+                    return read_cn;
+                }
+                else if (read_cn == 0)
+                {
+                    u_sleep_ms(10); // TODO:改成信号量
+                    goto again_read;
+                }
+            }
+            wlen += read_cn;
+        }
+        break;
+        case FD_FS:
+        {
+            int rsize = fs_read(fd, iov[i].iov_base, iov[i].iov_len);
+
+            wlen += rsize;
+        }
+        break;
+        default:
+            return -ENOSYS;
+        }
+    }
+    return wlen;
 }
 long be_writev(long fd, const struct iovec *iov, long iovcnt)
 {

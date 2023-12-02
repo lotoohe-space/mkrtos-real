@@ -53,6 +53,7 @@ void fs_backend_init(void);
 
 long be_read(long fd, char *buf, long size);
 long be_write(long fd, char *buf, long size);
+long be_readv(long fd, const struct iovec *iov, long iovcnt);
 long be_writev(long fd, const struct iovec *iov, long iovcnt);
 long be_ioctl(long fd, long req, void *args);
 long be_set_tid_address(int *val);

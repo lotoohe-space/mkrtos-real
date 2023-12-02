@@ -11,11 +11,12 @@
 #include "test.h"
 int main(int argc, char *args[])
 {
-    
+    uint8_t data[8];
     usleep(100000);
 
-    printf("%s start running.\n", args[0]);
-
+    printf("%s: please input str.\n", args[0]);
+    scanf("%s", data);
+    printf("%s\n", data);
     mr_drv_test();
     pm_test();
 

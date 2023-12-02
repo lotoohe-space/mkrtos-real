@@ -33,7 +33,9 @@ static int checker(void *p)
 #endif
 	return 0;
 }
-
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
 int faccessat(int fd, const char *filename, int amode, int flag)
 {
 	if (flag)
@@ -64,8 +66,13 @@ int faccessat(int fd, const char *filename, int amode, int flag)
 	pid = __clone(checker, stack + sizeof stack, 0, &c);
 	__syscall(SYS_close, p[1]);
 
+#ifdef NO_LITTLE_MODE
 	if (pid < 0 || __syscall(SYS_read, p[0], &ret, sizeof ret) != sizeof(ret))
 		ret = -EBUSY;
+#else
+	if (pid < 0 || be_read(p[0], &ret, sizeof ret) != sizeof(ret))
+		ret = -EBUSY;
+#endif
 	__syscall(SYS_close, p[0]);
 	__syscall(SYS_wait4, pid, &status, __WCLONE, 0);
 

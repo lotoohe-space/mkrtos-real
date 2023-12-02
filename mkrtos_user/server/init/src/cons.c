@@ -13,21 +13,29 @@
 #include <rpc_prot.h>
 #include "cons_svr.h"
 #include <stdio.h>
+#include <u_thread_util.h>
+#include <u_thread.h>
 
+static ATTR_ALIGN(8) uint8_t cons_stack[512];
+static uint8_t cons_msg_buf[MSG_BUG_LEN];
 static cons_t cons_obj;
+static obj_handler_t cons_th;
 
 static void console_read_func(void)
 {
-    int r_len = ulog_read_bytes(LOG_PROT, cons_obj.r_data_buf, sizeof(cons_obj.r_data_buf));
-
-    if (r_len > 0)
+    while (1)
     {
-        pthread_spin_lock(&cons_obj.r_lock);
-        for (int i = 0; i < r_len; i++)
+        int r_len = ulog_read_bytes(LOG_PROT, cons_obj.r_data_buf, sizeof(cons_obj.r_data_buf));
+
+        if (r_len > 0)
         {
-            q_enqueue(&cons_obj.r_queue, cons_obj.r_data_buf[i]);
+            pthread_spin_lock(&cons_obj.r_lock);
+            for (int i = 0; i < r_len; i++)
+            {
+                q_enqueue(&cons_obj.r_queue, cons_obj.r_data_buf[i]);
+            }
+            pthread_spin_unlock(&cons_obj.r_lock);
         }
-        pthread_spin_unlock(&cons_obj.r_lock);
     }
     handler_free_umap(cons_obj.hd_cons_read);
     while (1)
@@ -40,6 +48,8 @@ void console_init(void)
 {
     cons_svr_obj_init(&cons_obj);
     meta_reg_svr_obj(&cons_obj.svr, CONS_PROT);
+    u_thread_create(&cons_th, cons_stack, sizeof(cons_stack), cons_msg_buf, console_read_func);
+    u_thread_run(cons_th, 2);
     printf("cons svr init...\n");
 }
 /**
@@ -82,7 +92,7 @@ int console_read(uint8_t *data, size_t len)
     if (q_queue_len(&cons_obj.r_queue) == 0)
     {
         // 回复没有消息
-        return -ENODATA;
+        return 0;
     }
     else
     {
@@ -91,7 +101,7 @@ int console_read(uint8_t *data, size_t len)
         {
             // 回复没有消息
             pthread_spin_unlock(&cons_obj.r_lock);
-            return -ENODATA;
+            return 0;
         }
         int i;
         for (i = 0; i < q_queue_len(&cons_obj.r_queue) && i < len; i++)

@@ -10,8 +10,8 @@
 
 RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_WRITE, write,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data)
-RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_WRITE, read,
-                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data)
+RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_READ, read,
+                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data)
 
 RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_ACTIVE, active,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
