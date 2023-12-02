@@ -221,7 +221,7 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     {
     case FUTEX_REQUEUE:
     {
-        if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
+        if (!is_rw_access(thread_get_bind_task(cur_th), uaddr, sizeof(*uaddr), FALSE))
         {
             spinlock_set(&fst->kobj.lock, status);
             return -EACCES;
@@ -281,7 +281,7 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     break;
     case FUTEX_WAIT:
     {
-        if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
+        if (!is_rw_access(thread_get_bind_task(cur_th),uaddr, sizeof(*uaddr), FALSE))
         {
             spinlock_set(&fst->kobj.lock, status);
             return -EACCES;
@@ -373,7 +373,7 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     case FUTEX_UNLOCK_PI:
     case FUTEX_WAKE_CLEAR:
     {
-        if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
+        if (!is_rw_access(thread_get_bind_task(cur_th),uaddr, sizeof(*uaddr), FALSE))
         {
             spinlock_set(&fst->kobj.lock, status);
             return -EACCES;
@@ -406,7 +406,7 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     }
     case FUTEX_LOCK_PI:
     {
-        if (!is_rw_access(uaddr, sizeof(*uaddr), FALSE))
+        if (!is_rw_access(thread_get_bind_task(cur_th),uaddr, sizeof(*uaddr), FALSE))
         {
             spinlock_set(&fst->kobj.lock, status);
             return -EACCES;

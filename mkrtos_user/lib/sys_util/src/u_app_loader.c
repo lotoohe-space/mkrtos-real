@@ -130,12 +130,12 @@ int app_load(const char *name, uenv_t *cur_env)
     {
         goto end_del_obj;
     }
-    tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + app->i.ram_size));
+    tag = thread_bind_task(hd_thread, hd_task);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = thread_bind_task(hd_thread, hd_task);
+    tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + app->i.ram_size));
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;

@@ -55,25 +55,31 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     {
     case MM_ALLOC:
     {
-        // addr_t ret_addr;
-        // int ret = mm_pages_alloc_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->r[1], &ret_addr, f->r[2]);
-        // if (ret < 0)
-        // {
-        //     tag = msg_tag_init4(0, 0, 0, ret);
-        // }
-        // else
-        // {
-        //     tag = msg_tag_init4(0, 0, 0, 0);
-        //     f->r[1] = ret_addr;
-        // }
+#if 0
+        addr_t ret_addr;
+        int ret = mm_pages_alloc_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->r[1], &ret_addr, f->r[2]);
+        if (ret < 0)
+        {
+            tag = msg_tag_init4(0, 0, 0, ret);
+        }
+        else
+        {
+            tag = msg_tag_init4(0, 0, 0, 0);
+            f->r[1] = ret_addr;
+        }
+#else
         tag = msg_tag_init4(0, 0, 0, -ENOSYS);
+#endif
     }
     break;
     case MM_FREE:
     {
-        // mm_pages_free_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->r[1], f->r[2]);
-        // tag = msg_tag_init4(0, 0, 0, 0);
+#if 0
+        mm_pages_free_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->r[1], f->r[2]);
+        tag = msg_tag_init4(0, 0, 0, 0);
+#else
         tag = msg_tag_init4(0, 0, 0, -ENOSYS);
+#endif
     }
     break;
     case MM_ALIGN_ALLOC:

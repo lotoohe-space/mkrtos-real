@@ -85,7 +85,7 @@ static void knl_init_2(void)
         }
     }
     init_thread->sche.prio = 2;
-    task_set_pid(init_task, 0);
+    init_task->pid = 0;
     thread_ready(init_thread, FALSE);
 }
 INIT_STAGE2(knl_init_2);

@@ -258,7 +258,8 @@
         "process_manager.h": "c",
         "fs_svr.h": "c",
         "pm_svr.h": "c",
-        "cons_cli.h": "c"
+        "cons_cli.h": "c",
+        "access.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

@@ -24,6 +24,8 @@
 #include "assert.h"
 #include "err.h"
 #include "map.h"
+#include "access.h"
+
 enum thread_op
 {
     SET_EXEC_REGS,
@@ -751,9 +753,16 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     break;
     case MSG_BUG_SET:
     {
-        /*TODO:检查内存的可访问性*/
-        thread_set_msg_bug(tag_th, (void *)(f->r[1]));
-        tag = msg_tag_init4(0, 0, 0, 0);
+        if (is_rw_access(thread_get_bind_task(tag_th), (void *)(f->r[1]), THREAD_MSG_BUG_LEN, FALSE))
+        {
+            thread_set_msg_bug(tag_th, (void *)(f->r[1]));
+            tag = msg_tag_init4(0, 0, 0, 0);
+        }
+        else
+        {
+            //!< 内存不可访问
+            tag = msg_tag_init4(0, 0, 0, -EACCES);
+        }
     }
     case MSG_BUG_GET:
     {
@@ -771,8 +780,15 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     break;
     case RUN_THREAD:
     {
-        if (thread_get_bind_task(tag_th) == NULL)
+        task_t *tag_tsk = thread_get_bind_task(tag_th);
+        if (tag_tsk == NULL)
         {
+            tag = msg_tag_init4(0, 0, 0, -EACCES);
+            break;
+        }
+        if (task_pid_get(tag_tsk) == -1)
+        {
+            //!< 只有设置了pid才能启动，pid只有init进程能够设置，这就使得只有pid能够启动应用程序
             tag = msg_tag_init4(0, 0, 0, -EACCES);
             break;
         }

@@ -225,7 +225,7 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     mm_space_init(&task->mm_space, is_knl);
     ref_counter_init(&task->ref_cn);
     ref_counter_inc(&task->ref_cn);
-    task->pid = 0;
+    task->pid = -1;
     task->lim = ram;
     task->kobj.invoke_func = task_syscall_func;
     task->kobj.put_func = task_put;

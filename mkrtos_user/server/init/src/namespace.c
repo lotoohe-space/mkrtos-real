@@ -1,12 +1,12 @@
 /**
  * @file namespace.c
  * @author zhangzheng (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-11-28
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include <u_types.h>
 #include <string.h>
@@ -81,6 +81,12 @@ int namespace_query(const char *path, obj_handler_t *hd)
             char *split_str = strstr(path, ns.ne_list[i].path);
             if (split_str && (split_str == path))
             {
+                msg_tag_t tag = task_obj_valid(TASK_THIS, ns.ne_list[i].hd);
+                if (msg_tag_get_val(tag) != 1)
+                {
+                    // 对象变为无效，删除该条记录
+                    ns.ne_list[i].hd = HANDLER_INVALID;
+                }
                 *hd = ns.ne_list[i].hd;
                 return (int)(strlen(ns.ne_list[i].path));
             }

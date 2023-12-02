@@ -29,12 +29,7 @@ int u_thread_create(obj_handler_t *th_hd, void *stack, umword_t stack_size, void
         handler_free(th1_hd);
         return msg_tag_get_prot(tag);
     }
-    tag = thread_msg_buf_set(th1_hd, msg_buf);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        handler_free_umap(th1_hd);
-        return msg_tag_get_prot(tag);
-    }
+
     tag = thread_exec_regs(th1_hd, (umword_t)thread_func, (umword_t)stack + stack_size - sizeof(void *), RAM_BASE(), 0);
     if (msg_tag_get_prot(tag) < 0)
     {
@@ -42,6 +37,12 @@ int u_thread_create(obj_handler_t *th_hd, void *stack, umword_t stack_size, void
         return msg_tag_get_prot(tag);
     }
     tag = thread_bind_task(th1_hd, TASK_THIS);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        handler_free_umap(th1_hd);
+        return msg_tag_get_prot(tag);
+    }
+    tag = thread_msg_buf_set(th1_hd, msg_buf);
     if (msg_tag_get_prot(tag) < 0)
     {
         handler_free_umap(th1_hd);
