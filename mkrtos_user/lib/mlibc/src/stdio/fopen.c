@@ -12,21 +12,32 @@ FILE *fopen(const char *restrict filename, const char *restrict mode)
 	int flags;
 
 	/* Check for valid initial mode character */
-	if (!strchr("rwa", *mode)) {
+	if (!strchr("rwa", *mode))
+	{
 		errno = EINVAL;
 		return 0;
 	}
 
 	/* Compute the flags to pass to open() */
 	flags = __fmodeflags(mode);
-
+#ifdef NO_LITTLE_MODE
 	fd = sys_open(filename, flags, 0666);
-	if (fd < 0) return 0;
+#else
+	fd = be_open(filename, flags, 0666);
+#endif
+	if (fd < 0)
+		return 0;
 	if (flags & O_CLOEXEC)
+#ifdef NO_LITTLE_MODE
 		__syscall(SYS_fcntl, fd, F_SETFD, FD_CLOEXEC);
+#else
+		/*TODO:*/
+		;
+#endif
 
 	f = __fdopen(fd, mode);
-	if (f) return f;
+	if (f)
+		return f;
 
 	be_close(fd);
 	return 0;
