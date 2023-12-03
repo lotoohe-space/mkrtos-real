@@ -1,12 +1,12 @@
 /**
  * @file main.c
  * @author ATShining (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-11-28
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "u_log.h"
 #include "u_prot.h"
@@ -52,6 +52,7 @@ static void test(void)
     ipc_obj_test();
     pthread_cond_lock_test();
     pthread_lock_test();
+    ns_test();
 #endif
 }
 int main(int argc, char *args[])
@@ -60,12 +61,13 @@ int main(int argc, char *args[])
     uenv_t *env;
 
     ulog_write_str(LOG_PROT, "init..\n");
-    test();
     env = u_get_global_env();
     rpc_meta_init(THREAD_MAIN, &env->ns_hd);
-    namespace_init();
+    namespace_init(env->ns_hd);
     pm_init();
     console_init();
+
+    test();
 
     ret = parse_cfg(DEFAULT_INIT_CFG, env);
     printf("run app num is %d.\n", ret);

@@ -267,7 +267,9 @@
         "system_error": "c",
         "__dirent.h": "c",
         "shell_fs.h": "c",
-        "shell_passthrough.h": "c"
+        "shell_passthrough.h": "c",
+        "u_slist.h": "c",
+        "atomic": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

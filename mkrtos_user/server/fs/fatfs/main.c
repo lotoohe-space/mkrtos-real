@@ -21,7 +21,7 @@ int main(int args, char *argv[])
     ret = rpc_meta_init(THREAD_MAIN, &hd);
     assert(ret >= 0);
     fs_svr_init();
-    ns_register("/mnt", hd);
+    ns_register("/mnt", hd, MOUNT_NODE);
 
     FRESULT res = f_mount(&fs, "0:", 1);
 

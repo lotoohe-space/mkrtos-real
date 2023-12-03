@@ -10,12 +10,13 @@ set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
 add_library(LetterShell
                # main.c
                shell_port.c
+               shell_fs_ext.c
             #    shell_cpp.cpp
                ../../src/shell.c
                ../../src/shell_companion.c
                ../../src/shell_ext.c
                ../../src/shell_cmd_list.c
-               ../../extensions/fs_support/shell_fs.c
+               # ../../extensions/fs_support/shell_fs.c
                ../../extensions/log/log.c
             #    ../../extensions/telnet/telnetd.c
                ../../extensions/shell_enhance/shell_passthrough.c

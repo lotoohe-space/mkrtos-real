@@ -11,5 +11,8 @@
 #define ROUND_UP(a, b) ROUND(a, b)                                 //!< a除b向上取整数
 #define ROUND_DOWN(a, b) ((a) / (b))                               //!< a/b向下取整
 
+#define container_of(ptr, type, member) \
+    ((type *)(((umword_t)(ptr)) - ((umword_t)(&(((type *)0)->member)))))
+
 #define ATTR_ALIGN(a) __attribute__((aligned(a)))
 #define AUTO_CALL(prio) __attribute__((constructor(prio)))

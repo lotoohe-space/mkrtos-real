@@ -10,6 +10,7 @@
 #include <string.h>
 #include <assert.h>
 
+/*open*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_OPEN, open,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
@@ -43,6 +44,7 @@ sd_t fs_open(const char *path, int flags, int mode)
 
     return mk_sd_init2(hd, msg_tag_get_val(tag)).raw;
 }
+/*read*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_READ, read,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
@@ -85,6 +87,7 @@ int fs_read(sd_t _fd, void *buf, size_t len)
 
     return rlen;
 }
+/*write*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_WRITE, write,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, buf,
@@ -126,6 +129,7 @@ int fs_write(sd_t _fd, void *buf, size_t len)
 
     return wlen;
 }
+/*close*/
 RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_CLOSE, close,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd)
 int fs_close(sd_t _fd)
@@ -145,6 +149,7 @@ int fs_close(sd_t _fd)
 
     return msg_tag_get_val(tag);
 }
+/*lseek*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_LSEEK, lseek,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, offs,
@@ -173,6 +178,7 @@ int fs_lseek(sd_t _fd, int offs, int whence)
 
     return msg_tag_get_val(tag);
 }
+/*readdir*/
 RPC_GENERATION_CALL2(fs_t, FS_PROT, FS_READDIR, readdir,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_dirent_t_t, rpc_dirent_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, dir)

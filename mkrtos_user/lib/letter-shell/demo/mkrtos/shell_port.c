@@ -28,7 +28,7 @@
 static Shell shell;
 static ShellFs shellFs;
 static char shellBuffer[256];
-static char shellPathBuffer[128] = "/mnt/";
+// static char shellPathBuffer[128] = "/";
 
 /**
  * @brief 用户shell写
@@ -96,15 +96,15 @@ size_t userShellListDir(char *path, char *buffer, size_t maxLen)
  */
 void userShellInit(void)
 {
-    shellFs.getcwd = getcwd;
-    shellFs.chdir = chdir;
-    shellFs.listdir = userShellListDir;
-    shellFsInit(&shellFs, shellPathBuffer, sizeof(shellPathBuffer));
+    // shellFs.getcwd = getcwd;
+    // shellFs.chdir = chdir;
+    // shellFs.listdir = userShellListDir;
+    // shellFsInit(&shellFs, shellPathBuffer, sizeof(shellPathBuffer));
     shell.write = userShellWrite;
     shell.read = userShellRead;
-    shellSetPath(&shell, shellPathBuffer);
+    // shellSetPath(&shell, shellPathBuffer);
     shellInit(&shell, shellBuffer, sizeof(shellBuffer));
-    shellCompanionAdd(&shell, SHELL_COMPANION_ID_FS, &shellFs);
+    // shellCompanionAdd(&shell, SHELL_COMPANION_ID_FS, &shellFs);
 
     while (1)
     {

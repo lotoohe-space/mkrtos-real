@@ -20,7 +20,7 @@ void ns_test(void)
     assert(tmp_ipc_hd != HANDLER_INVALID);
     msg_tag_t tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(0, 0, tmp_ipc_hd));
 
-    assert(ns_register("shell", tmp_ipc_hd) >= 0);
+    assert(ns_register("shell", tmp_ipc_hd, FILE_NODE) >= 0);
     obj_handler_t rcv_ipc_hd;
 
     assert(ns_query("shell", &rcv_ipc_hd) >= 0);

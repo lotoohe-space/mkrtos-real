@@ -9,7 +9,7 @@
 #include <mr_api.h>
 int main(int argc, char *args[])
 {
-    ns_register("/dev", drv_svr_init());
+    ns_register("/dev", drv_svr_init(), MOUNT_NODE);
     mr_auto_init();
     printf("mr drv start success...\n");
     drv_svr_loop();

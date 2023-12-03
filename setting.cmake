@@ -27,7 +27,7 @@ set(CMAKE_C_FLAGS "-mcpu=${MKRTOS_ARCH} -mthumb -O0 -g3 -lc -lrdimon -msoft-floa
  -fno-stack-protector -Wl,--gc-sections \
 " CACHE STRING "" FORCE)
 
-set(CMAKE_CXX_FLAGS "-mcpu=${MKRTOS_ARCH}-mthumb -mno-thumb-interwork -D=MKRTOS \
+set(CMAKE_CXX_FLAGS "-mcpu=${MKRTOS_ARCH} -mthumb -mno-thumb-interwork -D=MKRTOS \
 -mfix-cortex-m3-ldrd -Os -g3 -std=c++11 \
 -fmessage-length=0 -Xlinker --print-map -Wall -W -fno-stack-protector -g \ 
 -mfloat-abi=soft -lc -lrdimon -u _printf_float \

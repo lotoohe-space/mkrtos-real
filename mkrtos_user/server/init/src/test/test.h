@@ -1,6 +1,5 @@
 #pragma once
 
-// TODO:修改为init call
 void mm_test(void);
 void ulog_test(void);
 void factory_test(void);
@@ -17,3 +16,4 @@ void kobj_create_press_test(void);
 void sleep_tick(int tick);
 void pthread_lock_test(void);
 int pthread_cond_lock_test(void);
+void ns_test(void);
