@@ -1,6 +1,6 @@
 #pragma once
 #include "u_types.h"
-#define SYS_SCHE_HZ 1000 //!< 系统调度频率
+// #define CONFIG_SYS_SCHE_HZ 1000 //!< 系统调度频率
 
 #define MK_PAGE_SIZE 512
 #define WORD_BYTES (sizeof(void *))

@@ -14,14 +14,14 @@
 #include "string.h"
 void obj_space_init(obj_space_t *obj_space, ram_limit_t *ram)
 {
-    for (int i = 0; i < OBJ_MAP_TAB_SIZE; i++)
+    for (int i = 0; i < CONFIG_OBJ_MAP_TAB_SIZE; i++)
     {
         obj_space->tab.tabs[i] = NULL;
     }
 }
 void obj_space_release(obj_space_t *obj_space, ram_limit_t *ram)
 {
-    for (int i = 0; i < OBJ_MAP_TAB_SIZE; i++)
+    for (int i = 0; i < CONFIG_OBJ_MAP_TAB_SIZE; i++)
     {
         mm_limit_free(ram, obj_space->tab.tabs[i]);
     }
@@ -33,8 +33,8 @@ void obj_space_del(obj_space_t *obj_space, obj_addr_t inx)
     {
         return;
     }
-    int tab_inx = inx / OBJ_MAP_ENTRY_SIZE;
-    int entry_inx = inx % OBJ_MAP_ENTRY_SIZE;
+    int tab_inx = inx / CONFIG_OBJ_MAP_ENTRY_SIZE;
+    int entry_inx = inx % CONFIG_OBJ_MAP_ENTRY_SIZE;
 
     if (!obj_space->tab.tabs[tab_inx])
     {
@@ -50,8 +50,8 @@ obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobj
     {
         return NULL;
     }
-    int tab_inx = inx / OBJ_MAP_ENTRY_SIZE;
-    int entry_inx = inx % OBJ_MAP_ENTRY_SIZE;
+    int tab_inx = inx / CONFIG_OBJ_MAP_ENTRY_SIZE;
+    int entry_inx = inx % CONFIG_OBJ_MAP_ENTRY_SIZE;
 
     if (!obj_space->tab.tabs[tab_inx])
     {
@@ -79,8 +79,8 @@ obj_map_entry_t *obj_space_lookup(obj_space_t *obj_space, obj_addr_t inx)
     {
         return NULL;
     }
-    int tab_inx = inx / OBJ_MAP_ENTRY_SIZE;
-    int entry_inx = inx % OBJ_MAP_ENTRY_SIZE;
+    int tab_inx = inx / CONFIG_OBJ_MAP_ENTRY_SIZE;
+    int entry_inx = inx % CONFIG_OBJ_MAP_ENTRY_SIZE;
 
     if (!obj_space->tab.tabs[tab_inx])
     {

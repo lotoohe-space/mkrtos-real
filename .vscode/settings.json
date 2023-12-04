@@ -269,7 +269,8 @@
         "shell_fs.h": "c",
         "shell_passthrough.h": "c",
         "u_slist.h": "c",
-        "atomic": "c"
+        "atomic": "c",
+        "futex.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

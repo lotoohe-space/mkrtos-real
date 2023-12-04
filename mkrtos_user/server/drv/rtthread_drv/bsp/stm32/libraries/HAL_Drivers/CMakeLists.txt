@@ -40,8 +40,6 @@ if(NOT DEFINED RT_USING_SPI_BITOPS)
 list(REMOVE_ITEM deps ${CMAKE_CURRENT_LIST_DIR}/drv_soft_spi.c)
 endif()
 
-message("========"${deps})
-
 add_library(
     hal_drviers
     STATIC

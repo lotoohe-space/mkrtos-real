@@ -15,7 +15,7 @@
 #include "uart/uart.h"
 
 static spinlock_t lock;
-static char print_cache[128];
+static char print_cache[CONFIG_PRINTK_CACHE_SIZE];
 
 /**
  * @brief 原始输出

@@ -1,0 +1,45 @@
+menu "Knl config"
+
+config FT_ADDR_NR
+    int "The number of addresses supported by futex."
+    default 16
+    help
+       Set the number of supported futex, which usually indicates how many user state locks are supported..
+config SYS_SCHE_HZ
+    int "System time slice size"
+    default 1000
+    help
+        Set the time slice size of the system.
+
+config USER_ISR_START_NO
+    int "The starting point of the user mode interrupt number."
+    default 16
+    help
+        This number indicates which interrupt number can be used for user status.
+config IRQ_REG_TAB_SIZE
+    int "The size of the interrupt registry in the kernel."
+    default 80
+    help 
+        The interruption of user registration will temporarily use this table.
+config REGION_NUM
+    int "Number of MPU regions"
+    default 8
+    help 
+        Set the number of regions protected by MPU.
+
+config OBJ_MAP_TAB_SIZE
+    int "The number of obj mapping tables."
+    default 4
+    help
+        OBJ_MAP_TAB_SIZE * OBJ_MAP_ENTRY_SIZE is equal to the number of kernel objects that a task can map.
+config OBJ_MAP_ENTRY_SIZE
+    int "The size of the entries in the mapping table."
+    default 8
+    help
+        OBJ_MAP_TAB_SIZE * OBJ_MAP_ENTRY_SIZE is equal to the number of kernel objects that a task can map.
+config PRINTK_CACHE_SIZE
+    int "The cache size of printk."
+    default 128
+    help
+        The printk cache size refers to the size of the data content output to the console in a single attempt, which usually does not need to be modified.
+endmenu

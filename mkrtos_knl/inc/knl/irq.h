@@ -4,8 +4,8 @@
 #include <irq_sender.h>
 
 #define IRQ_INVALID_NO ((umword_t)(-1))
-#define IRQ_REG_TAB_SIZE 80
-#define USER_ISR_START_NO 16
+// #define CONFIG_IRQ_REG_TAB_SIZE 80
+// #define CONFIG_USER_ISR_START_NO 16
 
 bool_t irq_check_usability(int inx);
 bool_t irq_alloc(int inx, irq_sender_t *irq,

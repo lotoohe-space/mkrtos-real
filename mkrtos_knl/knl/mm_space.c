@@ -18,7 +18,7 @@ void mm_space_init(mm_space_t *mm_space, int is_knl)
 {
     region_info_t *regi_info;
 
-    for (int i = 0; i < REGION_NUM; i++)
+    for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         mm_space->pt_regions[i].region_inx = -1;
     }

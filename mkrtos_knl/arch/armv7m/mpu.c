@@ -45,7 +45,7 @@ void mpu_region_clr(int inx)
 void mpu_switch_to_task(struct task *tk)
 {
     mpu_disable();
-    for (int i = 0; i < REGION_NUM; i++)
+    for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         if (tk->mm_space.pt_regions[i].region_inx >= 0)
         {

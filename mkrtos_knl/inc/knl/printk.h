@@ -11,6 +11,7 @@
 #pragma once
 
 #include "types.h"
+// #define CONFIG_PRINTK_CACHE_SIZE 128
 
 void putc(int c);
 int getc(void);

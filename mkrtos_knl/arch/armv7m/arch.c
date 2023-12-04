@@ -38,7 +38,7 @@ void sys_startup(void)
     // 开启pensv中断
     write_reg(REG1_ADDR, 0x10000000);
     // 初始化systick时钟
-    SysTick_Config(SystemCoreClock / SYS_SCHE_HZ);
+    SysTick_Config(SystemCoreClock / CONFIG_SYS_SCHE_HZ);
 }
 
 void arch_disable_irq(int inx)

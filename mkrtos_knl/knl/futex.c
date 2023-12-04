@@ -19,7 +19,7 @@
 #include "assert.h"
 #include "slist.h"
 #include "spinlock.h"
-#include "futex_queue.h"
+// #include "futex_queue.h"
 #include "globals.h"
 #include "string.h"
 #include "ipc.h"
@@ -27,8 +27,7 @@
 #include "slist.h"
 #include "access.h"
 #include "limits.h"
-
-#define FT_ADDR_NR 16 //!< 最多加锁的对象
+#include "futex.h"
 
 #define FUTEX_WAIT 0
 #define FUTEX_WAKE 1
@@ -67,7 +66,7 @@ typedef struct futex_lock
 typedef struct futex
 {
     kobject_t kobj;
-    futex_lock_t fl_list[FT_ADDR_NR]; //!< 存储加锁的地址
+    futex_lock_t fl_list[CONFIG_FT_ADDR_NR]; //!< 存储加锁的地址
 } futex_t;
 
 static futex_t futex_obj;
@@ -173,7 +172,7 @@ static futex_lock_t *futex_set_addr(futex_t *ft, void *uaddr, thread_t *hd)
 {
     int empty_inx = -1;
 
-    for (int i = 0; i < FT_ADDR_NR; i++)
+    for (int i = 0; i < CONFIG_FT_ADDR_NR; i++)
     {
         if (ft->fl_list[i].uaddr == uaddr)
         {
@@ -198,7 +197,7 @@ static futex_lock_t *futex_set_addr(futex_t *ft, void *uaddr, thread_t *hd)
 }
 static futex_lock_t *futex_find(futex_t *fst, void *uaddr)
 {
-    for (int i = 0; i < FT_ADDR_NR; i++)
+    for (int i = 0; i < CONFIG_FT_ADDR_NR; i++)
     {
         if (fst->fl_list[i].uaddr == uaddr)
         {
@@ -474,7 +473,7 @@ static void futex_unmap(obj_space_t *obj_space, kobject_t *kobj)
     printk("%s:%d\n", __func__, __LINE__);
 
     umword_t status = spinlock_lock(&futex->kobj.lock);
-    for (int i = 0; i < FT_ADDR_NR; i++)
+    for (int i = 0; i < CONFIG_FT_ADDR_NR; i++)
     {
         thread_t *pos;
 
@@ -512,7 +511,7 @@ static void futex_release_stage2(kobject_t *kobj)
 static void futex_init(futex_t *ft)
 {
     kobject_init(&ft->kobj, FUTEX_TYPE);
-    for (int i = 0; i < FT_ADDR_NR; i++)
+    for (int i = 0; i < CONFIG_FT_ADDR_NR; i++)
     {
         slist_init(&ft->fl_list[i].thread_list_head);
     }

@@ -7,19 +7,19 @@
 #include <fd_map.h>
 #include <string.h>
 
-#define FD_MAP_ROW_CN 16
-#define FD_MAP_ROW_NR 16
+#define CONFIG_FD_MAP_ROW_CN 16
+#define CONFIG_FD_MAP_ROW_NR 16
 
-#define FD_MAP_TOTAL (FD_MAP_ROW_CN * FD_MAP_ROW_NR)
+#define FD_MAP_TOTAL (CONFIG_FD_MAP_ROW_CN * CONFIG_FD_MAP_ROW_NR)
 
 typedef struct fd_map_row
 {
-    fd_map_entry_t entry[FD_MAP_ROW_CN];
+    fd_map_entry_t entry[CONFIG_FD_MAP_ROW_CN];
 } fd_map_row_t;
 
 typedef struct fd_map
 {
-    fd_map_row_t *row[FD_MAP_ROW_NR];
+    fd_map_row_t *row[CONFIG_FD_MAP_ROW_NR];
     pthread_spinlock_t lock;
     uint16_t free_fd;
 } fd_map_t;
@@ -35,13 +35,13 @@ again_alloc:
     if (fd_map.free_fd >= FD_MAP_TOTAL)
     {
         // 没有可用的fd了，尝试循环查找
-        for (int i = 0; i < FD_MAP_ROW_NR; i++)
+        for (int i = 0; i < CONFIG_FD_MAP_ROW_NR; i++)
         {
-            for (int j = 0; j < FD_MAP_ROW_CN; j++)
+            for (int j = 0; j < CONFIG_FD_MAP_ROW_CN; j++)
             {
                 if (fd_map.row[i]->entry[j].flags == 0)
                 {
-                    alloc_fd = i * FD_MAP_ROW_CN + j;
+                    alloc_fd = i * CONFIG_FD_MAP_ROW_CN + j;
                     goto next;
                 }
             }
@@ -55,10 +55,10 @@ again_alloc:
         alloc_fd = fd_map.free_fd;
     }
 next:;
-    int row_inx = alloc_fd / FD_MAP_ROW_CN;
-    int inx = alloc_fd % FD_MAP_ROW_CN;
+    int row_inx = alloc_fd / CONFIG_FD_MAP_ROW_CN;
+    int inx = alloc_fd % CONFIG_FD_MAP_ROW_CN;
 
-    assert(row_inx < FD_MAP_ROW_NR);
+    assert(row_inx < CONFIG_FD_MAP_ROW_NR);
     if (fd_map.row[row_inx] == NULL)
     {
         fd_map.row[row_inx] = malloc(sizeof(fd_map_row_t));
@@ -86,8 +86,8 @@ int fd_map_get(int fd, fd_map_entry_t *new_entry)
     {
         return -1;
     }
-    int row_inx = fd / FD_MAP_ROW_CN;
-    int inx = fd % FD_MAP_ROW_CN;
+    int row_inx = fd / CONFIG_FD_MAP_ROW_CN;
+    int inx = fd % CONFIG_FD_MAP_ROW_CN;
 
     *new_entry = fd_map.row[row_inx]->entry[inx];
     return 0;
@@ -98,8 +98,8 @@ int fd_map_update(int fd, fd_map_entry_t *new_entry)
     {
         return -1;
     }
-    int row_inx = fd / FD_MAP_ROW_CN;
-    int inx = fd % FD_MAP_ROW_CN;
+    int row_inx = fd / CONFIG_FD_MAP_ROW_CN;
+    int inx = fd % CONFIG_FD_MAP_ROW_CN;
 
     pthread_spin_lock(&fd_map.lock);
     int flags = fd_map.row[row_inx]->entry[inx].flags;
@@ -115,8 +115,8 @@ int fd_map_free(int fd, fd_map_entry_t *ret_entry)
     {
         return -1;
     }
-    int row_inx = fd / FD_MAP_ROW_CN;
-    int inx = fd % FD_MAP_ROW_CN;
+    int row_inx = fd / CONFIG_FD_MAP_ROW_CN;
+    int inx = fd % CONFIG_FD_MAP_ROW_CN;
 
     pthread_spin_lock(&fd_map.lock);
     if (fd_map.row[row_inx]->entry[inx].flags == 1)

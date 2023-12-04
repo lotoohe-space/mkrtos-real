@@ -12,5 +12,5 @@ static obj_handler_t hd = HANDLER_INVALID;
 
 void u_sleep_ms(size_t ms)
 {
-    thread_ipc_wait(ipc_timeout_create2(0, ms / (1000 / SYS_SCHE_HZ)), NULL);
+    thread_ipc_wait(ipc_timeout_create2(0, ms / (1000 / CONFIG_SYS_SCHE_HZ)), NULL);
 }

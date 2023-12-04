@@ -6,10 +6,10 @@
 #include "types.h"
 #include "mm_wrap.h"
 
-#define OBJ_MAP_TAB_SIZE 4
-#define OBJ_MAP_ENTRY_SIZE 8
+// #define CONFIG_OBJ_MAP_TAB_SIZE 4
+// #define CONFIG_OBJ_MAP_ENTRY_SIZE 8
 
-#define OBJ_MAP_MAX_ADDR ((OBJ_MAP_ENTRY_SIZE) * (OBJ_MAP_TAB_SIZE))
+#define OBJ_MAP_MAX_ADDR ((CONFIG_OBJ_MAP_ENTRY_SIZE) * (CONFIG_OBJ_MAP_TAB_SIZE))
 
 enum obj_attrs
 {
@@ -50,12 +50,12 @@ static inline uint8_t obj_map_entry_get_attr(obj_map_entry_t *entry)
 
 typedef struct obj_map_item
 {
-    obj_map_entry_t items[OBJ_MAP_ENTRY_SIZE];
+    obj_map_entry_t items[CONFIG_OBJ_MAP_ENTRY_SIZE];
 } obj_map_item_t;
 
 typedef struct obj_map_tab
 {
-    obj_map_item_t *tabs[OBJ_MAP_TAB_SIZE];
+    obj_map_item_t *tabs[CONFIG_OBJ_MAP_TAB_SIZE];
 } obj_map_tab_t;
 
 typedef struct obj_space

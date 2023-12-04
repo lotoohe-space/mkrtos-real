@@ -25,6 +25,7 @@ set(CMAKE_C_FLAGS "-mcpu=${MKRTOS_ARCH} -mthumb -O0 -g3 -lc -lrdimon -msoft-floa
 -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -mfix-cortex-m3-ldrd \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
  -fno-stack-protector -Wl,--gc-sections \
+ -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)
 
 set(CMAKE_CXX_FLAGS "-mcpu=${MKRTOS_ARCH} -mthumb -mno-thumb-interwork -D=MKRTOS \
@@ -32,11 +33,13 @@ set(CMAKE_CXX_FLAGS "-mcpu=${MKRTOS_ARCH} -mthumb -mno-thumb-interwork -D=MKRTOS
 -fmessage-length=0 -Xlinker --print-map -Wall -W -fno-stack-protector -g \ 
 -mfloat-abi=soft -lc -lrdimon -u _printf_float \
 -ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker \
+-include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)
 
 set(CMAKE_ASM_FLAGS "-mcpu=${MKRTOS_ARCH} -mthumb -Os -g3 -mfloat-abi=soft -lc -lrdimon -D=MKRTOS \
 -u _printf_float -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  -fno-stack-protector \
+-include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)
 
 set(BOARD_NAME "$ENV{BOARD}")
