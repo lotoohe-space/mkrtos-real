@@ -1,22 +1,22 @@
-##What is MKRTOS
+## What is MKRTOS
 -The full name of MKRTOS is Micro Kernel Real Time Operating System, and its Chinese name is Micro Kernel Real Time Operating System. MKRTOS is designed as an extremely streamlined kernel that only includes functions such as thread, task, and memory management. All other functions are implemented in user mode and are compatible with the Posix standard operating system, making it fully suitable for various embedded scenarios. The architecture diagram of MKRTOS is as follows:
 ! [image] (./mkrtos_doc/架构图.png)
-###The goals of MKRTOS
+### The goals of MKRTOS
 -1 True microkernel design, suitable for industrial control, Internet of Things and other fields.
 -2 Ready to use out of the box, supports multiple platforms.
 -3 Porting is convenient and fast, and the kernel only requires support from two drivers (serial port and sysstick).
 -4 Featuring high stability and high resistance to failure design.
 -5 Minimalist design, supports multiple processes and threads, and supports microcontrollers.
 -6 RTOS design with high real-time performance.
-###Development background
+### Development background
 -Microcontrollers are widely used in industries and the Internet of Things, and are suitable for operating systems such as rtthread and freertos. However, their functions are very simple, and using such RTOS comes with a certain learning cost (I have also written one, you can take a look at xTinyRTOS, which is very simple). The original intention of developing MKRTOS was to be compatible with POSIX to reduce learning costs, and during development, memory usage was also considered and optimized. Note: rtthread supports software packages, but there are also issues with architecture design and scalability.
-###Design principles
+### Design principles
 -1. The data exchange between services does not go through third-party components.
 -2. The principle of the simplest interface between services.
 -3. The principle of minimum kernel functionality.
 -4. Class L4 kernel (third-generation microkernel).
-###MKRTOS kernel
-####Done
+### MKRTOS kernel
+#### Done
 -1. Processor: Supports Cortex-M3 processors by default
 -2. Inter process communication adopts synchronous communication mechanism, and the kernel does not cache any data.
 -3. The kernel only needs to support systick and serial ports to start the system.
@@ -26,28 +26,28 @@
 -5. Multi process (MPU achieves process isolation): Supports memory space and object space, and processes only manage resources.
 -6. irq object support, used for forwarding kernel interrupts to user mode.
 -7. IPC functions are complete.
-####Todo
+#### Todo
 -1. Cortex-M processors from other series, RISC-V, and support from Loongson.
 -2. Hardware floating-point support.
 -3. Support MMU to achieve process isolation.
 -4. Kernel futex support (used to implement user mode locks).
-####Doing
+#### Doing
 -1. Improve the kernel
-###Basic support for MKRTOS user mode
-####Done
+### Basic support for MKRTOS user mode
+#### Done
 -1. Executable file: Supports bin executable files.
-####Doing
+#### Doing
 -1. Musl libc library support.
 -2. init process
 -3. Shell services
 -4. Path manager service
-####Todo
+#### Todo
 -1. kconfig support.
 -2. Support for Fat, Ext, and LittleFs series file systems
 -3. DRV manager service
 -4. Process Manager Services
 -5. Character driven, block driven, display driven, and network driven support
-###MKRTOS user ecosystem
+### MKRTOS user ecosystem
 -1. Toybox commonly used command support
 -2. OTA support
 -3. ymodem support
@@ -57,7 +57,7 @@
 -7. CAN communication protocol support.
 -8. AT protocol support.
 -9. Others.
-###How to use it?
+### How to use it?
 -The project is managed using CMake and developed under Linux. It is recommended to use Ubuntu 18.04 for development.
 -The GCC compiler uses gcc arm none eabi-5_ 4-2016q3, new versions can also be used for development.
 -Qemu simulates STM32F2. There is a bug in the simulation of coretx m3 in older versions of Qemu. Please use the latest version Qemu 8.0 or higher.
@@ -118,10 +118,10 @@ Mkrtos running
 Complie Time: Sep 16 2023 23:50:51
 Init
 ```
-###My Blog
+### My Blog
 -Welcome to the blog for communication (domain name has not yet been applied for ^ - ^): [MKRTOS Blog]（ http://124.222.90.143/ ）
 -Add groupQQ communication(QQ:1358745329).
-###Logs
+### Logs
 *A log from a long time ago
 1. Dietlibc porting instructions, remove unnecessary CPU related folders in syscalls. h__ ARGS_ Change mmap to 1 and modify mmap S file.
 2. Modify setjump S and other documents.
