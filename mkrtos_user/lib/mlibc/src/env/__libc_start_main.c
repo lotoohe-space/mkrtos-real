@@ -84,7 +84,7 @@ static void libc_start_init(void)
 	
 	uintptr_t a = (uintptr_t)&__init_array_start;
 	for (; a < (uintptr_t)&__init_array_end; a += sizeof(void (*)())) {
-		((void (*)(void))((uintptr_t)(*(void (**)(void))a) + start_addr | 0x1UL))();
+		((void (*)(void))((uintptr_t)(*((unsigned long *)a)) + start_addr | 0x1UL))();
 	}
 }
 
