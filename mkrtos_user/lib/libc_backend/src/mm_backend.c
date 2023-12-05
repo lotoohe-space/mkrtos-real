@@ -10,7 +10,7 @@
 #include <assert.h>
 static pthread_spinlock_t lock;
 extern void *app_start_addr;
-static umword_t mm_bitemp[32 /*TODO:自动分配，或者静态划分*/];
+static umword_t mm_bitemp[256/*TODO:自动分配，或者静态划分*/];
 static void *mm_page_alloc(int page_nr)
 {
     int cnt = 0;

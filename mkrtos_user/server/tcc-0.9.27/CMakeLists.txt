@@ -6,6 +6,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_STDPERIPH_DRIVER=1 -DTCC_TARGET_ARM \
 
 
 file(GLOB deps 
+heap_stack.c
 arm-asm.c
 # arm-gen.c
 arm-link.c
