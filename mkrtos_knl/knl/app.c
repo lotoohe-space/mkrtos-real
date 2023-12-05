@@ -11,6 +11,12 @@
 #include "types.h"
 #include "app.h"
 
+/**
+ * @brief 通过地址获得app的信息
+ * 
+ * @param addr 内存地址
+ * @return app_info_t* app的信息
+ */
 app_info_t *app_info_get(void *addr)
 {
     return (app_info_t *)addr;

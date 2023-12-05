@@ -19,7 +19,6 @@
 #include "assert.h"
 #include "slist.h"
 #include "spinlock.h"
-// #include "futex_queue.h"
 #include "globals.h"
 #include "string.h"
 #include "ipc.h"
@@ -29,6 +28,10 @@
 #include "limits.h"
 #include "futex.h"
 
+/**
+ * @brief 以下是futex的操作码
+ *
+ */
 #define FUTEX_WAIT 0
 #define FUTEX_WAKE 1
 #define FUTEX_FD 2
@@ -42,9 +45,13 @@
 #define FUTEX_WAKE_CLEAR 10
 #define FUTEX_WAITERS 0x80000000
 
+/**
+ * @brief futex对象的操作码
+ *
+ */
 enum futex_op
 {
-    FUTEX_CTRL,
+    FUTEX_CTRL, //!< futex的控制
 };
 
 struct timespec
@@ -58,19 +65,27 @@ struct timespec
  */
 typedef struct futex_lock
 {
-    uint32_t *uaddr; //!< 锁的地址
-    slist_head_t thread_list_head;
-    size_t cnt;
+    uint32_t *uaddr;               //!< 锁的地址
+    slist_head_t thread_list_head; //!< 存储线程的头节点
+    size_t cnt;                    //!< 有多少个线程在等待锁
 } futex_lock_t;
 
+/**
+ * @brief futex的对象定义
+ *
+ */
 typedef struct futex
 {
     kobject_t kobj;
     futex_lock_t fl_list[CONFIG_FT_ADDR_NR]; //!< 存储加锁的地址
 } futex_t;
 
-static futex_t futex_obj;
+static futex_t futex_obj; //!< 全局的futex对象
 static void futex_init(futex_t *ft);
+/**
+ * @brief futex的等待的item
+ *
+ */
 typedef struct futex_wait_item
 {
     slist_head_t node;
@@ -78,7 +93,7 @@ typedef struct futex_wait_item
     mword_t sleep_times;
 } futex_wait_item_t;
 
-static slist_head_t wait_list;
+static slist_head_t wait_list; //!< futex的等待队列
 
 /**
  * @brief 初始化一个超时等待队列
@@ -117,13 +132,23 @@ void futex_timeout_times_tick(void)
         item = next;
     }
 }
+/**
+ * @brief 初始化全局的futex并注册
+ *
+ */
 static void futex_reg(void)
 {
     futex_init(&futex_obj);
     global_reg_kobj(&futex_obj.kobj, FUTEX_PROT);
 }
 INIT_KOBJ(futex_reg);
-
+/**
+ * @brief 查找futex中指定线程是否存在
+ *
+ * @param flt futex_lock_t对象
+ * @param thread_hd 线程的指针
+ * @return bool_t TRUE：存在 FALSE：不存在
+ */
 static bool_t futex_find_thread(futex_lock_t *flt, thread_t *thread_hd)
 {
     thread_t *pos;
@@ -137,11 +162,24 @@ static bool_t futex_find_thread(futex_lock_t *flt, thread_t *thread_hd)
     }
     return FALSE;
 }
+/**
+ * @brief futex进队
+ *
+ * @param flt
+ * @param th
+ */
 static void futex_enqueue(futex_lock_t *flt, thread_t *th)
 {
     slist_add_append(&flt->thread_list_head, &th->futex_node);
     flt->cnt++;
 }
+/**
+ * @brief futex出队
+ *
+ * @param flt
+ * @param th
+ * @return int
+ */
 static int futex_dequeue(futex_lock_t *flt, thread_t **th)
 {
     assert(th);
@@ -156,6 +194,12 @@ static int futex_dequeue(futex_lock_t *flt, thread_t **th)
 
     return 0;
 }
+/**
+ * @brief 获取futex的锁有多少个线程在等待
+ *
+ * @param flt
+ * @return size_t
+ */
 static size_t futex_cnt(futex_lock_t *flt)
 {
     return flt->cnt;
@@ -195,6 +239,13 @@ static futex_lock_t *futex_set_addr(futex_t *ft, void *uaddr, thread_t *hd)
     }
     return NULL;
 }
+/**
+ * @brief 找到指定地址的锁结构体
+ *
+ * @param fst
+ * @param uaddr
+ * @return futex_lock_t*
+ */
 static futex_lock_t *futex_find(futex_t *fst, void *uaddr)
 {
     for (int i = 0; i < CONFIG_FT_ADDR_NR; i++)
@@ -206,7 +257,19 @@ static futex_lock_t *futex_find(futex_t *fst, void *uaddr)
     }
     return NULL;
 }
-
+/**
+ * @brief futex的处理函数
+ *
+ * @param fst
+ * @param uaddr
+ * @param futex_op
+ * @param val
+ * @param timeout
+ * @param uaddr2
+ * @param val3
+ * @param tid
+ * @return int
+ */
 static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t val,
                          umword_t timeout /*val2*/, uint32_t uaddr2, uint32_t val3, int tid)
 
@@ -280,7 +343,7 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     break;
     case FUTEX_WAIT:
     {
-        if (!is_rw_access(thread_get_bind_task(cur_th),uaddr, sizeof(*uaddr), FALSE))
+        if (!is_rw_access(thread_get_bind_task(cur_th), uaddr, sizeof(*uaddr), FALSE))
         {
             spinlock_set(&fst->kobj.lock, status);
             return -EACCES;
@@ -372,7 +435,7 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     case FUTEX_UNLOCK_PI:
     case FUTEX_WAKE_CLEAR:
     {
-        if (!is_rw_access(thread_get_bind_task(cur_th),uaddr, sizeof(*uaddr), FALSE))
+        if (!is_rw_access(thread_get_bind_task(cur_th), uaddr, sizeof(*uaddr), FALSE))
         {
             spinlock_set(&fst->kobj.lock, status);
             return -EACCES;
@@ -405,7 +468,7 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     }
     case FUTEX_LOCK_PI:
     {
-        if (!is_rw_access(thread_get_bind_task(cur_th),uaddr, sizeof(*uaddr), FALSE))
+        if (!is_rw_access(thread_get_bind_task(cur_th), uaddr, sizeof(*uaddr), FALSE))
         {
             spinlock_set(&fst->kobj.lock, status);
             return -EACCES;
@@ -427,6 +490,14 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
     spinlock_set(&fst->kobj.lock, status);
     return 0;
 }
+/**
+ * @brief futex的系统调用
+ *
+ * @param kobj
+ * @param sys_p
+ * @param in_tag
+ * @param f
+ */
 static void futex_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
@@ -465,7 +536,12 @@ static void futex_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_ta
     }
     f->r[0] = tag.raw;
 }
-
+/**
+ * @brief 在task结束时，需要删除某个task所关联的futex
+ *
+ * @param obj_space 需要操作的task的obj_space
+ * @param kobj 哪一个futex对象
+ */
 static void futex_unmap(obj_space_t *obj_space, kobject_t *kobj)
 {
     task_t *task = container_of(obj_space, task_t, obj_space);
@@ -508,6 +584,11 @@ static void futex_release_stage2(kobject_t *kobj)
 {
     printk("futex don't release.\n");
 }
+/**
+ * @brief 初始化futex对象
+ *
+ * @param ft
+ */
 static void futex_init(futex_t *ft)
 {
     kobject_init(&ft->kobj, FUTEX_TYPE);
