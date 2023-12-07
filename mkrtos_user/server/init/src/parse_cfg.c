@@ -70,7 +70,7 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
                     name[MIN(line_inx, sizeof(name)) - 1] = 0;
                 }
                 pid_t pid;
-                int ret = app_load(name, env, &pid);
+                int ret = app_load(name, env, &pid, NULL, 0);
                 if (ret < 0)
                 {
                     printf("%s load fail, 0x%x\n", name, ret);

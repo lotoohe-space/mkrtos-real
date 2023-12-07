@@ -11,10 +11,165 @@
 #include <assert.h>
 
 /*open*/
-RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_OPEN, open,
-                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
-                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mode)
+// RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_OPEN, open,
+//                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
+//                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
+//                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mode)
+msg_tag_t fs_t_open_call(obj_handler_t hd, rpc_ref_array_uint32_t_uint8_t_32_t *var0, rpc_int_t *var1, rpc_int_t *var2)
+{
+    void *buf;
+    ipc_msg_t *msg_ipc;
+    thread_msg_buf_get(2, (umword_t *)(&buf), ((void *)0));
+    msg_ipc = (ipc_msg_t *)buf;
+    int off = 0;
+    int off_buf = 0;
+    int ret = -1;
+    size_t op_val = ((uint16_t)0);
+    rpc_memcpy(msg_ipc->msg_buf, &op_val, sizeof(op_val));
+    off += rpc_align(sizeof(op_val), __alignof(((uint16_t)0)));
+    do
+    {
+        if (1 == 1)
+        {
+            if (1 == 1 || 1 == 4)
+            {
+                int ret = rpc_cli_msg_to_buf_rpc_ref_array_uint32_t_uint8_t_32_t(var0, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off);
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off = ret;
+            }
+        }
+    } while (0);
+    do
+    {
+        if (1 == 2)
+        {
+            if (1 == 1 || 1 == 4)
+            {
+                int ret = rpc_cli_msg_to_buf_rpc_ref_array_uint32_t_uint8_t_32_t(var0, (uint8_t *)((uint8_t *)msg_ipc->map_buf), off_buf);
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off_buf = ret;
+            }
+        }
+    } while (0);
+    do
+    {
+        if (1 == 1)
+        {
+            if (1 == 1 || 1 == 4)
+            {
+                int ret = rpc_cli_msg_to_buf_rpc_int_t(var1, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off);
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off = ret;
+            }
+        }
+    } while (0);
+    do
+    {
+        if (1 == 2)
+        {
+            if (1 == 1 || 1 == 4)
+            {
+                int ret = rpc_cli_msg_to_buf_rpc_int_t(var1, (uint8_t *)((uint8_t *)msg_ipc->map_buf), off_buf);
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off_buf = ret;
+            }
+        }
+    } while (0);
+    do
+    {
+        if (1 == 1)
+        {
+            if (1 == 1 || 1 == 4)
+            {
+                int ret = rpc_cli_msg_to_buf_rpc_int_t(var2, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off);
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off = ret;
+            }
+        }
+    } while (0);
+    do
+    {
+        if (1 == 2)
+        {
+            if (1 == 1 || 1 == 4)
+            {
+                int ret = rpc_cli_msg_to_buf_rpc_int_t(var2, (uint8_t *)((uint8_t *)msg_ipc->map_buf), off_buf);
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off_buf = ret;
+            }
+        }
+    } while (0);
+    msg_tag_t tag = thread_ipc_call(((msg_tag_t){.flags = (0), .msg_buf_len = ((((off) / ((sizeof(void *)))) + (((off) % ((sizeof(void *)))) ? 1 : 0))), .map_buf_len = ((((off_buf) / ((sizeof(void *)))) + (((off_buf) % ((sizeof(void *)))) ? 1 : 0))), .prot = (0x0002)}), hd, ipc_timeout_create2(0, 0));
+    if (((int16_t)((tag).prot)) < 0)
+    {
+        return tag;
+    }
+    off = 0;
+    do
+    {
+        if (1 == 1)
+        {
+            if (1 == 2 || 1 == 4)
+            {
+                int ret = rpc_cli_buf_to_msg_rpc_ref_array_uint32_t_uint8_t_32_t(var0, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off, tag.msg_buf_len * (sizeof(void *)));
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off = ret;
+            }
+        }
+    } while (0);
+    do
+    {
+        if (1 == 1)
+        {
+            if (1 == 2 || 1 == 4)
+            {
+                int ret = rpc_cli_buf_to_msg_rpc_int_t(var1, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off, tag.msg_buf_len * (sizeof(void *)));
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off = ret;
+            }
+        }
+    } while (0);
+    do
+    {
+        if (1 == 1)
+        {
+            if (1 == 2 || 1 == 4)
+            {
+                int ret = rpc_cli_buf_to_msg_rpc_int_t(var2, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off, tag.msg_buf_len * (sizeof(void *)));
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off = ret;
+            }
+        }
+    } while (0);
+    return tag;
+}
 sd_t fs_open(const char *path, int flags, int mode)
 {
     obj_handler_t hd;
