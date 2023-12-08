@@ -434,6 +434,8 @@ RPC_SVR_BUF_TO_MSG_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
  */
 RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
 {
+    d->data = 0;
+    d->del_map_flags = 0;
 }
 //!< end
 

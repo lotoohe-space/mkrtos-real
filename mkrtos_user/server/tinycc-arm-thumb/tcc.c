@@ -254,6 +254,7 @@ char *fake_argv[] = {
     "tcc_armv7m",
     "-nostdinc",
     "-nostdlib",
+    "-c",
     "/mnt/1.c",
     "-o",
     "/mnt/a.out"
@@ -271,7 +272,7 @@ int main(int argc0, char **argv0)
 
 redo:
     // argc = argc0, argv = argv0;
-    argc = 6, argv = fake_argv;
+    argc = 7, argv = fake_argv;
     s = s1 = tcc_new();
     opt = tcc_parse_args(s, &argc, &argv, 1);
 

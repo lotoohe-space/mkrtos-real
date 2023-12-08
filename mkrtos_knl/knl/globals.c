@@ -18,7 +18,7 @@
 #include "mm_man.h"
 #include "ipc.h"
 static mem_t global_mem;                     //!< 全局内存管理块
-static uint8_t mem_block[9*1024 * 1024];       //!< 内核内存分配堆 TODO:自动识别大小，或者从bootstrap中读取
+static uint8_t mem_block[31*1024 * 1024];       //!< 内核内存分配堆 TODO:自动识别大小，或者从bootstrap中读取
 static kobject_t *kobj_ls[FACTORY_FUNC_MAX]; //!< 全局静态内核对象
 /**
  * @brief 注册一个全局静态的内核对象
