@@ -6,6 +6,7 @@
 #include "u_rpc_svr.h"
 #include "rpc_prot.h"
 #include "u_err.h"
+#include "u_rpc_buf.h"
 #include <errno.h>
 #include <assert.h>
 #include <stdio.h>
@@ -159,6 +160,7 @@ void rpc_loop(void)
     msg = (ipc_msg_t *)buf;
     while (1)
     {
+        rpc_hd_alloc();
         tag = thread_ipc_wait(ipc_timeout_create2(0, 0), &obj);
         if (msg_tag_get_val(tag) < 0)
         {

@@ -195,7 +195,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         if (!source_kobj)
         {
             spinlock_set(&tag_task->kobj.lock, status);
-            tag = msg_tag_init4(0, 0, 0, -ENOENT);
+            tag = msg_tag_init4(0, 0, 0, 0);
             break;
         }
         spinlock_set(&tag_task->kobj.lock, status);

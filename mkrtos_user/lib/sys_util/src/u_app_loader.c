@@ -184,7 +184,8 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     uenv->rev2 = HANDLER_INVALID;
     printf("stack env:%p, env:%p\n", (void *)((umword_t)usp_top + ARG_WORD_NR * 4 + 16 + 16), uenv);
 
-    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)sp_addr_top - sizeof(void *), ram_base, 1);
+    tag = thread_exec_regs(hd_thread, (umword_t)addr, ((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL),
+                           ram_base, 1);
     assert(msg_tag_get_prot(tag) >= 0);
 
     /*启动线程运行*/

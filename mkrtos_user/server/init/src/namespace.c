@@ -417,6 +417,7 @@ void namespace_init(obj_handler_t ipc_hd)
     fs_init(&ns_fs);
     meta_reg_svr_obj(&ns.svr, NS_PROT);
     meta_reg_svr_obj(&ns_fs.svr, FS_PROT);
+    thread_set_src_pid(0);
     node_init(&ns.root_node, NULL, "", 0, DIR_NODE);
     ns_hd = ipc_hd;
     printf("ns svr init...\n");
@@ -434,12 +435,10 @@ int namespace_register(const char *path, obj_handler_t hd, int type)
     if (type == DIR_NODE)
     {
         handler_free_umap(hd);
-        namespace_pre_alloc_map_fd();
         return -ECANCELED;
     }
     int ret = ns_reg(path, hd, type); // TODO:增加类型支持
     printf("register svr, name is %s, hd is %d\n", path, hd);
-    namespace_pre_alloc_map_fd();
     return ret;
 }
 /**
@@ -474,20 +473,7 @@ int namespace_query(const char *path, obj_handler_t *hd)
     *hd = node->node_hd;
     return ret_inx;
 }
-int namespace_pre_alloc_map_fd(void)
-{
-    ipc_msg_t *msg;
-    obj_handler_t hd = handler_alloc();
 
-    if (hd == HANDLER_INVALID)
-    {
-        return -1;
-    }
-    thread_msg_buf_get(-1, (umword_t *)(&msg), NULL);
-    msg->map_buf[0] = vpage_create_raw3(0, 0, hd).raw;
-    ns.hd = hd;
-    return 0;
-}
 
 void namespace_loop(void)
 {

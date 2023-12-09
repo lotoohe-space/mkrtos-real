@@ -33,5 +33,4 @@ typedef struct ns
 {
     rpc_svr_obj_t svr;
     ns_node_t root_node;
-    obj_handler_t hd; //!< 存储临时用于映射的hd
 } ns_t;

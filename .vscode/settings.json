@@ -270,7 +270,8 @@
         "shell_passthrough.h": "c",
         "u_slist.h": "c",
         "atomic": "c",
-        "futex.h": "c"
+        "futex.h": "c",
+        "u_rpc_buf.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,
