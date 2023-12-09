@@ -27,7 +27,7 @@ void pm_init(void)
 int pm_rpc_kill_task(int pid, int flags)
 {
     printf("[pm] kill pid:%d.\n", pid);
-    ns_node_del_by_pid(pid);
+    ns_node_del_by_pid(pid, flags);
     return 0;
 }
 int pm_rpc_run_app(const char *path, int flags)

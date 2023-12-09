@@ -29,7 +29,7 @@ static ns_t ns;
 static fs_t ns_fs;
 int ns_reg(const char *path, obj_handler_t hd, enum node_type type);
 int ns_node_free(ns_node_t *node);
-static void _ns_node_del_by_pid(slist_head_t *head, pid_t pid)
+static void _ns_node_del_by_pid(slist_head_t *head, pid_t pid, int to_del)
 {
     ns_node_t *pos;
 
@@ -41,20 +41,26 @@ static void _ns_node_del_by_pid(slist_head_t *head, pid_t pid)
         {
             if (pid == pos->pid)
             {
-                ns_node_free(pos);
+                if (ns_node_free(pos) == 0)
+                {
+                    if (to_del)
+                    {
+                        task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, pos->node_hd));
+                    }
+                }
             }
         }
         else
         {
-            _ns_node_del_by_pid(&pos->sub_dir, pid);
+            _ns_node_del_by_pid(&pos->sub_dir, pid, to_del);
         }
 
         pos = next;
     }
 }
-void ns_node_del_by_pid(pid_t pid)
+void ns_node_del_by_pid(pid_t pid, int to_del)
 {
-    _ns_node_del_by_pid(&ns.root_node.sub_dir, pid);
+    _ns_node_del_by_pid(&ns.root_node.sub_dir, pid, to_del);
 }
 static ns_node_t *node_init(ns_node_t *new_node, ns_node_t *parent, const char *name, obj_handler_t hd, enum node_type type)
 {
@@ -206,6 +212,7 @@ end:
  */
 int ns_node_free(ns_node_t *node)
 {
+    int ref = 0;
     if (!node)
     {
         return 0;
@@ -216,6 +223,7 @@ int ns_node_free(ns_node_t *node)
         ns_node_free(node->parent);
     }
     node->ref--;
+    ref = node->ref;
     if (node->ref <= 0)
     {
         switch (node->type)
@@ -236,7 +244,7 @@ int ns_node_free(ns_node_t *node)
         }
         free(node);
     }
-    return node->ref;
+    return ref;
 }
 int fs_svr_open(const char *path, int flags, int mode)
 {
@@ -473,7 +481,6 @@ int namespace_query(const char *path, obj_handler_t *hd)
     *hd = node->node_hd;
     return ret_inx;
 }
-
 
 void namespace_loop(void)
 {
