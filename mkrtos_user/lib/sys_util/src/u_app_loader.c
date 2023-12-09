@@ -162,26 +162,27 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     buf = (umword_t *)app_stack_push(buf, 1 + arg_cn);                               //!< argc 24
     buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + ARG_WORD_NR * 4);      //!< argv[0]
     buf = (umword_t *)app_stack_push(buf, 0);                                        //!< NULL
-    buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + ARG_WORD_NR * 4 + 32); //!< env[0...N]
+    buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + ARG_WORD_NR * 4 + 16); //!< env[0...N]
     buf = (umword_t *)app_stack_push(buf, 0);                                        //!< NULL
 
     buf = (umword_t *)app_stack_push(buf, (umword_t)AT_PAGESZ);                           //!< auxvt[0...N]
     buf = (umword_t *)app_stack_push(buf, MK_PAGE_SIZE);                                  //!< auxvt[0...N]
     buf = (umword_t *)app_stack_push(buf, 0xfe);                                          //!< auxvt[0...N] mkrtos_env
-    buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + ARG_WORD_NR * 4 + 32 + 16); //!< auxvt[0...N]
+    buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + ARG_WORD_NR * 4 + 16 + 16); //!< auxvt[0...N]
     buf = (umword_t *)app_stack_push(buf, 0);                                             //!< NULL
 
     // set args & env.
 
     memcpy((char *)buf_bk + ARG_WORD_NR * 4, name, strlen(name) + 1);
-    memcpy((char *)buf_bk + ARG_WORD_NR * 4 + 32, "PATH=/", strlen("PATH=/") + 1);
+    memcpy((char *)buf_bk + ARG_WORD_NR * 4 + 16, "PATH=/", strlen("PATH=/") + 1);
 
     // set user env. 16 bytes
-    uenv_t *uenv = (uenv_t *)((char *)buf_bk + ARG_WORD_NR * 4 + 32 + 16);
+    uenv_t *uenv = (uenv_t *)((char *)buf_bk + ARG_WORD_NR * 4 + 16 + 16);
     uenv->log_hd = cur_env->ns_hd;
     uenv->ns_hd = cur_env->ns_hd;
     uenv->rev1 = HANDLER_INVALID;
     uenv->rev2 = HANDLER_INVALID;
+    printf("stack env:%p, env:%p\n", (void *)((umword_t)usp_top + ARG_WORD_NR * 4 + 16 + 16), uenv);
 
     tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)sp_addr_top - sizeof(void *), ram_base, 1);
     assert(msg_tag_get_prot(tag) >= 0);

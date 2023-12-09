@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
+#include "u_slist.h"
 #include "u_hd_man.h"
 #include "u_ipc.h"
 #include "ns_types.h"
@@ -23,10 +24,38 @@
 #include "file_desc.h"
 #include <malloc.h>
 #include <fcntl.h>
+#include <sys/types.h>
 static ns_t ns;
 static fs_t ns_fs;
 int ns_reg(const char *path, obj_handler_t hd, enum node_type type);
+int ns_node_free(ns_node_t *node);
+static void _ns_node_del_by_pid(slist_head_t *head, pid_t pid)
+{
+    ns_node_t *pos;
 
+    slist_foreach_not_next(pos, head, node)
+    {
+        ns_node_t *next = slist_next_entry(pos, head, node);
+
+        if (pos->type != DIR_NODE)
+        {
+            if (pid == pos->pid)
+            {
+                ns_node_free(pos);
+            }
+        }
+        else
+        {
+            _ns_node_del_by_pid(&pos->sub_dir, pid);
+        }
+
+        pos = next;
+    }
+}
+void ns_node_del_by_pid(pid_t pid)
+{
+    _ns_node_del_by_pid(&ns.root_node.sub_dir, pid);
+}
 static ns_node_t *node_init(ns_node_t *new_node, ns_node_t *parent, const char *name, obj_handler_t hd, enum node_type type)
 {
     strncpy(new_node->node_name, name, sizeof(new_node->node_name));
@@ -34,6 +63,7 @@ static ns_node_t *node_init(ns_node_t *new_node, ns_node_t *parent, const char *
     new_node->ref = 1;
     new_node->type = type;
     new_node->parent = parent;
+    new_node->pid = thread_get_src_pid();
     if (parent)
     {
         parent->ref++; //! 父目录的引用计数+1
@@ -463,7 +493,6 @@ void namespace_loop(void)
 {
     rpc_loop();
 }
-
 
 int fs_svr_read(int fd, void *buf, size_t len)
 {

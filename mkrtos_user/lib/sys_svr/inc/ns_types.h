@@ -7,9 +7,9 @@
 
 enum node_type
 {
-    MOUNT_NODE,
-    FILE_NODE,
-    DIR_NODE,
+    MOUNT_NODE, //!< 挂载节点
+    FILE_NODE,  //!< 文件节点
+    DIR_NODE,   //!< 存在子目录
 };
 typedef struct ns_node
 {
@@ -18,7 +18,11 @@ typedef struct ns_node
     enum node_type type;
     union
     {
-        obj_handler_t node_hd;
+        struct
+        {
+            obj_handler_t node_hd;
+            pid_t pid;
+        };
         slist_head_t sub_dir;
     };
     slist_head_t node;
@@ -29,5 +33,5 @@ typedef struct ns
 {
     rpc_svr_obj_t svr;
     ns_node_t root_node;
-    obj_handler_t hd;                        //!< 存储临时用于映射的hd
+    obj_handler_t hd; //!< 存储临时用于映射的hd
 } ns_t;

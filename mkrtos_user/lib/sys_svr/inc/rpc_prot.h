@@ -34,8 +34,9 @@
 
 #define META_PROT 0x0004 //!< 元协议
 
-#define PM_PROT 0x0005           //!< 进程管理协议
-#define PM_RUN_APP ((uint16_t)0) //!< 启动应用程序
+#define PM_PROT 0x0005             //!< 进程管理协议
+#define PM_RUN_APP ((uint16_t)0)   //!< 启动应用程序
+#define PM_KILL_TASK ((uint16_t)1) //!< 删除进程
 
 #define CONS_PROT 0x0006
 #define CONS_WRITE ((uint16_t)0)

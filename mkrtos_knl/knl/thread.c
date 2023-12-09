@@ -583,7 +583,7 @@ again_check:
 end:
     spinlock_set(&cur_th->kobj.lock, lock_stats);
 }
-static int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag, ipc_timeout_t timout, umword_t *ret_user_id)
+int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag, ipc_timeout_t timout, umword_t *ret_user_id)
 {
     assert(ret_tag);
     int ret = -EINVAL;

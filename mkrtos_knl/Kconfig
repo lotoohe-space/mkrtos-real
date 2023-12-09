@@ -1,5 +1,41 @@
 menu "Knl config"
 
+
+menuconfig KNL_INFO
+    bool "knl info set"
+    default y
+if KNL_INFO
+    config KNL_TEXT_ADDR
+        hex  "The first address of the kernel text section"
+        default 0x8000000
+
+    config KNL_TEXT_SIZE
+        hex "Size of the kernel text segment."
+        default 0x100000
+    
+    config KNL_DATA_ADDR
+        hex "knl data addr."
+        default 0x20000000
+    
+    config KNL_DATA_SIZE
+        hex "knl data size."
+        default 0x2000000
+    config KNL_OFFSET
+        hex "knl set"
+        default 0x2000
+    
+    config INIT_TASK_OFFSET
+        hex "init task offset"
+        default 0x10000
+    
+    config BOOTFS_OFFSET
+        hex "bootfs offset"
+        default 0x20000
+endif
+config MK_MPU_CFG
+    bool "MKRTOS MPU config"
+    default y
+
 config FT_ADDR_NR
     int "The number of addresses supported by futex."
     default 16

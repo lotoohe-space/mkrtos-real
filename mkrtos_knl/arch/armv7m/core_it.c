@@ -34,6 +34,7 @@
 #include "task.h"
 #include "thread.h"
 #include "map.h"
+#include "thread_knl.h"
 /** @addtogroup Template_Project
  * @{
  */
@@ -67,10 +68,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   printk("%s\n", __FUNCTION__);
-  umword_t status;
-  status = cpulock_lock();
-  task_kill(thread_get_current_task());
-  cpulock_set(status);
+  task_knl_kill(thread_get_current(), is_run_knl());
 }
 
 /**
@@ -80,6 +78,7 @@ void HardFault_Handler(void)
  */
 void MemManage_Handler(void)
 {
+  bool_t is_knl = is_run_knl();
   addr_t fault_addr = (addr_t)(SCB->MMFAR);
   task_t *cur_task = thread_get_current_task();
   umword_t status;
@@ -133,10 +132,8 @@ void MemManage_Handler(void)
   }
 
 end:
-  printk("semgement fault.\n");
-  status = cpulock_lock();
-  task_kill(thread_get_current_task());
-  cpulock_set(status);
+  printk("task:0x%x, semgement fault.\n", thread_get_current_task());
+  task_knl_kill(thread_get_current(), is_knl);
 }
 
 /**
@@ -146,18 +143,9 @@ end:
  */
 void BusFault_Handler(void)
 {
-  thread_t *cur_th = thread_get_current();
 
-  umword_t status;
   printk("%s\n", __FUNCTION__);
-  cur_th = cur_th;
-  /* Go to infinite loop when Bus Fault exception occurs */
-  // while (1)
-  // {
-  // }
-  status = cpulock_lock();
-  task_kill(thread_get_current_task());
-  cpulock_set(status);
+  task_knl_kill(thread_get_current(), is_run_knl());
 }
 
 /**
@@ -192,10 +180,7 @@ void UsageFault_Handler(void)
   {
     printk("Division by zero error\n");
   }
-  umword_t status;
-  status = cpulock_lock();
-  task_kill(thread_get_current_task());
-  cpulock_set(status);
+  task_knl_kill(thread_get_current(), is_run_knl());
 }
 
 // /**

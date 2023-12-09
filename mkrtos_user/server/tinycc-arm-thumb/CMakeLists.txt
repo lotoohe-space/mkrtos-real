@@ -33,10 +33,10 @@ file(GLOB deps
     # lib/libtcc1.c
     # lib/va_list.c
 )
-add_executable(tcc_armv7m.elf
+add_executable(tcc.elf
     ${deps}
 )
-target_link_libraries(tcc_armv7m.elf
+target_link_libraries(tcc.elf
     PUBLIC
     muslc
     --whole-archive    
@@ -49,16 +49,16 @@ target_link_libraries(tcc_armv7m.elf
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
-    tcc_armv7m.elf
+    tcc.elf
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tcc_armv7m/src/test
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tcc/src/test
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tinycc-arm-thumb
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tinycc-arm-thumb/lib
-    # ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tcc_armv7m-0.9.27/include
+    # ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tcc-0.9.27/include
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
@@ -68,40 +68,40 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
 
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tcc_armv7m/bsp/core_inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tcc_armv7m/bsp/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tcc/bsp/core_inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tcc/bsp/inc
 )
-add_dependencies(tcc_armv7m.elf
+add_dependencies(tcc.elf
 muslc
 )
-set_target_properties(tcc_armv7m.elf PROPERTIES LINK_FLAGS
+set_target_properties(tcc.elf PROPERTIES LINK_FLAGS
 "-T ${CMAKE_CURRENT_LIST_DIR}/link.lds -pie --gc-section -no-dynamic-linker "
 #--no-warn-rwx-segments
 )
 # 
 add_custom_target(
-    tcc_armv7m_dump ALL
+    tcc_dump ALL
     COMMAND
-    ${CMAKE_OBJDUMP} -s -S tcc_armv7m.elf > ${CMAKE_SOURCE_DIR}/build/output/tcc_armv7m.S
+    ${CMAKE_OBJDUMP} -s -S tcc.elf > ${CMAKE_SOURCE_DIR}/build/output/tcc.S
     COMMAND
-    ${CMAKE_READELF} -a tcc_armv7m.elf > ${CMAKE_SOURCE_DIR}/build/output/tcc_armv7m.txt
+    ${CMAKE_READELF} -a tcc.elf > ${CMAKE_SOURCE_DIR}/build/output/tcc.txt
     COMMAND
-    ${CMAKE_OBJCOPY} -O binary -S tcc_armv7m.elf tcc_armv7m.bin
+    ${CMAKE_OBJCOPY} -O binary -S tcc.elf tcc.bin
     COMMAND
-    ${CMAKE_SIZE} tcc_armv7m.elf
+    ${CMAKE_SIZE} tcc.elf
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
     COMMAND
-    cp tcc_armv7m.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc_armv7m
+    cp tcc.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc
     COMMAND
-    cp tcc_armv7m.elf ${CMAKE_SOURCE_DIR}/build/output/tcc_armv7m.elf
+    cp tcc.elf ${CMAKE_SOURCE_DIR}/build/output/tcc.elf
 )
 
-add_dependencies(tcc_armv7m_dump tcc_armv7m.elf)
-add_dependencies(tcc_armv7m_dump sys)
-add_dependencies(tcc_armv7m_dump sys_util)
-add_dependencies(tcc_armv7m_dump mr)
-add_dependencies(tcc_armv7m_dump sys_svr)
-add_dependencies(tcc_armv7m_dump start)
-add_dependencies(tcc_armv7m_dump muslc)
+add_dependencies(tcc_dump tcc.elf)
+add_dependencies(tcc_dump sys)
+add_dependencies(tcc_dump sys_util)
+add_dependencies(tcc_dump mr)
+add_dependencies(tcc_dump sys_svr)
+add_dependencies(tcc_dump start)
+add_dependencies(tcc_dump muslc)
  

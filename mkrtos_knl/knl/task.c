@@ -18,19 +18,31 @@
 #include "misc.h"
 #include "spinlock.h"
 #include "string.h"
+/**
+ * @brief 任务的操作码
+ *
+ */
 enum task_op_code
 {
-    TASK_OBJ_MAP,
-    TASK_OBJ_UNMAP,
-    TASK_ALLOC_RAM_BASE,
-    TASK_OBJ_VALID,
-    TASK_SET_PID,
-    TASK_GET_PID,
+    TASK_OBJ_MAP,        //!< 进行映射操作
+    TASK_OBJ_UNMAP,      //!< 进行解除映射操作
+    TASK_ALLOC_RAM_BASE, //!< 分配task的基础内存
+    TASK_OBJ_VALID,      //!< 判断一个对象是否有效
+    TASK_SET_PID,        //!< 设置task的pid
+    TASK_GET_PID,        //!< 获取task的pid
 };
 static bool_t task_put(kobject_t *kobj);
 static void task_release_stage1(kobject_t *kobj);
 static void task_release_stage2(kobject_t *kobj);
 
+/**
+ * @brief 为task分配其可以使用的内存空间
+ *
+ * @param tk
+ * @param lim
+ * @param size
+ * @return int
+ */
 int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size)
 {
     if (tk->mm_space.mm_block)
@@ -49,10 +61,24 @@ int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size)
     printk("task alloc size is %d, base is 0x%x\n", size + THREAD_MSG_BUG_LEN, ram);
     return 0;
 }
+/**
+ * @brief 获取线程绑定的task
+ *
+ * @param th
+ * @return task_t*
+ */
 task_t *thread_get_bind_task(thread_t *th)
 {
     return container_of(th->task, task_t, kobj);
 }
+/**
+ * @brief 同时解锁两个进程，防止死锁
+ *
+ * @param sp0
+ * @param sp1
+ * @param status0
+ * @param status1
+ */
 static void task_unlock_2(spinlock_t *sp0, spinlock_t *sp1, int status0, int status1)
 {
     if (sp0 < sp1)
@@ -66,6 +92,15 @@ static void task_unlock_2(spinlock_t *sp0, spinlock_t *sp1, int status0, int sta
         spinlock_set(sp1, status1);
     }
 }
+/**
+ * @brief 同时加锁两个进程
+ *
+ * @param sp0
+ * @param sp1
+ * @param st0
+ * @param st1
+ * @return int
+ */
 static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
 {
     int status0;
@@ -104,6 +139,13 @@ static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
     }
     return TRUE;
 }
+/**
+ * @brief 设置进程的pid，只有pid为0的进程才能够设置
+ *
+ * @param task 任务对象
+ * @param pid 任务的pid
+ * @return int
+ */
 int task_set_pid(task_t *task, pid_t pid)
 {
     task_t *cur_task = thread_get_current_task();
@@ -118,6 +160,14 @@ int task_set_pid(task_t *task, pid_t pid)
         return -EACCES;
     }
 }
+/**
+ * @brief 进程的系统调用函数
+ *
+ * @param kobj
+ * @param sys_p
+ * @param in_tag
+ * @param f
+ */
 static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     task_t *cur_task = thread_get_current_task();
@@ -132,19 +182,27 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
 
     switch (sys_p.op)
     {
-    case TASK_OBJ_VALID:
+    case TASK_OBJ_VALID: //!< 查看某个obj在task中是否存在
     {
+        mword_t status = spinlock_lock(&tag_task->kobj.lock);
+        if (status < 0)
+        {
+            tag = msg_tag_init4(0, 0, 0, -EINVAL);
+            break;
+        }
         kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->r[1]);
 
         if (!source_kobj)
         {
+            spinlock_set(&tag_task->kobj.lock, status);
             tag = msg_tag_init4(0, 0, 0, -ENOENT);
             break;
         }
+        spinlock_set(&tag_task->kobj.lock, status);
         tag = msg_tag_init4(0, 0, 0, 1);
     }
     break;
-    case TASK_OBJ_MAP:
+    case TASK_OBJ_MAP://!<从一个task中映射一个对象到目标进程
     {
         kobj_del_list_t del;
         int st0, st1;
@@ -164,7 +222,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
-    case TASK_OBJ_UNMAP:
+    case TASK_OBJ_UNMAP://!<解除task中一个进程的创建
     {
         kobject_t *del_kobj;
         kobj_del_list_t kobj_list;
@@ -175,16 +233,14 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        // ref_counter_inc(&tag_task->ref_cn);
         kobj_del_list_init(&kobj_list);
         obj_unmap(&tag_task->obj_space, vpage_create_raw(f->r[1]), &kobj_list);
         kobj_del_list_to_do(&kobj_list);
-        // ref_counter_dec_and_release(&tag_task->ref_cn, &tag_task->kobj);
         spinlock_set(&tag_task->kobj.lock, status);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
-    case TASK_ALLOC_RAM_BASE:
+    case TASK_ALLOC_RAM_BASE://!< 分配task所拥有的内存空间
     {
         mword_t status = spinlock_lock(&tag_task->kobj.lock);
         if (status < 0)
@@ -198,12 +254,12 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         spinlock_set(&tag_task->kobj.lock, status);
     }
     break;
-    case TASK_SET_PID:
+    case TASK_SET_PID://!<设置pid
     {
         tag = msg_tag_init4(0, 0, 0, task_set_pid(tag_task, f->r[0]));
     }
     break;
-    case TASK_GET_PID:
+    case TASK_GET_PID://!<获取pid
     {
         f->r[1] = tag_task->pid;
         tag = msg_tag_init4(0, 0, 0, 0);
@@ -225,13 +281,14 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     mm_space_init(&task->mm_space, is_knl);
     ref_counter_init(&task->ref_cn);
     ref_counter_inc(&task->ref_cn);
+    slist_init(&task->del_node);
     task->pid = -1;
     task->lim = ram;
     task->kobj.invoke_func = task_syscall_func;
     task->kobj.put_func = task_put;
     task->kobj.stage_1_func = task_release_stage1;
     task->kobj.stage_2_func = task_release_stage2;
-    mm_space_add(&task->mm_space, KNL_TEXT, 64 * 1024 * 1024, REGION_RO); // TODO:
+    mm_space_add(&task->mm_space, CONFIG_KNL_TEXT_ADDR, 64 * 1024 * 1024, REGION_RO); // TODO:这里应该用config.配置
 }
 
 static bool_t task_put(kobject_t *kobj)

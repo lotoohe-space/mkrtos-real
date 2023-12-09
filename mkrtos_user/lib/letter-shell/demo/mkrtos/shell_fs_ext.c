@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <errno.h>
 int ls(int argc, char *agrv[])
 {
     DIR *dir;
@@ -43,14 +44,13 @@ int cat(int argc, char *argv[])
 
     if ((fp = fopen(argv[1], "r")) == NULL)
     {
-        return (-2);
+        return errno;
     }
 
     while ((c = fgetc(fp)) != EOF)
     {
         cons_write(&c, 1);
     }
-    cons_write_str("\n");
     fclose(fp);
 
     return 0;

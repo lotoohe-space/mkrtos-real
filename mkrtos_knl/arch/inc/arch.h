@@ -1,12 +1,12 @@
 /**
  * @file arch.h
  * @author ATShining (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-10-04
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #pragma once
 
@@ -33,6 +33,20 @@
     umword_t _val = (umword_t)val;                        \
     __asm__ __volatile__("msr " #reg ", %0" ::"r"(_val)); \
 })
+
+#define is_run_knl()           \
+    ({                         \
+        umword_t ret;          \
+        __asm__ __volatile__(  \
+            "mov     %0, lr\n" \
+            : "=r"(ret)        \
+            :                  \
+            :);                \
+        ((ret & 0x4) ? 0 : 1);   \
+    })
+static bool_t is_run_kn(umword_t lr)
+{
+}
 
 void to_sche(void);
 
@@ -100,7 +114,6 @@ static inline umword_t intr_status(void)
 }
 
 void sys_startup(void);
-
 
 // systick.c
 umword_t sys_tick_cnt_get(void);

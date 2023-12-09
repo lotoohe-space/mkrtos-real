@@ -16,6 +16,7 @@ typedef struct task
     mm_space_t mm_space;
     ram_limit_t *lim;
     ref_counter_t ref_cn;
+    slist_head_t del_node;
     pid_t pid;
 } task_t;
 

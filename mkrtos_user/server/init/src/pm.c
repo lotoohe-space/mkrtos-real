@@ -14,6 +14,7 @@
 #include "rpc_prot.h"
 #include <stdio.h>
 #include "cons_svr.h"
+#include "namespace.h"
 static pm_t pm;
 
 void pm_init(void)
@@ -23,6 +24,12 @@ void pm_init(void)
     printf("pm runing..\n");
 }
 
+int pm_rpc_kill_task(int pid, int flags)
+{
+    printf("[pm] kill pid:%d.\n", pid);
+    ns_node_del_by_pid(pid);
+    return 0;
+}
 int pm_rpc_run_app(const char *path, int flags)
 {
     pid_t pid;
