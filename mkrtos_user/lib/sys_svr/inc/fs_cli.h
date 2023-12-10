@@ -8,3 +8,4 @@ int fs_write(int fd, void *buf, size_t len);
 int fs_close(int fd);
 int fs_lseek(int fd, int offs, int whence);
 int fs_readdir(int _fd, struct dirent *dirent);
+int fs_symlink(const char *src, const char *dst);

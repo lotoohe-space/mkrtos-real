@@ -66,7 +66,17 @@ int kill(int argc, char *argv[])
     }
     int pid = atoi(argv[1]);
 
-    pm_kill_task(pid, PM_KILL_TASK_ALL);
-    return 0;
+    return pm_kill_task(pid, PM_KILL_TASK_ALL);
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), kill, kill, kill command);
+
+int shell_symlink(int argc, char *argv[])
+{
+    if (argc < 3)
+    {
+        return -1;
+    }
+    printf("%s %s %s\n", __func__, argv[1], argv[2]);
+    return symlink(argv[1], argv[2]);
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), symlink, shell_symlink, symlink command);

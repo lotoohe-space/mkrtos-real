@@ -24,6 +24,7 @@
 #define FS_CHDIR ((uint16_t)16)    //!< 进入某个目录，可在客户端实现 暂不实现*
 #define FS_CWDIR ((uint16_t)17)    //!< 获取当前目录，可在客户端实现 暂不实现*
 #define FS_MOUNT ((uint16_t)18)    //!< 挂载节点 暂不实现*
+#define FS_SYMLINK ((uint16_t)19)  //!< 软链接
 
 #define DRV_PROT 0x0003
 #define DRV_OPEN ((uint16_t)0)  //!< 打开设备

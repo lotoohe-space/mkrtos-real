@@ -94,7 +94,8 @@ int fs_svr_open(const char *path, int flags, int mode)
     {
         return -EACCES;
     }
-    if (path[0]=='/') {
+    if (path[0] == '/')
+    {
         path++;
     }
 
@@ -227,7 +228,10 @@ int fs_svr_fstat(int fd, stat_t *stat)
     stat->st_size = file->file_size;
     return 0;
 }
-
+int fs_svr_symlink(const char *src, const char *dst)
+{
+    return -ENOSYS;
+}
 void fs_svr_loop(void)
 {
     rpc_loop();

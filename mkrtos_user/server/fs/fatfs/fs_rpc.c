@@ -336,7 +336,10 @@ int fs_svr_fstat(int fd, stat_t *stat)
 {
     return -ENOSYS;
 }
-
+int fs_svr_symlink(const char *src, const char *dst)
+{
+    return -ENOSYS;
+}
 void fs_svr_loop(void)
 {
     rpc_loop();
