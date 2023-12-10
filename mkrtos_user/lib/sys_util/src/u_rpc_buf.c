@@ -4,11 +4,22 @@
 #include "u_prot.h"
 #include "u_task.h"
 #include "u_thread.h"
-static obj_handler_t buf_hd = HANDLER_INVALID;
+#include "u_util.h"
+#include <assert.h>
+#define RPC_SVR_MAP_OBJ_NR 4
+static obj_handler_t buf_hd[RPC_SVR_MAP_OBJ_NR];
+
+AUTO_CALL(101) void rpc_hd_init(void)
+{
+    for (int i = 0; i < RPC_SVR_MAP_OBJ_NR; i++)
+    {
+        buf_hd[i] = HANDLER_INVALID;
+    }
+}
 obj_handler_t rpc_hd_get(int inx)
 {
-    /*TODO:*/
-    return buf_hd;
+    assert(inx < RPC_SVR_MAP_OBJ_NR && inx >= 0);
+    return buf_hd[inx];
 }
 int rpc_hd_alloc(void)
 {
@@ -17,27 +28,31 @@ int rpc_hd_alloc(void)
     obj_handler_t hd;
     bool_t alloc_new = TRUE;
 
-    if (handler_is_used(buf_hd))
+    for (int i = 0; i < RPC_SVR_MAP_OBJ_NR; i++)
     {
-        if (task_obj_valid(TASK_THIS, buf_hd).prot == 0)
+        obj_handler_t tmp_hd = buf_hd[i];
+        if (handler_is_used(tmp_hd))
         {
-            alloc_new = FALSE;
+            if (task_obj_valid(TASK_THIS, tmp_hd, 0).prot == 0)
+            {
+                alloc_new = FALSE;
+            }
         }
-    }
-    if (alloc_new)
-    {
-        hd = handler_alloc();
-        if (hd == HANDLER_INVALID)
+        if (alloc_new)
         {
-            return -1;
+            hd = handler_alloc();
+            if (hd == HANDLER_INVALID)
+            {
+                return -1;
+            }
         }
+        else
+        {
+            hd = tmp_hd;
+        }
+        thread_msg_buf_get(-1, (umword_t *)(&msg), NULL);
+        msg->map_buf[i] = vpage_create_raw3(0, 0, hd).raw;
+        buf_hd[i] = hd;
     }
-    else
-    {
-        hd = buf_hd;
-    }
-    thread_msg_buf_get(-1, (umword_t *)(&msg), NULL);
-    msg->map_buf[0] = vpage_create_raw3(0, 0, hd).raw;
-    buf_hd = hd;
     return 0;
 }

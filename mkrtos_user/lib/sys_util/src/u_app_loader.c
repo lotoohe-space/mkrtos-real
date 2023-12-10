@@ -182,7 +182,8 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     uenv->ns_hd = cur_env->ns_hd;
     uenv->rev1 = HANDLER_INVALID;
     uenv->rev2 = HANDLER_INVALID;
-    printf("stack env:%p, env:%p\n", (void *)((umword_t)usp_top + ARG_WORD_NR * 4 + 16 + 16), uenv);
+    printf("pid:%d, stack env:%p, env:%p\n", hd_task,
+           (void *)((umword_t)usp_top + ARG_WORD_NR * 4 + 16 + 16), uenv);
 
     tag = thread_exec_regs(hd_thread, (umword_t)addr, ((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL),
                            ram_base, 1);

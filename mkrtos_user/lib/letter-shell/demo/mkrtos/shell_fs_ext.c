@@ -1,6 +1,7 @@
 #include "shell.h"
 #include "cons_cli.h"
-
+#include "pm_cli.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <dirent.h>
 #include <unistd.h>
@@ -57,3 +58,15 @@ int cat(int argc, char *argv[])
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), cat, cat, cat command);
 
+int kill(int argc, char *argv[])
+{
+    if (argc < 2)
+    {
+        return -1;
+    }
+    int pid = atoi(argv[1]);
+
+    pm_kill_task(pid, PM_KILL_TASK_ALL);
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), kill, kill, kill command);

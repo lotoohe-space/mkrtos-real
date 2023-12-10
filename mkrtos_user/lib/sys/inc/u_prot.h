@@ -96,3 +96,17 @@ static inline vpage_t vpage_create_raw3(umword_t attrs, umword_t flags, umword_t
 {
     return (vpage_t){.attrs = attrs, .flags = flags, .addr = addr};
 }
+
+enum knl_obj_type
+{
+    BASE_KOBJ_TYPE,
+    TASK_TYPE,
+    THREAD_TYPE,
+    IRQ_SENDER_TYPE,
+    IPC_TYPE,
+    LOG_TYPE,
+    MM_TYPE,
+    FACTORY_TYPE,
+    SYS_TYPE,
+    FUTEX_TYPE,
+};

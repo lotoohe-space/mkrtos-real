@@ -198,11 +198,12 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, 0);
             break;
         }
+        f->r[1] = source_kobj->kobj_type;
         spinlock_set(&tag_task->kobj.lock, status);
         tag = msg_tag_init4(0, 0, 0, 1);
     }
     break;
-    case TASK_OBJ_MAP://!<从一个task中映射一个对象到目标进程
+    case TASK_OBJ_MAP: //!< 从一个task中映射一个对象到目标进程
     {
         kobj_del_list_t del;
         int st0, st1;
@@ -222,7 +223,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
-    case TASK_OBJ_UNMAP://!<解除task中一个进程的创建
+    case TASK_OBJ_UNMAP: //!< 解除task中一个进程的创建
     {
         kobject_t *del_kobj;
         kobj_del_list_t kobj_list;
@@ -240,7 +241,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
-    case TASK_ALLOC_RAM_BASE://!< 分配task所拥有的内存空间
+    case TASK_ALLOC_RAM_BASE: //!< 分配task所拥有的内存空间
     {
         mword_t status = spinlock_lock(&tag_task->kobj.lock);
         if (status < 0)
@@ -254,12 +255,12 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         spinlock_set(&tag_task->kobj.lock, status);
     }
     break;
-    case TASK_SET_PID://!<设置pid
+    case TASK_SET_PID: //!< 设置pid
     {
         tag = msg_tag_init4(0, 0, 0, task_set_pid(tag_task, f->r[0]));
     }
     break;
-    case TASK_GET_PID://!<获取pid
+    case TASK_GET_PID: //!< 获取pid
     {
         f->r[1] = tag_task->pid;
         tag = msg_tag_init4(0, 0, 0, 0);
