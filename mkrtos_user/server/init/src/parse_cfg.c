@@ -44,9 +44,12 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
         return -ENOENT;
     }
     umword_t size;
-    const char *str = (const char *)cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), parse_cfg_file_name, &size);
+    int type;
+    const char *str;
+    int ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr,
+                             (umword_t)(-1), parse_cfg_file_name, &size, &type, (umword_t *)&str);
 
-    if (!str)
+    if (ret < 0 || (ret >= 0 && type == 1))
     {
         return -ENOENT;
     }

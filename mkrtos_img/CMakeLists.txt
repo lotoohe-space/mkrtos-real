@@ -5,7 +5,7 @@ add_custom_target(
     COMMAND
     cd ${CMAKE_SOURCE_DIR}/build/output/cpio
     COMMAND
-    ls | cpio -H newc -o > ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio
+    find ./ -print | cpio -H newc -o > ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio
     COMMAND
     srec_cat -output ${CMAKE_SOURCE_DIR}/build/output/kernel.img -binary
         ${CMAKE_SOURCE_DIR}/build/output/bootstrap -binary -offset 0x0

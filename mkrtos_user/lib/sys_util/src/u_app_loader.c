@@ -47,9 +47,11 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         return -ENOENT;
     }
-    umword_t addr = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL);
+    int type;
+    umword_t addr;
+    int ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL, &type, &addr);
 
-    if (!addr)
+    if (ret < 0 || (ret >= 0 && type == 1))
     {
         return -ENOENT;
     }

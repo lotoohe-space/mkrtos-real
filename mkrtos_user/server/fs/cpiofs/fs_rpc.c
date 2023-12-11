@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <string.h>
+#include <dirent.h>
 #include "rpc_prot.h"
 #include "cpiofs.h"
 static fs_t fs;
@@ -20,12 +21,14 @@ typedef struct file_desc
     addr_t file_addr;
     size_t file_size;
     ssize_t offset;
+    int type;
+    char open_name[32];
 } file_desc_t;
 
 #define CPIO_FS_FD_NR 8
 static file_desc_t fds[CPIO_FS_FD_NR];
 
-static file_desc_t *fd_alloc(addr_t file_addr, size_t file_size, ssize_t offset, int *fd)
+static file_desc_t *fd_alloc(addr_t file_addr, size_t file_size, ssize_t offset, int *fd, int type)
 {
     for (int i = 0; i < CPIO_FS_FD_NR; i++)
     {
@@ -35,6 +38,7 @@ static file_desc_t *fd_alloc(addr_t file_addr, size_t file_size, ssize_t offset,
             fds[i].file_addr = file_addr;
             fds[i].file_size = file_size;
             fds[i].offset = offset;
+            fds[i].type = type;
             if (fd)
             {
                 *fd = i;
@@ -85,6 +89,7 @@ int fs_svr_open(const char *path, int flags, int mode)
 {
     msg_tag_t tag;
     sys_info_t sys_info;
+    char *o_path;
 
     if (flags & O_RDWR)
     {
@@ -105,19 +110,24 @@ int fs_svr_open(const char *path, int flags, int mode)
         return -ENOENT;
     }
     umword_t size;
-    umword_t addr = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), path, &size);
-    if (!addr)
+    int type;
+    umword_t addr;
+    int ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr,
+                             (umword_t)(-1), path, &size, &type, &addr);
+    if (ret < 0)
     {
         return -ENOENT;
     }
     int fd;
     // 找到指定文件
-    file_desc_t *fdp = fd_alloc(addr, size, 0, &fd);
+    file_desc_t *fdp = fd_alloc(addr, size, 0, &fd, type);
 
     if (!fdp)
     {
         return -ENOMEM;
     }
+    strncpy(fdp->open_name, path, 32);
+    fdp->open_name[32 - 1] = 0;
 
     return fd;
 }
@@ -129,6 +139,10 @@ int fs_svr_read(int fd, void *buf, size_t len)
     if (!fdp)
     {
         return -ENOENT;
+    }
+    if (fdp->type != 0)
+    {
+        return -EACCES;
     }
     size_t remain_size = fdp->file_size - fdp->offset;
     size_t read_size = 0;
@@ -163,6 +177,10 @@ int fs_svr_lseek(int fd, int offs, int whence)
     if (!file)
     {
         return -ENOENT;
+    }
+    if (file->type != 0)
+    {
+        return -EACCES;
     }
     switch (whence)
     {
@@ -201,9 +219,37 @@ int fs_svr_ftruncate(int fd, off_t off)
 void fs_svr_sync(int fd)
 {
 }
+
 int fs_svr_readdir(int fd, dirent_t *dir)
 {
-    return -ENOSYS;
+    file_desc_t *file = fd_get(fd);
+    int new_offs = 0;
+
+    if (!file)
+    {
+        return -ENOENT;
+    }
+    if (file->type != 1)
+    {
+        return -EACCES;
+    }
+    umword_t size;
+    int type;
+    umword_t next_addr;
+    const char *next_path;
+    int ret = cpio_find_next(file->file_addr, file->open_name, &size, &type, &next_addr, &next_path);
+
+    if (ret < 0)
+    {
+        return -ENOENT;
+    }
+    file->file_addr = next_addr;
+    dir->d_reclen = sizeof(*dir);
+    strncpy(dir->d_name, next_path, sizeof(dir->d_name));
+    dir->d_name[sizeof(dir->d_name) - 1] = 0;
+    dir->d_type = type == 1 ? DT_DIR : DT_CHR;
+
+    return sizeof(*dir);
 }
 int fs_svr_mkdir(char *path)
 {
