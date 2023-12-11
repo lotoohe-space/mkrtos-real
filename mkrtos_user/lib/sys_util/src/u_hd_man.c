@@ -52,6 +52,26 @@ obj_handler_t handler_alloc(void)
 
     return HANDLER_INVALID;
 }
+bool_t handler_is_used(obj_handler_t hd_inx)
+{
+    hd_inx -= HANDLER_START_INX;
+    if (hd_inx < 0)
+    {
+        return 0;
+    }
+    umword_t word_offset = hd_inx / WORD_BITS;
+    umword_t bits_offset = hd_inx % WORD_BITS;
+
+    if (word_offset >= (HANDLER_MAX_NR / WORD_BITS))
+    {
+        return 0;
+    }
+    pthread_spin_lock(&lock);
+    bool_t is_use = !!MK_GET_BIT(bitmap_handler_alloc[word_offset], bits_offset);
+    pthread_spin_unlock(&lock);
+
+    return is_use;
+}
 void handler_free(obj_handler_t hd_inx)
 {
     hd_inx -= HANDLER_START_INX;

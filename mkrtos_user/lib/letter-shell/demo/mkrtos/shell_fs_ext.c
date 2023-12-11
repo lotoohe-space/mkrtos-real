@@ -1,6 +1,7 @@
 #include "shell.h"
 #include "cons_cli.h"
-
+#include "pm_cli.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <dirent.h>
 #include <unistd.h>
@@ -8,6 +9,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <errno.h>
 int ls(int argc, char *agrv[])
 {
     DIR *dir;
@@ -43,17 +45,38 @@ int cat(int argc, char *argv[])
 
     if ((fp = fopen(argv[1], "r")) == NULL)
     {
-        return (-2);
+        return errno;
     }
 
     while ((c = fgetc(fp)) != EOF)
     {
         cons_write(&c, 1);
     }
-    cons_write_str("\n");
     fclose(fp);
 
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), cat, cat, cat command);
 
+int kill(int argc, char *argv[])
+{
+    if (argc < 2)
+    {
+        return -1;
+    }
+    int pid = atoi(argv[1]);
+
+    return pm_kill_task(pid, PM_KILL_TASK_ALL);
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), kill, kill, kill command);
+
+int shell_symlink(int argc, char *argv[])
+{
+    if (argc < 3)
+    {
+        return -1;
+    }
+    printf("%s %s %s\n", __func__, argv[1], argv[2]);
+    return symlink(argv[1], argv[2]);
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), symlink, shell_symlink, symlink command);

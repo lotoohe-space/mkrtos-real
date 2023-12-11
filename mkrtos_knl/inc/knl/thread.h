@@ -187,3 +187,4 @@ void thread_ready(thread_t *th, bool_t is_sche);
 
 void thread_timeout_check(ssize_t tick);
 msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id);
+int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag, ipc_timeout_t timout, umword_t *ret_user_id);

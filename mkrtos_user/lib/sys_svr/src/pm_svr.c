@@ -1,12 +1,12 @@
 /**
  * @file pm_svr.c
  * @author ATShining (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-11-28
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "rpc_prot.h"
 #include "u_rpc.h"
@@ -31,9 +31,21 @@ RPC_GENERATION_OP2(pm_t, PM_PROT, PM_RUN_APP, run_app,
 RPC_GENERATION_DISPATCH2(pm_t, PM_PROT, PM_RUN_APP, run_app,
                          rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
+/*kill_task*/
+RPC_GENERATION_OP2(pm_t, PM_PROT, PM_KILL_TASK, kill_task,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
+{
+    int16_t ret = 0;
+    ret = pm_rpc_kill_task(pid->data, flags->data);
+    return ret;
+}
 
+RPC_GENERATION_DISPATCH2(pm_t, PM_PROT, PM_KILL_TASK, kill_task,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
 /*dispatch*/
-RPC_DISPATCH1(pm_t, PM_PROT, typeof(PM_RUN_APP), FS_OPEN, run_app)
+RPC_DISPATCH2(pm_t, PM_PROT, typeof(PM_RUN_APP), PM_RUN_APP, run_app, PM_KILL_TASK, kill_task)
 
 void pm_svr_obj_init(pm_t *pm)
 {

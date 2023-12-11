@@ -37,7 +37,7 @@ static umword_t app_stack_push(umword_t *stack, umword_t val)
  * @param name app的名字
  * @return int
  */
-int app_load(const char *name, uenv_t *cur_env, pid_t *pid)
+int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int arg_cn)
 {
     msg_tag_t tag;
     sys_info_t sys_info;
@@ -158,8 +158,8 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid)
     umword_t *buf;
     thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
     umword_t *buf_bk = buf;
-#define ARG_WORD_NR 10
-    buf = (umword_t *)app_stack_push(buf, 1);                                        //!< argc 24
+#define ARG_WORD_NR 10                                                               // 40bytes
+    buf = (umword_t *)app_stack_push(buf, 1 + arg_cn);                               //!< argc 24
     buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + ARG_WORD_NR * 4);      //!< argv[0]
     buf = (umword_t *)app_stack_push(buf, 0);                                        //!< NULL
     buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + ARG_WORD_NR * 4 + 16); //!< env[0...N]
@@ -172,17 +172,21 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid)
     buf = (umword_t *)app_stack_push(buf, 0);                                             //!< NULL
 
     // set args & env.
+
     memcpy((char *)buf_bk + ARG_WORD_NR * 4, name, strlen(name) + 1);
     memcpy((char *)buf_bk + ARG_WORD_NR * 4 + 16, "PATH=/", strlen("PATH=/") + 1);
 
-    // set user env.
+    // set user env. 16 bytes
     uenv_t *uenv = (uenv_t *)((char *)buf_bk + ARG_WORD_NR * 4 + 16 + 16);
     uenv->log_hd = cur_env->ns_hd;
     uenv->ns_hd = cur_env->ns_hd;
     uenv->rev1 = HANDLER_INVALID;
     uenv->rev2 = HANDLER_INVALID;
+    printf("pid:%d, stack env:%p, env:%p\n", hd_task,
+           (void *)((umword_t)usp_top + ARG_WORD_NR * 4 + 16 + 16), uenv);
 
-    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)sp_addr_top - sizeof(void *), ram_base, 1);
+    tag = thread_exec_regs(hd_thread, (umword_t)addr, ((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL),
+                           ram_base, 1);
     assert(msg_tag_get_prot(tag) >= 0);
 
     /*启动线程运行*/

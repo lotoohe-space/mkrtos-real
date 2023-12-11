@@ -53,7 +53,7 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     case SYS_INFO_GET:
     {
         f->r[1] = sys_tick_cnt_get();
-        f->r[2] = KNL_TEXT + BOOTFS_ADDR_OFFSET;
+        f->r[2] = CONFIG_KNL_TEXT_ADDR + BOOTFS_ADDR_OFFSET;
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;

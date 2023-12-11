@@ -22,3 +22,4 @@ int fs_svr_mkdir(char *path);
 int fs_svr_unlink(char *path);
 int fs_svr_renmae(char *oldname, char *newname);
 int fs_svr_fstat(int fd, stat_t *stat);
+int fs_svr_symlink(const char *src, const char *dst);

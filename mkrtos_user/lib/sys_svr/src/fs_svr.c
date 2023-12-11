@@ -162,10 +162,25 @@ RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_STAT, fstat,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                          rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, stat)
 
+/*symlink*/
+RPC_GENERATION_OP2(fs_t, FS_PROT, FS_SYMLINK, symlink,
+                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, src,
+                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, dst)
+{
+    src->data[src->len - 1] = 0;
+    dst->data[dst->len - 1] = 0;
+    return fs_svr_symlink(src->data, dst->data);
+}
+
+RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_SYMLINK, symlink,
+                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, src,
+                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, dst)
+
 /*dispatch*/
-RPC_DISPATCH12(fs_t, FS_PROT, typeof(FS_OPEN), FS_OPEN, open, FS_READ, read,
+RPC_DISPATCH13(fs_t, FS_PROT, typeof(FS_OPEN), FS_OPEN, open, FS_READ, read,
                FS_WRITE, write, FS_CLOSE, close, FS_LSEEK, lseek, FS_FTRUNCATE, ftruncate,
-               FS_SYNC, fsync, FS_READDIR, readdir, FS_MKDIR, mkdir, FS_UNLINK, unlink, FS_RENAME, rename, FS_STAT, fstat)
+               FS_SYNC, fsync, FS_READDIR, readdir, FS_MKDIR, mkdir, FS_UNLINK,
+               unlink, FS_RENAME, rename, FS_STAT, fstat, FS_SYMLINK, symlink)
 
 void fs_init(fs_t *fs)
 {

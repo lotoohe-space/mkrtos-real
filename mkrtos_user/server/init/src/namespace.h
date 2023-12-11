@@ -11,6 +11,8 @@
 #pragma once
 #include "u_types.h"
 #include "u_prot.h"
+#include <u_slist.h>
+#include <sys/types.h>
 enum ns_op
 {
     OP_REGISTER,
@@ -21,3 +23,4 @@ int namespace_register(const char *path, obj_handler_t hd, int type);
 int namespace_query(const char *path, obj_handler_t *hd);
 int namespace_pre_alloc_map_fd(void);
 void namespace_loop(void);
+void ns_node_del_by_pid(pid_t pid, int to_del);

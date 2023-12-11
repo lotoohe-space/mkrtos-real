@@ -512,8 +512,9 @@ static int thread_ipc_reply(msg_tag_t in_tag)
 
     if (ret < 0)
     {
-        cpulock_set(status);
-        return ret;
+        // cpulock_set(status);
+        // return ret;
+        in_tag.prot = ret;
     }
     cur_th->last_send_th->msg.tag = in_tag;
     thread_ready(cur_th->last_send_th, TRUE); //!< 直接唤醒接受者
@@ -583,7 +584,7 @@ again_check:
 end:
     spinlock_set(&cur_th->kobj.lock, lock_stats);
 }
-static int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag, ipc_timeout_t timout, umword_t *ret_user_id)
+int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag, ipc_timeout_t timout, umword_t *ret_user_id)
 {
     assert(ret_tag);
     int ret = -EINVAL;

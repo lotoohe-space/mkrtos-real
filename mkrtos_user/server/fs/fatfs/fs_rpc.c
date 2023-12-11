@@ -52,6 +52,10 @@ static file_desc_t *file_get(int fd)
     {
         return NULL;
     }
+    if (files[fd].fp.obj.fs == NULL)
+    {
+        return NULL;
+    }
     return files + fd;
 }
 static int fatfs_err_conv(FRESULT res)
@@ -146,7 +150,11 @@ int fs_svr_open(const char *path, int flags, int mode)
         // cons_write_str("open file..\n");
     }
 
-    return fatfs_err_conv(ret);
+    if (ret != FR_OK)
+    {
+        return fatfs_err_conv(ret);
+    }
+    return fd;
 }
 
 int fs_svr_read(int fd, void *buf, size_t len)
@@ -328,7 +336,10 @@ int fs_svr_fstat(int fd, stat_t *stat)
 {
     return -ENOSYS;
 }
-
+int fs_svr_symlink(const char *src, const char *dst)
+{
+    return -ENOSYS;
+}
 void fs_svr_loop(void)
 {
     rpc_loop();

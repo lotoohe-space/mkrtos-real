@@ -14,9 +14,10 @@ include_directories(
 
 add_subdirectory(init)
 add_subdirectory(shell)
-add_subdirectory(app)
+# add_subdirectory(app)
 add_subdirectory(fs)
-add_subdirectory(hello)
+# add_subdirectory(hello)
 add_subdirectory(drv)
 add_subdirectory(test)
-add_subdirectory(tcc-0.9.27)
+# add_subdirectory(tcc-0.9.27)
+add_subdirectory(tinycc-arm-thumb)

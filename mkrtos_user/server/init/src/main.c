@@ -71,7 +71,6 @@ int main(int argc, char *args[])
 
     ret = parse_cfg(DEFAULT_INIT_CFG, env);
     printf("run app num is %d.\n", ret);
-    namespace_pre_alloc_map_fd();
     namespace_loop();
     return 0;
 }

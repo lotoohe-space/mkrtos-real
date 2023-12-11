@@ -21,3 +21,4 @@ typedef struct pm
 
 void pm_svr_obj_init(pm_t *pm);
 int pm_rpc_run_app(const char *path, int flags);
+int pm_rpc_kill_task(int pid, int flags);

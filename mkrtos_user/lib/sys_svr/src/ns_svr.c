@@ -4,6 +4,7 @@
 #include "u_rpc.h"
 #include "u_rpc_svr.h"
 #include "u_arch.h"
+#include "u_rpc_buf.h"
 #include "u_hd_man.h"
 #include <stdio.h>
 
@@ -14,7 +15,7 @@ RPC_GENERATION_OP3(ns_t, NS_PROT, NS_REGISTER_OP, register,
 {
     path->data[path->len - 1] = 0;
 
-    int ret = namespace_register((char *)(path->data), obj->hd, type->data);
+    int ret = namespace_register((char *)(path->data), rpc_hd_get(0), type->data);
     if (ret >= 0)
     {
         printf("register [%s] success.\n", (char *)(path->data));
@@ -39,7 +40,7 @@ RPC_GENERATION_OP2(ns_t, NS_PROT, NS_QUERY_OP, query,
     int ret = namespace_query((char *)(path->data), &cli_hd->data);
     if (ret >= 0)
     {
-        printf("The request service [%s] was successful.\n", (char *)(path->data));
+        printf("The request service [%s] was successful, hd is %d.\n", (char *)(path->data), cli_hd->data);
     }
     else
     {
@@ -56,5 +57,4 @@ RPC_DISPATCH2(ns_t, NS_PROT, typeof(NS_REGISTER_OP), NS_REGISTER_OP, register, N
 void ns_init(ns_t *ns)
 {
     rpc_svr_obj_init(&ns->svr, rpc_ns_t_dispatch, NS_PROT);
-    ns->hd = HANDLER_INVALID;
 }

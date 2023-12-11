@@ -53,9 +53,10 @@ msg_tag_t task_get_pid(obj_handler_t dst_task, umword_t *pid)
 
     return msg_tag_init(r0);
 }
-msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx)
+msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx, int *obj_type)
 {
     register volatile umword_t r0 asm("r0");
+    register volatile umword_t r1 asm("r1");
 
     mk_syscall(syscall_prot_create(TASK_OBJ_VALID, TASK_PROT, dst_task).raw,
                0,
@@ -68,9 +69,12 @@ msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx)
                      :
                      :
                      : "r0");
-    msg_tag_t tag = msg_tag_init(r0);
+    if (obj_type)
+    {
+        *obj_type = r1;
+    }
 
-    return tag;
+    return msg_tag_init(r0);
 }
 
 msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t dst_obj, uint8_t attrs)

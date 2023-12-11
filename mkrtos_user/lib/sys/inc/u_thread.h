@@ -72,3 +72,4 @@ msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_tim
         })
 
 #define thread_get_src_pid() thread_get_cur_ipc_msg()->user[2]
+#define thread_set_src_pid(pid) thread_get_cur_ipc_msg()->user[2] = pid

@@ -206,3 +206,19 @@ int fs_readdir(sd_t _fd, dirent_t *dirent)
 
     return msg_tag_get_val(tag);
 }
+RPC_GENERATION_CALL2(fs_t, FS_PROT, FS_SYMLINK, symlink,
+                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, src,
+                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, dst)
+
+int fs_symlink(const char *src, const char *dst)
+{
+    rpc_ref_array_uint32_t_uint8_t_32_t rpc_src = {
+        .data = (uint8_t *)src,
+        .len = strlen(src) + 1,
+    };
+    rpc_ref_array_uint32_t_uint8_t_32_t rpc_dst = {
+        .data = (uint8_t *)dst,
+        .len = strlen(dst) + 1,
+    };
+    msg_tag_t tag = fs_t_symlink_call(u_get_global_env()->ns_hd, &rpc_src, &rpc_dst);
+}

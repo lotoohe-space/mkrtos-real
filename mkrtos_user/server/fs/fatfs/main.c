@@ -44,7 +44,7 @@ int main(int args, char *argv[])
             }
         }
     }
-    cons_write_str("mount success\n");
+    cons_write_str("fatfs mount success\n");
 
     fs_svr_loop();
     return 0;

@@ -6,6 +6,7 @@
 #include "u_rpc_svr.h"
 #include "rpc_prot.h"
 #include "u_err.h"
+#include "u_rpc_buf.h"
 #include <errno.h>
 #include <assert.h>
 #include <stdio.h>
@@ -78,6 +79,7 @@ static msg_tag_t rpc_meta_t_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, 
 
     if (msg_tag_get_prot(in_tag) == META_PROT)
     {
+        printf("unknow prot.\n");
         return msg_tag_init4(0, 0, 0, -EPROTO);
     }
     else
@@ -87,10 +89,13 @@ static msg_tag_t rpc_meta_t_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, 
 
         if (svr_obj == NULL)
         {
+            printf("unknow prot.\n");
+
             return msg_tag_init4(0, 0, 0, -EPROTO);
         }
         if (svr_obj->dispatch == NULL)
         {
+            printf("unknow dispatch.\n");
             return msg_tag_init4(0, 0, 0, -EPROTO);
         }
         msg = svr_obj->dispatch(svr_obj, in_tag, ipc_msg);
@@ -155,6 +160,7 @@ void rpc_loop(void)
     msg = (ipc_msg_t *)buf;
     while (1)
     {
+        rpc_hd_alloc();
         tag = thread_ipc_wait(ipc_timeout_create2(0, 0), &obj);
         if (msg_tag_get_val(tag) < 0)
         {

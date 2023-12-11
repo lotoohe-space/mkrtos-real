@@ -7,7 +7,6 @@ export TOOLCHAIN_LIB=/Users/ATShining/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm
 export KEN_OFFSET=0x2000
 export INIT_OFFSET=0x10000
 export BOOTFS_ADDR_OFFSET=0x20000
-export KNL_TEXT=0x8000000
 export KNL_DATA=0x20000000
 export KNL_DATA_SIZE=64K
 export BOARD=STM32F2x

@@ -26,7 +26,7 @@ typedef struct fd_map
 
 static fd_map_t fd_map;
 
-int fd_map_alloc(uint16_t svr_fd, uint16_t priv_fd, enum fd_type type)
+int fd_map_alloc(uint32_t svr_fd, uint32_t priv_fd, enum fd_type type)
 {
     int alloc_fd = 0;
 
