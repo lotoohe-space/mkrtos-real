@@ -223,10 +223,26 @@ static ns_node_t *node_lookup(ns_node_t *dir, const char *name, size_t *ret_inx)
                 goto end;
             }
             break;
+            case SYM_NODE:
+            {
+                size_t ret_inx;
+                ns_node_t *sym_node = node_lookup(&ns.root_node,
+                                                  pos->sym_path, &ret_inx);
+
+                if (sym_node == NULL)
+                {
+                    return NULL;
+                }
+                node = sym_node;
+                r_inx += inx;
+                find = TRUE;
+            }
+            break;
             default:
                 assert(0);
                 break;
             }
+            break;
         }
         find_inx += inx;
     }
@@ -392,6 +408,10 @@ int fs_svr_unlink(char *path)
     int ret_inx;
 
     node = node_lookup(&ns.root_node, path, &ret_inx);
+    if (!node)
+    {
+        return -EEXIST;
+    }
     if (node && ret_inx == strlen(path))
     {
         if (node->ref == 1)
@@ -422,6 +442,7 @@ int fs_svr_symlink(const char *src, const char *dst)
     ns_node_t *node;
     size_t ret_inx;
     int len;
+    printf("%s:%d. %s --> %s\n", __func__, __LINE__, src, dst);
 
     node = node_lookup(&ns.root_node, dst, &ret_inx);
     if (!node)
@@ -481,6 +502,10 @@ int ns_reg(const char *path, obj_handler_t hd, enum node_type type)
     ns_node_t *node;
 
     node = node_lookup(&ns.root_node, path, &ret_inx);
+    if (!node)
+    {
+        return -EEXIST;
+    }
     if (node && ret_inx == strlen(path))
     {
         handler_free_umap(hd);
@@ -556,6 +581,10 @@ int namespace_query(const char *path, obj_handler_t *hd)
     }
 
     node = node_lookup(&ns.root_node, path, &ret_inx);
+    if (!node)
+    {
+        return -EEXIST;
+    }
     if (node && ret_inx == strlen(path))
     {
         return -EEXIST;

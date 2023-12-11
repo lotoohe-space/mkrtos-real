@@ -334,7 +334,10 @@ long be_lseek(long fd, long offset, long whence)
     }
     return 0;
 }
-
+long be_symlink(const char *src, const char *dst)
+{
+    return fs_symlink(src, dst);
+}
 long be_getdents(long fd, char *buf, size_t size)
 {
     fd_map_entry_t u_fd;
