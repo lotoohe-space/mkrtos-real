@@ -63,13 +63,19 @@ msg_tag_t thread_ipc_reply(msg_tag_t in_tag, ipc_timeout_t timeout);
 msg_tag_t thread_ipc_send(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
 msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
 
-#define thread_get_cur_ipc_msg()                \
-    (                                           \
-        {                                       \
-            umword_t buf;                       \
-            thread_msg_buf_get(-1, &buf, NULL); \
-            ((ipc_msg_t *)buf);                 \
-        })
+// #define thread_get_cur_ipc_msg()                \
+//     (                                           \
+//         {                                       \
+//             umword_t buf;                       \
+//             thread_msg_buf_get(-1, &buf, NULL); \
+//             ((ipc_msg_t *)buf);                 \
+//         })
+static inline ipc_msg_t *thread_get_cur_ipc_msg(void)
+{
+    umword_t buf;
+    thread_msg_buf_get(-1, &buf, NULL);
+    return (ipc_msg_t *)buf;
+}
 
 #define thread_get_src_pid() thread_get_cur_ipc_msg()->user[2]
 #define thread_set_src_pid(pid) thread_get_cur_ipc_msg()->user[2] = pid

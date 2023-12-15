@@ -66,11 +66,10 @@ int cpio_find_next(umword_t st, const char *pre_name,
         int name_size = htoi(file_info->c_namesize, 8);
         mode = htoi(file_info->c_mode, 8);
         const char *f_name = (char *)(i + sizeof(cpio_fs_t));
-        if (strcmp("TRAILER!!", f_name) == 0)
+        if (strcmp("TRAILER!!!", f_name) == 0)
         {
             return -1;
         }
-
         if (strncmp(f_name, pre_name, strlen(pre_name)) == 0)
         {
             if (S_ISDIR(mode))
@@ -117,7 +116,6 @@ int cpio_find_file(umword_t st, umword_t en, const char *name, umword_t *size, i
         int name_size = htoi(file_info->c_namesize, 8);
         mode = htoi(file_info->c_mode, 8);
         const char *f_name = (char *)(i + sizeof(cpio_fs_t));
-        // printf("%s\n", f_name);
         if (name[0] == '\0')
         {
             if (type)
