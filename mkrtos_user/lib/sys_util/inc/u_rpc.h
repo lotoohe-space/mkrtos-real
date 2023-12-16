@@ -46,6 +46,8 @@ static inline void rpc_memcpy(void *dst, void *src, size_t size)
     while (size--)
     {
         *_dst = *_src;
+        _dst++;
+        _src++;
     }
 }
 

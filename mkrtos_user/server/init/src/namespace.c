@@ -181,9 +181,9 @@ static ns_node_t *node_lookup(ns_node_t *dir, const char *name, size_t *ret_inx)
     {
         return dir;
     }
+    node = dir;
     if (name[0] == '/')
     {
-        node = dir;
         find_inx++;
         r_inx++;
         find = TRUE;

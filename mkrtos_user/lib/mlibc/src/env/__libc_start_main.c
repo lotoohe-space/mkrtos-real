@@ -7,6 +7,7 @@
 #include "atomic.h"
 #include "libc.h"
 #include "cons_cli.h"
+#include "u_sig.h"
 static void dummy(void) {}
 weak_alias(dummy, _init);
 
@@ -103,6 +104,7 @@ int __libc_start_main(int (*main)(int, char **, char **), int argc, char **argv,
 	 * persisting for the entire process lifetime. */
 	__init_libc(envp, argv[0]);
 	// cons_active();
+    sig_init();
 
 	/* Barrier against hoisting application code or anything using ssp
 	 * or thread pointer prior to its initialization above. */

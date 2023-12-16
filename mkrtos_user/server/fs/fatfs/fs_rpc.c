@@ -11,11 +11,14 @@
 #include <assert.h>
 #include <string.h>
 #include "rpc_prot.h"
+#include "u_sig.h"
 static fs_t fs;
+static int fs_sig_call_back(pid_t pid, umword_t sig_val);
 void fs_svr_init(void)
 {
     fs_init(&fs);
     meta_reg_svr_obj(&fs.svr, FS_PROT);
+    pm_sig_func_set(fs_sig_call_back);
 }
 typedef struct file_desc
 {
@@ -24,11 +27,36 @@ typedef struct file_desc
         FIL fp;
         FATFS_DIR dir;
     };
+    pid_t pid;
     uint8_t type; //!< 0:file 1:dir
 } file_desc_t;
 
 #define FILE_DESC_NR 8                  //!< 最多同时可以打开多少个文件
 static file_desc_t files[FILE_DESC_NR]; //!< 预先设置的文件描述符
+
+static void free_fd(pid_t pid)
+{
+    for (int i = 0; i < FILE_DESC_NR; i++)
+    {
+        if (files[i].fp.obj.fs)
+        {
+            fs_svr_close(i);
+            files[i].fp.obj.fs = NULL;
+            files[i].pid = 0;
+        }
+    }
+}
+
+static int fs_sig_call_back(pid_t pid, umword_t sig_val)
+{
+    switch (sig_val)
+    {
+    case KILL_SIG:
+        free_fd(pid);
+        break;
+    }
+    return 0;
+}
 
 static file_desc_t *alloc_file(int *fd)
 {
@@ -37,6 +65,7 @@ static file_desc_t *alloc_file(int *fd)
         if (files[i].fp.obj.fs == NULL)
         {
             *fd = i;
+            files[i].pid = thread_get_src_pid();
             return &files[i];
         }
     }
@@ -92,6 +121,7 @@ int fs_svr_open(const char *path, int flags, int mode)
 {
     // printf("open %s.\n", path);
     int fd;
+    pid_t pid = thread_get_src_pid();
     file_desc_t *file = alloc_file(&fd);
 
     if (!file)
@@ -153,6 +183,11 @@ int fs_svr_open(const char *path, int flags, int mode)
     if (ret != FR_OK)
     {
         return fatfs_err_conv(ret);
+    }
+    int w_ret = pm_sig_watch(pid, 0 /*TODO:现在只有kill */);
+    if (w_ret < 0)
+    {
+        printf("pm wath pid %d err.\n", w_ret);
     }
     return fd;
 }
@@ -216,6 +251,7 @@ void fs_svr_close(int fd)
         f_closedir(&file->dir);
         break;
     }
+    file->fp.obj.fs = NULL;
 }
 int fs_svr_lseek(int fd, int offs, int whence)
 {

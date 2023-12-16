@@ -14,6 +14,7 @@
 #include "u_hd_man.h"
 #include "fs_svr.h"
 #include "pm_svr.h"
+#include "u_rpc_buf.h"
 #include <stdio.h>
 
 /*run_app*/
@@ -44,10 +45,28 @@ RPC_GENERATION_OP2(pm_t, PM_PROT, PM_KILL_TASK, kill_task,
 RPC_GENERATION_DISPATCH2(pm_t, PM_PROT, PM_KILL_TASK, kill_task,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
+
+/*watch pid*/
+RPC_GENERATION_OP3(pm_t, PM_PROT, PM_WATCH_PID, watch_pid,
+                   rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, sig_hd,
+                   rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
+{
+    int16_t ret = 0;
+
+    ret = pm_rpc_watch_pid(obj, rpc_hd_get(0), pid->data, flags->data);
+    return ret;
+}
+
+RPC_GENERATION_DISPATCH3(pm_t, PM_PROT, PM_WATCH_PID, watch_pid,
+                         rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, sig_hd,
+                         rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
 /*dispatch*/
-RPC_DISPATCH2(pm_t, PM_PROT, typeof(PM_RUN_APP), PM_RUN_APP, run_app, PM_KILL_TASK, kill_task)
+RPC_DISPATCH3(pm_t, PM_PROT, typeof(PM_RUN_APP), PM_RUN_APP, run_app, PM_KILL_TASK, kill_task, PM_WATCH_PID, watch_pid)
 
 void pm_svr_obj_init(pm_t *pm)
 {
     rpc_svr_obj_init(&pm->svr_obj, rpc_pm_t_dispatch, PM_PROT);
+    slist_init(&pm->watch_head);
 }

@@ -25,7 +25,7 @@
         int ret = -1;                                                                                                               \
         size_t op_val = op;                                                                                                         \
         /*拷贝op*/                                                                                                                \
-        rpc_memcpy(msg_ipc->msg_buf, &op_val, sizeof(op_val));                                                                      \
+        rpc_memcpy(msg_ipc->msg_buf, &op_val, __alignof(op_val));                                                                      \
         off += rpc_align(sizeof(op_val), __alignof(op));                                                                            \
                                                                                                                                     \
         RPC_CLI_MSG_TO_BUF_IN(rpc_type0, cli_type0, var0, dir0, (uint8_t *)msg_ipc->msg_buf, off);                                  \

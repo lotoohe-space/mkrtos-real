@@ -7,7 +7,7 @@
 #include <pthread.h>
 
 #define HANDLER_START_INX 10 //!< fd开始的值，前10个内核保留
-#define HANDLER_MAX_NR 96   //!< 单个task最大支持的hd数量
+#define HANDLER_MAX_NR 96    //!< 单个task最大支持的hd数量
 
 static umword_t bitmap_handler_alloc[HANDLER_MAX_NR / WORD_BITS];
 static pthread_spinlock_t lock;
@@ -99,4 +99,14 @@ void handler_free_umap(obj_handler_t hd_inx)
 {
     handler_free(hd_inx);
     task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_inx));
+}
+/**
+ * @brief 删除用户态的hd，并从内核中删除
+ *
+ * @param hd_inx
+ */
+void handler_del_umap(obj_handler_t hd_inx)
+{
+    handler_free(hd_inx);
+    task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_inx));
 }

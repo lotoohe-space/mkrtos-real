@@ -6,10 +6,11 @@
 #include "u_thread.h"
 #include "u_util.h"
 #include <assert.h>
-#define RPC_SVR_MAP_OBJ_NR 4
+#define RPC_SVR_MAP_OBJ_NR (MAP_BUF_SIZE / sizeof(umword_t))
 static obj_handler_t buf_hd[RPC_SVR_MAP_OBJ_NR];
 
-AUTO_CALL(101) void rpc_hd_init(void)
+AUTO_CALL(101)
+void rpc_hd_init(void)
 {
     for (int i = 0; i < RPC_SVR_MAP_OBJ_NR; i++)
     {

@@ -115,6 +115,7 @@ static void thread_release_stage1(kobject_t *kobj)
         {
             thread_suspend(th);
         }
+        th->ipc_status = THREAD_IPC_ABORT;
     }
     else
     {
@@ -122,6 +123,7 @@ static void thread_release_stage1(kobject_t *kobj)
         {
             thread_suspend(th);
         }
+        cur->ipc_status = THREAD_IPC_ABORT;
     }
     thread_wait_entry_t *pos;
 
@@ -505,8 +507,13 @@ static int thread_ipc_reply(msg_tag_t in_tag)
         cpulock_set(status);
         return -1;
     }
-    assert(cur_th->last_send_th->status == THREAD_SUSPEND);
-    assert(cur_th->last_send_th->ipc_status == THREAD_RECV);
+    if (cur_th->last_send_th->status != THREAD_SUSPEND &&
+        cur_th->last_send_th->ipc_status != THREAD_RECV)
+    {
+        cur_th->last_send_th = NULL;
+        cpulock_set(status);
+        return -1;
+    }
     //!< 发送数据给上一次的发送者
     int ret = ipc_data_copy(cur_th->last_send_th, cur_th, in_tag); //!< 拷贝数据
 
@@ -516,8 +523,11 @@ static int thread_ipc_reply(msg_tag_t in_tag)
         // return ret;
         in_tag.prot = ret;
     }
+    if (cur_th->last_send_th->ipc_status != THREAD_IPC_ABORT)
+    {
+        thread_ready(cur_th->last_send_th, TRUE); //!< 直接唤醒接受者
+    }
     cur_th->last_send_th->msg.tag = in_tag;
-    thread_ready(cur_th->last_send_th, TRUE); //!< 直接唤醒接受者
     ref_counter_dec_and_release(&cur_th->last_send_th->ref, &cur_th->last_send_th->kobj);
     cur_th->last_send_th = NULL;
     cpulock_set(status);
@@ -716,7 +726,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
         ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->r[3]);
 
         to_th->user_id = user_id;
-        ret = thread_ipc_call(to_th, in_tag, &recv_tag, ipc_tm_out, &f->r[1]);
+        ret = thread_ipc_send(to_th, in_tag, ipc_tm_out);
         return msg_tag_init4(0, 0, 0, ret);
     }
     default:

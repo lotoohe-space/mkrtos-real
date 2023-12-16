@@ -38,8 +38,12 @@
 #define PM_PROT 0x0005             //!< 进程管理协议
 #define PM_RUN_APP ((uint16_t)0)   //!< 启动应用程序
 #define PM_KILL_TASK ((uint16_t)1) //!< 删除进程
+#define PM_WATCH_PID ((uint16_t)2) //!< watch pid
 
-#define CONS_PROT 0x0006
-#define CONS_WRITE ((uint16_t)0)
-#define CONS_READ ((uint16_t)1)
-#define CONS_ACTIVE ((uint16_t)2)
+#define CONS_PROT 0x0006          //!< console协议
+#define CONS_WRITE ((uint16_t)0)  //!< console删除
+#define CONS_READ ((uint16_t)1)   //!< console读
+#define CONS_ACTIVE ((uint16_t)2) //!< console激活
+
+#define PM_SIG_PROT 0x0007          //!< pm信号协议
+#define PM_SIG_NOTIFY ((uint16_t)0) //!< 通知消息

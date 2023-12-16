@@ -11,6 +11,7 @@ add_library(LetterShell
                # main.c
                shell_port.c
                shell_fs_ext.c
+               shell_test.c
             #    shell_cpp.cpp
                ../../src/shell.c
                ../../src/shell_companion.c
@@ -40,6 +41,7 @@ target_include_directories(LetterShell PUBLIC
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
+                           ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util/inc
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/drv
 
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/

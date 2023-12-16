@@ -10,11 +10,14 @@
  */
 
 #include "u_ipc.h"
+#include "u_types.h"
 #include "u_factory.h"
 #include "u_thread.h"
 #include "u_task.h"
 #include "u_hd_man.h"
 #include "u_log.h"
+#include "pm_cli.h"
+#include "u_sig.h"
 #include "futex_queue.h"
 #include "u_ipc.h"
 #include "u_sys.h"
@@ -142,8 +145,12 @@ void be_exit(long exit_code)
     }
     else
     {
+        umword_t pid;
     del_task:
         /*TODO:删除其它东西*/
+
+        task_get_pid(TASK_THIS, &pid);
+        pm_kill_task(pid, KILL_SIG);
         task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); //!< 删除当前task，以及申请得所有对象
         a_crash();                                                                 //!< 强制退出
     }
