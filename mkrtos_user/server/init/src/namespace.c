@@ -54,7 +54,8 @@ static void _ns_node_del_by_pid(slist_head_t *head, pid_t pid, int to_del)
                 {
                     if (to_del)
                     {
-                        task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, pos->node_hd));
+                        // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, pos->node_hd));
+                        handler_del_umap(pos->node_hd);
                     }
                 }
             }

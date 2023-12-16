@@ -91,9 +91,7 @@ void pm_del_watch_by_pid(pm_t *pm, pid_t pid)
         if (pos->src_pid == pid)
         {
             slist_del(&pos->node);
-            {
-                handler_free_umap(pos->sig_hd);
-            }
+            handler_free_umap(pos->sig_hd);
             free(pos);
         }
         pos = next;
@@ -147,7 +145,9 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
 {
     ipc_msg_t *ipc;
     watch_entry_t *pos;
+    // slist_head_t del_head;
 
+    // slist_init(&del_head);
     ipc = thread_get_cur_ipc_msg();
     assert(ipc);
 
@@ -167,9 +167,27 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
                                 ipc_timeout_create2(0, 0));
             }
             slist_del(&pos->node);
+            handler_free_umap(pos->sig_hd);
+            handler_del_umap(pos->watch_pid);
+            free(pos);
+            // slist_add(&del_head, &pos->node);
         }
         pos = next;
     }
+    // 观察者是否还在链表中
+    // 若果src_pid还在链表中不用删除，因为它还是pm启动的
+    // slist_foreach_not_next(pos, &del_head, node)
+    // {
+    //     watch_entry_t *next = slist_next_entry(pos, &del_head, node);
+
+    //     if (!pm_watch_lookup(pm, pos->src_pid))
+    //     {
+    //         handler_free_umap(pos->src_pid);
+    //     }
+    //     slist_del(&pos->node);
+    //     free(pos);
+    //     pos = next;
+    // }
 }
 /**
  * @brief 杀死某个进程
@@ -193,7 +211,7 @@ int pm_rpc_kill_task(int pid, int flags)
     ns_node_del_by_pid(pid, flags);          //!< 从ns中删除
     pm_del_watch_by_pid(&pm, pid);           //!< 从watch中删除
     pm_send_sig_to_task(&pm, pid, KILL_SIG); //!< 给watch者发送sig
-    task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, pid));
+    handler_del_umap(pid);
     return 0;
 }
 /**

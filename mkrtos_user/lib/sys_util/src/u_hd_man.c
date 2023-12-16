@@ -5,7 +5,7 @@
 #include "u_task.h"
 #include "u_hd_man.h"
 #include <pthread.h>
-
+#include <stdio.h>
 #define HANDLER_START_INX 10 //!< fd开始的值，前10个内核保留
 #define HANDLER_MAX_NR 96    //!< 单个task最大支持的hd数量
 
@@ -59,6 +59,7 @@ bool_t handler_is_used(obj_handler_t hd_inx)
     {
         return 0;
     }
+
     umword_t word_offset = hd_inx / WORD_BITS;
     umword_t bits_offset = hd_inx % WORD_BITS;
 
@@ -79,6 +80,7 @@ void handler_free(obj_handler_t hd_inx)
     {
         return;
     }
+
     umword_t word_offset = hd_inx / WORD_BITS;
     umword_t bits_offset = hd_inx % WORD_BITS;
 

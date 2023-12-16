@@ -13,9 +13,20 @@
 #include "obj_space.h"
 #include "kobject.h"
 #include "assert.h"
-
+#include "cpulock.h"
 bool_t obj_map_root(kobject_t *kobj, obj_space_t *obj_space, ram_limit_t *ram, vpage_t page)
 {
+    kobj_del_list_t kobj_list;
+
+    kobj_del_list_init(&kobj_list);
+    if (obj_space_lookup_kobj(obj_space, vpage_get_obj_handler(page)))
+    { //!< 已经存在则解除注释
+        obj_unmap(obj_space, page, &kobj_list);
+    }
+    umword_t status = cpulock_lock();
+
+    kobj_del_list_to_do(&kobj_list);
+    cpulock_set(status);
     obj_map_entry_t *map = obj_space_insert(obj_space, ram, kobj, vpage_get_obj_handler(page), vpage_get_attrs(page));
 
     if (!map)

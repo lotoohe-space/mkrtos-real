@@ -190,10 +190,11 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     tag = thread_exec_regs(hd_thread, (umword_t)addr, ((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL),
                            ram_base, 1);
     assert(msg_tag_get_prot(tag) >= 0);
-
     /*启动线程运行*/
     tag = thread_run(hd_thread, 2);
     assert(msg_tag_get_prot(tag) >= 0);
+    task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_thread));
+    handler_free(hd_thread);
     return 0;
 end_del_obj:
     if (hd_thread != HANDLER_INVALID)
