@@ -24,6 +24,9 @@ int main(int argc, char *args[])
     rpc_test();
     ns_test();
     irq_test();
+    printf("%s: please input str.\n", args[0]);
+    scanf("%s", data);
+    printf("%s\n", data);
 #endif
     fs_test();
     return 0;

@@ -10,7 +10,7 @@
 #include <assert.h>
 static pthread_spinlock_t lock;
 extern void *app_start_addr;
-static umword_t mm_bitemp[256/*TODO:自动分配，或者静态划分*/];
+static umword_t mm_bitemp[256 /*TODO:自动分配，或者静态划分*/];
 static void *mm_page_alloc(int page_nr)
 {
     int cnt = 0;
@@ -19,6 +19,11 @@ static void *mm_page_alloc(int page_nr)
     assert(info);
     void *heap_addr = (void *)((umword_t)RAM_BASE() + info->i.heap_offset - info->i.data_offset);
     size_t max_page_nr = (info->i.heap_size) / MK_PAGE_SIZE;
+
+    if (max_page_nr == 0)
+    {
+        return NULL;
+    }
     if (max_page_nr > sizeof(mm_bitemp) * WORD_BITS)
     {
         cons_write_str("mm bitmap is to small.\n");

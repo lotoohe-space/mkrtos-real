@@ -16,7 +16,6 @@ target_link_libraries(hello.elf
     sys
     sys_util
     sys_svr
-    mr
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
