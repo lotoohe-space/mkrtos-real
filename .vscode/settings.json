@@ -273,7 +273,8 @@
         "futex.h": "c",
         "u_rpc_buf.h": "c",
         "pm_cli.h": "c",
-        "u_sig.h": "c"
+        "u_sig.h": "c",
+        "u_err.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

@@ -5,7 +5,6 @@
 #include "u_task.h"
 #include "u_hd_man.h"
 #include <pthread.h>
-#include <stdio.h>
 #define HANDLER_START_INX 10 //!< fd开始的值，前10个内核保留
 #define HANDLER_MAX_NR (HANDLER_START_INX + \
                         (CONFIG_OBJ_MAP_ENTRY_SIZE) * (CONFIG_OBJ_MAP_TAB_SIZE)) //!< 单个task最大支持的hd数量

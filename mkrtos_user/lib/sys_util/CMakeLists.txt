@@ -37,6 +37,7 @@ target_link_libraries(
     muslc
     cpio
 )
+set_target_properties(sys_util PROPERTIES LINK_FLAGS "-pie ")
 add_dependencies(sys_util sys)
 add_dependencies(sys_util muslc)
 

@@ -7,7 +7,6 @@
 #include <u_sig.h>
 #include <pm_cli.h>
 #include <rpc_prot.h>
-#include <stdio.h>
 #include <assert.h>
 
 static sig_call_back sig_cb_func;

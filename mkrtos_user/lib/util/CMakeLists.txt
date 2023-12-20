@@ -1,12 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
--fPIC -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
- -D__dietlibc__ -D__arm__ -D__WORDSIZE=32 -D__ARM_ARCH_7M__ \
-" )
-set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
-
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} " )
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ")
 
 file(GLOB_RECURSE deps  *.c *.S)
 add_library(
@@ -36,6 +32,7 @@ target_link_libraries(
     muslc
     cpio
 )
+set_target_properties(util PROPERTIES LINK_FLAGS "-pie ")
 add_dependencies(util sys)
 add_dependencies(util muslc)
 
