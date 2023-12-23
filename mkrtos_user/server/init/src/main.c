@@ -36,9 +36,9 @@
 static void test(void)
 {
 #if 0
+    printf_test();
     ulog_test();
     factory_test();
-    printf_test();
     thread_exit_test();
     map_test();
 

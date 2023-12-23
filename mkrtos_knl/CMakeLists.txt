@@ -9,6 +9,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Wno-unused-parameter \
 -Wno-unused-function \
 -Wno-unused-variable \
+-Wno-builtin-declaration-mismatch \
 ")
 set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
 

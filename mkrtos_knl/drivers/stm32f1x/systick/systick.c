@@ -1,7 +1,6 @@
 
 #include "arch.h"
 #include "thread.h"
-#include "ipc.h"
 #include "futex.h"
 static umword_t sys_tick_cnt;
 

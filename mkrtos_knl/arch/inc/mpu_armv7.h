@@ -31,6 +31,9 @@
 #ifndef ARM_MPU_ARMV7_H
 #define ARM_MPU_ARMV7_H
 
+#ifndef __STATIC_INLINE
+#define __STATIC_INLINE static inline
+#endif
 
 #define ARM_MPU_REGION_SIZE_32B      ((uint8_t)0x04U) ///!< MPU Region Size 32 Bytes
 #define ARM_MPU_REGION_SIZE_64B      ((uint8_t)0x05U) ///!< MPU Region Size 64 Bytes

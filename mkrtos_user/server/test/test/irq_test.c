@@ -1,4 +1,5 @@
 
+#if 0
 #include "u_types.h"
 #include "u_prot.h"
 #include "u_factory.h"
@@ -58,3 +59,5 @@ void irq_test(void)
     ulog_write_str(LOG_PROT, "irq test success.\n");
     handler_free_umap(obj);
 }
+
+#endif

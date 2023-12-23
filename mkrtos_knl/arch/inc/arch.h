@@ -44,9 +44,6 @@
             :);                \
         ((ret & 0x4) ? 0 : 1);   \
     })
-static bool_t is_run_kn(umword_t lr)
-{
-}
 
 void to_sche(void);
 

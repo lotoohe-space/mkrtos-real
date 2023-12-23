@@ -1,29 +1,26 @@
 cmake_minimum_required(VERSION 3.13)
 
 
-file(GLOB_RECURSE deps **/*.S *.S **/*.C *.c)
+file(GLOB deps **/*.S *.S **/*.C *.c)
 
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F40_41xxx ")
 
 file(GLOB bsp_src ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/STM32F4xx_StdPeriph_Driver/src/*.c)
 list(APPEND deps ${bsp_src})
 
 list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_fmc.c)
-include_directories(
-    ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/STM32F4x
-
-    ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/STM32F4xx_StdPeriph_Driver/inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Include
-    ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Device/ST/STM32F4xx/Include
-)
 # message("knl_bsp:${deps}")
 add_library(knl_bsp STATIC ${deps})
 
 target_include_directories(
     knl_bsp
     PUBLIC
-    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc/armv7m/stm32f203/STM32F2xx_StdPeriph_Driver
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc/armv7m
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/lib
+    ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Device/ST/STM32F4xx/Include
+    ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/STM32F4xx_StdPeriph_Driver/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Include
+    ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/STM32F4x
+
+
 )

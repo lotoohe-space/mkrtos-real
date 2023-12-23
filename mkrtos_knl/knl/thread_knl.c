@@ -64,7 +64,7 @@ static void knl_main(void)
                 msg->msg_buf[0] = 1; /*KILL_TASK*/
                 msg->msg_buf[1] = pos->pid;
                 msg->msg_buf[2] = 0;
-                int ret = thread_ipc_call(init_thread, msg_tag_init4(0, 3, 0, 0x0005/*PM_PROT*/),
+                int ret = thread_ipc_call(init_thread, msg_tag_init4(0, 3, 0, 0x0005 /*PM_PROT*/),
                                           &tag, ipc_timeout_create2(0, 0), &user_id);
 
                 if (ret < 0)
@@ -141,10 +141,10 @@ INIT_STAGE2(knl_init_2);
 
 void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
 {
-    printk("kill task:0x%x.\n", kill_thread->task);
     task_t *task = container_of(kill_thread->task, task_t, kobj);
     if (!is_knl)
     {
+        printk("kill task:0x%x.\n", kill_thread->task);
         umword_t status2;
 
         thread_suspend(kill_thread);

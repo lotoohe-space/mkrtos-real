@@ -90,7 +90,7 @@
 #elif defined ( __GNUC__ )
   #define __ASM            __asm                                      /*!< asm keyword for GNU Compiler          */
   #define __INLINE         inline                                     /*!< inline keyword for GNU Compiler       */
-
+  #define __STATIC_INLINE static inline 
 #elif defined ( __TASKING__ )
   #define __ASM            __asm                                      /*!< asm keyword for TASKING Compiler      */
   #define __INLINE         inline                                     /*!< inline keyword for TASKING Compiler   */
@@ -660,8 +660,8 @@ typedef struct
 
 #if (__MPU_PRESENT == 1)
 /** \ingroup  CMSIS_core_register
-    \defgroup CMSIS_MPU CMSIS MPU
-  Type definitions for the Cortex-M Memory Protection Unit (MPU)
+    \defgroup CMSIS_MPU     Memory Protection Unit (MPU)
+    \brief      Type definitions for the Memory Protection Unit (MPU)
   @{
  */
 
@@ -690,7 +690,7 @@ typedef struct
 #define MPU_TYPE_DREGION_Msk               (0xFFUL << MPU_TYPE_DREGION_Pos)               /*!< MPU TYPE: DREGION Mask */
 
 #define MPU_TYPE_SEPARATE_Pos               0                                             /*!< MPU TYPE: SEPARATE Position */
-#define MPU_TYPE_SEPARATE_Msk              (1UL << MPU_TYPE_SEPARATE_Pos)                 /*!< MPU TYPE: SEPARATE Mask */
+#define MPU_TYPE_SEPARATE_Msk              (1UL /*<< MPU_TYPE_SEPARATE_Pos*/)             /*!< MPU TYPE: SEPARATE Mask */
 
 /* MPU Control Register */
 #define MPU_CTRL_PRIVDEFENA_Pos             2                                             /*!< MPU CTRL: PRIVDEFENA Position */
@@ -700,11 +700,11 @@ typedef struct
 #define MPU_CTRL_HFNMIENA_Msk              (1UL << MPU_CTRL_HFNMIENA_Pos)                 /*!< MPU CTRL: HFNMIENA Mask */
 
 #define MPU_CTRL_ENABLE_Pos                 0                                             /*!< MPU CTRL: ENABLE Position */
-#define MPU_CTRL_ENABLE_Msk                (1UL << MPU_CTRL_ENABLE_Pos)                   /*!< MPU CTRL: ENABLE Mask */
+#define MPU_CTRL_ENABLE_Msk                (1UL /*<< MPU_CTRL_ENABLE_Pos*/)               /*!< MPU CTRL: ENABLE Mask */
 
 /* MPU Region Number Register */
 #define MPU_RNR_REGION_Pos                  0                                             /*!< MPU RNR: REGION Position */
-#define MPU_RNR_REGION_Msk                 (0xFFUL << MPU_RNR_REGION_Pos)                 /*!< MPU RNR: REGION Mask */
+#define MPU_RNR_REGION_Msk                 (0xFFUL /*<< MPU_RNR_REGION_Pos*/)             /*!< MPU RNR: REGION Mask */
 
 /* MPU Region Base Address Register */
 #define MPU_RBAR_ADDR_Pos                   5                                             /*!< MPU RBAR: ADDR Position */
@@ -714,11 +714,29 @@ typedef struct
 #define MPU_RBAR_VALID_Msk                 (1UL << MPU_RBAR_VALID_Pos)                    /*!< MPU RBAR: VALID Mask */
 
 #define MPU_RBAR_REGION_Pos                 0                                             /*!< MPU RBAR: REGION Position */
-#define MPU_RBAR_REGION_Msk                (0xFUL << MPU_RBAR_REGION_Pos)                 /*!< MPU RBAR: REGION Mask */
+#define MPU_RBAR_REGION_Msk                (0xFUL /*<< MPU_RBAR_REGION_Pos*/)             /*!< MPU RBAR: REGION Mask */
 
 /* MPU Region Attribute and Size Register */
 #define MPU_RASR_ATTRS_Pos                 16                                             /*!< MPU RASR: MPU Region Attribute field Position */
 #define MPU_RASR_ATTRS_Msk                 (0xFFFFUL << MPU_RASR_ATTRS_Pos)               /*!< MPU RASR: MPU Region Attribute field Mask */
+
+#define MPU_RASR_XN_Pos                    28                                             /*!< MPU RASR: ATTRS.XN Position */
+#define MPU_RASR_XN_Msk                    (1UL << MPU_RASR_XN_Pos)                       /*!< MPU RASR: ATTRS.XN Mask */
+
+#define MPU_RASR_AP_Pos                    24                                             /*!< MPU RASR: ATTRS.AP Position */
+#define MPU_RASR_AP_Msk                    (0x7UL << MPU_RASR_AP_Pos)                     /*!< MPU RASR: ATTRS.AP Mask */
+
+#define MPU_RASR_TEX_Pos                   19                                             /*!< MPU RASR: ATTRS.TEX Position */
+#define MPU_RASR_TEX_Msk                   (0x7UL << MPU_RASR_TEX_Pos)                    /*!< MPU RASR: ATTRS.TEX Mask */
+
+#define MPU_RASR_S_Pos                     18                                             /*!< MPU RASR: ATTRS.S Position */
+#define MPU_RASR_S_Msk                     (1UL << MPU_RASR_S_Pos)                        /*!< MPU RASR: ATTRS.S Mask */
+
+#define MPU_RASR_C_Pos                     17                                             /*!< MPU RASR: ATTRS.C Position */
+#define MPU_RASR_C_Msk                     (1UL << MPU_RASR_C_Pos)                        /*!< MPU RASR: ATTRS.C Mask */
+
+#define MPU_RASR_B_Pos                     16                                             /*!< MPU RASR: ATTRS.B Position */
+#define MPU_RASR_B_Msk                     (1UL << MPU_RASR_B_Pos)                        /*!< MPU RASR: ATTRS.B Mask */
 
 #define MPU_RASR_SRD_Pos                    8                                             /*!< MPU RASR: Sub-Region Disable Position */
 #define MPU_RASR_SRD_Msk                   (0xFFUL << MPU_RASR_SRD_Pos)                   /*!< MPU RASR: Sub-Region Disable Mask */
@@ -727,7 +745,7 @@ typedef struct
 #define MPU_RASR_SIZE_Msk                  (0x1FUL << MPU_RASR_SIZE_Pos)                  /*!< MPU RASR: Region Size Field Mask */
 
 #define MPU_RASR_ENABLE_Pos                 0                                             /*!< MPU RASR: Region enable bit Position */
-#define MPU_RASR_ENABLE_Msk                (1UL << MPU_RASR_ENABLE_Pos)                   /*!< MPU RASR: Region enable bit Disable Mask */
+#define MPU_RASR_ENABLE_Msk                (1UL /*<< MPU_RASR_ENABLE_Pos*/)               /*!< MPU RASR: Region enable bit Disable Mask */
 
 /*@} end of group CMSIS_MPU */
 #endif

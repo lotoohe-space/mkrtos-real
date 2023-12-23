@@ -61,7 +61,9 @@ fegetenv:
 .type fesetenv,%function
 fesetenv:
 	cmn r0, #1
+	it eq
 	moveq r3, #0
+	it ne
 	ldrne r3, [r0]
 	fmxr fpscr, r3
 	mov r0, #0
