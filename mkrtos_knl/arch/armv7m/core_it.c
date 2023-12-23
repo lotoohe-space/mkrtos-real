@@ -183,15 +183,6 @@ void UsageFault_Handler(void)
   task_knl_kill(thread_get_current(), is_run_knl());
 }
 
-// /**
-//   * @brief  This function handles SVCall exception.
-//   * @param  None
-//   * @retval None
-//   */
-// void SVC_Handler(void)
-// {
-// }
-
 /**
  * @brief  This function handles Debug Monitor exception.
  * @param  None
@@ -201,15 +192,6 @@ void DebugMon_Handler(void)
 {
   printk("%s\n", __FUNCTION__);
 }
-
-// /**
-//   * @brief  This function handles PendSVC exception.
-//   * @param  None
-//   * @retval None
-//   */
-// void PendSV_Handler(void)
-// {
-// }
 
 /******************************************************************************/
 /*                 STM32F2xx Peripherals Interrupt Handlers                   */

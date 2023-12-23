@@ -8,11 +8,6 @@
 */
 .type syscall_exit, %function
 syscall_exit:
-	//进行信号处理
-//	push {r0-r3,lr}
-//	mrs r0, psp
-//	bl do_signal_isr
-//	pop {r0-r3,lr}
 	svc 1
 	b .
 

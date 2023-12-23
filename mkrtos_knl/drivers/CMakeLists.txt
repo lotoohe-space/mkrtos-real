@@ -14,12 +14,20 @@ elseif(${BOARD_NAME} STREQUAL "STM32F2x" )
         ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc/armv7m/stm32f203/STM32F2xx_StdPeriph_Driver
     )
     add_subdirectory(stm32f2x)
+elseif(${BOARD_NAME} STREQUAL "STM32F4x" )
+    include_directories(
+        ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/armv7m/stm32f4x
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Device/ST/STM32F4xx/Include
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/STM32F4xx_StdPeriph_Driver/inc
+    )
+    add_subdirectory(stm32f4x)
 endif()
 
 target_link_libraries(
     drv
     PUBLIC
     knl_drv
+    bsp
 )
 
 target_include_directories(
@@ -32,3 +40,4 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc/armv7m
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc
 )
+add_dependencies(drv bsp)

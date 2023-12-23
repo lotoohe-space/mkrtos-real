@@ -16,4 +16,3 @@ typedef struct ipc
     ram_limit_t *lim;       //!< 内存限额
     umword_t user_id;       //!< 服务端绑定的数据
 } ipc_t;
-void timeout_times_tick(void);

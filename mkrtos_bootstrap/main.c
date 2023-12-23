@@ -2,7 +2,6 @@
 
 #include <types.h>
 #include <stm32_sys.h>
-
 //! 内核镜像的开始地址
 #define KERNEL_IMG_START_ADDR (0X8000000 + 0x2000)
 void jump2kernel(void)

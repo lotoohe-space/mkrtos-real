@@ -1,0 +1,47 @@
+/**
+  @page DMA_EXAMPLES DMA examples List
+  
+  @verbatim
+  ******************** (C) COPYRIGHT 2016 STMicroelectronics *******************
+  * @file    DMA/readme.txt 
+  * @author  MCD Application Team  
+  * @version V1.8.1
+  * @date    27-January-2022
+  * @brief   STM32F4xx Standard Peripherals DMA examples List.
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2016 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  @endverbatim
+   
+In addition to this example (DMA\FLASH_RAM), other examples use the DMA:
+
+  * <ul>
+  * <li><B>  Complete List of DMA Examples </B>
+  * - @subpage ADC_DMA
+  * - @subpage ADC_DualModeInterleaved
+  * - @subpage ADC_DualModeRegulSimu
+  * - @subpage ADC_TripleModeInterleaved
+  * - @subpage ADC_VBATMeasurement
+  * - @subpage CRYP_AES_DMA
+  * - @subpage CRYP_TDES_DMA
+  * - @subpage DAC_SignalsGeneration
+  * - @subpage DCMI_CameraExample  
+  * - @subpage HASH_SHA1MD5_DMA
+  * - @subpage I2C_DataExchangeDMA
+  * - @subpage NVIC_DMAWFIMode
+  * - @subpage SPI_DataExchangeDMA  
+  * - @subpage TIM_DMA
+  * - @subpage TIM_DMABurst
+  * - @subpage USART_DataExchangeDMA
+  * </ul>
+ 
+ 
+ */ 
