@@ -1,0 +1,17 @@
+
+
+menu "Sys util config"
+
+menuconfig USING_SIG
+    bool "Using signal."
+    default y
+if USING_SIG
+config SIG_THREAD_STACK_SIZE
+    int  "Set signal thread stack size."
+    default 512
+config SIG_THREAD_PRIO
+    int  "Set signal thread prio."
+    default 3
+endif
+endmenu
+

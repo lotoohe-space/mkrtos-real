@@ -55,7 +55,7 @@ add_custom_target(
     # -DKNL_TEXT=$ENV{KNL_TEXT}
     -DKNL_DATA=$ENV{KNL_DATA}
     -DKNL_OFFSET=$ENV{KEN_OFFSET}
-    -DKNL_DATA_SIZE=$ENV{KNL_DATA_SIZE}
+    # -DKNL_DATA_SIZE=$ENV{KNL_DATA_SIZE}
     -include ${CMAKE_SOURCE_DIR}/build/autoconf.h
     -E -P -<${CMAKE_CURRENT_LIST_DIR}/stm32_link.lds.S> 
     ${CMAKE_CURRENT_LIST_DIR}/stm32_link.lds

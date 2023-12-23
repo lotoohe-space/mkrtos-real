@@ -18,7 +18,9 @@ void fs_svr_init(void)
 {
     fs_init(&fs);
     meta_reg_svr_obj(&fs.svr, FS_PROT);
+#ifdef CONFIG_USING_SIG
     pm_sig_func_set(fs_sig_call_back);
+#endif
 }
 typedef struct file_desc
 {
@@ -184,11 +186,13 @@ int fs_svr_open(const char *path, int flags, int mode)
     {
         return fatfs_err_conv(ret);
     }
+#ifdef CONFIG_USING_SIG
     int w_ret = pm_sig_watch(pid, 0 /*TODO:现在只有kill */);
     if (w_ret < 0)
     {
         printf("pm wath pid %d err.\n", w_ret);
     }
+#endif
     return fd;
 }
 

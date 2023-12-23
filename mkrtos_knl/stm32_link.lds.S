@@ -6,7 +6,7 @@ ENTRY(Reset_Handler)
 /* Specify the memory areas */
 MEMORY
 {
-  RAM (xrw)      : ORIGIN = KNL_DATA, LENGTH = KNL_DATA_SIZE
+  RAM (xrw)      : ORIGIN = KNL_DATA, LENGTH = CONFIG_KNL_DATA_SIZE
   /* RAM1 (xrw)      : ORIGIN = 0x68000000, LENGTH = 1M */
   /* RAM2 (xrw)      : ORIGIN = 0x2001C000, LENGTH = 16K */
   FLASH (rx)      : ORIGIN = CONFIG_KNL_TEXT_ADDR + KNL_OFFSET, LENGTH = 64K - KNL_OFFSET

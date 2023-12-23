@@ -21,7 +21,7 @@ int main(int argv, char *args[])
     ret = rpc_meta_init(THREAD_MAIN, &hd);
     assert(ret >= 0);
     fs_svr_init();
-    ns_register("/cpio", hd, MOUNT_NODE);
+    ns_register("/bin", hd, MOUNT_NODE);
     cons_write_str("cpiofs mount success\n");
     // *((char *)0) = 0;
 

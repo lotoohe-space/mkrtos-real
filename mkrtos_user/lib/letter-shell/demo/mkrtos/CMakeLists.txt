@@ -43,7 +43,7 @@ target_include_directories(LetterShell PUBLIC
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util/inc
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/drv
-
+                           
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/src/internal

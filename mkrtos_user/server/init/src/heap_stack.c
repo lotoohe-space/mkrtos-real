@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2023
  * 
  */
-#define HEAP_SIZE 512
+#define HEAP_SIZE 1024
 #define STACK_SIZE 1024 * 2
 
 #if defined(__CC_ARM)

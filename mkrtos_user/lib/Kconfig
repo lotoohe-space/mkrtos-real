@@ -1,4 +1,4 @@
 
 
 source "mkrtos_user/lib/libc_backend/Kconfig"
-
+source "mkrtos_user/lib/sys_util/Kconfig"

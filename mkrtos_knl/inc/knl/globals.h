@@ -14,6 +14,11 @@
 #include "types.h"
 #include "kobject.h"
 
+extern char _sdata[];
+extern char _edata[];
+extern char _sbss[];
+extern char _ebss[];
+
 mem_t *mm_get_global(void);
 void global_reg_kobj(kobject_t *kobj, int inx);
 kobject_t *global_get_kobj(int inx);

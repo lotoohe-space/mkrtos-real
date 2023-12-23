@@ -9,8 +9,10 @@
 #include <rpc_prot.h>
 #include <assert.h>
 
+#ifdef CONFIG_USING_SIG
+
 static sig_call_back sig_cb_func;
-static ATTR_ALIGN(8) uint8_t sig_stack[1024];
+static ATTR_ALIGN(8) uint8_t sig_stack[CONFIG_SIG_THREAD_STACK_SIZE];
 static uint8_t sig_msg_buf[MSG_BUG_LEN];
 static obj_handler_t sig_th;
 static obj_handler_t sig_ipc;
@@ -70,5 +72,6 @@ void sig_init(void)
         return;
     }
     u_thread_create(&sig_th, sig_stack, sizeof(sig_stack), sig_msg_buf, sig_func);
-    u_thread_run(sig_th, 3);
+    u_thread_run(sig_th, CONFIG_SIG_THREAD_PRIO);
 }
+#endif
