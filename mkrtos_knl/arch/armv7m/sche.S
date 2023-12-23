@@ -16,11 +16,10 @@ PendSV_Handler:
 
 	// 如果不是第一次调度了，则保存r4-r11到栈内
 	TST LR,#4
-	ITTEE EQ
+	ITE EQ
 	MRSEQ r3, MSP
-	MOVEQ r2, #0 //!< r2中存放使用的是psp还是msp
 	MRSNE r3, PSP
-	MOVNE r2, #1
+	mov r2, lr
 
 	push {r4}
 	ldr r4, =sched_reset
@@ -50,7 +49,7 @@ thread_sche_next:
 	//用户使用的栈类型r3 0为msp 1为ps
 	LDR r3,[R0,#8]
 
-	TST r3,#1				//检测使用的寄存器
+	TST r3,#4				//检测使用的寄存器
 	ITE EQ
 	MOVEQ R0,R2
 	MOVNE R0,R1				//不等于零则使用psp
@@ -62,9 +61,11 @@ thread_sche_next:
 	MSR PSP,R1
 
 	//等于一跳转到用户模式
-	CMP r3,#1
-	BEQ user_mode//psp模式则跳转
-	B super_mode
+	@ CMP r3,#1
+	TST r3,#4				//检测使用的寄存器
+	IT EQ
+	BEQ super_mode//psp模式则跳转
+	B user_mode
 user_mode:
 //psp模式则保存
 	MSR PSP, r0
@@ -72,12 +73,12 @@ user_mode:
 	MOV R1,#1
 	MSR CONTROL, R1
 	//lr 的第2位为1时自动切换到PSP
-	MOV LR,#0xfffffffd
+	MOV LR,r3
 	B to_ret
 
 super_mode: //更新下msp的值
 	MSR MSP,R0
-	MOV LR,#0xfffffff9
+	MOV LR,r3
 	//内核线程，设置为特权模式
 	MOV R0,#0
 	MSR CONTROL, R0

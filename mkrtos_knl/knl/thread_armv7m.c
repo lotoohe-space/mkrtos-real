@@ -32,7 +32,7 @@ void thread_knl_pf_set(thread_t *cur_th, void *pc)
 
     cur_th->sp.knl_sp = (char *)cur_pf;
     cur_th->sp.user_sp = 0;
-    cur_th->sp.sp_type = 0;
+    cur_th->sp.sp_type = 0xfffffff9;
 }
 void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram, umword_t stack)
 {
@@ -54,7 +54,7 @@ void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram, um
 
     cur_th->sp.knl_sp = ((char *)cur_th + THREAD_BLOCK_SIZE - 8);
     cur_th->sp.user_sp = cur_pf;
-    cur_th->sp.sp_type = 1;
+    cur_th->sp.sp_type = 0xfffffffd;
 
     printk("exc_regs:%x %x %x\n", cur_pf->pf_s.pc, cur_th->sp.user_sp, ram);
 }
