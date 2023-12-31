@@ -23,10 +23,12 @@ if (${MKRTOS_ARCH} STREQUAL "cortex-m3")
     set(FLOAT_TYPE "soft")
 elseif(${MKRTOS_ARCH} STREQUAL "cortex-m4" )
     set(FLOAT_TYPE "hard")
+elseif(${MKRTOS_ARCH} STREQUAL "cortex-r52" )
+    set(FLOAT_TYPE "soft")
 endif()
 
 # -mfloat-abi=soft  -u _printf_float 
-set(CMAKE_C_FLAGS "-mcpu=${MKRTOS_ARCH} -mthumb -O0 -g3 -lc -lrdimon -mfloat-abi=${FLOAT_TYPE} -u _printf_float -D=MKRTOS \
+set(CMAKE_C_FLAGS "-mcpu=${MKRTOS_ARCH}  -O0 -g3 -lc -lrdimon -mfloat-abi=${FLOAT_TYPE} -u _printf_float -D=MKRTOS \
 -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin\
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
 -fno-stack-protector -Wl,--gc-sections \
@@ -55,4 +57,5 @@ set(ARCH ${MKRTOS_ARCH} CACHE STRING "" FORCE)
 
 
 message("board type:"${BOARD_NAME})
+message("CMAKE_C_FLAGS:"${CMAKE_C_FLAGS})
 

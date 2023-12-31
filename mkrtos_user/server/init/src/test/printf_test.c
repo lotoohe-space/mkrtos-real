@@ -9,7 +9,7 @@ void printf_test(void)
     float b = 1.2;
     float c;
 
-    while (1)
+    // while (1)
     {
         c = a + b;
         printf("%c %d %f\n", 'a', 1234, 1.1);

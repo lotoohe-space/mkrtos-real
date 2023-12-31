@@ -1,0 +1,38 @@
+:name: STM32F4 Discovery
+:description: This script runs Contiki on STM32F4 Discovery.
+
+using sysbus
+$name?="STM32F4_Discovery"
+mach create $name
+machine LoadPlatformDescription @platforms/boards/stm32f4_discovery-kit.repl
+
+cpu PerformanceInMips 125
+
+$boot?=@/Users/zhangzheng/mkrtos-real/build/output/bootstrap.elf
+$knl?=@/Users/zhangzheng/mkrtos-real/build/output/mkrtos
+$init?=@/Users/zhangzheng/mkrtos-real/build/output/init
+$cpio?=@/Users/zhangzheng/mkrtos-real/build/output/rootfs.cpio
+showAnalyzer sysbus.usart1
+
+### Set random board UNIQUE ID ###
+
+python "import _random"
+python "rand = _random.Random()"
+
+$id1 = `python "print rand.getrandbits(32)"`
+$id2 = `python "print rand.getrandbits(32)"`
+$id3 = `python "print rand.getrandbits(32)"`
+macro reset
+"""
+    sysbus LoadELF $boot
+    sysbus LoadBinary $knl 0x8002000
+    sysbus LoadBinary $init 0x8010000
+    sysbus LoadBinary $cpio 0x8022000
+
+    sysbus WriteDoubleWord 0x1FFF7A10 $id1
+    sysbus WriteDoubleWord 0x1FFF7A14 $id2
+    sysbus WriteDoubleWord 0x1FFF7A18 $id3
+    cpu VectorTableOffset 0x8000000
+"""
+
+runMacro $reset

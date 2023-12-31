@@ -66,5 +66,5 @@
 #define SWD_ENABLE 0X01
 #define JTAG_SWD_ENABLE 0X00
 
-
+void jump2kernel(void);
 #endif

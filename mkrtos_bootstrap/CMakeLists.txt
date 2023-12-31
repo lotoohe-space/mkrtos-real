@@ -61,6 +61,12 @@ elseif(${BOARD_NAME} STREQUAL "STM32F4x" )
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Device/ST/STM32F4xx/Include
     )
     add_subdirectory(bsp/STM32F4x)
+elseif(${BOARD_NAME} STREQUAL "Cortex-R52" )
+    include_directories(
+        ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/Cortex-R52
+
+    )
+    add_subdirectory(bsp/Cortex-R52)
 endif()
 
 add_executable(bootstrap.elf
@@ -68,14 +74,16 @@ add_executable(bootstrap.elf
 )
 
 set_target_properties(bootstrap.elf PROPERTIES LINK_FLAGS 
-"-T ${CMAKE_CURRENT_LIST_DIR}/link.lds --gc-section ")
+"-T ${CMAKE_CURRENT_LIST_DIR}/bsp/${BOARD_NAME}/link.lds --gc-section ")
 
 
 
 target_link_libraries(
     bootstrap.elf
     # mk_bsp
+    --whole-archive
     bsp
+    --no-whole-archive
 )
 
 add_custom_target(

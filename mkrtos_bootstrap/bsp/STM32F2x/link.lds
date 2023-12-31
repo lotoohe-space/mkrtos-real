@@ -1,4 +1,3 @@
-/* Entry Point */
 ENTRY(Reset_Handler)
 
 /* Highest address of the user mode stack */

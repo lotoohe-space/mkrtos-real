@@ -1,0 +1,16 @@
+using sysbus
+
+mach create
+machine LoadPlatformDescription @platforms/cpus/stm32f2.repl
+
+$bin?=@/Users/zhangzheng/mkrtos-real/build/output/kernel.img
+
+showAnalyzer usart1
+
+macro reset
+"""
+    sysbus LoadBinary $bin 0x8000000
+    cpu VectorTableOffset 0x8000000
+"""
+
+runMacro $reset
