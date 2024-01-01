@@ -4,12 +4,14 @@
 #include "u_util.h"
 #include "u_task.h"
 #include "u_hd_man.h"
+#include "u_prot.h"
 #include <pthread.h>
-#define HANDLER_START_INX 10 //!< fd开始的值，前10个内核保留
+
+#define HANDLER_START_INX MAX_PROT
 #define HANDLER_MAX_NR (HANDLER_START_INX + \
                         (CONFIG_OBJ_MAP_ENTRY_SIZE) * (CONFIG_OBJ_MAP_TAB_SIZE)) //!< 单个task最大支持的hd数量
 
-static umword_t bitmap_handler_alloc[HANDLER_MAX_NR / WORD_BITS];
+static umword_t bitmap_handler_alloc[ROUND_UP(HANDLER_MAX_NR, WORD_BITS)];
 static pthread_spinlock_t lock;
 
 void hanlder_pre_alloc(obj_handler_t inx)

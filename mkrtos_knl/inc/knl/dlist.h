@@ -23,6 +23,10 @@ static inline void dlist_item_init(dlist_item_t *item)
 {
     item->next = NULL;
 }
+static inline bool_t dlist_is_empty(dlist_head_t *list)
+{
+    return list->first == NULL;
+}
 static inline void dlist_add(dlist_item_t *prev, dlist_item_t *item)
 {
     item->next = prev->next;

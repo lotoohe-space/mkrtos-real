@@ -36,6 +36,7 @@
 static void test(void)
 {
 #if 0
+    sharea_mem_test();
     printf_test();
     ulog_test();
     factory_test();

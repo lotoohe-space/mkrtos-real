@@ -1,12 +1,12 @@
 /**
  * @file mm_space.c
  * @author ATShining (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "types.h"
 #include "util.h"
@@ -31,7 +31,7 @@ void mm_space_init(mm_space_t *mm_space, int is_knl)
 }
 region_info_t *mm_space_alloc_pt_region(mm_space_t *m_space)
 {
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         /*TODO:原子操作*/
         if (m_space->pt_regions[i].region_inx < 0)
@@ -58,10 +58,27 @@ bool_t mm_space_add(mm_space_t *m_space,
     {
         return FALSE;
     }
+    if (!is_power_of_2(size) || (addr & (!(size - 1))) != 0)
+    {
+        //!< 申请的大小必须是2的整数倍，而且地址也必须是2的整数倍
+        mm_space_free_pt_region(m_space, ri);
+        return FALSE;
+    }
     mpu_calc_regs(ri, addr, ffs(size), attrs, 0);
+    ri->start_addr = addr;
+    ri->size = size;
     return TRUE;
 }
-void mm_space_del(mm_space_t *m_space)
+void mm_space_del(mm_space_t *m_space, umword_t addr)
 {
-    /*TODO:*/
+    for (int i = 0; i < CONFIG_REGION_NUM; i++)
+    {
+        if (m_space->pt_regions[i].region_inx >= 0 &&
+            m_space->pt_regions[i].start_addr == addr)
+        {
+            m_space->pt_regions[i].region_inx = -1;
+            m_space->pt_regions[i].start_addr = 0;
+            break;
+        }
+    }
 }

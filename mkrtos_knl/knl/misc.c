@@ -98,7 +98,7 @@ static bool_t mpu_calc(
 
     *ret_align_size = sub_region_t;
 
-#if 1
+#if 0
     printk("st:0x%x re:0x%x sub:0x%x\n region:[", region[0]->block_start_addr, region[0]->region, sub_region_t);
     for (int i = 0; i < 8; i++)
     {
@@ -128,12 +128,6 @@ static bool_t mpu_calc(
 #endif
     mpu_calc_regs(region[0], region[0]->block_start_addr, ffs_t_, REGION_RWX, region[0]->region);
     mpu_calc_regs(region[1], region[1]->block_start_addr, ffs_t_, REGION_RWX, region[1]->region);
-    // region_i[2].rbar = ARM_MPU_RBAR(2, 0x20010000/*TODO:*/);
-    // region_i[2].rasr = ARM_MPU_RASR(0UL, ARM_MPU_AP_URO, 0UL
-    // 				, 0UL, 1UL, 1UL, 0x0/*TODO:*/, 16-1/*TODO:*/);
-
-    // region_i[2].rbar = ARM_MPU_RBAR(2, 0x8000000 /*TODO:*/);
-    // region_i[2].rasr = ARM_MPU_RASR(0UL, ARM_MPU_AP_URO, 0UL, 0UL, 1UL, 1UL, 0x0 /*TODO:*/, ffs(1024 * 1024) - 1 /*TODO:*/);
     return TRUE;
 }
 

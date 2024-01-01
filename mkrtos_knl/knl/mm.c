@@ -250,10 +250,10 @@ int mem_heap_add(mem_t *_this, void *mem, uint32_t size)
     mem = (void *)(ALIGN((ptr_t)mem, 4));
     size -= 4;
 
-    ((struct mem_heap *)mem)->name[0] = ' ';
-    ((struct mem_heap *)mem)->name[1] = ' ';
-    ((struct mem_heap *)mem)->name[2] = ' ';
-    ((struct mem_heap *)mem)->name[3] = ' ';
+    // ((struct mem_heap *)mem)->name[0] = ' ';
+    // ((struct mem_heap *)mem)->name[1] = ' ';
+    // ((struct mem_heap *)mem)->name[2] = ' ';
+    // ((struct mem_heap *)mem)->name[3] = ' ';
     ((struct mem_heap *)mem)->used = 0;
     umword_t status = spinlock_lock(&_this->lock);
     if (!_this->heap_start)

@@ -11,10 +11,10 @@
 typedef struct mem_heap
 {
     uint32_t magic;
-    union
-    {
-        char name[MEM_HEAP_NAME];
-    };
+    // union
+    // {
+    //     char name[MEM_HEAP_NAME];
+    // };
     struct mem_heap *next;
     struct mem_heap *prev;
     umword_t size;

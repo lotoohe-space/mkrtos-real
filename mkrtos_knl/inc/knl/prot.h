@@ -13,18 +13,23 @@
 #include "types.h"
 #include "err.h"
 
-#define FACTORY_PROT 1
-#define THREAD_PROT 2
-#define TASK_PROT 3
-#define LOG_PROT 4
-#define IPC_PROT 5
-#define MM_PROT 6
-#define SYS_PROT 7
-#define FUTEX_PROT 8
-#define IRQ_PROT 9
+enum kobj_prot
+{
+    FACTORY_PROT = 1,
+    THREAD_PROT,
+    TASK_PROT,
+    LOG_PROT,
+    IPC_PROT,
+    MM_PROT,
+    SYS_PROT,
+    FUTEX_PROT,
+    IRQ_PROT,
+    SHARE_MEM_PROT, // 10
+    MAX_PROT,
+};
 
 #define FACTORY_PORT_START FACTORY_PROT
-#define FACTORY_FUNC_MAX (IRQ_PROT + 1)
+#define FACTORY_FUNC_MAX (MAX_PROT)
 #define FACTORY_PORT_END FACTORY_FUNC_MAX
 
 #define MSG_TAG_KNL_ERR 0x8

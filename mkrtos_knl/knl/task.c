@@ -289,7 +289,7 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     task->kobj.put_func = task_put;
     task->kobj.stage_1_func = task_release_stage1;
     task->kobj.stage_2_func = task_release_stage2;
-    mm_space_add(&task->mm_space, CONFIG_KNL_TEXT_ADDR, 64 * 1024 * 1024, REGION_RO); // TODO:这里应该用config.配置
+    mm_space_add(&task->mm_space, CONFIG_KNL_TEXT_ADDR, CONFIG_KNL_TEXT_SIZE, REGION_RO); // TODO:这里应该用config.配置
 }
 
 static bool_t task_put(kobject_t *kobj)

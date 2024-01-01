@@ -36,6 +36,7 @@ void mm_space_free_pt_region(mm_space_t *m_space, region_info_t *ri);
 
 void mm_space_init(mm_space_t *mm_space, int is_knl);
 bool_t mm_space_add(mm_space_t *m_space, umword_t addr, umword_t size, uint8_t attrs);
+void mm_space_del(mm_space_t *m_space, umword_t addr);
 
 static inline void mm_space_set_ram_block(mm_space_t *mm_space, void *mem, size_t size)
 {

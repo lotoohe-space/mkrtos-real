@@ -1,12 +1,12 @@
 /**
  * @file ram_limit.c
  * @author ATShining (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "ram_limit.h"
 #include "types.h"
@@ -25,7 +25,7 @@ bool_t ram_limit_alloc(ram_limit_t *limit, size_t size)
     {
         return FALSE;
     }
-    limit->cur += size;
+    limit->cur += size; // TODO:原子操作
     return TRUE;
 }
 void ram_limit_free(ram_limit_t *limit, size_t size)

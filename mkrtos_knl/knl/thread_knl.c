@@ -57,7 +57,6 @@ static void knl_main(void)
             task_t *next = slist_next_entry(pos, &del_task_head, del_node);
             slist_del(&pos->del_node);
             {
-                // TODO:给init发送消息，该函数是在中断中调用的，所以这个消息只能在knl_thread中调用。
                 msg_tag_t tag;
                 umword_t user_id;
                 ipc_msg_t *msg = (ipc_msg_t *)knl_msg_buf;
@@ -65,7 +64,7 @@ static void knl_main(void)
                 msg->msg_buf[1] = pos->pid;
                 msg->msg_buf[2] = 0;
                 int ret = thread_ipc_call(init_thread, msg_tag_init4(0, 3, 0, 0x0005 /*PM_PROT*/),
-                                          &tag, ipc_timeout_create2(0, 0), &user_id);
+                                          &tag, ipc_timeout_create2(3000, 3000), &user_id);
 
                 if (ret < 0)
                 {

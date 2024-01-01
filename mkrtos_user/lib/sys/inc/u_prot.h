@@ -2,15 +2,20 @@
 
 #include "u_types.h"
 
-#define FACTORY_PROT 1
-#define THREAD_PROT 2
-#define TASK_PROT 3
-#define LOG_PROT 4
-#define IPC_PROT 5
-#define MM_PROT 6
-#define SYS_PROT 7
-#define FUTEX_PROT 8
-#define IRQ_PROT 9
+enum kobj_prot
+{
+    FACTORY_PROT = 1,
+    THREAD_PROT,
+    TASK_PROT,
+    LOG_PROT,
+    IPC_PROT,
+    MM_PROT,
+    SYS_PROT,
+    FUTEX_PROT,
+    IRQ_PROT,
+    SHARE_MEM_PROT,
+    MAX_PROT,
+};
 
 #define THREAD_MAIN THREAD_PROT
 #define TASK_THIS TASK_PROT
