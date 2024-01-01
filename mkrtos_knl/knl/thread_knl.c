@@ -64,7 +64,7 @@ static void knl_main(void)
                 msg->msg_buf[1] = pos->pid;
                 msg->msg_buf[2] = 0;
                 int ret = thread_ipc_call(init_thread, msg_tag_init4(0, 3, 0, 0x0005 /*PM_PROT*/),
-                                          &tag, ipc_timeout_create2(3000, 3000), &user_id);
+                                          &tag, ipc_timeout_create2(3000, 3000), &user_id, TRUE);
 
                 if (ret < 0)
                 {

@@ -33,6 +33,62 @@ typedef struct ipc_wait_bind_entry
     slist_head_t node;
     thread_t *th;
 } ipc_wait_bind_entry_t;
+
+int ipc_bind(ipc_t *ipc, obj_handler_t th_hd, umword_t user_id, thread_t *th_kobj)
+{
+    int ret = -EINVAL;
+    task_t *cur_task = thread_get_current_task();
+
+    /*TODO:原子操作，绑定其他线程不一定是当前线程*/
+    if (ipc->svr_th == NULL)
+    {
+        mword_t status = spinlock_lock(&cur_task->kobj.lock); //!< 锁住当前的task
+
+        if (status < 0)
+        {
+            return -EACCES;
+        }
+        ref_counter_inc(&cur_task->ref_cn); //!< task引用计数+1
+        thread_t *recv_kobj;
+
+        if (!th_kobj)
+        {
+            recv_kobj = (thread_t *)obj_space_lookup_kobj_cmp_type(&cur_task->obj_space, th_hd, THREAD_TYPE);
+        }
+        else
+        {
+            recv_kobj = th_kobj;
+        }
+        if (!recv_kobj)
+        {
+            ret = -ENOENT;
+            goto end_bind;
+        }
+        ref_counter_inc(&recv_kobj->ref); //!< 绑定后线程的引用计数+1，防止被删除
+        ipc->svr_th = recv_kobj;
+        ipc->user_id = user_id;
+        ipc_wait_bind_entry_t *pos;
+
+        slist_foreach_not_next(pos, &ipc->wait_bind, node) //!< 唤醒所有等待绑定的线程
+        {
+            ipc_wait_bind_entry_t *next = slist_next_entry(pos, &ipc->wait_bind, node);
+            assert(pos->th->status == THREAD_SUSPEND);
+            slist_del(&next->node);
+            thread_ready(pos->th, TRUE);
+            pos = next;
+        }
+        ret = 0;
+    end_bind:
+        //!< 先解锁，然后在给task的引用计数-1
+        spinlock_set(&cur_task->kobj.lock, status);
+        ref_counter_dec_and_release(&cur_task->ref_cn, &cur_task->kobj);
+    }
+    else
+    {
+        ret = -ECANCELED;
+    }
+    return ret;
+}
 /**
  * @brief ipc的系统调用
  *
@@ -66,48 +122,8 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
             tag = msg_tag_init4(0, 0, 0, -EPROTO);
             break;
         }
-        /*TODO:原子操作，绑定其他线程不一定是当前线程*/
-        if (ipc->svr_th == NULL)
-        {
-            mword_t status = spinlock_lock(&cur_task->kobj.lock); //!< 锁住当前的task
-
-            if (status < 0)
-            {
-                tag = msg_tag_init4(0, 0, 0, -EACCES);
-                break;
-            }
-            ref_counter_inc(&cur_task->ref_cn); //!< task引用计数+1
-            thread_t *recv_kobj = (thread_t *)obj_space_lookup_kobj_cmp_type(&cur_task->obj_space, f->r[0], THREAD_TYPE);
-
-            if (!recv_kobj)
-            {
-                ret = -ENOENT;
-                goto end_bind;
-            }
-            ref_counter_inc(&recv_kobj->ref); //!< 绑定后线程的引用计数+1，防止被删除
-            ipc->svr_th = recv_kobj;
-            ipc->user_id = f->r[1];
-            ipc_wait_bind_entry_t *pos;
-
-            slist_foreach_not_next(pos, &ipc->wait_bind, node) //!< 唤醒所有等待绑定的线程
-            {
-                ipc_wait_bind_entry_t *next = slist_next_entry(pos, &ipc->wait_bind, node);
-                assert(pos->th->status == THREAD_SUSPEND);
-                slist_del(&next->node);
-                thread_ready(pos->th, TRUE);
-                pos = next;
-            }
-            ret = 0;
-        end_bind:
-            //!< 先解锁，然后在给task的引用计数-1
-            spinlock_set(&cur_task->kobj.lock, status);
-            ref_counter_dec_and_release(&cur_task->ref_cn, &cur_task->kobj);
-            tag = msg_tag_init4(0, 0, 0, ret);
-        }
-        else
-        {
-            tag = msg_tag_init4(0, 0, 0, -ECANCELED);
-        }
+        ret = ipc_bind(ipc, f->r[0], f->r[1], NULL);
+        tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
     case IPC_DO:
@@ -177,12 +193,21 @@ static void ipc_release_stage2(kobject_t *kobj)
     mm_limit_free(ipc->lim, kobj);
     printk("ipc release 0x%x\n", kobj);
 }
+static bool_t ipc_put(kobject_t *kobj)
+{
+    ipc_t *ipc = container_of(kobj, ipc_t, kobj);
+
+    return ref_counter_dec(&ipc->ref) == 1;
+}
 static void ipc_init(ipc_t *ipc, ram_limit_t *lim)
 {
     kobject_init(&ipc->kobj, IPC_TYPE);
     slist_init(&ipc->wait_bind);
     spinlock_init(&ipc->lock);
+    ref_counter_init(&ipc->ref);
+    ref_counter_inc(&ipc->ref);
     ipc->lim = lim;
+    ipc->kobj.put_func = ipc_put;
     ipc->kobj.invoke_func = ipc_syscall;
     ipc->kobj.stage_1_func = ipc_release_stage1;
     ipc->kobj.stage_2_func = ipc_release_stage2;

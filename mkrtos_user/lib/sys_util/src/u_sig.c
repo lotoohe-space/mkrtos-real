@@ -40,7 +40,7 @@ static void sig_func(void)
 
     while (1)
     {
-        msg_tag_t tag = thread_ipc_wait(ipc_timeout_create2(0, 0), NULL);
+        msg_tag_t tag = thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
         if (msg_tag_get_val(tag) < 0)
         {
             continue;

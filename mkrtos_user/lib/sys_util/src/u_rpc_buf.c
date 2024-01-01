@@ -6,6 +6,8 @@
 #include "u_thread.h"
 #include "u_util.h"
 #include <assert.h>
+
+// FIXME: 每个线程应该有一个buf_hd
 #define RPC_SVR_MAP_OBJ_NR (MAP_BUF_SIZE / sizeof(umword_t))
 static obj_handler_t buf_hd[RPC_SVR_MAP_OBJ_NR];
 
@@ -45,6 +47,15 @@ int rpc_hd_alloc(void)
             if (hd == HANDLER_INVALID)
             {
                 return -1;
+            }
+            // 如果新申请的和后面的一样，则后面的需要清空
+            for (int j = i + 1; j < RPC_SVR_MAP_OBJ_NR; j++)
+            {
+                if (hd == buf_hd[j])
+                {
+                    buf_hd[j] = 0;
+                    break;
+                }
             }
         }
         else

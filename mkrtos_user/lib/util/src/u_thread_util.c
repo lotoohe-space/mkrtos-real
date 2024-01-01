@@ -9,7 +9,7 @@
 #include <u_thread_util.h>
 void u_thread_del(obj_handler_t th_hd)
 {
-    task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th_hd));
+    handler_free_umap(th_hd);
 }
 int u_thread_create(obj_handler_t *th_hd, void *stack, umword_t stack_size, void *msg_buf, void (*thread_func)(void))
 {

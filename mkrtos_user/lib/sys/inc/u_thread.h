@@ -19,7 +19,7 @@ typedef struct ipc_msg
         {
             umword_t msg_buf[IPC_MSG_SIZE / WORD_BYTES];
             umword_t map_buf[MAP_BUF_SIZE / WORD_BYTES];
-            umword_t user[IPC_USER_SIZE / WORD_BYTES];
+            umword_t user[IPC_USER_SIZE / WORD_BYTES]; // 0 pthread使用 1驱动使用 2 ipc通信时存储目标的pid
         };
         uint8_t data[MSG_BUG_LEN];
     };
@@ -58,18 +58,11 @@ msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t
 msg_tag_t thread_run(obj_handler_t obj, uint8_t prio);
 msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj);
 
-msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *ret_obj);
+msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj, obj_handler_t ipc_obj);
 msg_tag_t thread_ipc_reply(msg_tag_t in_tag, ipc_timeout_t timeout);
 msg_tag_t thread_ipc_send(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
 msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
 
-// #define thread_get_cur_ipc_msg()                \
-//     (                                           \
-//         {                                       \
-//             umword_t buf;                       \
-//             thread_msg_buf_get(-1, &buf, NULL); \
-//             ((ipc_msg_t *)buf);                 \
-//         })
 static inline ipc_msg_t *thread_get_cur_ipc_msg(void)
 {
     umword_t buf;

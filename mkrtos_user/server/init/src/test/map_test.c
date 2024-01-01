@@ -37,7 +37,7 @@ static void thread_test_func(void)
     thread_msg_buf_get(th1_hd, (umword_t *)(&buf), NULL);
     ipc_msg = (ipc_msg_t *)buf;
     ipc_msg->map_buf[0] = vpage_create_raw3(0, 0, log_hd).raw;
-    thread_ipc_wait(ipc_timeout_create2(0, 0), NULL);
+    thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
     printf("srv recv:%s", buf);
     ulog_write_str(log_hd, "map test success.\n");
     hard_sleep();

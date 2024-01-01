@@ -8,9 +8,16 @@
 #include "u_err.h"
 #include "u_rpc_buf.h"
 #include "cons_cli.h"
+#include "u_env.h"
+#include "u_sleep.h"
+#include "u_thread_util.h"
+#include "u_slist.h"
+#include "cons_cli.h"
+#include <pthread.h>
 #include <errno.h>
 #include <assert.h>
 #include <stdio.h>
+#include <malloc.h>
 
 static meta_t meta_obj;
 static msg_tag_t rpc_meta_t_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg);
@@ -151,7 +158,7 @@ int rpc_meta_init(obj_handler_t th, obj_handler_t *ret_ipc_hd)
  */
 void rpc_loop(void)
 {
-    umword_t obj;
+    umword_t obj = 0;
     msg_tag_t tag;
     umword_t buf;
     ipc_msg_t *msg;
@@ -162,7 +169,7 @@ void rpc_loop(void)
     while (1)
     {
         rpc_hd_alloc();
-        tag = thread_ipc_wait(ipc_timeout_create2(0, 0), &obj);
+        tag = thread_ipc_wait(ipc_timeout_create2(0, 0), &obj, -1);
         if (msg_tag_get_val(tag) < 0)
         {
             continue;
@@ -174,4 +181,129 @@ void rpc_loop(void)
         }
         thread_ipc_reply(tag, ipc_timeout_create2(0, 0));
     }
+}
+#define RPC_MTD_TH_STACK_SIZE 1024
+typedef struct mtd_params
+{
+    rpc_svr_obj_t *obj;
+    msg_tag_t in_tag;
+    obj_handler_t ipc_obj;
+    obj_handler_t th_obj;
+    slist_head_t node;
+} mtd_params_t;
+static slist_head_t th_head;
+static pthread_spinlock_t lock;
+static void rpc_mtc_thread(void *arg)
+{
+    rpc_svr_obj_t *svr_obj;
+    msg_tag_t tag;
+    ipc_msg_t *msg;
+    mtd_params_t *params = (mtd_params_t *)arg;
+
+    svr_obj = (rpc_svr_obj_t *)params->obj;
+    if (svr_obj->dispatch)
+    {
+        tag = svr_obj->dispatch(svr_obj, params->in_tag, msg);
+    }
+    thread_ipc_send(tag, params->ipc_obj, ipc_timeout_create2(0, 0));
+    handler_free_umap(params->ipc_obj);
+    params->ipc_obj = HANDLER_INVALID;
+    u_thread_del(params->th_obj);
+    while (1)
+        ;
+}
+static void check_release_stack_mem(void)
+{
+    mtd_params_t *pos;
+
+    slist_foreach_not_next(pos, &th_head, node)
+    {
+        mtd_params_t *next = slist_next_entry(pos, &th_head, node);
+
+        slist_del(&pos->node);
+        void *stack = (void *)((char *)pos - (RPC_MTD_TH_STACK_SIZE + MSG_BUG_LEN));
+
+        free(stack);
+        pos = next;
+    }
+}
+extern void __pthread_new_thread_entry__(void);
+int rpc_mtd_loop(void)
+{
+    umword_t obj = 0;
+    msg_tag_t tag;
+    umword_t buf;
+    obj_handler_t ipc_hd;
+
+    slist_init(&th_head);
+    while (1)
+    {
+        rpc_hd_alloc();
+        check_release_stack_mem();
+        ipc_hd = handler_alloc();
+        if (ipc_hd == HANDLER_INVALID)
+        {
+            cons_write_str("mtd alloc is fial.\n");
+            u_sleep_ms(1000);
+            continue;
+        }
+        tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(0, 0, ipc_hd));
+        if (msg_tag_get_val(tag) < 0)
+        {
+            cons_write_str("mtd factory ipc fail.\n");
+            handler_free(ipc_hd);
+            u_sleep_ms(1000);
+            continue;
+        }
+
+        tag = thread_ipc_wait(ipc_timeout_create2(0, 0), &obj, ipc_hd);
+        if (msg_tag_get_val(tag) < 0)
+        {
+            continue;
+        }
+    again_create:;
+        obj_handler_t th_obj;
+        void *stack = malloc(RPC_MTD_TH_STACK_SIZE + MSG_BUG_LEN + sizeof(mtd_params_t));
+
+        if (!stack)
+        {
+            cons_write_str("mtd no stack mem.\n");
+            check_release_stack_mem();
+            u_sleep_ms(1000);
+            goto again_create;
+        }
+        int ret_val;
+
+        umword_t *stack_tmp = (umword_t *)stack;
+        mtd_params_t *params = (mtd_params_t *)((char *)stack + RPC_MTD_TH_STACK_SIZE + MSG_BUG_LEN);
+
+        // 设置调用参数等
+        *(--stack_tmp) = (umword_t)(params);
+        *(--stack_tmp) = (umword_t)0; // 保留
+        *(--stack_tmp) = (umword_t)rpc_mtc_thread;
+
+        params->in_tag = tag;
+        params->ipc_obj = ipc_hd;
+        params->obj = (rpc_svr_obj_t *)obj;
+
+        slist_init(&params->node);
+        slist_add(&th_head, &params->node);
+    again_th_create:
+        ret_val = u_thread_create(&params->th_obj,
+                                  stack,
+                                  RPC_MTD_TH_STACK_SIZE,
+                                  (char *)stack + RPC_MTD_TH_STACK_SIZE,
+                                  (void (*)(void))__pthread_new_thread_entry__);
+
+        if (ret_val < 0)
+        {
+            cons_write_str("mtd no mem.\n");
+            check_release_stack_mem();
+            u_sleep_ms(1000);
+            goto again_th_create;
+        }
+
+        // thread_ipc_reply(tag, ipc_timeout_create2(0, 0));
+    }
+    return 0;
 }
