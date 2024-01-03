@@ -267,7 +267,7 @@ int rpc_mtd_loop(void)
             continue;
         }
 
-        tag = thread_ipc_wait(ipc_timeout_create2(0, 0), &obj, ipc_hd);
+        tag = thread_ipc_wait(ipc_timeout_create2(1000, 1000), &obj, ipc_hd);
         if (msg_tag_get_val(tag) < 0)
         {
             handler_free_umap(ipc_hd);

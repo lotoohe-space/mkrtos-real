@@ -107,6 +107,7 @@ static void knl_init_2(void)
 {
     mm_trace();
 
+
     init_thread = thread_create(&root_factory_get()->limit);
     assert(init_thread);
     init_task = task_create(&root_factory_get()->limit, FALSE);

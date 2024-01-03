@@ -495,6 +495,10 @@ static int thread_ipc_recv(msg_tag_t *ret_msg, ipc_timeout_t timeout,
     }
     thread_suspend(cur_th); //!< 挂起
     preemption();           //!< 进行调度
+    if (slist_in_list(&wait.node))
+    {
+        slist_del(&wait.node);
+    }
     if (cur_th->ipc_status == THREAD_IPC_ABORT)
     {
         cur_th->ipc_status = THREAD_NONE;
