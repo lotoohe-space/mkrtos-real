@@ -71,7 +71,7 @@ void sig_init(void)
     {
         return;
     }
-    u_thread_create(&sig_th, sig_stack, sizeof(sig_stack), sig_msg_buf, sig_func);
+    u_thread_create(&sig_th, (char *)sig_stack + sizeof(sig_stack), sig_msg_buf, sig_func);
     u_thread_run(sig_th, CONFIG_SIG_THREAD_PRIO);
 }
 #endif

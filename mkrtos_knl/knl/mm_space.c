@@ -16,7 +16,7 @@
 
 void mm_space_init(mm_space_t *mm_space, int is_knl)
 {
-    region_info_t *regi_info;
+    // region_info_t *regi_info;
 
     for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
@@ -24,8 +24,8 @@ void mm_space_init(mm_space_t *mm_space, int is_knl)
     }
     if (!is_knl)
     {
-        regi_info = mm_space_alloc_pt_region(mm_space);
-        assert(regi_info);
+        // regi_info = mm_space_alloc_pt_region(mm_space);
+        // assert(regi_info);
         // mm_pages_init(&mm_space->mm_pages, regi_info);
     }
 }

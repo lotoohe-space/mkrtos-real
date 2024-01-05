@@ -9,9 +9,9 @@
 #include <u_thread_util.h>
 void u_thread_del(obj_handler_t th_hd)
 {
-    handler_free_umap(th_hd);
+    handler_del_umap(th_hd);
 }
-int u_thread_create(obj_handler_t *th_hd, void *stack, umword_t stack_size, void *msg_buf, void (*thread_func)(void))
+int u_thread_create(obj_handler_t *th_hd, void *stack, void *msg_buf, void (*thread_func)(void))
 {
     assert(th_hd);
     msg_tag_t tag;
@@ -30,7 +30,7 @@ int u_thread_create(obj_handler_t *th_hd, void *stack, umword_t stack_size, void
         return msg_tag_get_prot(tag);
     }
 
-    tag = thread_exec_regs(th1_hd, (umword_t)thread_func, (umword_t)stack + stack_size - sizeof(void *), RAM_BASE(), 0);
+    tag = thread_exec_regs(th1_hd, (umword_t)thread_func, (umword_t)stack, RAM_BASE(), 0);
     if (msg_tag_get_prot(tag) < 0)
     {
         handler_free_umap(th1_hd);

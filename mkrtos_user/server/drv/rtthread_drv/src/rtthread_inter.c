@@ -386,7 +386,7 @@ void rt_timer_init(rt_timer_t timer,
     assert(timeout);
     if (timer_hd == HANDLER_INVALID)
     {
-        int ret = u_thread_create(&timer_hd, timer_stack, STACK_SIZE, timer_thmsg_buf, timer_func);
+        int ret = u_thread_create(&timer_hd, (char *)timer_stack + STACK_SIZE, timer_thmsg_buf, timer_func);
 
         if (ret < 0)
         {
