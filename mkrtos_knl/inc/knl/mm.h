@@ -43,3 +43,4 @@ struct mem_heap *mem_get_free(mem_t *_this, struct mem_heap *next,
                               int32_t hope_size, uint32_t *ret_addr);
 
 void mem_trace(mem_t *_this);
+void mem_info(mem_t *_this, size_t *total, size_t *free);

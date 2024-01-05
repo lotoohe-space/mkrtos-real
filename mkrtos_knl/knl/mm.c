@@ -374,16 +374,45 @@ void mem_trace(mem_t *_this)
 {
     struct mem_heap *mem;
     size_t total = 0;
-    printk("================");
+    printk("================\n");
     printk("start heap:0x%x.\n", _this->heap_start);
     printk("l heap:0x%x.\n", _this->l_heap);
     printk("end heap:0x%x.\n", _this->heap_end);
+    umword_t status = spinlock_lock(&_this->lock);
 
     for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next)
     {
         printk("%d [0x%x-] %dB\n", mem->used, mem, mem->size);
         total += mem->size + MEM_HEAP_STRUCT_SIZE;
     }
+    spinlock_set(&_this->lock, status);
     printk("mem total size:%d.\n", total);
-    printk("================");
+    printk("================\n");
+}
+void mem_info(mem_t *_this, size_t *total, size_t *free)
+{
+    assert(total);
+    assert(free);
+    struct mem_heap *mem;
+    size_t total_ = 0;
+    size_t free_ = 0;
+    printk("================\n");
+    printk("start heap:0x%x.\n", _this->heap_start);
+    printk("l heap:0x%x.\n", _this->l_heap);
+    printk("end heap:0x%x.\n", _this->heap_end);
+    umword_t status = spinlock_lock(&_this->lock);
+
+    for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next)
+    {
+        printk("%d [0x%x-] %dB\n", mem->used, mem, mem->size);
+        total_ += mem->size + MEM_HEAP_STRUCT_SIZE;
+        if (mem->used == 0)
+        {
+            free_ += mem->size;
+        }
+    }
+    spinlock_set(&_this->lock, status);
+    printk("================\n");
+    *total = total_;
+    *free = free_;
 }

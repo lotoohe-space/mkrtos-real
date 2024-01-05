@@ -9,6 +9,8 @@ typedef struct sys_info
 } sys_info_t;
 
 msg_tag_t sys_read_info(obj_handler_t obj, sys_info_t *info);
+msg_tag_t sys_reboot(obj_handler_t obj);
+msg_tag_t sys_mem_info(obj_handler_t obj, umword_t *total, umword_t *free);
 
 static inline umword_t sys_read_tick(void)
 {

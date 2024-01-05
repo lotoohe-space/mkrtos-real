@@ -40,7 +40,11 @@ void sys_startup(void)
     // 初始化systick时钟
     SysTick_Config(SystemCoreClock / CONFIG_SYS_SCHE_HZ);
 }
-
+void sys_reset(void)
+{
+    __set_FAULTMASK(1); // 关闭所有中端
+    NVIC_SystemReset(); // 复位
+}
 void arch_disable_irq(int inx)
 {
     NVIC_DisableIRQ(inx);
