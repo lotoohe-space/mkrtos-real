@@ -111,6 +111,7 @@ static inline umword_t intr_status(void)
 }
 
 void sys_startup(void);
+void sys_reset(void);
 
 // systick.c
 umword_t sys_tick_cnt_get(void);
