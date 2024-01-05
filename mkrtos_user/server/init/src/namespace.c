@@ -22,15 +22,25 @@
 #include "namespace.h"
 #include "u_rpc_svr.h"
 #include "file_desc.h"
+#include <pthread.h>
 #include <malloc.h>
 #include <fcntl.h>
 #include <sys/types.h>
 static ns_t ns;
 static fs_t ns_fs;
+static pthread_spinlock_t lock;
 int ns_reg(const char *path, obj_handler_t hd, enum node_type type);
 int ns_node_free(ns_node_t *node);
 static int find_path(const char *name);
 
+static void ns_lock(void)
+{
+    pthread_spin_lock(&lock);
+}
+static void ns_unlock(void)
+{
+    pthread_spin_unlock(&lock);
+}
 /**
  * @brief 查找每一个节点，并进行删除
  *
@@ -76,7 +86,9 @@ static void _ns_node_del_by_pid(slist_head_t *head, pid_t pid, int to_del)
  */
 void ns_node_del_by_pid(pid_t pid, int to_del)
 {
+    ns_lock();
     _ns_node_del_by_pid(&ns.root_node.sub_dir, pid, to_del);
+    ns_unlock();
 }
 /**
  * @brief 初始化一个节点
@@ -557,7 +569,9 @@ int namespace_register(const char *path, obj_handler_t hd, int type)
         handler_free_umap(hd);
         return -ECANCELED;
     }
+    ns_lock();
     int ret = ns_reg(path, hd, type);
+    ns_unlock();
     printf("register svr, name is %s, hd is %d\n", path, hd);
     return ret;
 }
@@ -580,27 +594,32 @@ int namespace_query(const char *path, obj_handler_t *hd)
         *hd = ns_hd;
         return 0;
     }
-
+    ns_lock();
     node = node_lookup(&ns.root_node, path, &ret_inx);
     if (!node)
     {
+        ns_unlock();
         return -EEXIST;
     }
     if (node && ret_inx == strlen(path))
     {
+        ns_unlock();
         return -EEXIST;
     }
     if (node->type == DIR_NODE)
     {
+        ns_unlock();
         return -ENOENT;
     }
     *hd = node->node_hd;
+    ns_unlock();
     return ret_inx;
 }
 
 void namespace_loop(void)
 {
     rpc_loop();
+    // rpc_mtd_loop();
 }
 
 int fs_svr_read(int fd, void *buf, size_t len)

@@ -24,29 +24,48 @@ void mem_init(mem_t *_this)
 static void mem_merge(mem_t *_this, struct mem_heap *mem)
 {
     struct mem_heap *prev_mem;
-    struct mem_heap *t_mem;
+    struct mem_heap *next_mem;
+    struct mem_heap *t_mem = mem;
 
-    _this->l_heap = mem;
-    prev_mem = mem->prev;
-    for (t_mem = mem; t_mem != _this->heap_end; t_mem = t_mem->next)
+    if (mem->used != 0)
     {
-        if (prev_mem && prev_mem->used == 0)
-        {
-            // 如果当前没有使用，并且上一个的下一个位置等于当前，则上一个和当前合并
-            if (t_mem->used == 0 && ((ptr_t)prev_mem + prev_mem->size + MEM_HEAP_STRUCT_SIZE) == (ptr_t)t_mem)
-            {
-                // 上一个和当前合并
-                prev_mem->size += t_mem->size + MEM_HEAP_STRUCT_SIZE;
-                prev_mem->next = t_mem->next;
-                t_mem->next->prev = prev_mem;
+        return;
+    }
 
-                _this->l_heap = prev_mem;
-            }
+    prev_mem = t_mem->prev;
+
+    while (prev_mem && prev_mem->used == 0)
+    {
+        prev_mem->size += t_mem->size + MEM_HEAP_STRUCT_SIZE;
+        prev_mem->next = t_mem->next;
+        t_mem->next->prev = prev_mem;
+        t_mem = prev_mem;
+        prev_mem = t_mem->prev;
+    }
+    // if (t_mem < _this->l_heap || _this->l_heap->used == 1)
+    // {
+    //     _this->l_heap = t_mem;
+    // }
+
+    while (t_mem && t_mem != _this->heap_end && t_mem->used == 0)
+    {
+        next_mem = t_mem->next;
+
+        if (next_mem == _this->heap_end)
+        {
+            break;
+        }
+        if (next_mem->used == 0)
+        {
+            t_mem->size += next_mem->size + MEM_HEAP_STRUCT_SIZE;
+            t_mem->next = next_mem->next;
+            next_mem->next->prev = t_mem;
         }
         else
         {
-            prev_mem = t_mem;
+            break;
         }
+        t_mem = t_mem->next;
     }
 }
 /**
@@ -104,6 +123,7 @@ void *mem_split(mem_t *_this, void *mem, uint32_t size)
     r_mem->next = t_mem->next;
     r_mem->prev = t_mem;
     r_mem->magic = MAGIC_NUM;
+    t_mem->next->prev = r_mem;
     t_mem->next = r_mem;
     t_mem->used = 1;
     t_mem->size = size - MEM_HEAP_STRUCT_SIZE;
@@ -207,7 +227,7 @@ void *mem_alloc(mem_t *_this, uint32_t size)
     for (mem = _this->l_heap; mem != _this->heap_end; mem = mem->next)
     {
         assert(mem->magic == MAGIC_NUM);
-        if (mem->used == 0 && mem->size > size)
+        if (mem->used == 0 && mem->size >= size)
         {
             if (mem->size - size > MEM_HEAP_STRUCT_SIZE)
             {
@@ -218,10 +238,11 @@ void *mem_alloc(mem_t *_this, uint32_t size)
                 mem_temp->used = 0;
                 mem_temp->magic = MAGIC_NUM;
                 mem_temp->size = mem->size - size - MEM_HEAP_STRUCT_SIZE;
-                _this->l_heap = mem_temp;
+                // _this->l_heap = mem_temp;
 
                 mem->size = size;
                 mem->used = 1;
+                mem->next->prev = mem_temp;
                 mem->next = mem_temp;
                 spinlock_set(&_this->lock, status);
 
@@ -249,6 +270,8 @@ int mem_heap_add(mem_t *_this, void *mem, uint32_t size)
     }
     mem = (void *)(ALIGN((ptr_t)mem, 4));
     size -= 4;
+
+    printk("total mem size:%d.\n", size);
 
     // ((struct mem_heap *)mem)->name[0] = ' ';
     // ((struct mem_heap *)mem)->name[1] = ' ';
@@ -350,7 +373,7 @@ struct mem_heap *mem_get_free(mem_t *_this, struct mem_heap *next,
 void mem_trace(mem_t *_this)
 {
     struct mem_heap *mem;
-
+    size_t total = 0;
     printk("================");
     printk("start heap:0x%x.\n", _this->heap_start);
     printk("l heap:0x%x.\n", _this->l_heap);
@@ -359,6 +382,8 @@ void mem_trace(mem_t *_this)
     for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next)
     {
         printk("%d [0x%x-] %dB\n", mem->used, mem, mem->size);
+        total += mem->size + MEM_HEAP_STRUCT_SIZE;
     }
+    printk("mem total size:%d.\n", total);
     printk("================");
 }

@@ -1,15 +1,15 @@
 /**
  * @file heap_stack.c
  * @author ATShining (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-11-28
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
-#define HEAP_SIZE 1024
-#define STACK_SIZE 1024 * 2
+#define HEAP_SIZE ((1024 + 256) * 3 + 1024)
+#define STACK_SIZE (1024 + 256)
 
 #if defined(__CC_ARM)
 #define HEAP_ATTR SECTION("HEAP") __attribute__((zero_init))

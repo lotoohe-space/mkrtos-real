@@ -34,7 +34,7 @@ int u_intr_bind(int irq_no, u_irq_prio_t prio, int th_prio,
         return msg_tag_get_val(tag);
     }
 
-    ret = u_thread_create(&th_hd, stack, stack_size, msg_buf, thread_func);
+    ret = u_thread_create(&th_hd, (char *)stack + stack_size, msg_buf, thread_func);
 
     if (ret < 0)
     {

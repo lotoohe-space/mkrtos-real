@@ -276,7 +276,8 @@
         "u_sig.h": "c",
         "u_err.h": "c",
         "core_cmfunc.h": "c",
-        "stm32f4xx.h": "c"
+        "stm32f4xx.h": "c",
+        "malloc.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,
