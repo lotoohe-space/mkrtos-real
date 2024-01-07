@@ -1,12 +1,12 @@
 /**
  * @file irq.c
  * @author ATShining (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include <arch.h>
 #include <types.h>
@@ -85,6 +85,7 @@ void entry_handler(void)
 
     isr_no -= CONFIG_USER_ISR_START_NO; //!< 系统用的irq偏移
 
+    assert(isr_no < CONFIG_IRQ_REG_TAB_SIZE);
     // printk("%d.\n", isr_no);
     if (!irq_check_usability(isr_no))
     {

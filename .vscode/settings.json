@@ -277,7 +277,14 @@
         "u_err.h": "c",
         "core_cmfunc.h": "c",
         "stm32f4xx.h": "c",
-        "malloc.h": "c"
+        "malloc.h": "c",
+        "ethernetif.h": "c",
+        "netif.h": "c",
+        "netconf.h": "c",
+        "dhcp.h": "c",
+        "u_intr.h": "c",
+        "etharp.h": "c",
+        "pbuf.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

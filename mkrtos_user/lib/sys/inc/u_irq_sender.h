@@ -1,7 +1,7 @@
 #pragma once
 
 #include "u_types.h"
-
+#include "u_prot.h"
 typedef union u_irq_prio
 {
     struct

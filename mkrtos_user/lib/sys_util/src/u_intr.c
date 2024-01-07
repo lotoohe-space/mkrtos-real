@@ -9,7 +9,7 @@
 #include <u_thread_util.h>
 
 int u_intr_bind(int irq_no, u_irq_prio_t prio, int th_prio,
-                void *stack, umword_t stack_size, void *msg_buf, void (*thread_func)(void))
+                void *stack, void *msg_buf, void (*thread_func)(void), obj_handler_t *irq)
 {
     obj_handler_t irq_obj = handler_alloc();
     obj_handler_t th_hd;
@@ -34,12 +34,16 @@ int u_intr_bind(int irq_no, u_irq_prio_t prio, int th_prio,
         return msg_tag_get_val(tag);
     }
 
-    ret = u_thread_create(&th_hd, (char *)stack + stack_size, msg_buf, thread_func);
+    ret = u_thread_create(&th_hd, (char *)stack, msg_buf, thread_func);
 
     if (ret < 0)
     {
         handler_free_umap(irq_obj);
         return ret;
+    }
+    if (irq)
+    {
+        *irq = irq_obj;
     }
     u_thread_run(th_hd, th_prio);
     return ret;

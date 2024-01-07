@@ -81,12 +81,7 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
         handler_free(th1_hd);
         return msg_tag_get_prot(tag);
     }
-    tag = thread_msg_buf_set(th1_hd, stack - MSG_BUG_LEN);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        handler_free_umap(th1_hd);
-        return msg_tag_get_prot(tag);
-    }
+    
     stack = (char *)stack - MSG_BUG_LEN;
     stack = (void *)(((umword_t)stack - sizeof(void *)) & (~(sizeof(void *) * 2 - 1)));
     umword_t *stack_tmp = (umword_t *)stack;
@@ -103,6 +98,12 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
         return msg_tag_get_prot(tag);
     }
     tag = thread_bind_task(th1_hd, TASK_THIS);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        handler_free_umap(th1_hd);
+        return msg_tag_get_prot(tag);
+    }
+    tag = thread_msg_buf_set(th1_hd, stack - MSG_BUG_LEN);
     if (msg_tag_get_prot(tag) < 0)
     {
         handler_free_umap(th1_hd);

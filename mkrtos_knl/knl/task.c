@@ -339,7 +339,7 @@ task_t *task_create(ram_limit_t *lim, int is_knl)
         return NULL;
     }
     task_init(tk, lim, is_knl);
-    printk("create task is 0x%x\n", tk);
+    // printk("create task is 0x%x\n", tk);
     return tk;
 }
 
