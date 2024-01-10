@@ -284,7 +284,8 @@
         "dhcp.h": "c",
         "u_intr.h": "c",
         "etharp.h": "c",
-        "pbuf.h": "c"
+        "pbuf.h": "c",
+        "stm32f4x7_eth.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,
