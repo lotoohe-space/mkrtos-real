@@ -49,7 +49,7 @@
 #include "ethernetif.h"
 #include "lwip/netif.h"
 #include "stm32f4x7_eth.h"
-#include "stm32f4x7_eth_bsp.h"
+// #include "stm32f4x7_eth_bsp.h"
 #include <stdio.h>
 #include "cons_cli.h"
 #include "ethernetif.h"
@@ -63,7 +63,7 @@ uint32_t DHCPfineTimer = 0;
 uint32_t DHCPcoarseTimer = 0;
 DHCP_State_TypeDef DHCP_state = DHCP_START;
 #endif
-extern __IO uint32_t  EthStatus;
+extern __IO uint32_t EthStatus;
 /**
  * @brief  Initializes the lwIP stack
  * @param  None
@@ -114,12 +114,12 @@ void net_init(void)
     The init function pointer must point to a initialization function for
     your ethernet netif interface. The following code illustrates it's use.*/
     sys_lock_tcpip_core();
-    netif_add(&gnetif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &ethernet_input);
+    struct netif *netif_flag = netif_add(&gnetif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &ethernet_input);
 
     /*  Registers the default network interface.*/
     netif_set_default(&gnetif);
 
-    if (EthStatus == (ETH_INIT_FLAG | ETH_LINK_FLAG))
+    if (netif_flag)
     {
         /* Set Ethernet link flag */
         gnetif.flags |= NETIF_FLAG_LINK_UP;
@@ -140,22 +140,17 @@ void net_init(void)
 
 #ifdef USE_DHCP
         DHCP_state = DHCP_LINK_DOWN;
-#endif  /* USE_DHCP */
+#endif /* USE_DHCP */
         /* Set the LCD Text Color */
     }
 
     /* Set the link callback function, this function is called on change of link status*/
-    netif_set_link_callback(&gnetif, ETH_link_callback);
+    // netif_set_link_callback(&gnetif, ETH_link_callback);
     sys_unlock_tcpip_core();
 }
 void ethernetif_input(void *pvParameters);
-/**
- * @brief  Called when a frame is received
- * @param  None
- * @retval None
- */
-void LwIP_Pkt_Handle(void)
+// 用于以太网中断调用
+void lwip_pkt_handle(void)
 {
-    /* Read a received packet from the Ethernet buffers and send it to the lwIP for handling */
     ethernetif_input(&gnetif);
 }

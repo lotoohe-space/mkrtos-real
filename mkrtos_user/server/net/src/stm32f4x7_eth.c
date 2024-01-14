@@ -84,10 +84,12 @@ uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE]; /* Ethernet Receive Buffer */
 uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE]; /* Ethernet Transmit Buffer */
 
 #elif defined (__GNUC__) /*!< GNU Compiler */
-ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB] __attribute__ ((aligned (4))); /* Ethernet Rx DMA Descriptor */
-ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB] __attribute__ ((aligned (4))); /* Ethernet Tx DMA Descriptor */
-uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE] __attribute__ ((aligned (4))); /* Ethernet Receive Buffer */
-uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE] __attribute__ ((aligned (4))); /* Ethernet Transmit Buffer */
+// ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB] __attribute__ ((aligned (4))); /* Ethernet Rx DMA Descriptor */
+// ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB] __attribute__ ((aligned (4))); /* Ethernet Tx DMA Descriptor */
+// uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE] __attribute__ ((aligned (4))); /* Ethernet Receive Buffer */
+// uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE] __attribute__ ((aligned (4))); /* Ethernet Transmit Buffer */
+
+ 
 
 #elif defined  (__TASKING__) /*!< TASKING Compiler */
 __align(4) 
@@ -1913,7 +1915,7 @@ FlagStatus ETH_GetDMAFlagStatus(uint32_t ETH_DMA_FLAG)
 }
 
 /**
-  * @brief  Clears the ETHERNET’s DMA pending flag.
+  * @brief  Clears the ETHERNETï¿½s DMA pending flag.
   * @param  ETH_DMA_FLAG: specifies the flag to clear.
   *   This parameter can be any combination of the following values:
   *     @arg ETH_DMA_FLAG_NIS : Normal interrupt summary flag
@@ -2025,7 +2027,7 @@ ITStatus ETH_GetDMAITStatus(uint32_t ETH_DMA_IT)
 }
 
 /**
-  * @brief  Clears the ETHERNET’s DMA IT pending bit.
+  * @brief  Clears the ETHERNETï¿½s DMA IT pending bit.
   * @param  ETH_DMA_IT: specifies the interrupt pending bit to clear.
   *   This parameter can be any combination of the following values:
   *     @arg ETH_DMA_IT_NIS : Normal interrupt summary 

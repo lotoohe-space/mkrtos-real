@@ -1,6 +1,6 @@
 #ifndef __LAN8720_H
 #define __LAN8720_H
-#include "sys.h"
+#include "mk_sys.h"
 #include "stm32f4x7_eth.h"
 
 #define LAN8720_PHY_ADDRESS 0x00

@@ -285,7 +285,8 @@
         "u_intr.h": "c",
         "etharp.h": "c",
         "pbuf.h": "c",
-        "stm32f4x7_eth.h": "c"
+        "stm32f4x7_eth.h": "c",
+        "lan8270.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

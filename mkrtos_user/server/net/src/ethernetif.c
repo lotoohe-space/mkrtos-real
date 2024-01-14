@@ -53,6 +53,7 @@
 #include "ethernetif.h"
 
 #include "stm32f4x7_eth.h"
+#include "lan8270.h"
 #include <string.h>
 
 #define netifMTU (1500)
@@ -68,20 +69,20 @@
 
 static struct netif *s_pxNetIf = NULL;
 // xSemaphoreHandle s_xSemaphore = NULL;
-int s_xSemaphore = 0;
+// int s_xSemaphore = 0;
 
-/* Ethernet Rx & Tx DMA Descriptors */
-extern ETH_DMADESCTypeDef DMARxDscrTab[ETH_RXBUFNB], DMATxDscrTab[ETH_TXBUFNB];
+// /* Ethernet Rx & Tx DMA Descriptors */
+// extern ETH_DMADESCTypeDef DMARxDscrTab[ETH_RXBUFNB], DMATxDscrTab[ETH_TXBUFNB];
 
-/* Ethernet Receive buffers  */
-extern uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE];
+// /* Ethernet Receive buffers  */
+// extern uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE];
 
-/* Ethernet Transmit buffers */
-extern uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE];
+// /* Ethernet Transmit buffers */
+// extern uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE];
 
-/* Global pointers to track current transmit and receive descriptors */
-extern ETH_DMADESCTypeDef *DMATxDescToSet;
-extern ETH_DMADESCTypeDef *DMARxDescToGet;
+// /* Global pointers to track current transmit and receive descriptors */
+// extern ETH_DMADESCTypeDef *DMATxDescToSet;
+// extern ETH_DMADESCTypeDef *DMARxDescToGet;
 
 /* Global pointer for last received frame infos */
 extern ETH_DMA_Rx_Frame_infos *DMA_RX_FRAME_infos;
@@ -115,24 +116,17 @@ static void low_level_init(struct netif *netif)
   netif->mtu = 1500;
 
   /* Accept broadcast address and ARP traffic */
-  netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
+  netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
 
   s_pxNetIf = netif;
-
-  /* create binary semaphore used for informing ethernetif of frame reception */
-  // if (s_xSemaphore == NULL)
-  // {
-  //   vSemaphoreCreateBinary(s_xSemaphore);
-  //   xSemaphoreTake(s_xSemaphore, 0);
-  // }
 
   /* initialize MAC address in ethernet MAC */
   ETH_MACAddressConfig(ETH_MAC_Address0, netif->hwaddr);
 
   /* Initialize Tx Descriptors list: Chain Mode */
-  ETH_DMATxDescChainInit(DMATxDscrTab, &Tx_Buff[0][0], ETH_TXBUFNB);
+  ETH_DMATxDescChainInit(DMATxDscrTab, Tx_Buff, ETH_TXBUFNB);
   /* Initialize Rx Descriptors list: Chain Mode  */
-  ETH_DMARxDescChainInit(DMARxDscrTab, &Rx_Buff[0][0], ETH_RXBUFNB);
+  ETH_DMARxDescChainInit(DMARxDscrTab, Rx_Buff, ETH_RXBUFNB);
 
   /* Enable Ethernet Rx interrrupt */
   {
@@ -151,10 +145,6 @@ static void low_level_init(struct netif *netif)
     }
   }
 #endif
-
-  /* create the task that handles the ETH_MAC */
-  // xTaskCreate(ethernetif_input, (signed char *)"Eth_if", netifINTERFACE_TASK_STACK_SIZE, NULL,
-  //             netifINTERFACE_TASK_PRIORITY, NULL);
 
   /* Enable MAC and DMA transmission and reception */
   ETH_Start();
@@ -178,75 +168,18 @@ static void low_level_init(struct netif *netif)
 
 static err_t low_level_output(struct netif *netif, struct pbuf *p)
 {
-  // static xSemaphoreHandle xTxSemaphore = NULL;
+  u8 res;
   struct pbuf *q;
-  u8 *buffer;
-  __IO ETH_DMADESCTypeDef *DmaTxDesc;
-  uint16_t framelength = 0;
-  uint32_t bufferoffset = 0;
-  uint32_t byteslefttocopy = 0;
-  uint32_t payloadoffset = 0;
-
-  // if (xTxSemaphore == NULL)
-  // {
-  //   vSemaphoreCreateBinary(xTxSemaphore);
-  // }
-
-  // if (xSemaphoreTake(xTxSemaphore, netifGUARD_BLOCK_TIME))
-  // {
-  DmaTxDesc = DMATxDescToSet;
-  buffer = (u8 *)(DmaTxDesc->Buffer1Addr);
-  bufferoffset = 0;
-
+  int l = 0;
+  u8 *buffer = (u8 *)ETH_GetCurrentTxBuffer();
   for (q = p; q != NULL; q = q->next)
   {
-    if ((DmaTxDesc->Status & ETH_DMATxDesc_OWN) != (u32)RESET)
-    {
-      goto error;
-    }
-
-    /* Get bytes in current lwIP buffer  */
-    byteslefttocopy = q->len;
-    payloadoffset = 0;
-
-    /* Check if the length of data to copy is bigger than Tx buffer size*/
-    while ((byteslefttocopy + bufferoffset) > ETH_TX_BUF_SIZE)
-    {
-      /* Copy data to Tx buffer*/
-      memcpy((u8_t *)((u8_t *)buffer + bufferoffset), (u8_t *)((u8_t *)q->payload + payloadoffset), (ETH_TX_BUF_SIZE - bufferoffset));
-
-      /* Point to next descriptor */
-      DmaTxDesc = (ETH_DMADESCTypeDef *)(DmaTxDesc->Buffer2NextDescAddr);
-
-      /* Check if the buffer is available */
-      if ((DmaTxDesc->Status & ETH_DMATxDesc_OWN) != (u32)RESET)
-      {
-        goto error;
-      }
-
-      buffer = (u8 *)(DmaTxDesc->Buffer1Addr);
-
-      byteslefttocopy = byteslefttocopy - (ETH_TX_BUF_SIZE - bufferoffset);
-      payloadoffset = payloadoffset + (ETH_TX_BUF_SIZE - bufferoffset);
-      framelength = framelength + (ETH_TX_BUF_SIZE - bufferoffset);
-      bufferoffset = 0;
-    }
-
-    /* Copy the remaining bytes */
-    memcpy((u8_t *)((u8_t *)buffer + bufferoffset), (u8_t *)((u8_t *)q->payload + payloadoffset), byteslefttocopy);
-    bufferoffset = bufferoffset + byteslefttocopy;
-    framelength = framelength + byteslefttocopy;
+    memcpy((u8_t *)&buffer[l], q->payload, q->len);
+    l = l + q->len;
   }
-
-  /* Prepare transmit descriptors to give to DMA*/
-  ETH_Prepare_Transmit_Descriptors(framelength);
-
-  /* Give semaphore and exit */
-error:
-
-  //   xSemaphoreGive(xTxSemaphore);
-  // }
-
+  res = ETH_Tx_Packet(l);
+  if (res == ETH_ERROR)
+    return ERR_MEM;
   return ERR_OK;
 }
 
@@ -260,79 +193,28 @@ error:
  */
 static struct pbuf *low_level_input(struct netif *netif)
 {
-  struct pbuf *p = NULL, *q;
-  u32_t len;
+  struct pbuf *p, *q;
+  u16_t len;
+  int l = 0;
   FrameTypeDef frame;
   u8 *buffer;
-  __IO ETH_DMADESCTypeDef *DMARxDesc;
-  uint32_t bufferoffset = 0;
-  uint32_t payloadoffset = 0;
-  uint32_t byteslefttocopy = 0;
-  uint32_t i = 0;
-
-  /* get received frame */
-  frame = ETH_Get_Received_Frame_interrupt();
-
-  /* Obtain the size of the packet and put it into the "len" variable. */
+  p = NULL;
+  frame = ETH_Rx_Packet();
   len = frame.length;
   buffer = (u8 *)frame.buffer;
-
-  if (len > 0)
-  {
-    /* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
-    p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
-  }
-
+  p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
   if (p != NULL)
   {
-    DMARxDesc = frame.descriptor;
-    bufferoffset = 0;
     for (q = p; q != NULL; q = q->next)
     {
-      byteslefttocopy = q->len;
-      payloadoffset = 0;
-
-      /* Check if the length of bytes to copy in current pbuf is bigger than Rx buffer size*/
-      while ((byteslefttocopy + bufferoffset) > ETH_RX_BUF_SIZE)
-      {
-        /* Copy data to pbuf*/
-        memcpy((u8_t *)((u8_t *)q->payload + payloadoffset), (u8_t *)((u8_t *)buffer + bufferoffset), (ETH_RX_BUF_SIZE - bufferoffset));
-
-        /* Point to next descriptor */
-        DMARxDesc = (ETH_DMADESCTypeDef *)(DMARxDesc->Buffer2NextDescAddr);
-        buffer = (unsigned char *)(DMARxDesc->Buffer1Addr);
-
-        byteslefttocopy = byteslefttocopy - (ETH_RX_BUF_SIZE - bufferoffset);
-        payloadoffset = payloadoffset + (ETH_RX_BUF_SIZE - bufferoffset);
-        bufferoffset = 0;
-      }
-
-      /* Copy remaining data in pbuf */
-      memcpy((u8_t *)((u8_t *)q->payload + payloadoffset), (u8_t *)((u8_t *)buffer + bufferoffset), byteslefttocopy);
-      bufferoffset = bufferoffset + byteslefttocopy;
+      memcpy((u8_t *)q->payload, (u8_t *)&buffer[l], q->len);
+      l = l + q->len;
     }
-
-    /* Release descriptors to DMA */
-    DMARxDesc = frame.descriptor;
-
-    /* Set Own bit in Rx descriptors: gives the buffers back to DMA */
-    for (i = 0; i < DMA_RX_FRAME_infos->Seg_Count; i++)
-    {
-      DMARxDesc->Status = ETH_DMARxDesc_OWN;
-      DMARxDesc = (ETH_DMADESCTypeDef *)(DMARxDesc->Buffer2NextDescAddr);
-    }
-
-    /* Clear Segment_Count */
-    DMA_RX_FRAME_infos->Seg_Count = 0;
-    /* added for test*/
   }
-
-  /* When Rx Buffer unavailable flag is set: clear it and resume reception */
+  frame.descriptor->Status = ETH_DMARxDesc_OWN;
   if ((ETH->DMASR & ETH_DMASR_RBUS) != (u32)RESET)
   {
-    /* Clear RBUS ETHERNET DMA flag */
     ETH->DMASR = ETH_DMASR_RBUS;
-    /* Resume DMA reception */
     ETH->DMARPDR = 0;
   }
   return p;
@@ -351,29 +233,18 @@ void ethernetif_input(void *pvParameters)
 {
   struct pbuf *p;
 
-  for (;;)
+  // TRY_GET_NEXT_FRAME:
+  p = low_level_input(s_pxNetIf);
+  if (p != NULL)
   {
-    // if (xSemaphoreTake(s_xSemaphore, emacBLOCK_TIME_WAITING_FOR_INPUT) == pdTRUE)
-    // {
-    if (s_xSemaphore >= 0)
+    if (ERR_OK != s_pxNetIf->input(p, s_pxNetIf))
     {
-      s_xSemaphore--;
-    TRY_GET_NEXT_FRAME:
-      p = low_level_input(s_pxNetIf);
-      if (p != NULL)
-      {
-        if (ERR_OK != s_pxNetIf->input(p, s_pxNetIf))
-        {
-          pbuf_free(p);
-        }
-        else
-        {
-          goto TRY_GET_NEXT_FRAME;
-        }
-      }
+      pbuf_free(p);
     }
-    u_sleep_ms(1);
-    // }
+    else
+    {
+      // goto TRY_GET_NEXT_FRAME;
+    }
   }
 }
 

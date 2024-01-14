@@ -1,8 +1,9 @@
-#include "lan8720.h"
+#include "lan8270.h"
 #include "stm32f4x7_eth.h"
 #include <stm32f4xx.h>
 #include "u_sleep.h"
 #include <malloc.h>
+#include <assert.h>
 
 ETH_DMADESCTypeDef *DMARxDscrTab;
 ETH_DMADESCTypeDef *DMATxDscrTab;
@@ -65,7 +66,7 @@ u8 LAN8720_Init(void)
     GPIO_Init(GPIOD, &GPIO_InitStructure);
 
     LAN8720_RST = 0;
-    delay_ms(50);
+    u_sleep_ms(50);
     LAN8720_RST = 1;
     ETHERNET_NVICConfiguration();
     rval = ETH_MACDMA_Config();
@@ -148,12 +149,20 @@ u8 ETH_MACDMA_Config(void)
 extern void lwip_pkt_handle(void);
 void ETH_IRQHandler(void)
 {
-    while (ETH_GetRxPktSize(DMARxDescToGet) != 0)
+    msg_tag_t tag = uirq_wait(irq_obj, 0);
+    if (msg_tag_get_val(tag) >= 0)
     {
-        lwip_pkt_handle();
+        if (DMARxDescToGet)
+        {
+            while (ETH_GetRxPktSize(DMARxDescToGet) != 0)
+            {
+                lwip_pkt_handle();
+            }
+        }
+        ETH_DMAClearITPendingBit(ETH_DMA_IT_R);
+        ETH_DMAClearITPendingBit(ETH_DMA_IT_NIS);
     }
-    ETH_DMAClearITPendingBit(ETH_DMA_IT_R);
-    ETH_DMAClearITPendingBit(ETH_DMA_IT_NIS);
+    uirq_ack(irq_obj, ETH_IRQn);
 }
 
 FrameTypeDef ETH_Rx_Packet(void)
@@ -207,7 +216,7 @@ u32 ETH_GetCurrentTxBuffer(void)
 u8 ETH_Mem_Malloc(void)
 {
     DMARxDscrTab = malloc(ETH_RXBUFNB * sizeof(ETH_DMADESCTypeDef));
-    DMATxDscrTab = malloc ETH_TXBUFNB * sizeof(ETH_DMADESCTypeDef));
+    DMATxDscrTab = malloc(ETH_TXBUFNB * sizeof(ETH_DMADESCTypeDef));
     Rx_Buff = malloc(ETH_RX_BUF_SIZE * ETH_RXBUFNB);
     Tx_Buff = malloc(ETH_TX_BUF_SIZE * ETH_TXBUFNB);
     if (!DMARxDscrTab || !DMATxDscrTab || !Rx_Buff || !Tx_Buff)
