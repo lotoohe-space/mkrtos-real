@@ -15,7 +15,7 @@ include_directories(${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/inc)
 
 file(GLOB deps *.c)
 
-if (${CONFIG_CPU_TYPE} STREQUAL "STM32F1x")
+if (${CONFIG_CPU_TYPE} STREQUAL "stm32f1")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F10X_XL ")
     
     file(GLOB 
@@ -26,14 +26,14 @@ if (${CONFIG_CPU_TYPE} STREQUAL "STM32F1x")
     )
     list(APPEND deps ${bsp_src})
     include_directories(
-        ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/STM32F1x
+        ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/STM32F1
 
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/STM32F10x_StdPeriph_Driver/inc
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/CMSIS/Include
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/CMSIS/CM3/CoreSupport
     )
-    add_subdirectory(bsp/STM32F1x)
+    add_subdirectory(bsp/STM32F1)
 elseif(${CONFIG_CPU_TYPE} STREQUAL "stm32f2" )
 
     file(GLOB bsp_src ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/STM32F2xx_StdPeriph_Driver/src/*.c)
