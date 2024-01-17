@@ -17,45 +17,47 @@ set(CMAKE_SIZE "${CROSS_COMPILE}size" CACHE PATH "" FORCE)
 set(CMAKE_NM "${CROSS_COMPILE}nm" CACHE PATH "" FORCE)
 set(CMAKE_AR "${CROSS_COMPILE}ar" CACHE PATH "" FORCE)
 set(CMAKE_SIZE "${CROSS_COMPILE}size" CACHE PATH "" FORCE)
+set(PROJECT_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 
-set(MKRTOS_ARCH $ENV{ARCH})
-if (${MKRTOS_ARCH} STREQUAL "cortex-m3")
+set(BOARD $ENV{BOARD})
+include(cmake/top.cmake)
+set(ARCH ${CONFIG_ARCH} CACHE STRING "" FORCE)
+
+message(========${CONFIG_CPU_TYPE})
+if (${CONFIG_ARCH} STREQUAL "cortex-m3")
     set(FLOAT_TYPE "soft")
-elseif(${MKRTOS_ARCH} STREQUAL "cortex-m4" )
+elseif(${CONFIG_ARCH} STREQUAL "cortex-m4" )
     set(FLOAT_TYPE "hard")
-elseif(${MKRTOS_ARCH} STREQUAL "cortex-r52" )
+elseif(${CONFIG_ARCH} STREQUAL "cortex-r52" )
     set(FLOAT_TYPE "soft")
 endif()
 
+
 # -mfloat-abi=soft  -u _printf_float 
-set(CMAKE_C_FLAGS "-mcpu=${MKRTOS_ARCH}  -O0 -g3 -lc -lrdimon -mfloat-abi=${FLOAT_TYPE} -u _printf_float -D=MKRTOS \
+set(CMAKE_C_FLAGS "-mcpu=${CONFIG_ARCH}  -O0 -g3 -lc -lrdimon -mfloat-abi=${FLOAT_TYPE} -u _printf_float -D=MKRTOS \
 -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin\
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
 -fno-stack-protector -Wl,--gc-sections \
 -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)
 
-set(CMAKE_CXX_FLAGS "-mcpu=${MKRTOS_ARCH} -mthumb -mno-thumb-interwork -D=MKRTOS -Os -g3 -std=c++11 \
+set(CMAKE_CXX_FLAGS "-mcpu=${CONFIG_ARCH} -mthumb -mno-thumb-interwork -D=MKRTOS -Os -g3 -std=c++11 \
 -fmessage-length=0 -Xlinker --print-map -Wall -W -fno-stack-protector -g \ 
 -mfloat-abi=${FLOAT_TYPE} -lc -lrdimon -u _printf_float \
 -ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker \
 -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)
 
-set(CMAKE_ASM_FLAGS "-mcpu=${MKRTOS_ARCH} -mthumb -Os -g3 -lc -lrdimon -D=MKRTOS \
+set(CMAKE_ASM_FLAGS "-mcpu=${CONFIG_ARCH} -mthumb -Os -g3 -lc -lrdimon -D=MKRTOS \
 -u _printf_float -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  -fno-stack-protector \
 -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)
 
-set(BOARD_NAME "$ENV{BOARD}")
+
 
 set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} <OBJECTS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> --start-group <LINK_LIBRARIES> --end-group -o <TARGET>" CACHE INTERNAL " " FORCE)
 set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_LINKER} <OBJECTS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> --start-group <LINK_LIBRARIES> --end-group -o <TARGET>" CACHE INTERNAL " " FORCE)
 
-set(ARCH ${MKRTOS_ARCH} CACHE STRING "" FORCE)
 
-
-message("board type:"${BOARD_NAME})
-message("CMAKE_C_FLAGS:"${CMAKE_C_FLAGS})
 

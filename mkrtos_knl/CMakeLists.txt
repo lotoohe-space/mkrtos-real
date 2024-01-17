@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Werror \
--DKNL_OFFSET=$ENV{KEN_OFFSET} \
--DINIT_OFFSET=$ENV{INIT_OFFSET} \
--DBOOTFS_ADDR_OFFSET=$ENV{BOOTFS_ADDR_OFFSET} \
 -DSMP=1 \
 -Wno-unused-parameter \
 -Wno-unused-function \
@@ -47,7 +44,7 @@ add_custom_target(
     ${CMAKE_C_COMPILER}
     # -DKNL_TEXT=$ENV{KNL_TEXT}
     -DKNL_DATA=$ENV{KNL_DATA}
-    -DKNL_OFFSET=$ENV{KEN_OFFSET}
+    -DKNL_OFFSET=${CONFIG_KNL_OFFSET}
     # -DKNL_DATA_SIZE=$ENV{KNL_DATA_SIZE}
     -include ${CMAKE_SOURCE_DIR}/build/autoconf.h
     -E -P -<${CMAKE_CURRENT_LIST_DIR}/stm32_link.lds.S> 

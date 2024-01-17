@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 file(GLOB deps *.c *.S)
 
 add_library(drv STATIC ${deps})
-if (${BOARD_NAME} STREQUAL "STM32F1x")
+if (${CONFIG_CPU_TYPE} STREQUAL "STM32F1x")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F10X_XL ")
     include_directories(
         ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/armv7m/stm32f1x
@@ -13,21 +13,24 @@ if (${BOARD_NAME} STREQUAL "STM32F1x")
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/CMSIS/CM3/CoreSupport
     )
     add_subdirectory(stm32f1x)
-elseif(${BOARD_NAME} STREQUAL "STM32F2x" )
+elseif(${CONFIG_CPU_TYPE} STREQUAL "stm32f2" )
     include_directories(
-        ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/armv7m/stm32f2x
+        ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/armv7m/stm32f2
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/STM32F2xx_StdPeriph_Driver/inc
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/CMSIS/Device/ST/STM32F2xx/Include
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/CMSIS/Include
     )
-    add_subdirectory(stm32f2x)
-elseif(${BOARD_NAME} STREQUAL "STM32F4x" )
+    add_subdirectory(stm32f2)
+elseif(${CONFIG_CPU_TYPE} STREQUAL "stm32f4" )
+    if(${BOARD_NAME} STREQUAL "STM32F407VET6" )
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F40_41xxx ")
+    endif()
     include_directories(
-        ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/armv7m/stm32f4x
+        ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/armv7m/${CONFIG_CPU_TYPE}
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Device/ST/STM32F4xx/Include
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/STM32F4xx_StdPeriph_Driver/inc
     )
-    add_subdirectory(stm32f4x)
+    add_subdirectory(${CONFIG_CPU_TYPE})
 endif()
 
 target_link_libraries(

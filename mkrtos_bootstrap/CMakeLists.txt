@@ -15,7 +15,7 @@ include_directories(${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/inc)
 
 file(GLOB deps *.c)
 
-if (${BOARD_NAME} STREQUAL "STM32F1x")
+if (${CONFIG_CPU_TYPE} STREQUAL "STM32F1x")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F10X_XL ")
     
     file(GLOB 
@@ -34,34 +34,36 @@ if (${BOARD_NAME} STREQUAL "STM32F1x")
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/CMSIS/CM3/CoreSupport
     )
     add_subdirectory(bsp/STM32F1x)
-elseif(${BOARD_NAME} STREQUAL "STM32F2x" )
+elseif(${CONFIG_CPU_TYPE} STREQUAL "stm32f2" )
 
     file(GLOB bsp_src ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/STM32F2xx_StdPeriph_Driver/src/*.c)
     list(APPEND deps ${bsp_src})
     include_directories(
-        ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/STM32F2x
+        ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/STM32F2
 
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/STM32F2xx_StdPeriph_Driver/inc
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/CMSIS/Include
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/CMSIS/Device/ST/STM32F2xx/Include
     )
-    add_subdirectory(bsp/STM32F2x)
-elseif(${BOARD_NAME} STREQUAL "STM32F4x" )
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F40_41xxx ")
+    add_subdirectory(bsp/STM32F2)
+elseif(${CONFIG_CPU_TYPE} STREQUAL "stm32f4" )
+    if(${BOARD_NAME} STREQUAL "STM32F407VET6" )
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F40_41xxx ")
+    endif()
 
     file(GLOB bsp_src ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/STM32F4xx_StdPeriph_Driver/src/*.c)
     list(APPEND deps ${bsp_src})
 
     list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_fmc.c)
     include_directories(
-        ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/STM32F4x
+        ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/STM32F4
 
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/STM32F4xx_StdPeriph_Driver/inc
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Include
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Device/ST/STM32F4xx/Include
     )
-    add_subdirectory(bsp/STM32F4x)
-elseif(${BOARD_NAME} STREQUAL "Cortex-R52" )
+    add_subdirectory(bsp/STM32F4)
+elseif(${CONFIG_CPU_TYPE} STREQUAL "Cortex-R52" )
     include_directories(
         ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/Cortex-R52
 
@@ -74,7 +76,7 @@ add_executable(bootstrap.elf
 )
 
 set_target_properties(bootstrap.elf PROPERTIES LINK_FLAGS 
-"-T ${CMAKE_CURRENT_LIST_DIR}/bsp/${BOARD_NAME}/link.lds --gc-section ")
+"-T ${CMAKE_CURRENT_LIST_DIR}/bsp/${CONFIG_CPU_TYPE}/link.lds --gc-section ")
 
 
 

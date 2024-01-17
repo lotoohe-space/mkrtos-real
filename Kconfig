@@ -1,8 +1,17 @@
 mainmenu "MKRTOS Project Configuration"
 source "mkrtos_knl/Kconfig"
 source "mkrtos_user/Kconfig"
+
+config CPU_TYPE
+    string "mkrtos set cpu type."
+    default "stm32f1"
+
+config ARCH
+    string "cpu arch"
+    default "cortex-m3"
+
 config RTT_DIR
-    string
+    string ""
     default "./"
 
 

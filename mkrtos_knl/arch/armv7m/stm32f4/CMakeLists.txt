@@ -20,7 +20,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Device/ST/STM32F4xx/Include
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/STM32F4xx_StdPeriph_Driver/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Include
-    ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/STM32F4x
+    ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/STM32F4
 
 
 )

@@ -113,7 +113,7 @@ static void knl_init_2(void)
     init_task = task_create(&root_factory_get()->limit, FALSE);
     assert(init_task);
 
-    app_info_t *app = app_info_get((void *)(CONFIG_KNL_TEXT_ADDR + INIT_OFFSET));
+    app_info_t *app = app_info_get((void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET));
     // 申请init的ram内存
     assert(task_alloc_base_ram(init_task, &root_factory_get()->limit, app->i.ram_size + THREAD_MSG_BUG_LEN) >= 0);
     void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
@@ -121,7 +121,7 @@ static void knl_init_2(void)
 
     thread_set_msg_bug(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
     thread_bind(init_thread, &init_task->kobj);
-    thread_user_pf_set(init_thread, (void *)(CONFIG_KNL_TEXT_ADDR + INIT_OFFSET), (void *)((umword_t)sp_addr_top - 8),
+    thread_user_pf_set(init_thread, (void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET), (void *)((umword_t)sp_addr_top - 8),
                        init_task->mm_space.mm_block, 0);
     assert(obj_map_root(&init_thread->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, THREAD_PROT)));
     assert(obj_map_root(&init_task->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, TASK_PROT)));

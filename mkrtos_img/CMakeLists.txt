@@ -9,9 +9,9 @@ add_custom_target(
     COMMAND
     srec_cat -output ${CMAKE_SOURCE_DIR}/build/output/kernel.img -binary
         ${CMAKE_SOURCE_DIR}/build/output/bootstrap -binary -offset 0x0
-        ${CMAKE_SOURCE_DIR}/build/output/mkrtos -binary -offset $ENV{KEN_OFFSET}
-        ${CMAKE_SOURCE_DIR}/build/output/init -binary -offset $ENV{INIT_OFFSET}
-        ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio -binary -offset $ENV{BOOTFS_ADDR_OFFSET}
+        ${CMAKE_SOURCE_DIR}/build/output/mkrtos -binary -offset ${CONFIG_KNL_OFFSET}
+        ${CMAKE_SOURCE_DIR}/build/output/init -binary -offset ${CONFIG_INIT_TASK_OFFSET}
+        ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio -binary -offset ${CONFIG_BOOTFS_OFFSET}
     COMMAND
     ${CMAKE_OBJCOPY} -I binary -O elf32-littlearm -B arm ${CMAKE_SOURCE_DIR}/build/output/kernel.img 
     ${CMAKE_SOURCE_DIR}/build/output/kernel.img.out --rename-section .data=.text 

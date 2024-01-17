@@ -11,7 +11,6 @@ export KNL_DATA=0x20000000
 export CPU_TYPE=STM32
 export BOARD=STM32F1x
 export ARCH=cortex-m3
-export PYTHON_EXECUTABLE=python3
 
 set -e
 cmake -G Ninja -B build/$KNL .

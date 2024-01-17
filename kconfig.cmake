@@ -1,8 +1,7 @@
 
-set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
 
 message(
-  ${PYTHON_EXECUTABLE} "\n"
+  python3 "\n"
   ${CMAKE_SOURCE_DIR}/mkrtos_tool/kconfig/kconfig.py "\n"
   ${CMAKE_SOURCE_DIR}/Kconfig "\n"
   ${CMAKE_SOURCE_DIR}/build/auto.conf "\n"
@@ -13,7 +12,7 @@ message(
 
 execute_process(
   COMMAND
-  ${PYTHON_EXECUTABLE} 
+  python3 
   ${CMAKE_SOURCE_DIR}/mkrtos_tool/kconfig/kconfig.py
   ${CMAKE_SOURCE_DIR}/Kconfig 
   ${CMAKE_SOURCE_DIR}/build/auto.conf 
