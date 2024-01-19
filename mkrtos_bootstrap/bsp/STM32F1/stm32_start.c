@@ -39,13 +39,14 @@ void jump2kernel(void)
         __set_FAULTMASK(0);
 
         /* initialize main stack pointer */
-        __set_MSP(*(__IO uint32_t *)KERNEL_IMG_START_ADDR);
+       
         __set_CONTROL(0);
 
         __ISB();
 
         __disable_irq();
 
+        //  __set_MSP(*(__IO uint32_t *)KERNEL_IMG_START_ADDR);
         /* Set new vector table pointer */
         jump_addr = *(__IO uint32_t *)(KERNEL_IMG_START_ADDR + 4);
         _main = (void *)jump_addr;
