@@ -5,7 +5,7 @@ mach create $name
 
 machine LoadPlatformDescription $ORIGIN/stm32f103z.repl
 
-showAnalyzer usart1
+showAnalyzer usart2
 $boot?=@/Users/zhangzheng/mkrtos-real/build/output/bootstrap.elf
 $knl?=@/Users/zhangzheng/mkrtos-real/build/output/mkrtos
 $init?=@/Users/zhangzheng/mkrtos-real/build/output/init

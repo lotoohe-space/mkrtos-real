@@ -82,7 +82,8 @@ int __clock_gettime(clockid_t clk, struct timespec *ts)
 	if (SYS_clock_gettime == SYS_clock_gettime64 || r!=-ENOSYS)
 		return __syscall_ret(r);
 	long ts32[2];
-	r = __syscall(SYS_clock_gettime, clk, ts32);
+	// r = __syscall(SYS_clock_gettime, clk, ts32);
+	r = be_clock_gettime(clk, ts32);
 #ifdef SYS_gettimeofday
 	if (r==-ENOSYS && clk==CLOCK_REALTIME) {
 		r = __syscall(SYS_gettimeofday, ts32, 0);
@@ -96,7 +97,8 @@ int __clock_gettime(clockid_t clk, struct timespec *ts)
 	}
 	return __syscall_ret(r);
 #else
-	r = __syscall(SYS_clock_gettime, clk, ts);
+	// r = __syscall(SYS_clock_gettime, clk, ts);
+	r = be_clock_gettime(clk, ts);
 #ifdef SYS_gettimeofday
 	if (r == -ENOSYS) {
 		if (clk == CLOCK_REALTIME) {

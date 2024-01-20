@@ -136,16 +136,16 @@ SECTIONS
   } >RAM
 
 /* external sram data, do not initialize at startup  */
-  .ext_sram(NOLOAD) :
+  /* .ext_sram(NOLOAD) :
   {
     . = ALIGN(4);
-    _sext_sram = .;        /* create a global symbol at ext_sram start */
+    _sext_sram = .;       
     *(.ext_sram)
     *(.ext_sram*)
 
     . = ALIGN(4);
-    _eext_sram = .;        /* define a global symbol at ext_sram end */
-  } >RAM1 AT> FLASH
+    _eext_sram = .;    
+  } >RAM1 AT> FLASH */
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }

@@ -60,6 +60,10 @@ static void mem_sys_init(void)
 {
     void *mem_block_data;
     mem_init(&global_mem);
+
+#if CONFIG_KNL_EXRAM
+    mem_heap_add(mm_get_global(), (void *)CONFIG_EX_RAM_ADDR, CONFIG_EX_RAM_SIZE);
+#endif
     mem_heap_add(mm_get_global(), (void *)_ebss, CONFIG_KNL_DATA_SIZE - ((umword_t)_ebss - (umword_t)_sdata));
 }
 INIT_MEM(mem_sys_init);

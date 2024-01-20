@@ -34,7 +34,7 @@ static void mem_merge(mem_t *_this, struct mem_heap *mem)
 
     prev_mem = t_mem->prev;
 
-    while (prev_mem && prev_mem->used == 0)
+    while (prev_mem && prev_mem->used == 0 && ((char *)prev_mem + prev_mem->size + MEM_HEAP_STRUCT_SIZE) == (char *)t_mem)
     {
         prev_mem->size += t_mem->size + MEM_HEAP_STRUCT_SIZE;
         prev_mem->next = t_mem->next;
@@ -55,7 +55,7 @@ static void mem_merge(mem_t *_this, struct mem_heap *mem)
         {
             break;
         }
-        if (next_mem->used == 0)
+        if (next_mem->used == 0 && ((char *)t_mem + t_mem->size + MEM_HEAP_STRUCT_SIZE) == (char *)next_mem)
         {
             t_mem->size += next_mem->size + MEM_HEAP_STRUCT_SIZE;
             t_mem->next = next_mem->next;
@@ -95,7 +95,7 @@ void mem_free(mem_t *_this, void *mem)
     mem_merge(_this, m_mem);
     spinlock_set(&_this->lock, status);
     // #if MEM_TRACE
-    mem_trace(_this);
+    // mem_trace(_this);
     // #endif
 }
 /**
@@ -128,7 +128,7 @@ void *mem_split(mem_t *_this, void *mem, uint32_t size)
     t_mem->used = 1;
     t_mem->size = size - MEM_HEAP_STRUCT_SIZE;
     spinlock_set(&_this->lock, status);
-mem_trace(_this);
+    // mem_trace(_this);
 
     return (void *)((ptr_t)r_mem + MEM_HEAP_STRUCT_SIZE);
 }
@@ -249,14 +249,14 @@ void *mem_alloc(mem_t *_this, uint32_t size)
                 mem->next->prev = mem_temp;
                 mem->next = mem_temp;
                 spinlock_set(&_this->lock, status);
-mem_trace(_this);
+                // mem_trace(_this);
                 return (void *)((ptr_t)mem + MEM_HEAP_STRUCT_SIZE);
             }
             else
             {
                 mem->used = 1;
                 spinlock_set(&_this->lock, status);
-mem_trace(_this);
+                // mem_trace(_this);
                 return (void *)((ptr_t)mem + MEM_HEAP_STRUCT_SIZE);
             }
         }

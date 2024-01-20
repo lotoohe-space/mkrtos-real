@@ -1,12 +1,19 @@
 
 #include <mk_sys.h>
+#include "sram.h"
 //! 内核镜像的开始地址
-#define KERNEL_IMG_START_ADDR (0X8000000 + 0x2000)
+#define KERNEL_IMG_START_ADDR (CONFIG_KNL_TEXT_ADDR + CONFIG_KNL_OFFSET)
 uint32_t jump_addr;
 void (*_main)(void);
+
+void sram_init(void)
+{
+    FSMC_SRAM_Init();
+}
 void jump2kernel(void)
 {
-
+    sram_init();
+    // sram_test();
     if (((*(__IO uint32_t *)KERNEL_IMG_START_ADDR) & 0x2FFE0000) == 0x20000000) // 检查栈顶地址是否合法,即检查此段Flash中是否已有APP程序
     {
         __set_PRIMASK(1);
@@ -39,7 +46,7 @@ void jump2kernel(void)
         __set_FAULTMASK(0);
 
         /* initialize main stack pointer */
-       
+
         __set_CONTROL(0);
 
         __ISB();

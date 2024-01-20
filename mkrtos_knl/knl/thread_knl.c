@@ -36,7 +36,7 @@ static void knl_main(void)
 {
     umword_t status;
     umword_t status2;
-    printk("knl main run..\n");
+    // printk("knl main run..\n");
     while (1)
     {
         task_t *pos;

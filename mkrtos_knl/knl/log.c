@@ -48,13 +48,17 @@ static void log_reg(void)
     log.kobj.kobj.stage_2_func = kobject_release_stage2;
     log.kobj.kobj.put_func = kobject_put;
     global_reg_kobj(&log.kobj.kobj, LOG_PROT);
-    irq_alloc(37 /*USART1_IRQn*/, &log.kobj, log_trigger);
+    irq_alloc(38 /*USART1_IRQn*/, &log.kobj, log_trigger);
 }
 INIT_KOBJ(log_reg);
 static msg_tag_t log_write_data(log_t *log, const char *data, int len)
 {
     for (int i = 0; i < len && data[i]; i++)
     {
+        if (data[i] == '\n')
+        {
+            putc('\r');
+        }
         putc(data[i]);
     }
     return msg_tag_init(0);

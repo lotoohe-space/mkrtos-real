@@ -67,8 +67,10 @@ void NMI_Handler(void)
  */
 void HardFault_Handler(void)
 {
+  bool_t is_knl = is_run_knl();
+
   printk("%s\n", __FUNCTION__);
-  task_knl_kill(thread_get_current(), is_run_knl());
+  task_knl_kill(thread_get_current(), is_knl);
 }
 
 /**
@@ -143,9 +145,10 @@ end:
  */
 void BusFault_Handler(void)
 {
+  bool_t is_knl = is_run_knl();
 
   printk("%s\n", __FUNCTION__);
-  task_knl_kill(thread_get_current(), is_run_knl());
+  task_knl_kill(thread_get_current(), is_knl);
 }
 
 /**
@@ -155,6 +158,7 @@ void BusFault_Handler(void)
  */
 void UsageFault_Handler(void)
 {
+  bool_t is_knl = is_run_knl();
   printk("%s\n", __FUNCTION__);
   if (SCB->CFSR & (1 << 16))
   {
@@ -180,7 +184,7 @@ void UsageFault_Handler(void)
   {
     printk("Division by zero error\n");
   }
-  task_knl_kill(thread_get_current(), is_run_knl());
+  task_knl_kill(thread_get_current(), is_knl);
 }
 
 /**
