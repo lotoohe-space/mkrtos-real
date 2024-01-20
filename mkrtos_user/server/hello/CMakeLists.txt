@@ -11,7 +11,7 @@ add_executable(hello.elf
 )
 target_link_libraries(hello.elf
     PUBLIC
-    start
+    start_tiny
     muslc
     sys
     sys_util
