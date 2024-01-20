@@ -48,15 +48,41 @@
 #include "lwip/dhcp.h"
 #include "ethernetif.h"
 #include "lwip/netif.h"
-#include "stm32f4x7_eth.h"
-// #include "stm32f4x7_eth_bsp.h"
 #include <stdio.h>
 #include "cons_cli.h"
 #include "ethernetif.h"
+#include "dm9000.h"
+#include <pthread.h>
+#include <semaphore.h>
 /* Private typedef -----------------------------------------------------------*/
 #define MAX_DHCP_TRIES 4
 struct netif gnetif;
 uint32_t IPaddress = 0;
+
+#define DEST_IP_ADDR0 192
+#define DEST_IP_ADDR1 168
+#define DEST_IP_ADDR2 2
+#define DEST_IP_ADDR3 20
+
+#define DEST_PORT 77
+
+/*Static IP ADDRESS: IP_ADDR0.IP_ADDR1.IP_ADDR2.IP_ADDR3 */
+#define IP_ADDR0 192
+#define IP_ADDR1 168
+#define IP_ADDR2 3
+#define IP_ADDR3 10
+
+/*NETMASK*/
+#define NETMASK_ADDR0 255
+#define NETMASK_ADDR1 255
+#define NETMASK_ADDR2 255
+#define NETMASK_ADDR3 0
+
+/*Gateway Address*/
+#define GW_ADDR0 192
+#define GW_ADDR1 168
+#define GW_ADDR2 3
+#define GW_ADDR3 1
 
 #ifdef USE_DHCP
 uint32_t DHCPfineTimer = 0;
@@ -85,10 +111,11 @@ void net_init(void)
     IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2, NETMASK_ADDR3);
     IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
 
-    // printf("ip:%d.%d.%d.%d", IP_ADDR3, IP_ADDR2, IP_ADDR1, IP_ADDR0);
+    printf("ip:%d.%d.%d.%d\n", IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
+    printf("netmask:%d.%d.%d.\n", NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2, NETMASK_ADDR3);
+    printf("gw:%d.%d.%d.%d\n", GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
 #endif
     tcpip_init(NULL, NULL);
-    cons_write_str("tcpip init success.\n");
     /* - netif_add(struct netif *netif, struct ip_addr *ipaddr,
               struct ip_addr *netmask, struct ip_addr *gw,
               void *state, err_t (* init)(struct netif *netif),
@@ -148,7 +175,8 @@ void net_init(void)
     // netif_set_link_callback(&gnetif, ETH_link_callback);
     sys_unlock_tcpip_core();
 }
-void ethernetif_input(void *pvParameters);
+err_t ethernetif_input(struct netif *netif);
+
 // 用于以太网中断调用
 void lwip_pkt_handle(void)
 {

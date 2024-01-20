@@ -530,7 +530,7 @@ static void futex_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_ta
         int tid = msg->msg_buf[6];
 
         ret = futex_dispose(futex, uaddr, futex_op, val, timeout, uaddr2, val3, tid);
-        msg_tag_init4(0, 0, 0, ret);
+        tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
     }

@@ -31,6 +31,18 @@ if KNL_INFO
     config BOOTFS_OFFSET
         hex "bootfs offset"
         default 0x20000
+menuconfig KNL_EXRAM
+    bool "knl sram support"
+    default n
+if KNL_EXRAM
+    config EX_RAM_ADDR
+        hex "sram start addr."
+        default 0x68000000
+    
+    config EX_RAM_SIZE
+        hex "sram size"
+        default 0x100000
+endif
 endif
 config MK_MPU_CFG
     bool "MKRTOS MPU config"

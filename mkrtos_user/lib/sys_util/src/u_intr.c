@@ -33,18 +33,20 @@ int u_intr_bind(int irq_no, u_irq_prio_t prio, int th_prio,
         handler_free_umap(irq_obj);
         return msg_tag_get_val(tag);
     }
-
-    ret = u_thread_create(&th_hd, (char *)stack, msg_buf, thread_func);
-
-    if (ret < 0)
+    if (thread_func)
     {
-        handler_free_umap(irq_obj);
-        return ret;
+        ret = u_thread_create(&th_hd, (char *)stack, msg_buf, thread_func);
+
+        if (ret < 0)
+        {
+            handler_free_umap(irq_obj);
+            return ret;
+        }
+        u_thread_run(th_hd, th_prio);
     }
     if (irq)
     {
         *irq = irq_obj;
     }
-    u_thread_run(th_hd, th_prio);
     return ret;
 }

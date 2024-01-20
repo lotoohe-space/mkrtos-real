@@ -30,13 +30,13 @@ static void uart_set_baud(USART_TypeDef *USARTx, uint32_t baud)
     uint32_t tmpreg = 0x00, apbclock = 0x00;
     RCC_ClocksTypeDef RCC_ClocksStatus;
 
-    tmpreg = USART1->BRR;
+    tmpreg = USART2->BRR;
     uint32_t integerdivider = 0x00;
     uint32_t fractionaldivider = 0x00;
 
     RCC_GetClocksFreq(&RCC_ClocksStatus);
 
-    if ((USARTx == USART1))
+    if ((USARTx == USART2))
     {
         apbclock = RCC_ClocksStatus.PCLK2_Frequency;
     }
@@ -136,17 +136,17 @@ static queue_t queue;
 static uint8_t queue_data[QUEUE_LEN];
 void uart_tigger(irq_entry_t *irq)
 {
-    if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+    if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
     {
 
-        q_enqueue(&queue, USART_ReceiveData(USART1));
+        q_enqueue(&queue, USART_ReceiveData(USART2));
 
         if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
         {
             thread_ready(irq->irq->wait_thread, TRUE);
         }
         // 清除中断标志位
-        USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+        USART_ClearITPendingBit(USART2, USART_IT_RXNE);
     }
 }
 
@@ -159,21 +159,21 @@ void uart_init(void)
     USART_InitTypeDef USART_InitStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE); // 使能USART1，GPIOA时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE); // 使能USART1，GPIOA时钟
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE); // 使能USART1，GPIOA时钟
 
-    // USART1_TX   GPIOA.9
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9; // PA.9
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 ;  			// GPIOA-PIN_2  USART2-TX
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;         // 复用推挽输出模式
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP; // 复用推挽输出
-    GPIO_Init(GPIOA, &GPIO_InitStructure);          // 初始化GPIOA.9
+    GPIO_Init(GPIOA,&GPIO_InitStructure);
 
-    // USART1_RX	  GPIOA.10初始化
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;            // PA10
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; // 浮空输入
-    GPIO_Init(GPIOA, &GPIO_InitStructure);                // 初始化GPIOA.10
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;				// GPIOA-PIN_3  USART2-RX
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;	// 浮空输入
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOA,&GPIO_InitStructure);
 
     // Usart1 NVIC 配置
-    NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0; // 抢占优先级3
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;        // 子优先级3
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;           // IRQ通道使能
@@ -188,23 +188,23 @@ void uart_init(void)
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None; // 无硬件数据流控制
     USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;                 // 收发模式
 
-    USART_Init(USART1, &USART_InitStructure);      // 初始化串口1
-    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE); // 开启串口接受中断
-    USART_Cmd(USART1, ENABLE);                     // 使能串口1
+    USART_Init(USART2, &USART_InitStructure);      // 初始化串口1
+    USART_ITConfig(USART2, USART_IT_RXNE, ENABLE); // 开启串口接受中断
+    USART_Cmd(USART2, ENABLE);                     // 使能串口1
 }
 INIT_HIGH_HAD(uart_init);
 
 void uart_set(uart_t *uart)
 {
-    uart_set_baud(USART1, uart->baud);
-    // uart_set_parity(USART1, uart->parity);
+    uart_set_baud(USART2, uart->baud);
+    // uart_set_parity(USART2, uart->parity);
 }
 void uart_putc(uart_t *uart, int data)
 {
-    USART_SendData(USART1, (uint8_t)data);
+    USART_SendData(USART2, (uint8_t)data);
 
     /* Loop until the end of transmission */
-    while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
+    while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET)
         ;
 }
 int uart_getc(uart_t *uart)

@@ -142,7 +142,7 @@ again_alloc:
     {
         cpulock_set(status);
         printk("The system is low on memory.\n");
-        mm_trace();
+        // mm_trace();
         return NULL;
     }
 

@@ -286,7 +286,12 @@
         "etharp.h": "c",
         "pbuf.h": "c",
         "stm32f4x7_eth.h": "c",
-        "lan8270.h": "c"
+        "lan8270.h": "c",
+        "dm9000.h": "c",
+        "mk_sys.h": "c",
+        "sram.h": "c",
+        "semaphore.h": "c",
+        "libc.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

@@ -15,5 +15,10 @@ int u_drv_init(void)
     {
         return msg_tag_get_val(tag);
     }
+    tag = mm_align_alloc(MM_PROT, (void *)0x64000000, 0x1000000);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        return msg_tag_get_val(tag);
+    }
     return 0;
 }

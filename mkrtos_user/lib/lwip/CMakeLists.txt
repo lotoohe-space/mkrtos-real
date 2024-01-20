@@ -8,6 +8,8 @@ file(GLOB
   ${CMAKE_CURRENT_LIST_DIR}/src/core/ipv4/*.c
   ${CMAKE_CURRENT_LIST_DIR}/src/netif/ethernet.c
   ${CMAKE_CURRENT_LIST_DIR}/contrib/ports/mkrtos/*.c
+
+  ${CMAKE_CURRENT_LIST_DIR}/src/apps/lwiperf/lwiperf.c
 )
 message("lwip:${deps}")
 add_library(

@@ -1,434 +1,106 @@
 /**
- * @file
+ ******************************************************************************
+ * @file    lwipopts.h
+ * @author  MCD Application Team
+ * @version V1.1.0
+ * @date    31-July-2013
+ * @brief   lwIP Options Configuration.
+ *          This file is based on Utilities\lwip_v1.4.1\src\include\lwip\opt.h
+ *          and contains the lwIP configuration for the STM32F4x7 demonstration.
+ ******************************************************************************
+ * @attention
  *
- * lwIP Options Configuration
- */
-
-/*
- * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
- * All rights reserved.
+ * <h2><center>&copy; COPYRIGHT 2013 STMicroelectronics</center></h2>
  *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
+ * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission.
+ *        http://www.st.com/software_license_agreement_liberty_v2
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- * This file is part of the lwIP TCP/IP stack.
- *
- * Author: Adam Dunkels <adam@sics.se>
- *
+ ******************************************************************************
  */
-#ifndef LWIP_LWIPOPTS_H
-#define LWIP_LWIPOPTS_H
 
-/*
- * Include user defined options first. Anything not defined in these files
- * will be set to standard values. Override anything you don't like!
- */
-#include "lwipopts.h"
-#include "lwip/debug.h"
 
-/*
-   -----------------------------------------------
-   ---------- Platform specific locking ----------
-   -----------------------------------------------
-*/
+///************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+#ifndef __LWIPOPTS_H__
+#define __LWIPOPTS_H__
 
-/**
- * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
- * critical regions during buffer allocation, deallocation and memory
- * allocation and deallocation.
- */
-#define SYS_LIGHTWEIGHT_PROT 0
+#define SYS_LIGHTWEIGHT_PROT 1    // 为1时使用实时操作系统的轻量级保护,保护关键代码不被中断打断
+#define NO_SYS 0                  // 使用UCOS操作系统
+#define MEM_ALIGNMENT 4           // 使用4字节对齐模式
+#define MEM_SIZE (8 * 1024)       // 内存堆heap大小
+#define MEMP_NUM_PBUF 16          // MEMP_NUM_PBUF:memp结构的pbuf数量,如果应用从ROM或者静态存储区发送大量数据时,这个值应该设置大一点
+#define MEMP_NUM_UDP_PCB 4        // MEMP_NUM_UDP_PCB:UDP协议控制块(PCB)数量.每个活动的UDP"连接"需要一个PCB.
+#define MEMP_NUM_TCP_PCB 4        // MEMP_NUM_TCP_PCB:同时建立激活的TCP数量
+#define MEMP_NUM_TCP_PCB_LISTEN 4 // MEMP_NUM_TCP_PCB_LISTEN:能够监听的TCP连接数量
+#define MEMP_NUM_TCP_SEG 64       // MEMP_NUM_TCP_SEG:最多同时在队列中的TCP段数量
+#define MEMP_NUM_SYS_TIMEOUT 4    // MEMP_NUM_SYS_TIMEOUT:能够同时激活的timeout个数
 
-/**
- * NO_SYS==1: Provides VERY minimal functionality. Otherwise,
- * use lwIP facilities.
- */
-#define NO_SYS 0
+// pbuf选项
+#define PBUF_POOL_SIZE 32     // PBUF_POOL_SIZE:pbuf内存池个数
+#define PBUF_POOL_BUFSIZE 1600 // PBUF_POOL_BUFSIZE:每个pbuf内存池大小
 
-/*
-   ------------------------------------
-   ---------- Memory options ----------
-   ------------------------------------
-*/
+#define LWIP_TCP 1  // 使用TCP
+#define TCP_TTL 255 // 生存时间
 
-/**
- * MEM_ALIGNMENT: should be set to the alignment of the CPU
- *    4 byte alignment -> #define MEM_ALIGNMENT 4
- *    2 byte alignment -> #define MEM_ALIGNMENT 2
- */
-#define MEM_ALIGNMENT 1U
+#undef TCP_QUEUE_OOSEQ
+#define TCP_QUEUE_OOSEQ 0 // 当TCP的数据段超出队列时的控制位,当设备的内存过小的时候此项应为0
 
-/**
- * MEM_SIZE: the size of the heap memory. If the application will send
- * a lot of data that needs to be copied, this should be set high.
- */
-#define MEM_SIZE 1600
+#undef TCPIP_MBOX_SIZE
+#define TCPIP_MBOX_SIZE 32 // tcpip创建主线程时的消息邮箱大小
 
-/*
-   ------------------------------------------------
-   ---------- Internal Memory Pool Sizes ----------
-   ------------------------------------------------
-*/
-/**
- * MEMP_NUM_PBUF: the number of memp struct pbufs (used for PBUF_ROM and PBUF_REF).
- * If the application sends a lot of data out of ROM (or other static memory),
- * this should be set high.
- */
-#define MEMP_NUM_PBUF 16
+#undef DEFAULT_TCP_RECVMBOX_SIZE
+#define DEFAULT_TCP_RECVMBOX_SIZE 32
 
-/**
- * MEMP_NUM_RAW_PCB: Number of raw connection PCBs
- * (requires the LWIP_RAW option)
- */
-#define MEMP_NUM_RAW_PCB 4
+#undef DEFAULT_ACCEPTMBOX_SIZE
+#define DEFAULT_ACCEPTMBOX_SIZE 32
 
-/**
- * MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
- * per active UDP "connection".
- * (requires the LWIP_UDP option)
- */
-#define MEMP_NUM_UDP_PCB 2
-
-/**
- * MEMP_NUM_TCP_PCB: the number of simulatenously active TCP connections.
- * (requires the LWIP_TCP option)
- */
-#define MEMP_NUM_TCP_PCB 2
-
-/**
- * MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP connections.
- * (requires the LWIP_TCP option)
- */
-#define MEMP_NUM_TCP_PCB_LISTEN 4
-
-/**
- * MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP segments.
- * (requires the LWIP_TCP option)
- */
-#define MEMP_NUM_TCP_SEG 16
-
-/**
- * MEMP_NUM_REASSDATA: the number of simultaneously IP packets queued for
- * reassembly (whole packets, not fragments!)
- */
-#define MEMP_NUM_REASSDATA 1
-
-/**
- * MEMP_NUM_ARP_QUEUE: the number of simulateously queued outgoing
- * packets (pbufs) that are waiting for an ARP request (to resolve
- * their destination address) to finish.
- * (requires the ARP_QUEUEING option)
- */
-#define MEMP_NUM_ARP_QUEUE 2
-
-/**
- * MEMP_NUM_SYS_TIMEOUT: the number of simulateously active timeouts.
- * (requires NO_SYS==0)
- */
-#define MEMP_NUM_SYS_TIMEOUT 8
-
-/**
- * MEMP_NUM_NETBUF: the number of struct netbufs.
- * (only needed if you use the sequential API, like api_lib.c)
- */
-#define MEMP_NUM_NETBUF 2
-
-/**
- * MEMP_NUM_NETCONN: the number of struct netconns.
- * (only needed if you use the sequential API, like api_lib.c)
- */
-#define MEMP_NUM_NETCONN 16
-
-/**
- * MEMP_NUM_TCPIP_MSG_API: the number of struct tcpip_msg, which are used
- * for callback/timeout API communication.
- * (only needed if you use tcpip.c)
- */
-#define MEMP_NUM_TCPIP_MSG_API 8
-
-/**
- * MEMP_NUM_TCPIP_MSG_INPKT: the number of struct tcpip_msg, which are used
- * for incoming packets.
- * (only needed if you use tcpip.c)
- */
-#define MEMP_NUM_TCPIP_MSG_INPKT 8
-
-/**
- * PBUF_POOL_SIZE: the number of buffers in the pbuf pool.
- */
-#define PBUF_POOL_SIZE 8
-
-/*
-   ---------------------------------
-   ---------- ARP options ----------
-   ---------------------------------
-*/
-/**
- * LWIP_ARP==1: Enable ARP functionality.
- */
-#define LWIP_ARP 1
-
-/*
-   --------------------------------
-   ---------- IP options ----------
-   --------------------------------
-*/
-/**
- * IP_FORWARD==1: Enables the ability to forward IP packets across network
- * interfaces. If you are going to run lwIP on a device with only one network
- * interface, define this to 0.
- */
-#define IP_FORWARD 0
-
-/**
- * IP_OPTIONS: Defines the behavior for IP options.
- *      IP_OPTIONS_ALLOWED==0: All packets with IP options are dropped.
- *      IP_OPTIONS_ALLOWED==1: IP options are allowed (but not parsed).
- */
-#define IP_OPTIONS_ALLOWED 1
-
-/**
- * IP_REASSEMBLY==1: Reassemble incoming fragmented IP packets. Note that
- * this option does not affect outgoing packet sizes, which can be controlled
- * via IP_FRAG.
- */
-#define IP_REASSEMBLY 1
-
-/**
- * IP_FRAG==1: Fragment outgoing IP packets if their size exceeds MTU. Note
- * that this option does not affect incoming packet sizes, which can be
- * controlled via IP_REASSEMBLY.
- */
-#define IP_FRAG 1
-
-/**
- * IP_REASS_MAXAGE: Maximum time (in multiples of IP_TMR_INTERVAL - so seconds, normally)
- * a fragmented IP packet waits for all fragments to arrive. If not all fragments arrived
- * in this time, the whole packet is discarded.
- */
-#define IP_REASS_MAXAGE 3
-
-/**
- * IP_REASS_MAX_PBUFS: Total maximum amount of pbufs waiting to be reassembled.
- * Since the received pbufs are enqueued, be sure to configure
- * PBUF_POOL_SIZE > IP_REASS_MAX_PBUFS so that the stack is still able to receive
- * packets even if the maximum amount of fragments is enqueued for reassembly!
- */
-#define IP_REASS_MAX_PBUFS 4
-
-/**
- * IP_FRAG_USES_STATIC_BUF==1: Use a static MTU-sized buffer for IP
- * fragmentation. Otherwise pbufs are allocated and reference the original
- * packet data to be fragmented.
- */
-#define IP_FRAG_USES_STATIC_BUF 0
-
-/**
- * IP_DEFAULT_TTL: Default value for Time-To-Live used by transport layers.
- */
-#define IP_DEFAULT_TTL 255
-
-/*
-   ----------------------------------
-   ---------- ICMP options ----------
-   ----------------------------------
-*/
-/**
- * LWIP_ICMP==1: Enable ICMP module inside the IP stack.
- * Be careful, disable that make your product non-compliant to RFC1122
- */
-#define LWIP_ICMP 1
-
-/*
-   ---------------------------------
-   ---------- RAW options ----------
-   ---------------------------------
-*/
-
-/*
-   ----------------------------------
-   ---------- DHCP options ----------
-   ----------------------------------
-*/
-/**
- * LWIP_DHCP==1: Enable DHCP module.
- */
-#define LWIP_DHCP 0
-
-/*
-   ------------------------------------
-   ---------- AUTOIP options ----------
-   ------------------------------------
-*/
-/**
- * LWIP_AUTOIP==1: Enable AUTOIP module.
- */
-#define LWIP_AUTOIP 0
-
-/*
-   ----------------------------------
-   ---------- SNMP options ----------
-   ----------------------------------
-*/
-/**
- * LWIP_SNMP==1: Turn on SNMP module. UDP must be available for SNMP
- * transport.
- */
-#define LWIP_SNMP 0
-
-/*
-   ----------------------------------
-   ---------- DNS options -----------
-   ----------------------------------
-*/
-/**
- * LWIP_DNS==1: Turn on DNS module. UDP must be available for DNS
- * transport.
- */
-#define LWIP_DNS 0
-
-/*
-   ---------------------------------
-   ---------- UDP options ----------
-   ---------------------------------
-*/
-/**
- * LWIP_UDP==1: Turn on UDP.
- */
-#define LWIP_UDP 1
-
-/*
-   ---------------------------------
-   ---------- TCP options ----------
-   ---------------------------------
-*/
-/**
- * LWIP_TCP==1: Turn on TCP.
- */
-#define LWIP_TCP 1
-
-#define LWIP_LISTEN_BACKLOG 0
-
-/*
-   ----------------------------------
-   ---------- Pbuf options ----------
-   ----------------------------------
-*/
-/**
- * PBUF_LINK_HLEN: the number of bytes that should be allocated for a
- * link level header. The default is 14, the standard value for
- * Ethernet.
- */
-#define PBUF_LINK_HLEN 16
-
-/**
- * PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. The default is
- * designed to accommodate single full size TCP frame in one pbuf, including
- * TCP_MSS, IP header, and link header.
- *
- */
-#define PBUF_POOL_BUFSIZE LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + PBUF_LINK_HLEN)
-
-/*
-   ------------------------------------
-   ---------- LOOPIF options ----------
-   ------------------------------------
-*/
-/**
- * LWIP_HAVE_LOOPIF==1: Support loop interface (127.0.0.1) and loopif.c
- */
-#define LWIP_HAVE_LOOPIF 0
-
-/*
-   ----------------------------------------------
-   ---------- Sequential layer options ----------
-   ----------------------------------------------
-*/
-
-/**
- * LWIP_NETCONN==1: Enable Netconn API (require to use api_lib.c)
- */
-#define LWIP_NETCONN 0
-
-/*
-   ------------------------------------
-   ---------- Socket options ----------
-   ------------------------------------
-*/
-/**
- * LWIP_SOCKET==1: Enable Socket API (require to use sockets.c)
- */
-#define LWIP_SOCKET 1
-
-/**
- * SO_REUSE==1: Enable SO_REUSEADDR
- */
-#define SO_REUSE 1
-
-/*
-   ----------------------------------------
-   ---------- Statistics options ----------
-   ----------------------------------------
-*/
-/**
- * LWIP_STATS==1: Enable statistics collection in lwip_stats.
- */
+#define TCP_MSS (1500 - 40)                          // 最大TCP分段,TCP_MSS = (MTU - IP报头大小 - TCP报头大小
+#define TCP_SND_BUF (8 * TCP_MSS)                    // TCP发送缓冲区大小(bytes).
+#define TCP_SND_QUEUELEN (4 * TCP_SND_BUF / TCP_MSS) // TCP_SND_QUEUELEN: TCP发送缓冲区大小(pbuf).这个值最小为(2 * TCP_SND_BUF/TCP_MSS)
+#define TCP_WND (2 * TCP_MSS)                        // TCP发送窗口
+#define LWIP_ICMP 1                                  // 使用ICMP协议
+#define LWIP_DHCP 0                                  // 使用DHCP
+#define LWIP_DNS 1
+#define LWIP_UDP 1  // 使用UDP服务
+#define UDP_TTL 255 // UDP数据包生存时间
 #define LWIP_STATS 0
-/*
-   ---------------------------------
-   ---------- PPP options ----------
-   ---------------------------------
-*/
-/**
- * PPP_SUPPORT==1: Enable PPP.
- */
-#define PPP_SUPPORT 0
-/* Enable modules */
-#define LWIP_ARP 1
-#define LWIP_ETHERNET 1
-#define LWIP_IPV4 1
-#define LWIP_ICMP 1
-#define LWIP_IGMP 1
-#define LWIP_RAW 1
-#define LWIP_UDP 1
-#define LWIP_UDPLITE 1
-#define LWIP_TCP 1
-#define LWIP_IPV6 0
-#define LWIP_ICMP6 0
-#define LWIP_IPV6_MLD 0
-#define LWIP_NETIF_LINK_CALLBACK 1
-#define TCPIP_MBOX_SIZE 16
-#define MEMP_OVERFLOW_CHECK 1
-/*
-   ---------------------------------------
-   ---------- Threading options ----------
-   ---------------------------------------
-*/
+#define LWIP_PROVIDE_ERRNO 1
+#define LWIP_CALLBACK_API 1
 
-#define LWIP_TCPIP_CORE_LOCKING 1
+#define LWIP_NETCONN 1 // LWIP_NETCONN==1:使能NETCON函数(要求使用api_lib.c)
+#define LWIP_SOCKET 1  // LWIP_SOCKET==1:使能Sicket API(要求使用sockets.c)
+#define LWIP_COMPAT_MUTEX 0
+#define LWIP_SO_RCVTIMEO 1 // 通过定义LWIP_SO_RCVTIMEO使能netconn结构体中recv_timeout,使用recv_timeout可以避免阻塞线程
 
-#if !NO_SYS
-void sys_check_core_locking(void);
-#define LWIP_ASSERT_CORE_LOCKED() sys_check_core_locking()
-#endif
+// 有关系统的选项
+#define TCPIP_THREAD_PRIO 6        // 定义内核任务的优先级为5
+#define TCPIP_THREAD_STACKSIZE 512 // 内核任务堆栈大小
+#define DEFAULT_UDP_RECVMBOX_SIZE 512
+#define DEFAULT_THREAD_STACKSIZE 512
 
-#endif /* LWIP_LWIPOPTS_H */
+// LWIP调试选项
+#define LWIP_DEBUG 0            // 关闭DEBUG选项
+#define ICMP_DEBUG LWIP_DBG_OFF // 开启/关闭ICMPdebug
+
+#define LWIP_COMPAT_MUTEX_ALLOWED
+// #define LWIP_SKIP_CONST_CHECK
+
+#define ETHARP_TRUST_IP_MAC 1
+#define IP_REASSEMBLY 1
+#define IP_FRAG 1
+#define ARP_QUEUEING 1
+#define LWIP_DNS_SECURE 0
+
+#define LWIP_COMPAT_SOCKETS 2
+#define LWIP_POSIX_SOCKETS_IO_NAMES 1
+
+#define LWIP_TCPIP_CORE_LOCKING_INPUT 1
+#endif /* __LWIPOPTS_H__ */

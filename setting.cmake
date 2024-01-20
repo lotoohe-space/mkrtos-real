@@ -35,7 +35,7 @@ endif()
 
 # -mfloat-abi=soft  -u _printf_float 
 set(CMAKE_C_FLAGS "-mcpu=${CONFIG_ARCH}  -O0 -g3 -lc -lrdimon -mfloat-abi=${FLOAT_TYPE} -u _printf_float -D=MKRTOS \
--std=gnu11 -ffunction-sections -fdata-sections -fno-builtin\
+-std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
 -fno-stack-protector -Wl,--gc-sections \
 -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \

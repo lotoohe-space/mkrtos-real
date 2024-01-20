@@ -132,7 +132,7 @@ static void thread_release_stage1(kobject_t *kobj)
         assert(pos->th->status == THREAD_SUSPEND);
         thread_wait_entry_t *next = slist_next_entry(pos, &wait_send_queue, node_timeout);
 
-        if (pos->th != th)
+    if (pos->th != th)
         {
             pos->th->ipc_status = THREAD_IPC_ABORT;
             thread_ready(pos->th, TRUE);
@@ -319,7 +319,7 @@ thread_t *thread_create(ram_limit_t *ram)
     }
     memset(th, 0, THREAD_BLOCK_SIZE);
     thread_init(th, ram);
-    // printk("create thread 0x%x\n", th);
+    printk("create thread 0x%x\n", th);
     return th;
 }
 
@@ -495,10 +495,10 @@ static int thread_ipc_recv(msg_tag_t *ret_msg, ipc_timeout_t timeout,
     }
     thread_suspend(cur_th); //!< 挂起
     preemption();           //!< 进行调度
-    if (slist_in_list(&wait.node))
-    {
-        slist_del(&wait.node);
-    }
+    // if (slist_in_list(&wait.node))
+    // {
+    //     slist_del(&wait.node);
+    // }
     if (cur_th->ipc_status == THREAD_IPC_ABORT)
     {
         cur_th->ipc_status = THREAD_NONE;
