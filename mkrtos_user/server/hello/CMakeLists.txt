@@ -12,6 +12,7 @@ add_executable(hello.elf
 target_link_libraries(hello.elf
     PUBLIC
     start_tiny
+    printf
     muslc
     sys
     sys_util
@@ -36,9 +37,12 @@ target_include_directories(
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/hello/bsp/core_inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/hello/bsp/inc
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/printf/src/printf
 )
 add_dependencies(hello.elf
 muslc
+printf
 )
 set_target_properties(hello.elf PROPERTIES LINK_FLAGS
 "-T ${CMAKE_CURRENT_LIST_DIR}/link.lds -pie --gc-section -no-dynamic-linker "
