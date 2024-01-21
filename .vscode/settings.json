@@ -291,7 +291,9 @@
         "mk_sys.h": "c",
         "sram.h": "c",
         "semaphore.h": "c",
-        "libc.h": "c"
+        "libc.h": "c",
+        "printf.h": "c",
+        "printf_config.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

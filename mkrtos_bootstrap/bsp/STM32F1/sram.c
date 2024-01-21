@@ -1,12 +1,11 @@
 
 #include "stm32f10x_conf.h"
-void _memset(void *data, int val, int size)
+void memset(void *data, int val, int size)
 {
 	unsigned int *_d = data;
 
 	for (int i = 0; i < size; i++)
 	{
-		_d += i;
 		_d[0] = 0;
 	}
 }
@@ -21,9 +20,9 @@ void FSMC_SRAM_Init(void)
 	FSMC_NORSRAMTimingInitTypeDef readWriteTiming;
 	GPIO_InitTypeDef GPIO_InitStructure;
 
-	_memset(&FSMC_NORSRAMInitStructure, 0, sizeof(FSMC_NORSRAMInitStructure));
-	_memset(&readWriteTiming, 0, sizeof(readWriteTiming));
-	_memset(&GPIO_InitStructure, 0, sizeof(GPIO_InitStructure));
+	memset(&FSMC_NORSRAMInitStructure, 0, sizeof(FSMC_NORSRAMInitStructure));
+	memset(&readWriteTiming, 0, sizeof(readWriteTiming));
+	memset(&GPIO_InitStructure, 0, sizeof(GPIO_InitStructure));
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOE | RCC_APB2Periph_GPIOF | RCC_APB2Periph_GPIOG, ENABLE);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);
