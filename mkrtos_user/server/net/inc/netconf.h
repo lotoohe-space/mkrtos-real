@@ -17,3 +17,4 @@
 #define MAC_ADDR5 9
 void net_init(void);
 void LwIP_Pkt_Handle(void);
+void lwip_pkt_handle_raw(uint8_t *data, int len);

@@ -182,3 +182,7 @@ void lwip_pkt_handle(void)
 {
     ethernetif_input(&gnetif);
 }
+void lwip_pkt_handle_raw(uint8_t *data, int len)
+{
+    ethernetif_input_raw(&gnetif, data, len);
+}

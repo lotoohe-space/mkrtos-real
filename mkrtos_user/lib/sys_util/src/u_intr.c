@@ -42,11 +42,16 @@ int u_intr_bind(int irq_no, u_irq_prio_t prio, int th_prio,
             handler_free_umap(irq_obj);
             return ret;
         }
+        if (irq)
+        {
+            *irq = irq_obj;
+        }
         u_thread_run(th_hd, th_prio);
     }
     if (irq)
     {
         *irq = irq_obj;
     }
+
     return ret;
 }

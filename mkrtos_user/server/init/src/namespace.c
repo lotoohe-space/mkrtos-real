@@ -601,11 +601,11 @@ int namespace_query(const char *path, obj_handler_t *hd)
         ns_unlock();
         return -EEXIST;
     }
-    if (node && ret_inx == strlen(path))
-    {
-        ns_unlock();
-        return -EEXIST;
-    }
+    // if (ret_inx == strlen(path))
+    // {
+    //     ns_unlock();
+    //     return -EEXIST;
+    // }
     if (node->type == DIR_NODE)
     {
         ns_unlock();
