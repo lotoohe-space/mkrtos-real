@@ -12,8 +12,10 @@ void sram_init(void)
 }
 void jump2kernel(void)
 {
+#if CONFIG_KNL_EXRAM
     sram_init();
-    sram_test();
+    // sram_test();
+#endif
     if (((*(__IO uint32_t *)KERNEL_IMG_START_ADDR) & 0x2FFE0000) == 0x20000000) // 检查栈顶地址是否合法,即检查此段Flash中是否已有APP程序
     {
         __set_PRIMASK(1);

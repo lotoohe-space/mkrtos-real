@@ -1,18 +1,26 @@
 #include "dm9000.h"
-#include "delay.h"
-// #include "led.h"
-//  #include "usart.h"
-#include "netconf.h"
-#include "u_intr.h"
 #include <u_intr.h>
+#include <u_sleep.h>
 #include <pthread.h>
 #include <assert.h>
 #include <semaphore.h>
+#include <printf.h>
 struct dm9000_config dm9000cfg; // DM9000配置结构体
 
 sem_t dm9000input;			// DM9000接收数据信号量
 pthread_mutex_t dm9000lock; // DM9000读写互锁控制信号量
 obj_handler_t irq_obj;
+
+// #define DM9000_PACKET_BUF_SIZE 1526
+// uint8_t dm9000_packet_buf[DM9000_PACKET_BUF_SIZE];
+// int16_t dm9000_packet_len = 0;
+
+#define IRQ_THREAD_PRIO 3
+#define STACK_SIZE (512 + 128)
+static __attribute__((aligned(8))) uint8_t stack0[STACK_SIZE];
+static uint8_t msg_buf[128];
+
+void EXTI15_10_IRQHandler(void);
 
 // 初始化DM9000
 // mode:0,仅仅读DM9000的ID,看能否读到ID.
@@ -45,12 +53,10 @@ u8 DM9000_Init(u8 mode)
 	// PORTG复用推挽输出 PG9->NE2 PG8 推挽输出--> DM9000_RST
 	GPIOG->CRH = (GPIOG->CRH & 0XFFFFFF00) | 0X000000B3;
 
-	GPIOF->ODR |= 1 << 11; // PF11 上拉
-	// DM9000_IO_Init();
+	GPIOF->ODR |= 1 << 11;			  // PF11 上拉
 	Ex_NVIC_Config(GPIO_F, 11, FTIR); // 下降沿触发
-	// MY_NVIC_Init(1,0,EXTI15_10_IRQn,2);		//抢占2，子优先级3，组2
-	assert(u_intr_bind(EXTI15_10_IRQn, u_irq_prio_create(1, 0), 0,
-					   NULL, NULL, NULL, &irq_obj) >= 0);
+	assert(u_intr_bind(EXTI15_10_IRQn, u_irq_prio_create(1, 0), IRQ_THREAD_PRIO,
+					   stack0 + STACK_SIZE, msg_buf, EXTI15_10_IRQHandler, &irq_obj) >= 0);
 
 	// 寄存器清零
 	// bank1有NE1~4,每一个有一个BCR+TCR，所以总共八个寄存器。
@@ -81,7 +87,7 @@ u8 DM9000_Init(u8 mode)
 	dm9000cfg.mac_addr[1] = 0;
 	dm9000cfg.mac_addr[2] = 0;
 	dm9000cfg.mac_addr[3] = (temp >> 16) & 0XFF; // 低三字节用STM32的唯一ID
-	dm9000cfg.mac_addr[4] = (temp >> 8) & 0XFF;
+	dm9000cfg.mac_addr[4] = (temp >> 8) & 0XFFF;
 	dm9000cfg.mac_addr[5] = temp & 0XFF;
 	// 初始化组播地址
 	dm9000cfg.multicase_addr[0] = 0Xff;
@@ -94,9 +100,9 @@ u8 DM9000_Init(u8 mode)
 	dm9000cfg.multicase_addr[7] = 0Xff;
 
 	DM9000_Reset(); // 复位DM9000
-	delay_ms(100);
+	u_sleep_ms(100);
 	temp = DM9000_Get_DeiviceID(); // 获取DM9000ID
-	// printf("DM9000 ID:%#x\r\n",temp);
+	// mk_printf("DM9000 ID:%#x\r\n",temp);
 	if (temp != DM9000_ID)
 		return 1; // 读取ID错误
 	if (mode == 0)
@@ -120,9 +126,9 @@ u8 DM9000_Init(u8 mode)
 	temp = DM9000_Get_SpeedAndDuplex(); // 获取DM9000的连接速度和双工状态
 	if (temp != 0XFF)					// 连接成功，通过串口显示连接速度和双工状态
 	{
-		printf("DM9000 Speed:%dMbps,Duplex:%s duplex mode\r\n", (temp & 0x02) ? 10 : 100, (temp & 0x01) ? "Full" : "Half");
+		mk_printf("DM9000 Speed:%dMbps,Duplex:%s duplex mode\r\n", (temp & 0x02) ? 10 : 100, (temp & 0x01) ? "Full" : "Half");
 	}
-	// else printf("DM9000 Establish Link Failed!\r\n");
+	// else mk_printf("DM9000 Establish Link Failed!\r\n");
 	DM9000_WriteReg(DM9000_IMR, dm9000cfg.imr_all); // 设置中断
 	return 0;
 }
@@ -151,7 +157,7 @@ u16 DM9000_PHY_ReadReg(u16 reg)
 	u16 temp;
 	DM9000_WriteReg(DM9000_EPAR, DM9000_PHY | reg);
 	DM9000_WriteReg(DM9000_EPCR, 0X0C); // 选中PHY，发送读命令
-	delay_ms(10);
+	u_sleep_ms(10);
 	DM9000_WriteReg(DM9000_EPCR, 0X00); // 清除读命令
 	temp = (DM9000_ReadReg(DM9000_EPDRH) << 8) | (DM9000_ReadReg(DM9000_EPDRL));
 	return temp;
@@ -165,7 +171,7 @@ void DM9000_PHY_WriteReg(u16 reg, u16 data)
 	DM9000_WriteReg(DM9000_EPDRL, (data & 0xff));		 // 写入低字节
 	DM9000_WriteReg(DM9000_EPDRH, ((data >> 8) & 0xff)); // 写入高字节
 	DM9000_WriteReg(DM9000_EPCR, 0X0A);					 // 选中PHY,发送写命令
-	delay_ms(50);
+	u_sleep_ms(50);
 	DM9000_WriteReg(DM9000_EPCR, 0X00); // 清除写命令
 }
 // 获取DM9000的芯片ID
@@ -193,7 +199,7 @@ u8 DM9000_Get_SpeedAndDuplex(void)
 	{
 		while (!(DM9000_PHY_ReadReg(0X01) & 0X0020)) // 等待自动协商完成
 		{
-			delay_ms(100);
+			u_sleep_ms(100);
 			i++;
 			if (i > 100)
 				return 0XFF; // 自动协商失败
@@ -203,7 +209,7 @@ u8 DM9000_Get_SpeedAndDuplex(void)
 	{
 		while (!(DM9000_ReadReg(DM9000_NSR) & 0X40)) // 等待连接成功
 		{
-			delay_ms(100);
+			u_sleep_ms(100);
 			i++;
 			if (i > 100)
 				return 0XFF; // 连接失败
@@ -271,44 +277,42 @@ void DM9000_Reset(void)
 {
 	// 复位DM9000,复位步骤参考<DM9000 Application Notes V1.22>手册29页
 	DM9000_RST = 0; // DM9000硬件复位
-	delay_ms(10);
+	u_sleep_ms(10);
 	DM9000_RST = 1;								   // DM9000硬件复位结束
-	delay_ms(100);								   // 一定要有这个延时，让DM9000准备就绪！
+	u_sleep_ms(100);							   // 一定要有这个延时，让DM9000准备就绪！
 	DM9000_WriteReg(DM9000_GPCR, 0x01);			   // 第一步:设置GPCR寄存器(0X1E)的bit0为1
 	DM9000_WriteReg(DM9000_GPR, 0);				   // 第二步:设置GPR寄存器(0X1F)的bit1为0，DM9000内部的PHY上电
 	DM9000_WriteReg(DM9000_NCR, (0x02 | NCR_RST)); // 第三步:软件复位DM9000
 	do
 	{
-		delay_ms(25);
+		u_sleep_ms(25);
 	} while (DM9000_ReadReg(DM9000_NCR) & 1); // 等待DM9000软复位完成
 	DM9000_WriteReg(DM9000_NCR, 0);
 	DM9000_WriteReg(DM9000_NCR, (0x02 | NCR_RST)); // DM9000第二次软复位
 	do
 	{
-		delay_ms(25);
+		u_sleep_ms(25);
 	} while (DM9000_ReadReg(DM9000_NCR) & 1);
 }
 
 // 通过DM9000发送数据包
 // p:pbuf结构体指针
-void DM9000_SendPacket(struct pbuf *p)
+void DM9000_SendPacket(const u8 *data, size_t len)
 {
-	struct pbuf *q;
 	u16 pbuf_index = 0;
 	u8 word[2], word_index = 0;
 	u8 err;
-	// printf("send len:%d\r\n",p->tot_len);
+	// mk_printf("send len:%d\r\n",p->tot_len);
 	pthread_mutex_lock(&dm9000lock);	  // 请求互斥信号量,锁定DM9000
 	DM9000_WriteReg(DM9000_IMR, IMR_PAR); // 关闭网卡中断
 	DM9000->REG = DM9000_MWCMD;			  // 发送此命令后就可以将要发送的数据搬到DM9000 TX SRAM中
-	q = p;
 	// 向DM9000的TX SRAM中写入数据，一次写入两个字节数据
 	// 当要发送的数据长度为奇数的时候，我们需要将最后一个字节单独写入DM9000的TX SRAM中
-	while (q)
+	while (1)
 	{
-		if (pbuf_index < q->len)
+		if (pbuf_index < len)
 		{
-			word[word_index++] = ((u8_t *)q->payload)[pbuf_index++];
+			word[word_index++] = ((u8 *)data)[pbuf_index++];
 			if (word_index == 2)
 			{
 				DM9000->DATA = ((u16)word[1] << 8) | word[0];
@@ -317,17 +321,17 @@ void DM9000_SendPacket(struct pbuf *p)
 		}
 		else
 		{
-			q = q->next;
 			pbuf_index = 0;
+			break;
 		}
 	}
 	// 还有一个字节未写入TX SRAM
 	if (word_index == 1)
 		DM9000->DATA = word[0];
 	// 向DM9000写入发送长度
-	DM9000_WriteReg(DM9000_TXPLL, p->tot_len & 0XFF);
-	DM9000_WriteReg(DM9000_TXPLH, (p->tot_len >> 8) & 0XFF); // 设置要发送数据的数据长度
-	DM9000_WriteReg(DM9000_TCR, 0X01);						 // 启动发送
+	DM9000_WriteReg(DM9000_TXPLL, len & 0XFF);
+	DM9000_WriteReg(DM9000_TXPLH, (len >> 8) & 0XFF); // 设置要发送数据的数据长度
+	DM9000_WriteReg(DM9000_TCR, 0X01);				  // 启动发送
 	while ((DM9000_ReadReg(DM9000_ISR) & 0X02) == 0)
 		;											// 等待发送完成
 	DM9000_WriteReg(DM9000_ISR, 0X02);				// 清除发送完成中断
@@ -345,7 +349,7 @@ void DM9000_SendPacket(struct pbuf *p)
 // byte3:本帧数据长度的低字节
 // byte4:本帧数据长度的高字节
 // 返回值：pbuf格式的接收到的数据包
-struct pbuf *DM9000_Receive_Packet(void)
+int DM9000_Receive_Packet(u8 *recv_data, size_t len)
 {
 	struct pbuf *p;
 	struct pbuf *q;
@@ -353,8 +357,9 @@ struct pbuf *DM9000_Receive_Packet(void)
 	vu16 rx_status, rx_length;
 	u16 *data;
 	u16 dummy;
-	int len;
+	int tm_len;
 	u8 err;
+	int ret = -1;
 
 	p = NULL;
 	pthread_mutex_lock(&dm9000lock); // 请求互斥信号量,锁定DM9000
@@ -365,63 +370,57 @@ __error_retry:
 	{
 		if (rxbyte > 1) // rxbyte大于1，接收到的数据错误,挂了
 		{
-			printf("dm9000 rx: rx error, stop device\r\n");
+			mk_printf("dm9000 rx: rx error, stop device\r\n");
 			DM9000_WriteReg(DM9000_RCR, 0x00);
 			DM9000_WriteReg(DM9000_ISR, 0x80);
 			pthread_mutex_unlock(&dm9000lock); // 发送互斥信号量,解锁DM9000
-			return (struct pbuf *)p;
+			return -1;
 		}
 		DM9000->REG = DM9000_MRCMD;
 		rx_status = DM9000->DATA;
 		rx_length = DM9000->DATA;
-		// if(rx_length>512)printf("rxlen:%d\r\n",rx_length);
-		p = pbuf_alloc(PBUF_RAW, rx_length, PBUF_POOL); // pbufs内存池分配pbuf
-		if (p != NULL)									// 内存申请成功
+		if (rx_length <= len)
 		{
-			for (q = p; q != NULL; q = q->next)
+			// if(rx_length>512)mk_printf("rxlen:%d\r\n",rx_length);
+			for (size_t i = 0; i < rx_length; i += 2)
 			{
-				data = (u16 *)q->payload;
-				len = q->len;
-				while (len > 0)
-				{
-					*data = DM9000->DATA;
-					data++;
-					len -= 2;
-				}
+				((u16 *)recv_data)[i / 2] = DM9000->DATA;
 			}
+			ret = rx_length;
 		}
 		else // 内存申请失败
 		{
-			printf("pbuf内存申请失败:%d\r\n", rx_length);
+			mk_printf("缓存大小不足:%d\r\n", rx_length);
 			data = &dummy;
-			len = rx_length;
-			while (len)
+			tm_len = rx_length;
+			while (tm_len)
 			{
 				*data = DM9000->DATA;
-				len -= 2;
+				tm_len -= 2;
 			}
+			ret = -1;
 		}
 		// 根据rx_status判断接收数据是否出现如下错误：FIFO溢出、CRC错误
 		// 对齐错误、物理层错误，如果有任何一个出现的话丢弃该数据帧，
 		// 当rx_length小于64或者大于最大数据长度的时候也丢弃该数据帧
 		if ((rx_status & 0XBF00) || (rx_length < 0X40) || (rx_length > DM9000_PKT_MAX))
 		{
-			printf("rx_status:%#x\r\n", rx_status);
+			mk_printf("rx_status:%#x\r\n", rx_status);
 			if (rx_status & 0x100)
-				printf("rx fifo error\r\n");
+				mk_printf("rx fifo error\r\n");
 			if (rx_status & 0x200)
-				printf("rx crc error\r\n");
+				mk_printf("rx crc error\r\n");
 			if (rx_status & 0x8000)
-				printf("rx length error\r\n");
+				mk_printf("rx length error\r\n");
 			if (rx_length > DM9000_PKT_MAX)
 			{
-				printf("rx length too big\r\n");
+				mk_printf("rx length too big\r\n");
 				DM9000_WriteReg(DM9000_NCR, NCR_RST); // 复位DM9000
-				delay_ms(5);
+				u_sleep_ms(5);
 			}
-			if (p != NULL)
-				pbuf_free((struct pbuf *)p); // 释放内存
-			p = NULL;
+			// if (p != NULL)
+			// 	pbuf_free((struct pbuf *)p); // 释放内存
+			// p = NULL;
 			goto __error_retry;
 		}
 	}
@@ -432,8 +431,9 @@ __error_retry:
 		DM9000_WriteReg(DM9000_IMR, dm9000cfg.imr_all);
 	}
 	pthread_mutex_unlock(&dm9000lock); // 发送互斥信号量,解锁DM9000
-	return (struct pbuf *)p;
+	return ret;
 }
+
 // 中断处理函数
 void DMA9000_ISRHandler(void)
 {
@@ -442,13 +442,11 @@ void DMA9000_ISRHandler(void)
 	last_io = DM9000->REG;
 	int_status = DM9000_ReadReg(DM9000_ISR);
 	DM9000_WriteReg(DM9000_ISR, int_status); // 清除中断标志位，DM9000的ISR寄存器的bit0~bit5写1清零
-	// if(int_status & ISR_ROS)printf("overflow \r\n");
-	//  if(int_status & ISR_ROOS)printf("overflow counter overflow \r\n");
+	// if(int_status & ISR_ROS)mk_printf("overflow \r\n");
+	//  if(int_status & ISR_ROOS)mk_printf("overflow counter overflow \r\n");
 	if (int_status & ISR_PRS) // 接收中断
 	{
-		// sem_post(&dm9000input); // 处理接收到数据帧
-		extern void lwip_pkt_handle(void);
-		lwip_pkt_handle();
+		sem_post(&dm9000input); // 处理接收到数据帧
 	}
 	if (int_status & ISR_PTS) // 发送中断
 	{
@@ -456,6 +454,7 @@ void DMA9000_ISRHandler(void)
 	}
 	DM9000->REG = last_io;
 }
+
 // 外部中断5~9服务程序
 void EXTI15_10_IRQHandler(void)
 {

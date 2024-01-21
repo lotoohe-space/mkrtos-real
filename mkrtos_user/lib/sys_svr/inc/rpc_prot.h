@@ -47,3 +47,7 @@
 
 #define PM_SIG_PROT 0x0007          //!< pm信号协议
 #define PM_SIG_NOTIFY ((uint16_t)0) //!< 通知消息
+
+#define NET_DRV_PROT 0x0008
+#define NET_DRV_WRITE ((uint16_t)0) //!< 网络驱动写
+#define NET_DRV_READ ((uint16_t)1)  //!< 网络驱动读
