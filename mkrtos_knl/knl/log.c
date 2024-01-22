@@ -55,10 +55,12 @@ static msg_tag_t log_write_data(log_t *log, const char *data, int len)
 {
     for (int i = 0; i < len && data[i]; i++)
     {
+#if 0
         if (data[i] == '\n')
         {
             putc('\r');
         }
+#endif
         putc(data[i]);
     }
     return msg_tag_init(0);

@@ -1,15 +1,12 @@
 #include "ethernetif.h"
-// #include "lwip_comm.h"
-// #include "malloc.h"
 #include "netif/etharp.h"
 #include "string.h"
-// #include "includes.h"
 #include "lwip/timeouts.h"
 #include "netconf.h"
+#include "mk_sys.h"
 #include <semaphore.h>
 #include <pthread.h>
 #include <cons_cli.h>
-#include "dm9000.h"
 #include <net_drv_cli.h>
 #include <u_hd_man.h>
 #include <u_factory.h>
@@ -17,9 +14,7 @@
 #include <u_task.h>
 #include <ns_cli.h>
 #include <assert.h>
-static obj_handler_t net_drv_hd;
-extern sem_t dm9000input;		   // DM9000接收数据信号量
-extern pthread_mutex_t dm9000lock; // DM9000读写互锁控制信号量
+extern obj_handler_t net_drv_hd;
 obj_handler_t send_shm_hd;
 
 umword_t send_shm_addr;
@@ -46,8 +41,6 @@ static err_t low_level_init(struct netif *netif)
 	netif->mtu = 1500; // 最大允许传输单元,允许该网卡广播和ARP功能
 	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
 
-	assert(ns_query("/dm9000", &net_drv_hd) >= 0);
-
 	msg_tag_t tag;
 	send_shm_hd = handler_alloc();
 	assert(send_shm_hd != HANDLER_INVALID);
@@ -66,50 +59,12 @@ static err_t low_level_init(struct netif *netif)
 static err_t low_level_output(struct netif *netif, struct pbuf *p)
 {
 	int ret;
-	// DM9000_SendPacket(p); // 发送数据
+
 	memcpy((void *)send_shm_addr, p->payload, p->len);
 	ret = net_drv_cli_write(net_drv_hd, send_shm_hd, p->len);
 	return ret >= 0 ? ERR_OK : ERR_IF;
 }
-// 用于接收数据包的最底层函数
-// neitif:网卡结构体指针
-// 返回值:pbuf数据结构体指针
-static struct pbuf *low_level_input(struct netif *netif)
-{
-	struct pbuf *p;
-	p = DM9000_Receive_Packet();
-	return p;
-}
-err_t ethernetif_input(struct netif *netif)
-{
-	uint32_t _err;
-	err_t err = 0;
-	struct pbuf *p;
-	// while (1)
-	{
-		// _err = sem_wait(&dm9000input); // 请求信号量
-		// cons_write_str("*\n");
-		if (_err == 0)
-		{
-			while (1)
-			{
-				p = low_level_input(netif); // 调用low_level_input函数接收数据
-				if (p != NULL)
-				{
-					err = netif->input(p, netif); // 调用netif结构体中的input字段(一个函数)来处理数据包
-					if (err != ERR_OK)
-					{
-						LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
-						pbuf_free(p);
-						p = NULL;
-					}
-				}
-				else
-					break;
-			}
-		}
-	}
-}
+
 err_t ethernetif_input_raw(struct netif *netif, uint8_t *data, int len)
 {
 	err_t err = ERR_MEM;
