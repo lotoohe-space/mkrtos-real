@@ -5,29 +5,25 @@
 #include <assert.h>
 #include <semaphore.h>
 #include <printf.h>
-struct dm9000_config dm9000cfg; // DM9000配置结构体
 
+struct dm9000_config dm9000cfg; // DM9000配置结构体
 sem_t dm9000input;			// DM9000接收数据信号量
 pthread_mutex_t dm9000lock; // DM9000读写互锁控制信号量
 obj_handler_t irq_obj;
 
-// #define DM9000_PACKET_BUF_SIZE 1526
-// uint8_t dm9000_packet_buf[DM9000_PACKET_BUF_SIZE];
-// int16_t dm9000_packet_len = 0;
-
 #define IRQ_THREAD_PRIO 3
-#define STACK_SIZE (512 + 128)
+#define STACK_SIZE (512 + 512)
 static __attribute__((aligned(8))) uint8_t stack0[STACK_SIZE];
 static uint8_t msg_buf[128];
 
 void EXTI15_10_IRQHandler(void);
 
-// 初始化DM9000
-// mode:0,仅仅读DM9000的ID,看能否读到ID.
-//      1,完全初始化,正常应用时使用
-// 返回值:
-// 0,初始化成功
-// 1，DM9000A ID读取错误
+/**
+ * @brief dm9000的初始化
+ *
+ * @param mode 0:读DM9000的ID,看能否读到ID.
+ * @return 0：初始化成功，1:初始化失败
+ */
 u8 DM9000_Init(u8 mode)
 {
 	u32 temp;
@@ -133,25 +129,34 @@ u8 DM9000_Init(u8 mode)
 	return 0;
 }
 
-// 读取DM9000指定寄存器的值
-// reg:寄存器地址
-// 返回值：DM9000指定寄存器的值
+/**
+ * @brief 读取DM9000指定寄存器的值
+ *
+ * @param reg 寄存器地址
+ * @return u16 DM9000指定寄存器的值
+ */
 u16 DM9000_ReadReg(u16 reg)
 {
 	DM9000->REG = reg;
 	return DM9000->DATA;
 }
-// 向DM9000指定寄存器中写入指定值
-// reg:要写入的寄存器
-// data:要写入的值
+/**
+ * @brief 向DM9000指定寄存器中写入指定值
+ *
+ * @param reg 要写入的寄存器
+ * @param data 要写入的值
+ */
 void DM9000_WriteReg(u16 reg, u16 data)
 {
 	DM9000->REG = reg;
 	DM9000->DATA = data;
 }
-// 读取DM9000的PHY的指定寄存器
-// reg:要读的PHY寄存器
-// 返回值:读取到的PHY寄存器值
+/**
+ * @brief 读取DM9000的PHY的指定寄存器
+ *
+ * @param reg 要读的PHY寄存器
+ * @return u16 读取到的PHY寄存器值
+ */
 u16 DM9000_PHY_ReadReg(u16 reg)
 {
 	u16 temp;
@@ -162,9 +167,12 @@ u16 DM9000_PHY_ReadReg(u16 reg)
 	temp = (DM9000_ReadReg(DM9000_EPDRH) << 8) | (DM9000_ReadReg(DM9000_EPDRL));
 	return temp;
 }
-// 向DM9000的PHY寄存器写入指定值
-// reg:PHY寄存器
-// data:要写入的值
+/**
+ * @brief 向DM9000的PHY寄存器写入指定值
+ *
+ * @param reg PHY寄存器
+ * @param data 要写入的值
+ */
 void DM9000_PHY_WriteReg(u16 reg, u16 data)
 {
 	DM9000_WriteReg(DM9000_EPAR, DM9000_PHY | reg);
@@ -174,8 +182,11 @@ void DM9000_PHY_WriteReg(u16 reg, u16 data)
 	u_sleep_ms(50);
 	DM9000_WriteReg(DM9000_EPCR, 0X00); // 清除写命令
 }
-// 获取DM9000的芯片ID
-// 返回值：DM9000的芯片ID值
+/**
+ * @brief 获取DM9000的芯片ID
+ *
+ * @return u32 DM9000的芯片ID值
+ */
 u32 DM9000_Get_DeiviceID(void)
 {
 	u32 value;
@@ -185,12 +196,15 @@ u32 DM9000_Get_DeiviceID(void)
 	value |= DM9000_ReadReg(DM9000_PIDH) << 24;
 	return value;
 }
-// 获取DM9000的连接速度和双工模式
-// 返回值：	0,100M半双工
-//			1,100M全双工
-//			2,10M半双工
-//			3,10M全双工
-//			0XFF,连接失败！
+/**
+ * @brief 获取DM9000的连接速度和双工模式
+ *
+ * @return u80,100M半双工
+ *	1,100M全双工
+ *	2,10M半双工
+ *	3,10M全双工
+ *	0XFF,连接失败！
+ */
 u8 DM9000_Get_SpeedAndDuplex(void)
 {
 	u8 temp;
@@ -220,8 +234,11 @@ u8 DM9000_Get_SpeedAndDuplex(void)
 	return temp;
 }
 
-// 设置DM900的PHY工作模式
-// mode:PHY模式
+/**
+ * @brief 设置DM900的PHY工作模式
+ *
+ * @param mode PHY模式
+ */
 void DM9000_Set_PHYMode(u8 mode)
 {
 	u16 BMCR_Value, ANAR_Value;
@@ -252,8 +269,11 @@ void DM9000_Set_PHYMode(u8 mode)
 	DM9000_PHY_WriteReg(DM9000_PHY_ANAR, ANAR_Value);
 	DM9000_WriteReg(DM9000_GPR, 0X00); // 使能PHY
 }
-// 设置DM9000的MAC地址
-// macaddr:指向MAC地址
+/**
+ * @brief 设置DM9000的MAC地址
+ *
+ * @param macaddr 指向MAC地址
+ */
 void DM9000_Set_MACAddress(u8 *macaddr)
 {
 	u8 i;
@@ -262,8 +282,11 @@ void DM9000_Set_MACAddress(u8 *macaddr)
 		DM9000_WriteReg(DM9000_PAR + i, macaddr[i]);
 	}
 }
-// 设置DM9000的组播地址
-// multicastaddr:指向多播地址
+/**
+ * @brief 设置DM9000的组播地址
+ *
+ * @param multicastaddr 指向多播地址
+ */
 void DM9000_Set_Multicast(u8 *multicastaddr)
 {
 	u8 i;
@@ -272,7 +295,10 @@ void DM9000_Set_Multicast(u8 *multicastaddr)
 		DM9000_WriteReg(DM9000_MAR + i, multicastaddr[i]);
 	}
 }
-// 复位DM9000
+/**
+ * @brief 复位DM9000
+ *
+ */
 void DM9000_Reset(void)
 {
 	// 复位DM9000,复位步骤参考<DM9000 Application Notes V1.22>手册29页
@@ -295,8 +321,12 @@ void DM9000_Reset(void)
 	} while (DM9000_ReadReg(DM9000_NCR) & 1);
 }
 
-// 通过DM9000发送数据包
-// p:pbuf结构体指针
+/**
+ * @brief 通过DM9000发送数据包
+ *
+ * @param data 发送的数据
+ * @param len 发送的数据长度
+ */
 void DM9000_SendPacket(const u8 *data, size_t len)
 {
 	u16 pbuf_index = 0;
@@ -339,16 +369,22 @@ void DM9000_SendPacket(const u8 *data, size_t len)
 	// DM9000_WriteReg(DM9000_IMR,IMR_POI|IMR_PTI|IMR_PRI);			//DM9000网卡接收中断使能
 	pthread_mutex_unlock(&dm9000lock); // 发送互斥信号量,解锁DM9000
 }
-// DM9000接收数据包
-// 接收到的数据包存放在DM9000的RX FIFO中，地址为0X0C00~0X3FFF
-// 接收到的数据包的前四个字节并不是真实的数据，而是有特定含义的
-// byte1:表明是否接收到数据，为0x00或者0X01，如果两个都不是的话一定要软件复位DM9000
-//		0x01，接收到数据
-//		0x00，未接收到数据
-// byte2:第二个字节表示一些状态信息，和DM9000的RSR(0X06)寄存器一致的
-// byte3:本帧数据长度的低字节
-// byte4:本帧数据长度的高字节
-// 返回值：pbuf格式的接收到的数据包
+
+/**
+ * @brief DM9000接收数据包
+ * 接收到的数据包存放在DM9000的RX FIFO中，地址为0X0C00~0X3FFF
+ * 接收到的数据包的前四个字节并不是真实的数据，而是有特定含义的
+ * byte1:表明是否接收到数据，为0x00或者0X01，如果两个都不是的话一定要软件复位DM9000
+ * 		0x01，接收到数据
+ * 		0x00，未接收到数据
+ * byte2:第二个字节表示一些状态信息，和DM9000的RSR(0X06)寄存器一致的
+ * byte3:本帧数据长度的低字节
+ * byte4:本帧数据长度的高字节
+ *
+ * @param recv_data 接收数据的缓存
+ * @param len 接收数据的缓存大小
+ * @return int <=0失败 >0成功
+ */
 int DM9000_Receive_Packet(u8 *recv_data, size_t len)
 {
 	struct pbuf *p;
@@ -434,7 +470,10 @@ __error_retry:
 	return ret;
 }
 
-// 中断处理函数
+/**
+ * @brief 中断处理函数
+ *
+ */
 void DMA9000_ISRHandler(void)
 {
 	u16 int_status;

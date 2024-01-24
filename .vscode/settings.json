@@ -305,7 +305,8 @@
         "map": "c",
         "regex": "c",
         "set": "c",
-        "stack": "c"
+        "stack": "c",
+        "stm32f10x_conf.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

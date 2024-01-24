@@ -51,45 +51,18 @@
 #include <stdio.h>
 #include "cons_cli.h"
 #include "ethernetif.h"
-#include "dm9000.h"
+#include "netconf.h"
 #include <pthread.h>
 #include <semaphore.h>
 /* Private typedef -----------------------------------------------------------*/
 #define MAX_DHCP_TRIES 4
 struct netif gnetif;
-uint32_t IPaddress = 0;
-
-#define DEST_IP_ADDR0 192
-#define DEST_IP_ADDR1 168
-#define DEST_IP_ADDR2 2
-#define DEST_IP_ADDR3 20
-
-#define DEST_PORT 77
-
-/*Static IP ADDRESS: IP_ADDR0.IP_ADDR1.IP_ADDR2.IP_ADDR3 */
-#define IP_ADDR0 192
-#define IP_ADDR1 168
-#define IP_ADDR2 3
-#define IP_ADDR3 10
-
-/*NETMASK*/
-#define NETMASK_ADDR0 255
-#define NETMASK_ADDR1 255
-#define NETMASK_ADDR2 255
-#define NETMASK_ADDR3 0
-
-/*Gateway Address*/
-#define GW_ADDR0 192
-#define GW_ADDR1 168
-#define GW_ADDR2 3
-#define GW_ADDR3 1
 
 #ifdef USE_DHCP
 uint32_t DHCPfineTimer = 0;
 uint32_t DHCPcoarseTimer = 0;
 DHCP_State_TypeDef DHCP_state = DHCP_START;
 #endif
-extern __IO uint32_t EthStatus;
 /**
  * @brief  Initializes the lwIP stack
  * @param  None
@@ -175,13 +148,7 @@ void net_init(void)
     // netif_set_link_callback(&gnetif, ETH_link_callback);
     sys_unlock_tcpip_core();
 }
-err_t ethernetif_input(struct netif *netif);
 
-// 用于以太网中断调用
-void lwip_pkt_handle(void)
-{
-    ethernetif_input(&gnetif);
-}
 void lwip_pkt_handle_raw(uint8_t *data, int len)
 {
     ethernetif_input_raw(&gnetif, data, len);
