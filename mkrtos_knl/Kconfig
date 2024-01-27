@@ -43,10 +43,16 @@ if KNL_EXRAM
         hex "sram size"
         default 0x100000
 endif
-endif
-config MK_MPU_CFG
+menuconfig MK_MPU_CFG
     bool "MKRTOS MPU config"
     default y
+if MK_MPU_CFG
+    config MPU_VERSION
+    int "mpu version"
+    default 1
+endif
+endif
+
 
 config FT_ADDR_NR
     int "The number of addresses supported by futex."

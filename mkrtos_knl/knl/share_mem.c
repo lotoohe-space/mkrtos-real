@@ -236,11 +236,20 @@ static void share_mem_init(share_mem_t *sm, umword_t max)
 static share_mem_t *share_mem_create(ram_limit_t *lim, size_t max)
 {
 
+#if CONFIG_MPU_VERSION == 1
     if (max < PAGE_SIZE || !is_power_of_2(max))
     {
         //!< 大小必须是2的整数倍
         return NULL;
     }
+#elif CONFIG_MPU_VERSION == 2
+    if (max < MPU_ALIGN_SIZE || (max & (MPU_ALIGN_SIZE - 1)))
+    {
+        //!< 大小必须是2的整数倍
+        return NULL;
+    }
+    max += MPU_ALIGN_SIZE;
+#endif
 
     share_mem_t *mem = mm_limit_alloc(lim, sizeof(share_mem_t));
 
@@ -248,7 +257,7 @@ static share_mem_t *share_mem_create(ram_limit_t *lim, size_t max)
     {
         return NULL;
     }
-    mem->mem = mm_limit_alloc_align(lim, max, max);
+    mem->mem = mm_limit_alloc_align(lim, max, CONFIG_MPU_VERSION == 2 ? MPU_ALIGN_SIZE : max);
     if (!mem->mem)
     {
         mm_limit_free(lim, mem);

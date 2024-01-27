@@ -3,7 +3,6 @@
 #include "types.h"
 #include "mm_page.h"
 #include <assert.h>
-// #define CONFIG_REGION_NUM 8 //!< 默认为8
 typedef struct region_info
 {
     umword_t start_addr;       //!< 内存申请的开始地址

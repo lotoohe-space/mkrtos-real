@@ -306,7 +306,12 @@
         "regex": "c",
         "set": "c",
         "stack": "c",
-        "stm32f10x_conf.h": "c"
+        "stm32f10x_conf.h": "c",
+        "system_swm341.h": "c",
+        "swm341.h": "c",
+        "mpu_armv8.h": "c",
+        "stm32f4xx_conf.h": "c",
+        "knl_misc.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

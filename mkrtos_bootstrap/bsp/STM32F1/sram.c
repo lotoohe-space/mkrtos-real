@@ -1,14 +1,6 @@
 
 #include "stm32f10x_conf.h"
-void memset(void *data, int val, int size)
-{
-	unsigned int *_d = data;
-
-	for (int i = 0; i < size; i++)
-	{
-		_d[0] = 0;
-	}
-}
+#include <string.h>
 // 使用NOR/SRAM的 Bank1.sector3,地址位HADDR[27,26]=10
 // 对IS61LV25616/IS62WV25616,地址线范围为A0~A17
 // 对IS61LV51216/IS62WV51216,地址线范围为A0~A18

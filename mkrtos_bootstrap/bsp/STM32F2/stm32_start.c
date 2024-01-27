@@ -39,7 +39,7 @@ void jump2kernel(void)
         __set_FAULTMASK(0);
 
         /* initialize main stack pointer */
-        __set_MSP(*(__IO uint32_t *)KERNEL_IMG_START_ADDR);
+        // __set_MSP(*(__IO uint32_t *)KERNEL_IMG_START_ADDR);
         __set_CONTROL(0);
 
         __ISB();
