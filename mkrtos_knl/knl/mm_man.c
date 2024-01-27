@@ -91,12 +91,20 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
             umword_t size = f->r[2];
             umword_t addr = f->r[1];
 
+#if CONFIG_MPU_VERSION == 1
             if ((!is_power_of_2(size)) && ((addr & (~(size - 1))) != 0))
             {
                 tag = msg_tag_init4(0, 0, 0, -EINVAL);
                 break;
             }
-            mpu_calc_regs(regi_info, addr, ffs(size), REGION_RWX, 0);
+#elif CONFIG_MPU_VERSION == 2
+            if ((size & (MPU_ALIGN_SIZE - 1)) == 0 && (addr & (MPU_ALIGN_SIZE - 1)) == 0)
+            {
+                tag = msg_tag_init4(0, 0, 0, -EINVAL);
+                break;
+            }
+#endif
+            mpu_calc_regs(regi_info, addr, size, REGION_RWX, 0);
             mpu_switch_to_task(cur_task);
             tag = msg_tag_init4(0, 0, 0, 0);
         }

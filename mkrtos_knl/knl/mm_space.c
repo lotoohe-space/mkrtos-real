@@ -58,13 +58,21 @@ bool_t mm_space_add(mm_space_t *m_space,
     {
         return FALSE;
     }
+#if CONFIG_MPU_VERSION == 1
     if (!is_power_of_2(size) || (addr & (!(size - 1))) != 0)
     {
         //!< 申请的大小必须是2的整数倍，而且地址也必须是2的整数倍
         mm_space_free_pt_region(m_space, ri);
         return FALSE;
     }
-    mpu_calc_regs(ri, addr, ffs(size), attrs, 0);
+#elif CONFIG_MPU_VERSION == 2
+    if ((size & (MPU_ALIGN_SIZE - 1)) == 0 && (addr & (MPU_ALIGN_SIZE - 1)) == 0)
+    {
+        mm_space_free_pt_region(m_space, ri);
+        return FALSE;
+    }
+#endif
+    mpu_calc_regs(ri, addr, size, attrs, 0);
     ri->start_addr = addr;
     ri->size = size;
     return TRUE;

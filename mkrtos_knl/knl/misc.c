@@ -22,6 +22,7 @@ static bool_t mpu_calc(
     umword_t *ret_align_size,
     umword_t *alloc_addr)
 {
+#if CONFIG_MPU_VERSION == 1
     int ffs_t_;
     int ffs_t;
     region_info_t *region[2];
@@ -126,13 +127,17 @@ static bool_t mpu_calc(
     }
     printk("]\n");
 #endif
-    mpu_calc_regs(region[0], region[0]->block_start_addr, ffs_t_, REGION_RWX, region[0]->region);
-    mpu_calc_regs(region[1], region[1]->block_start_addr, ffs_t_, REGION_RWX, region[1]->region);
+    mpu_calc_regs(region[0], region[0]->block_start_addr, 1 << ffs_t_, REGION_RWX, region[0]->region);
+    mpu_calc_regs(region[1], region[1]->block_start_addr, 1 << ffs_t_, REGION_RWX, region[1]->region);
+#elif CONFIG_MPU_VERSION == 2
+
+#endif
     return TRUE;
 }
 
 void *mpu_ram_alloc(mm_space_t *ms, ram_limit_t *r_limit, size_t ram_size)
 {
+#if CONFIG_MPU_VERSION == 1
     umword_t pre_alloc_addr;
     struct mem_heap *heap = NULL;
     umword_t status = cpulock_lock();
@@ -176,4 +181,26 @@ again_alloc:
     }
     cpulock_set(status);
     return ram;
+#elif CONFIG_MPU_VERSION == 2
+    region_info_t *region;
+
+    void *ram = mm_limit_alloc_align(r_limit, ram_size + MPU_ALIGN_SIZE, MPU_ALIGN_SIZE);
+    if (!ram)
+    {
+        printk("The system is low on memory.\n");
+        return NULL;
+    }
+    region = mm_space_alloc_pt_region(ms);
+    if (!region)
+    {
+        mm_limit_free_align(r_limit, ram, ram_size);
+        return NULL;
+    }
+    region->block_start_addr = (umword_t)ram;
+    region->start_addr = (umword_t)ram;
+    region->block_size = 0;
+    region->size = ram_size + MPU_ALIGN_SIZE;
+    mpu_calc_regs(region, region->block_start_addr, ram_size & (~(MPU_ALIGN_SIZE - 1)), REGION_RWX, region->region);
+    return ram;
+#endif
 }

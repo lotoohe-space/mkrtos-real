@@ -93,5 +93,7 @@ void entry_handler(void)
         {
             irqs[isr_no].irq_tigger_func(&irqs[isr_no]);
         }
+    } else {
+        arch_disable_irq(isr_no);
     }
 }

@@ -22,33 +22,25 @@ set(PROJECT_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 set(BOARD $ENV{BOARD})
 include(cmake/top.cmake)
 set(ARCH ${CONFIG_ARCH} CACHE STRING "" FORCE)
+message(=======${ARCH})
+message(=======${CONFIG_CPU_TYPE})
 
-message(========${CONFIG_CPU_TYPE})
-if (${CONFIG_ARCH} STREQUAL "cortex-m3")
-    set(FLOAT_TYPE "soft")
-elseif(${CONFIG_ARCH} STREQUAL "cortex-m4" )
-    set(FLOAT_TYPE "hard")
-elseif(${CONFIG_ARCH} STREQUAL "cortex-r52" )
-    set(FLOAT_TYPE "soft")
-endif()
-
-
-# -mfloat-abi=soft  -u _printf_float 
-set(CMAKE_C_FLAGS "-mcpu=${CONFIG_ARCH}  -O0 -g3 -lc -lrdimon -mfloat-abi=${FLOAT_TYPE} -u _printf_float -D=MKRTOS \
+# -mfloat-abi=soft  -u _printf_float   -lc -lrdimon
+set(CMAKE_C_FLAGS "-mcpu=${CONFIG_ARCH} -O0 -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE}  -mthumb  -u _printf_float -D=MKRTOS \
 -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
 -fno-stack-protector -Wl,--gc-sections \
 -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)
 
-set(CMAKE_CXX_FLAGS "-mcpu=${CONFIG_ARCH} -mthumb -mno-thumb-interwork -D=MKRTOS -Os -g3 -std=c++11 \
+set(CMAKE_CXX_FLAGS "-mcpu=${CONFIG_ARCH} -O0 -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE} -mthumb -mno-thumb-interwork -D=MKRTOS -std=c++11 \
 -fmessage-length=0 -Xlinker --print-map -Wall -W -fno-stack-protector -g \ 
--mfloat-abi=${FLOAT_TYPE} -lc -lrdimon -u _printf_float \
+ -u _printf_float \
 -ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker \
 -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)
 
-set(CMAKE_ASM_FLAGS "-mcpu=${CONFIG_ARCH} -mthumb -Os -g3 -lc -lrdimon -D=MKRTOS \
+set(CMAKE_ASM_FLAGS "-mcpu=${CONFIG_ARCH} -O0 -g3 -mthumb -D=MKRTOS \
 -u _printf_float -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  -fno-stack-protector \
 -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \

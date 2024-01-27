@@ -47,7 +47,7 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "stm32f2" )
     )
     add_subdirectory(bsp/STM32F2)
 elseif(${CONFIG_CPU_TYPE} STREQUAL "stm32f4" )
-    if(${BOARD_NAME} STREQUAL "STM32F407VET6" )
+    if(${CONFIG_BOARD_NAME} STREQUAL "STM32F407VET6" )
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F40_41xxx ")
     endif()
 
@@ -69,6 +69,22 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "Cortex-R52" )
 
     )
     add_subdirectory(bsp/Cortex-R52)
+elseif(${CONFIG_CPU_TYPE} STREQUAL "swm34s" )
+
+    file(GLOB bsp_src 
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/CMSIS/DeviceSupport/system_SWM341.c
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/SWM341_StdPeriph_Driver/*.c
+    )
+    list(APPEND deps ${bsp_src})
+
+    include_directories(
+        ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/SWM34S
+
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/CMSIS/DeviceSupport
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/CMSIS/CoreSupport
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/SWM341_StdPeriph_Driver
+    )
+    add_subdirectory(bsp/SWM34S)
 endif()
 
 add_executable(bootstrap.elf
@@ -78,13 +94,11 @@ add_executable(bootstrap.elf
 set_target_properties(bootstrap.elf PROPERTIES LINK_FLAGS 
 "-T ${CMAKE_CURRENT_LIST_DIR}/bsp/${CONFIG_CPU_TYPE}/link.lds --gc-section ")
 
-
-
 target_link_libraries(
     bootstrap.elf
     # mk_bsp
     --whole-archive
-    bsp
+    boot_bsp
     --no-whole-archive
 )
 
@@ -97,10 +111,11 @@ add_custom_target(
     COMMAND
     cp bootstrap.bin ${CMAKE_SOURCE_DIR}/build/output/bootstrap
     COMMAND
+    cp bootstrap.bin ${CMAKE_SOURCE_DIR}/build/output/bootstrap.bin
+    COMMAND
     cp bootstrap.elf ${CMAKE_SOURCE_DIR}/build/output/bootstrap.elf
     COMMAND
     ${CMAKE_SIZE} bootstrap.elf
 )
 add_dependencies(bootstrap_dump bootstrap.elf)
-# add_dependencies(bootstrap.elf mk_bsp)
-add_dependencies(bootstrap.elf bsp)
+add_dependencies(bootstrap.elf boot_bsp)

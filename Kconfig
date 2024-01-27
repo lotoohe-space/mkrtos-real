@@ -2,6 +2,10 @@ mainmenu "MKRTOS Project Configuration"
 source "mkrtos_knl/Kconfig"
 source "mkrtos_user/Kconfig"
 
+config BOARD_NAME
+    string "board name."
+    default "stm32f103zet6"
+
 config CPU_TYPE
     string "mkrtos set cpu type."
     default "stm32f1"
@@ -9,6 +13,10 @@ config CPU_TYPE
 config ARCH
     string "cpu arch"
     default "cortex-m3"
+
+config FLOAT_TYPE
+    string "float type is soft or hard"
+    default "soft"
 
 config RTT_DIR
     string ""

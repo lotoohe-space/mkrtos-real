@@ -21,7 +21,7 @@
 #include "app.h"
 #include "mm_wrap.h"
 #include "thread_armv7m.h"
-#include "misc.h"
+#include "knl_misc.h"
 
 static uint8_t knl_msg_buf[THREAD_MSG_BUG_LEN];
 static thread_t *knl_thread;

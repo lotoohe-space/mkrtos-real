@@ -15,7 +15,7 @@
 #include "init.h"
 #include "map.h"
 #include "thread.h"
-#include "misc.h"
+#include "knl_misc.h"
 #include "spinlock.h"
 #include "string.h"
 /**

@@ -22,10 +22,10 @@
             "type": "cortex-debug",
             "request": "launch",
             "interface": "swd",
-            "executable": "${workspaceFolder}/build/output/kernel.img.out",
-            "symbolFiles": [
-                "${workspaceFolder}/build/mkrtos/mkrtos_knl/mkrtos.elf",
-            ],
+            "executable": "${workspaceFolder}/build/mkrtos/mkrtos_knl/bootstrap.elf",
+            // "symbolFiles": [
+            //     "${workspaceFolder}/build/mkrtos/mkrtos_knl/mkrtos.elf",
+            // ],
             "servertype": "jlink",
             "cwd": "${fileDirname}",
             "device": "STM32F103RE",
@@ -48,7 +48,7 @@
             // "miDebuggerPath": "/opt/homebrew/bin/arm-none-eabi-gdb",
             "miDebuggerPath": "/Users/zhangzheng/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gdb",
             // "miDebuggerPath": "/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-gdb",
-            "miDebuggerServerAddress": "127.0.0.1:3333",
+            "miDebuggerServerAddress": "127.0.0.1:2331",
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -57,6 +57,22 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Debug J-Link",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceFolder}/build/output/kernel.img.out",
+            "serverpath": "/Applications/SEGGER/JLink_V766/JLinkGDBServerCLExe",
+            "servertype": "jlink",
+            "device": "SWM341XE",
+            "interface": "swd",
+            "symbolFiles": ["${workspaceFolder}/build/output/mkrtos.elf"],
+            // "serialNumber": "", //If you have more than one J-Link probe, add the serial number here.
+            // "jlinkscript":"${workspaceRoot}/BSP/SEGGER/K66FN2M0_emPower/Setup/Kinetis_K66_Target.js",
+            // "runToMain": true,
+            // "svdFile": "${workspaceRoot}/SVD/MK66F18.svd"
         }
     ],
     "version": "2.0.0"

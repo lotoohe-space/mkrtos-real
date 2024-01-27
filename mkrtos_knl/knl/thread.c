@@ -342,13 +342,12 @@ void thread_timeout_check(ssize_t tick)
             if (pos->times <= 0)
             {
                 pos->th->ipc_status = THREAD_TIMEOUT;
-                thread_ready(pos->th, TRUE);
-
                 slist_del(&pos->node_timeout);
                 if (slist_in_list(&pos->node))
                 {
                     slist_del(&pos->node);
                 }
+                thread_ready(pos->th, TRUE);
             }
         }
         pos = next;
@@ -365,9 +364,8 @@ void thread_timeout_check(ssize_t tick)
             if (pos2->times <= 0)
             {
                 pos2->th->ipc_status = THREAD_TIMEOUT;
-                thread_ready(pos2->th, TRUE);
-
                 slist_del(&pos2->node);
+                thread_ready(pos2->th, TRUE);
             }
         }
         pos2 = next;
