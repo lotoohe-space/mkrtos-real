@@ -15,6 +15,8 @@
 #include "util.h"
 #include "mpu.h"
 #include "printk.h"
+
+#if CONFIG_MK_MPU_CFG
 static bool_t mpu_calc(
     mm_space_t *ms,
     umword_t mem_start_addr,
@@ -204,3 +206,11 @@ again_alloc:
     return ram;
 #endif
 }
+#else
+void *mpu_ram_alloc(mm_space_t *ms, ram_limit_t *r_limit, size_t ram_size)
+{
+    void *ram = mm_limit_alloc(r_limit, ram_size);
+
+    return ram;
+}
+#endif

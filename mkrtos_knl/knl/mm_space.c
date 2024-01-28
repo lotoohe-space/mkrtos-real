@@ -13,20 +13,12 @@
 #include "mm_space.h"
 #include "mpu.h"
 #include "assert.h"
-
+#if CONFIG_MK_MPU_CFG
 void mm_space_init(mm_space_t *mm_space, int is_knl)
 {
-    // region_info_t *regi_info;
-
     for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         mm_space->pt_regions[i].region_inx = -1;
-    }
-    if (!is_knl)
-    {
-        // regi_info = mm_space_alloc_pt_region(mm_space);
-        // assert(regi_info);
-        // mm_pages_init(&mm_space->mm_pages, regi_info);
     }
 }
 region_info_t *mm_space_alloc_pt_region(mm_space_t *m_space)
@@ -90,3 +82,4 @@ void mm_space_del(mm_space_t *m_space, umword_t addr)
         }
     }
 }
+#endif
