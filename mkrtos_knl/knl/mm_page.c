@@ -16,6 +16,7 @@
 #include "mm_page.h"
 #include "mm_space.h"
 #include "mpu.h"
+#if CONFIG_MK_MPU_CFG
 static mm_entry_t *mm_pages_entry_alloc(mm_pages_t *mm, addr_t new_addr)
 {
     for (int i = 0; i < PAGE_NR; i++)
@@ -128,3 +129,4 @@ void *mm_page_alloc_fault(mm_pages_t *mm, addr_t addr)
 
     return NULL;
 }
+#endif

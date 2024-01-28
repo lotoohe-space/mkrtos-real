@@ -12,7 +12,6 @@
 #include <mpu_armv8.h>
 #include "thread.h"
 #include "task.h"
-static volatile umword_t *MPUCR = (umword_t *)0xE000ED94;
 
 void mpu_init(void)
 {
@@ -31,8 +30,9 @@ void mpu_calc_regs(region_info_t *region, umword_t addr, umword_t ffs_val, uint8
     assert((addr & (MPU_ALIGN_SIZE - 1)) == 0);
     assert((ffs_val & (MPU_ALIGN_SIZE - 1)) == 0);
     region->rbar = ARM_MPU_RBAR(addr, ARM_MPU_SH_NON,
-                                attrs == REGION_RO ? 1 : 0, 1, 1);
+                                0, 0, attrs == REGION_RWX ? 0 : 1);
     region->rasr = ARM_MPU_RLAR(addr + ffs_val, region->region_inx);
+    ARM_MPU_SetMemAttr(region->region_inx, ARM_MPU_ATTR_NON_CACHEABLE);
 }
 void mpu_region_set(int inx, umword_t rbar, umword_t rasr)
 {

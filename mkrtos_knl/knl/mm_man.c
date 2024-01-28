@@ -84,6 +84,7 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     break;
     case MM_ALIGN_ALLOC:
     {
+#if CONFIG_MK_MPU_CFG
         region_info_t *regi_info = mm_space_alloc_pt_region(&cur_task->mm_space);
 
         if (regi_info)
@@ -112,6 +113,9 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         {
             tag = msg_tag_init4(0, 0, 0, -ENOMEM);
         }
+#else
+        tag = msg_tag_init4(0, 0, 0, -ENOSYS);
+#endif
     }
     break;
     case MM_MOD_ATTRS:
