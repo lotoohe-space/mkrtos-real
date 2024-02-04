@@ -1,4 +1,13 @@
-
+/**
+ * @file u_app_loader.c
+ * @author ATShining (1358745329@qq.com)
+ * @brief
+ * @version 0.1
+ * @date 2024-02-04
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #include "u_types.h"
 #include "u_prot.h"
 #include "u_app.h"
@@ -32,12 +41,77 @@ static umword_t app_stack_push(umword_t *stack, umword_t val)
 }
 
 /**
+ * @brief 放入一个无符号整型
+ *
+ * @param task_obj
+ * @param stack
+ * @param val
+ */
+static void *app_stack_push_umword(obj_handler_t task_obj, umword_t **stack, umword_t val)
+{
+    ipc_msg_t *msg = thread_get_cur_ipc_msg();
+    (*stack)--;
+
+    msg->msg_buf[0] = val;
+    task_copy_data(task_obj, *stack, sizeof(umword_t));
+
+    return *stack;
+}
+/**
+ * @brief 放入一个字符串
+ *
+ * @param task_obj
+ * @param stack
+ * @param str
+ */
+static void *app_stack_push_str(obj_handler_t task_obj, umword_t **stack, const char *str)
+{
+    ipc_msg_t *msg = thread_get_cur_ipc_msg();
+    int len = strlen(str) + 1;
+    char *cp_data = (char *)msg->msg_buf;
+
+    len = MIN(len, ARRAY_SIZE(msg->msg_buf) * sizeof(umword_t));
+    *stack -= ALIGN(len, sizeof(void *)) / sizeof(void *);
+
+    memcpy(cp_data, str, len);
+    cp_data[len - 1] = 0;
+
+    task_copy_data(task_obj, *stack, len);
+
+    return *stack;
+}
+/**
+ * @brief 压入数组
+ *
+ * @param task_obj
+ * @param stack
+ * @param arr
+ * @param len
+ * @return void*
+ */
+static void *app_stack_push_array(obj_handler_t task_obj, umword_t **stack, uint8_t *arr, size_t len)
+{
+    ipc_msg_t *msg = thread_get_cur_ipc_msg();
+    char *cp_data = (char *)msg->msg_buf;
+
+    len = MIN(len, ARRAY_SIZE(msg->msg_buf) * sizeof(umword_t));
+    *stack -= ALIGN(len, sizeof(void *)) / sizeof(void *);
+
+    memcpy(cp_data, arr, len);
+    cp_data[len - 1] = 0;
+
+    task_copy_data(task_obj, *stack, len);
+
+    return *stack;
+}
+
+/**
  * @brief 加载并执行一个app
  *
  * @param name app的名字
  * @return int
  */
-int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int arg_cn)
+int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int arg_cn, char *envp[], int envp_cn)
 {
     msg_tag_t tag;
     sys_info_t sys_info;
@@ -154,41 +228,55 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 
-    umword_t usp_top = ((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL) - MSG_BUG_LEN;
+    umword_t *usp_top = (umword_t *)((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL);
+    uenv_t uenv = {
+        .log_hd = cur_env->ns_hd,
+        .ns_hd = cur_env->ns_hd,
+        .rev1 = HANDLER_INVALID,
+        .rev2 = HANDLER_INVALID,
+    };
+    umword_t *app_env;
+    char *cp_args;
+    char *cp_envp;
 
-    /**处理传参*/
-    umword_t *buf;
-    thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);
-    umword_t *buf_bk = buf;
-#define ARG_WORD_NR 10                                                               // 40bytes
-    buf = (umword_t *)app_stack_push(buf, 1 + arg_cn);                               //!< argc 24
-    buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + ARG_WORD_NR * 4);      //!< argv[0]
-    buf = (umword_t *)app_stack_push(buf, 0);                                        //!< NULL
-    buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + ARG_WORD_NR * 4 + 16); //!< env[0...N]
-    buf = (umword_t *)app_stack_push(buf, 0);                                        //!< NULL
+    app_env = app_stack_push_array(hd_task, &usp_top, (uint8_t *)(&uenv), sizeof(uenv));
+    for (int i = 0; i < arg_cn; i++)
+    {
+        cp_args = app_stack_push_str(hd_task, &usp_top, argv[i]);
+    }
+    for (int i = 0; i < envp_cn; i++)
+    {
+        cp_envp = app_stack_push_str(hd_task, &usp_top, envp[i]);
+    }
 
-    buf = (umword_t *)app_stack_push(buf, (umword_t)AT_PAGESZ);                           //!< auxvt[0...N]
-    buf = (umword_t *)app_stack_push(buf, MK_PAGE_SIZE);                                  //!< auxvt[0...N]
-    buf = (umword_t *)app_stack_push(buf, 0xfe);                                          //!< auxvt[0...N] mkrtos_env
-    buf = (umword_t *)app_stack_push(buf, (umword_t)usp_top + ARG_WORD_NR * 4 + 16 + 16); //!< auxvt[0...N]
-    buf = (umword_t *)app_stack_push(buf, 0);                                             //!< NULL
+    app_stack_push_umword(hd_task, &usp_top, 0);
 
-    // set args & env.
+    app_stack_push_umword(hd_task, &usp_top, (umword_t)app_env);
+    app_stack_push_umword(hd_task, &usp_top, 0xfe);
 
-    memcpy((char *)buf_bk + ARG_WORD_NR * 4, name, strlen(name) + 1);
-    memcpy((char *)buf_bk + ARG_WORD_NR * 4 + 16, "PATH=/", strlen("PATH=/") + 1);
+    app_stack_push_umword(hd_task, &usp_top, MK_PAGE_SIZE);
+    app_stack_push_umword(hd_task, &usp_top, (umword_t)AT_PAGESZ);
 
-    // set user env. 16 bytes
-    uenv_t *uenv = (uenv_t *)((char *)buf_bk + ARG_WORD_NR * 4 + 16 + 16);
-    uenv->log_hd = cur_env->ns_hd;
-    uenv->ns_hd = cur_env->ns_hd;
-    uenv->rev1 = HANDLER_INVALID;
-    uenv->rev2 = HANDLER_INVALID;
-    printf("pid:%d, stack env:%p, env:%p\n", hd_task,
-           (void *)((umword_t)usp_top + ARG_WORD_NR * 4 + 16 + 16), uenv);
+    app_stack_push_umword(hd_task, &usp_top, 0);
+    for (int i = 0; i < envp_cn; i++)
+    {
+        app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_envp);
+        cp_envp += ALIGN(strlen(envp[i]), sizeof(void *));
+    }
+    if (arg_cn)
+    {
+        app_stack_push_umword(hd_task, &usp_top, 0);
+        for (int i = 0; i < arg_cn; i++)
+        {
+            app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_args);
+            cp_args += ALIGN(strlen(argv[i]) + 1, sizeof(void *));
+        }
+    }
+    app_stack_push_umword(hd_task, &usp_top, arg_cn);
 
-    tag = thread_exec_regs(hd_thread, (umword_t)addr, ((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL),
-                           ram_base, 1);
+    printf("pid:%d stack:%p\n", hd_task, usp_top);
+    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)usp_top,
+                           ram_base, 0);
     assert(msg_tag_get_prot(tag) >= 0);
     /*启动线程运行*/
     tag = thread_run(hd_thread, 2);
