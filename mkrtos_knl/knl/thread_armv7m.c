@@ -39,11 +39,6 @@ void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram, um
     // assert((((umword_t)user_sp) & 0x7UL) == 0);
     umword_t usp = ((umword_t)(user_sp) & ~0x7UL);
 
-    if (stack)
-    {
-        usp -= THREAD_MSG_BUG_LEN;
-        memcpy((void *)usp, (void *)stack, THREAD_MSG_BUG_LEN);
-    }
 
     pf_t *cur_pf = (pf_t *)(usp)-1; // thread_get_pf(cur_th);
 

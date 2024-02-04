@@ -18,6 +18,9 @@
 #include "knl_misc.h"
 #include "spinlock.h"
 #include "string.h"
+#include "assert.h"
+#include "access.h"
+#include "printk.h"
 /**
  * @brief 任务的操作码
  *
@@ -30,6 +33,7 @@ enum task_op_code
     TASK_OBJ_VALID,      //!< 判断一个对象是否有效
     TASK_SET_PID,        //!< 设置task的pid
     TASK_GET_PID,        //!< 获取task的pid
+    TASK_COPY_DATA,      //!< 拷贝数据到task的数据区域
 };
 static bool_t task_put(kobject_t *kobj);
 static void task_release_stage1(kobject_t *kobj);
@@ -255,6 +259,31 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         spinlock_set(&tag_task->kobj.lock, status);
     }
     break;
+    case TASK_COPY_DATA: //!< 拷贝数据到task的内存区域
+    {
+        void *mem;
+        size_t size;
+
+        umword_t st_addr = f->r[0];
+        size_t cp_size = f->r[1];
+
+        if (cp_size > THREAD_MSG_BUG_LEN)
+        {
+            tag = msg_tag_init4(0, 0, 0, -EINVAL);
+            break;
+        }
+        if (!is_rw_access(tag_task, (void *)st_addr, cp_size, FALSE))
+        {
+            tag = msg_tag_init4(0, 0, 0, -EPERM);
+            break;
+        }
+        // printk("addr:0x%x %d.\n", st_addr, cp_size);
+        void *msg = thread_get_msg_buf(thread_get_current());
+
+        memcpy((void *)st_addr, msg, cp_size);
+        tag = msg_tag_init4(0, 0, 0, 0);
+        break;
+    }
     case TASK_SET_PID: //!< 设置pid
     {
         tag = msg_tag_init4(0, 0, 0, task_set_pid(tag_task, f->r[0]));
@@ -366,7 +395,7 @@ static kobject_t *task_create_func(ram_limit_t *lim, umword_t arg0, umword_t arg
 }
 
 /**
- * @brief 工厂注册函数 TODO:
+ * @brief 工厂注册函数
  *
  */
 void task_factory_register(void)
