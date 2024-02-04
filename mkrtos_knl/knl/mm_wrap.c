@@ -52,6 +52,10 @@ void mm_trace(void)
 {
     mem_trace(mm_get_global());
 }
+void mm_info(size_t *total, size_t *free)
+{
+    mem_info(mm_get_global(), total, free);
+}
 void *mm_limit_alloc_align(ram_limit_t *limit, size_t size, size_t align)
 {
     if (ram_limit_alloc(limit, size) == FALSE)

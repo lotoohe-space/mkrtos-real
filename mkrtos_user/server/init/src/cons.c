@@ -48,7 +48,7 @@ void console_init(void)
 {
     cons_svr_obj_init(&cons_obj);
     meta_reg_svr_obj(&cons_obj.svr, CONS_PROT);
-    u_thread_create(&cons_th, cons_stack, sizeof(cons_stack), NULL, console_read_func);
+    u_thread_create(&cons_th, (char *)cons_stack + sizeof(cons_stack), NULL, console_read_func);
     u_thread_run(cons_th, 3);
     printf("cons svr init...\n");
 }

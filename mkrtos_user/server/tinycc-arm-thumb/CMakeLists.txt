@@ -91,10 +91,10 @@ add_custom_target(
     ${CMAKE_SIZE} tcc.elf
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
-    COMMAND
-    cp tcc.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc
-    COMMAND
-    cp tcc.elf ${CMAKE_SOURCE_DIR}/build/output/tcc.elf
+    # COMMAND
+    # cp tcc.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc
+    # COMMAND
+    # cp tcc.elf ${CMAKE_SOURCE_DIR}/build/output/tcc.elf
 )
 
 add_dependencies(tcc_dump tcc.elf)

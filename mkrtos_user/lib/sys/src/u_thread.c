@@ -20,7 +20,7 @@ enum IPC_TYPE
     IPC_RECV,
     IPC_SEND,
 };
-msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj)
+msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj, obj_handler_t ipc_obj)
 {
     register volatile umword_t r0 asm("r0");
     register volatile umword_t r1 asm("r1");
@@ -29,7 +29,7 @@ msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj)
                IPC_WAIT,
                0,
                timeout.raw,
-               0,
+               ipc_obj,
                0);
     asm __volatile__(""
                      :

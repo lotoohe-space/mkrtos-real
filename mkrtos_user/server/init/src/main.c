@@ -36,6 +36,7 @@
 static void test(void)
 {
 #if 0
+    mpu_test();
     sharea_mem_test();
     printf_test();
     ulog_test();
@@ -45,7 +46,6 @@ static void test(void)
 
     mm_test();
     app_test();
-    mpu_test();
     thread_press_test();
     kobj_create_press_test();
     u_sleep_ms(1000);

@@ -13,20 +13,12 @@
 #include "mm_space.h"
 #include "mpu.h"
 #include "assert.h"
-
+#if CONFIG_MK_MPU_CFG
 void mm_space_init(mm_space_t *mm_space, int is_knl)
 {
-    region_info_t *regi_info;
-
     for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         mm_space->pt_regions[i].region_inx = -1;
-    }
-    if (!is_knl)
-    {
-        regi_info = mm_space_alloc_pt_region(mm_space);
-        assert(regi_info);
-        // mm_pages_init(&mm_space->mm_pages, regi_info);
     }
 }
 region_info_t *mm_space_alloc_pt_region(mm_space_t *m_space)
@@ -58,13 +50,21 @@ bool_t mm_space_add(mm_space_t *m_space,
     {
         return FALSE;
     }
+#if CONFIG_MPU_VERSION == 1
     if (!is_power_of_2(size) || (addr & (!(size - 1))) != 0)
     {
         //!< 申请的大小必须是2的整数倍，而且地址也必须是2的整数倍
         mm_space_free_pt_region(m_space, ri);
         return FALSE;
     }
-    mpu_calc_regs(ri, addr, ffs(size), attrs, 0);
+#elif CONFIG_MPU_VERSION == 2
+    if ((size & (MPU_ALIGN_SIZE - 1)) == 0 && (addr & (MPU_ALIGN_SIZE - 1)) == 0)
+    {
+        mm_space_free_pt_region(m_space, ri);
+        return FALSE;
+    }
+#endif
+    mpu_calc_regs(ri, addr, size, attrs, 0);
     ri->start_addr = addr;
     ri->size = size;
     return TRUE;
@@ -82,3 +82,4 @@ void mm_space_del(mm_space_t *m_space, umword_t addr)
         }
     }
 }
+#endif

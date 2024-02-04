@@ -131,6 +131,7 @@ typedef struct thread
     msg_buf_t msg;               //!< 每个线程独有的消息缓存区
     slist_head_t wait_send_head; //!< 等待头，那些节点等待给当前线程发送数据
     thread_t *last_send_th;      //!< 当前线程上次接收到谁的数据
+    kobject_t *ipc_kobj;         //!< 发送者放到一个ipc对象中
     umword_t user_id;            //!< 接收到的user_id
 
     enum thread_state status;         //!< 线程状态
@@ -187,4 +188,5 @@ void thread_ready(thread_t *th, bool_t is_sche);
 
 void thread_timeout_check(ssize_t tick);
 msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id);
-int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag, ipc_timeout_t timout, umword_t *ret_user_id);
+int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag,
+                    ipc_timeout_t timout, umword_t *ret_user_id, bool_t is_call);

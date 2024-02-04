@@ -5,7 +5,7 @@
 #include "u_mm.h"
 #include "u_sleep.h"
 
-AUTO_CALL(101)
+// AUTO_CALL(101)
 int u_drv_init(void)
 {
     msg_tag_t tag;
@@ -15,5 +15,6 @@ int u_drv_init(void)
     {
         return msg_tag_get_val(tag);
     }
+   
     return 0;
 }

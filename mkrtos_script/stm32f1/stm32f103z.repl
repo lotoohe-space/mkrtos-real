@@ -4,6 +4,9 @@ flash0: Memory.MappedMemory @ sysbus 0x8000000
 sram0: Memory.MappedMemory @ sysbus 0x20000000
     size: 0x10000
 
+sram1: Memory.MappedMemory @ sysbus 0x68000000
+    size: 0x100000
+
 usart2: UART.STM32_UART @ sysbus <0x40004400, +0x400>
     ->nvic@38
 

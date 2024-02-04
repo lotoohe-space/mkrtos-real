@@ -11,10 +11,18 @@
 
 #define __PDP_ENDIAN 3412
 
+#ifndef BIG_ENDIAN
 #define BIG_ENDIAN __BIG_ENDIAN
+#endif
+#ifndef LITTLE_ENDIAN
 #define LITTLE_ENDIAN __LITTLE_ENDIAN
+#endif
+#ifndef PDP_ENDIAN
 #define PDP_ENDIAN __PDP_ENDIAN
+#endif
+#ifndef BYTE_ORDER
 #define BYTE_ORDER __BYTE_ORDER
+#endif
 
 static __inline uint16_t __bswap16(uint16_t __x)
 {

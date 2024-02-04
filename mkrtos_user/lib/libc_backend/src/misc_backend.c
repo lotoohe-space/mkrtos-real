@@ -6,6 +6,7 @@
 #include "u_env.h"
 #include "u_log.h"
 #include "u_thread.h"
+#include "u_sys.h"
 #include <pthread_impl.h>
 #include <errno.h>
 #include <u_sleep.h>
@@ -107,4 +108,21 @@ long sys_clock_nanosleep(va_list ap)
     ARG_4_BE(ap, clock_id, clockid_t, flags, long, req, const struct timespec *, rem, struct timespec *);
 
     return be_clock_nanosleep(clock_id, flags, req, rem);
+}
+long be_clock_gettime(clockid_t clk_id, struct timespec *tp)
+{
+    #define NCLOCKS 4
+    if (clk_id >= NCLOCKS)
+    {
+        return -ENODEV;
+    }
+    sys_info_t info;
+    sys_read_info(SYS_PROT, &info);
+
+    unsigned long ts = info.sys_tick;
+
+    tp->tv_sec = ts / 1000;
+    tp->tv_nsec = (ts % 1000) * 1000 * 1000;
+
+    return 0;
 }

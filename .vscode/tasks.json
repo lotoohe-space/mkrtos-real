@@ -6,9 +6,9 @@
 			"command": "openocd",
 			"args": [
 				"-f",
-				"interface/jlink.cfg",
+				"interface/cmsis-dap.cfg",
 				"-f",
-				"${workspaceFolder}/mkrtos_cfg/stm32f103ret6.cfg",
+				"target/stm32f1x.cfg",
                 "-c","init",
                 "-c","targets;reset halt;wait_halt;poll",
 				"-c","flash write_image erase unlock build/output/kernel.img 0x08000000",

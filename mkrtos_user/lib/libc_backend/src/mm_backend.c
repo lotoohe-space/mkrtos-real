@@ -113,6 +113,10 @@ umword_t be_mmap2(void *start,
 {
     umword_t addr;
 
+    if (len == 0)
+    {
+        return 0;
+    }
     int ret = _sys_mmap2(start, len, prot, flags, fd, _offset, &addr);
 
     if (ret < 0)

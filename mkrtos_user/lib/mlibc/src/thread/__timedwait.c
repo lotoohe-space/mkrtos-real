@@ -25,7 +25,7 @@ static int __futex4_cp(volatile void *addr, int op, int val, const struct timesp
 #ifdef NO_LITTLE_MODE
 	r = __syscall_cp(SYS_futex, addr, op, val, to);
 #else
-	r = be_futex((void *)addr, op, val, 0, 0, 0);
+	r = be_futex((void *)addr, op, val, to, 0, 0);
 #endif
 	if (r != -ENOSYS)
 		return r;

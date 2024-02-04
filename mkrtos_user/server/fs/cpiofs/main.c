@@ -15,7 +15,6 @@ int main(int argv, char *args[])
 {
     obj_handler_t hd;
     int ret;
-
     printf("args[0]:%s\n", args[0]);
 
     ret = rpc_meta_init(THREAD_MAIN, &hd);

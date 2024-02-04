@@ -769,7 +769,7 @@
 #define SYS_io_pgetevents 399
 #define SYS_migrate_pages 400
 #define SYS_kexec_file_load 401
-#define SYS_clock_gettime64 403
+// #define SYS_clock_gettime64 403
 #define SYS_clock_settime64 404
 #define SYS_clock_adjtime64 405
 #define SYS_clock_getres_time64 406

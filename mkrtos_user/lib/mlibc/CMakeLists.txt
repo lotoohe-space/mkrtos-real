@@ -14,12 +14,14 @@ crt/*.S
 crt/*.s)
 list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/crt/start_init.S)
 list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/crt/start.S)
+list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/crt/start_tiny.S)
 list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/ldso/dlstart.c)
 list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/ldso/dynlink.c)
 list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/crt/rcrt1.c)
 
 add_library(start_init ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/crt/start_init.S)
 add_library(start ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/crt/start.S)
+add_library(start_tiny ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/crt/start_tiny.S)
 
 add_library(muslc ${deps})
 target_link_libraries(

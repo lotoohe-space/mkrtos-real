@@ -69,6 +69,7 @@ umword_t be_mmap2(void *start,
                   long flags,
                   long fd,
                   long _offset);
+long be_clock_gettime(clockid_t clk_id, struct timespec *tp);
 
 umword_t sys_mmap2(va_list ap);
 long sys_set_tid_address(va_list ap);

@@ -1,12 +1,12 @@
 /**
  * @file mm_page.c
  * @author ATShining (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-09-29
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "types.h"
 #include "mm_space.h"
@@ -16,6 +16,7 @@
 #include "mm_page.h"
 #include "mm_space.h"
 #include "mpu.h"
+#if CONFIG_MK_MPU_CFG
 static mm_entry_t *mm_pages_entry_alloc(mm_pages_t *mm, addr_t new_addr)
 {
     for (int i = 0; i < PAGE_NR; i++)
@@ -118,7 +119,7 @@ void *mm_page_alloc_fault(mm_pages_t *mm, addr_t addr)
     {
         if (mm_entry_get_addr(mm->list[i].addr) == addr)
         {
-            mpu_calc_regs(mm->region, addr, ffs(PAGE_SIZE),
+            mpu_calc_regs(mm->region, addr, PAGE_SIZE,
                           mm->list[i].attrs, 0x0);
             mpu_region_set(mm->region->region_inx, mm->region->rbar,
                            mm->region->rasr);
@@ -128,3 +129,4 @@ void *mm_page_alloc_fault(mm_pages_t *mm, addr_t addr)
 
     return NULL;
 }
+#endif

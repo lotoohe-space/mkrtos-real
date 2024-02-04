@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include <errno.h>
+#include "u_sys.h"
 int ls(int argc, char *agrv[])
 {
     DIR *dir;
@@ -80,3 +81,22 @@ int shell_symlink(int argc, char *argv[])
     return symlink(argv[1], argv[2]);
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), symlink, shell_symlink, symlink command);
+
+int shell_reboot(int argc, char *argv[])
+{
+    printf("sys reboot.\n");
+    sys_reboot(SYS_PROT);
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), reboot, shell_reboot, reboot command);
+
+int shell_mem_info(int argc, char *argv[])
+{
+    size_t total;
+    size_t free;
+
+    sys_mem_info(SYS_PROT, &total, &free);
+    printf("sys mem:\ntotal:%dB\nfree:%dB\n", total, free);
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), mem, shell_mem_info, mem command);

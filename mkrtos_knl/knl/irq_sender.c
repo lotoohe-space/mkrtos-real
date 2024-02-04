@@ -37,6 +37,10 @@ enum irq_sender_op
  */
 static void irq_tigger(irq_entry_t *irq)
 {
+    if (irq->irq == NULL)
+    {
+        return;
+    }
     arch_disable_irq(irq->irq->irq_id); //!< 触发中断时关闭中断
     irq->irq->irq_cn++;                 //!< 中断计数+1
 

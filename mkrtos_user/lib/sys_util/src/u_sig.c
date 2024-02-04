@@ -40,7 +40,7 @@ static void sig_func(void)
 
     while (1)
     {
-        msg_tag_t tag = thread_ipc_wait(ipc_timeout_create2(0, 0), NULL);
+        msg_tag_t tag = thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
         if (msg_tag_get_val(tag) < 0)
         {
             continue;
@@ -71,7 +71,7 @@ void sig_init(void)
     {
         return;
     }
-    u_thread_create(&sig_th, sig_stack, sizeof(sig_stack), sig_msg_buf, sig_func);
+    u_thread_create(&sig_th, (char *)sig_stack + sizeof(sig_stack), sig_msg_buf, sig_func);
     u_thread_run(sig_th, CONFIG_SIG_THREAD_PRIO);
 }
 #endif

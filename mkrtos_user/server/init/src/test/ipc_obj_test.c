@@ -41,7 +41,7 @@ static void thread_test_func(void)
     ipc_bind(ipc_hd, th1_hd, 0);
     while (1)
     {
-        thread_ipc_wait(ipc_timeout_create2(0, 0), NULL);
+        thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
         printf("srv recv:%s", buf);
         hard_sleep();
         buf[0] = '_';

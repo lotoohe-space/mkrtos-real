@@ -76,10 +76,11 @@ static void thread_test_func(void)
 {
     char *buf;
     umword_t len;
+
     thread_msg_buf_get(th1_hd, (umword_t *)(&buf), NULL);
     while (1)
     {
-        thread_ipc_wait(ipc_timeout_create2(0, 0), NULL);
+        thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
         printf("srv recv:%s", buf);
         hard_sleep();
         // u_sleep_ms(10);

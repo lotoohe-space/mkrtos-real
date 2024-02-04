@@ -17,6 +17,7 @@
 #include "types.h"
 #include "util.h"
 #include "arch.h"
+#include "mm_wrap.h"
 
 typedef struct sys
 {
@@ -29,6 +30,7 @@ enum sys_op
 {
     SYS_INFO_GET,
     REBOOT,
+    MEM_INFO,
 };
 static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f);
 
@@ -53,14 +55,26 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     case SYS_INFO_GET:
     {
         f->r[1] = sys_tick_cnt_get();
-        f->r[2] = CONFIG_KNL_TEXT_ADDR + BOOTFS_ADDR_OFFSET;
+        f->r[2] = CONFIG_KNL_TEXT_ADDR + CONFIG_BOOTFS_OFFSET;
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
     case REBOOT:
     {
-        printk("Unsupport.\n");
-        tag = msg_tag_init4(0, 0, 0, -ENOSYS);
+        printk("sys reboot.\n");
+        sys_reset();
+        tag = msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
+    case MEM_INFO:
+    {
+        size_t total;
+        size_t free;
+
+        mm_info(&total, &free);
+        f->r[1] = total;
+        f->r[2] = free;
+        tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
     default:

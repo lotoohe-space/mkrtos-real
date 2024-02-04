@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <pthread_impl.h>
 #include <time.h>
+#include <errno.h>
 int be_futex(uint32_t *uaddr, int futex_op, uint32_t val,
              const struct timespec *timeout, uint32_t uaddr2, uint32_t val3)
 {
@@ -44,7 +45,7 @@ _try_again:
     sys_read_info(SYS_PROT, &sys_info);
     st_val = sys_info.sys_tick;
     tag = futex_ctrl(FUTEX_PROT, uaddr, futex_op, val, total, uaddr2, val3, pt->tid);
-    if (msg_tag_get_val(tag) == -EWTIMEDOUT)
+    if (msg_tag_get_val(tag) == -ETIMEDOUT)
     {
         umword_t en_val;
 
