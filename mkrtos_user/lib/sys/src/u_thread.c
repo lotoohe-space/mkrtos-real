@@ -176,7 +176,7 @@ msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
 {
     register volatile umword_t r0 asm("r0");
 
-    mk_syscall(syscall_prot_create(RUN_THREAD, THREAD_PROT, obj).raw,
+    mk_syscall(syscall_prot_create4(RUN_THREAD, THREAD_PROT, obj, TRUE).raw,
                0,
                prio,
                0,

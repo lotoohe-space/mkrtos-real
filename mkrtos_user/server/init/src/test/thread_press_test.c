@@ -33,7 +33,7 @@ void thread_press_test(void)
 
         tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
         assert(msg_tag_get_prot(tag) >= 0);
-        tag = thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, RAM_BASE(), 0);
+        tag = thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, TASK_RAM_BASE(), 0);
         assert(msg_tag_get_prot(tag) >= 0);
         tag = thread_bind_task(th1_hd, TASK_THIS);
         assert(msg_tag_get_prot(tag) >= 0);

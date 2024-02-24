@@ -6,7 +6,7 @@
 #define WORD_BYTES (sizeof(void *))
 #define WORD_BITS (WORD_BYTES * 8)
 
-#define RAM_BASE()             \
+#define TASK_RAM_BASE()             \
     ({                         \
         umword_t _val;         \
         __asm__ __volatile__(  \

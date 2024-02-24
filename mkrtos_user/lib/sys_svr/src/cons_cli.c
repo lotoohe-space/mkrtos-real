@@ -46,6 +46,7 @@ int cons_write(const uint8_t *data, int len)
             break;
         }
     }
+    return rlen;
 }
 int cons_read(uint8_t *data, int len)
 {

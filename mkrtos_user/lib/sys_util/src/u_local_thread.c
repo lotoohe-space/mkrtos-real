@@ -21,7 +21,7 @@ int thread_create(int prio, void *(*fn)(void *arg), umword_t stack_top, obj_hand
     {
         return msg_tag_get_prot(tag);
     }
-    tag = thread_exec_regs(th1_hd, (umword_t)fn, stack_top, RAM_BASE(), 0);
+    tag = thread_exec_regs(th1_hd, (umword_t)fn, stack_top, TASK_RAM_BASE(), 0);
     if (msg_tag_get_prot(tag) < 0)
     {
         handler_free_umap(th1_hd);

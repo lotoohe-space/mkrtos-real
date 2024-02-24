@@ -88,6 +88,25 @@ static void sdram_init(void)
     SDRAM_InitStruct.TimeTRFC = SDRAM_TRFC_15;
     SDRAM_Init(&SDRAM_InitStruct);
 }
+
+int sram_test(void)
+{
+    volatile unsigned int *sram3_addr = (volatile unsigned int *)0x80000000;
+    int i = 0;
+    for (i = 0; i < 1024 * 1024 / 4; i++)
+    {
+        sram3_addr[i] = i;
+    }
+    for (i = 0; i < 1024 * 1024 / 4; i++)
+    {
+        if (i != sram3_addr[i])
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 //! 内核镜像的开始地址
 #define KERNEL_IMG_START_ADDR (CONFIG_KNL_TEXT_ADDR + CONFIG_KNL_OFFSET)
 void jump2kernel(void)
@@ -96,6 +115,10 @@ void jump2kernel(void)
     uart_init();
 #if CONFIG_KNL_EXRAM
     sdram_init();
+    if (sram_test() == 0)
+    {
+        print_str("sdram fail.\n");
+    }
 #endif
     print_str("system startup.\n");
     uint32_t jump_addr;

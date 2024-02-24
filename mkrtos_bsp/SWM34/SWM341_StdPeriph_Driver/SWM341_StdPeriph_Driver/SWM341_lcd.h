@@ -3,32 +3,32 @@
 
 
 typedef struct {
-	uint8_t  ClkDiv;		//È¡Öµ·¶Î§2--65
-	uint8_t  Format;		//LCD_FMT_RGB565¡¢LCD_FMT_RGB888¡¢LCD_FMT_SRGB565¡¢LCD_FMT_SRGB888
-	uint16_t HnPixel;		//Ë®Æ½·½ÏòÏñËØ¸öÊı£¬×î´óÈ¡Öµ1024
-	uint16_t VnPixel;		//´¹Ö±·½ÏòÏñËØ¸öÊı£¬×î´óÈ¡Öµ1024
-	uint8_t  Hfp;			//horizonal front porch£¬×î´óÈ¡Öµ64
-	uint16_t Hbp;			//horizonal back porch£¬ ×î´óÈ¡Öµ256
-	uint8_t  Vfp;			//vertical front porch£¬ ×î´óÈ¡Öµ64
-	uint16_t Vbp;			//vertical back porch£¬  ×î´óÈ¡Öµ256
-	uint16_t HsyncWidth;	//HSYNCµÍµçÆ½³ÖĞø¶àÉÙ¸öDOTCLK£¬×î´óÈ¡Öµ256
-	uint16_t VsyncWidth;	//VSYNCµÍµçÆ½³ÖĞø¶àÉÙ¸öĞĞÊ±¼ä£¬×î´óÈ¡Öµ256
+	uint8_t  ClkDiv;		//å–å€¼èŒƒå›´2--65
+	uint8_t  Format;		//LCD_FMT_RGB565ã€LCD_FMT_RGB888ã€LCD_FMT_SRGB565ã€LCD_FMT_SRGB888
+	uint16_t HnPixel;		//æ°´å¹³æ–¹å‘åƒç´ ä¸ªæ•°ï¼Œæœ€å¤§å–å€¼1024
+	uint16_t VnPixel;		//å‚ç›´æ–¹å‘åƒç´ ä¸ªæ•°ï¼Œæœ€å¤§å–å€¼1024
+	uint8_t  Hfp;			//horizonal front porchï¼Œæœ€å¤§å–å€¼64
+	uint16_t Hbp;			//horizonal back porchï¼Œ æœ€å¤§å–å€¼256
+	uint8_t  Vfp;			//vertical front porchï¼Œ æœ€å¤§å–å€¼64
+	uint16_t Vbp;			//vertical back porchï¼Œ  æœ€å¤§å–å€¼256
+	uint16_t HsyncWidth;	//HSYNCä½ç”µå¹³æŒç»­å¤šå°‘ä¸ªDOTCLKï¼Œæœ€å¤§å–å€¼256
+	uint16_t VsyncWidth;	//VSYNCä½ç”µå¹³æŒç»­å¤šå°‘ä¸ªè¡Œæ—¶é—´ï¼Œæœ€å¤§å–å€¼256
 	
-	uint32_t DataSource;	//ÏÔÊ¾Êı¾İµØÖ·
-	uint32_t Background;	//±³¾°ÑÕÉ«
-	uint8_t  SampleEdge;	//ÆÁÄ»ÔÚDOTCLKµÄÄÄ¸ö±ßÑØ²ÉÑùÊı¾İ£ºLCD_SAMPLE_RISE¡¢LCD_SAMPLE_FALL
+	uint32_t DataSource;	//æ˜¾ç¤ºæ•°æ®åœ°å€
+	uint32_t Background;	//èƒŒæ™¯é¢œè‰²
+	uint8_t  SampleEdge;	//å±å¹•åœ¨DOTCLKçš„å“ªä¸ªè¾¹æ²¿é‡‡æ ·æ•°æ®ï¼šLCD_SAMPLE_RISEã€LCD_SAMPLE_FALL
 	
-	uint8_t  IntEOTEn;		//End of Transter£¨´«ÊäÍê³É£©ÖĞ¶ÏÊ¹ÄÜ
+	uint8_t  IntEOTEn;		//End of Transterï¼ˆä¼ è¾“å®Œæˆï¼‰ä¸­æ–­ä½¿èƒ½
 } LCD_InitStructure;
 
 
 typedef struct {
 	uint8_t  Alpha;
-	uint16_t HStart;		//Ë®Æ½·½ÏòÆğÊ¼Î»ÖÃ£¬È¡Öµ·¶Î§0 ~ HnPixel-1
-	uint16_t HStop;			//Ë®Æ½·½ÏòÖÕÖ¹Î»ÖÃ£¨°üº¬£©£¬²»µÃĞ¡ÓÚHStart£¬ÇÒ HStop - HStart ½á¹û±ØĞëÎªÆæÊı
+	uint16_t HStart;		//æ°´å¹³æ–¹å‘èµ·å§‹ä½ç½®ï¼Œå–å€¼èŒƒå›´0 ~ HnPixel-1
+	uint16_t HStop;			//æ°´å¹³æ–¹å‘ç»ˆæ­¢ä½ç½®ï¼ˆåŒ…å«ï¼‰ï¼Œä¸å¾—å°äºHStartï¼Œä¸” HStop - HStart ç»“æœå¿…é¡»ä¸ºå¥‡æ•°
 	uint16_t VStart;
 	uint16_t VStop;
-	uint32_t DataSource;	//ÏÔÊ¾Êı¾İµØÖ·
+	uint32_t DataSource;	//æ˜¾ç¤ºæ•°æ®åœ°å€
 } LCD_LayerInitStructure;
 
 
@@ -37,8 +37,8 @@ typedef struct {
 #define LCD_FMT_SRGB565	2	//Serial RGB
 #define LCD_FMT_SRGB888	3
 
-#define LCD_SAMPLE_RISE	0	//ÆÁÄ»ÔÚDOTCLKµÄÉÏÉıÑØ²ÉÑùÊı¾İ
-#define LCD_SAMPLE_FALL	1	//ÆÁÄ»ÔÚDOTCLKµÄÏÂ½µÑØ²ÉÑùÊı¾İ
+#define LCD_SAMPLE_RISE	0	//å±å¹•åœ¨DOTCLKçš„ä¸Šå‡æ²¿é‡‡æ ·æ•°æ®
+#define LCD_SAMPLE_FALL	1	//å±å¹•åœ¨DOTCLKçš„ä¸‹é™æ²¿é‡‡æ ·æ•°æ®
 
 #define LCD_LAYER_1	  	0
 #define LCD_LAYER_2     1
@@ -58,12 +58,12 @@ uint32_t LCD_INTStat(LCD_TypeDef * LCDx);
 
 
 typedef struct {
-	uint8_t  RDHoldTime;	//LCD_RDµÍµçÆ½±£³ÖÊ±¼ä,È¡Öµ1--32
-	uint8_t  WRHoldTime;	//LCD_WRµÍµçÆ½±£³ÖÊ±¼ä,È¡Öµ1--16
-	uint8_t  CSFall_WRFall;	//LCD_CSÏÂ½µÑØµ½LCD_WRÏÂ½µÑØÑÓÊ±£¬È¡Öµ1--4
-	uint8_t  WRRise_CSRise;	//LCD_WRÉÏÉıÑØµ½LCD_CSÉÏÉıÑØÑÓÊ±£¬È¡Öµ1--4
-	uint8_t  RDCSRise_Fall;	//¶Á²Ù×÷Ê±£¬LCD_CSÉÏÉıÑØµ½ÏÂ½µÑØÑÓÊ±£¬È¡Öµ1--32
-	uint8_t  WRCSRise_Fall;	//Ğ´²Ù×÷Ê±£¬LCD_CSÉÏÉıÑØµ½ÏÂ½µÑØÑÓÊ±£¬È¡Öµ1--16
+	uint8_t  RDHoldTime;	//LCD_RDä½ç”µå¹³ä¿æŒæ—¶é—´,å–å€¼1--32
+	uint8_t  WRHoldTime;	//LCD_WRä½ç”µå¹³ä¿æŒæ—¶é—´,å–å€¼1--16
+	uint8_t  CSFall_WRFall;	//LCD_CSä¸‹é™æ²¿åˆ°LCD_WRä¸‹é™æ²¿å»¶æ—¶ï¼Œå–å€¼1--4
+	uint8_t  WRRise_CSRise;	//LCD_WRä¸Šå‡æ²¿åˆ°LCD_CSä¸Šå‡æ²¿å»¶æ—¶ï¼Œå–å€¼1--4
+	uint8_t  RDCSRise_Fall;	//è¯»æ“ä½œæ—¶ï¼ŒLCD_CSä¸Šå‡æ²¿åˆ°ä¸‹é™æ²¿å»¶æ—¶ï¼Œå–å€¼1--32
+	uint8_t  WRCSRise_Fall;	//å†™æ“ä½œæ—¶ï¼ŒLCD_CSä¸Šå‡æ²¿åˆ°ä¸‹é™æ²¿å»¶æ—¶ï¼Œå–å€¼1--16
 } MPULCD_InitStructure;
 
 

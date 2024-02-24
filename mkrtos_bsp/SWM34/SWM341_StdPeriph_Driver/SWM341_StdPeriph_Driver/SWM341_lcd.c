@@ -1,301 +1,326 @@
-/****************************************************************************************************************************************** 
-* Œƒº˛√˚≥∆: SWM341_lcd.c
-* π¶ƒ‹Àµ√˜:	SWM341µ•∆¨ª˙µƒLCDπ¶ƒ‹«˝∂Øø‚
-* ºº ı÷ß≥÷:	http://www.synwit.com.cn/e/tool/gbook/?bid=1
-* ◊¢“‚ ¬œÓ: 
-* ∞Ê±æ»’∆⁄:	V1.1.0		2017ƒÍ10‘¬25»’
-* …˝º∂º«¬º:  
-*
-*
-*******************************************************************************************************************************************
-* @attention
-*
-* THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS WITH CODING INFORMATION 
-* REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE TIME. AS A RESULT, SYNWIT SHALL NOT BE HELD LIABLE 
-* FOR ANY DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING FROM THE CONTENT 
-* OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE CODING INFORMATION CONTAINED HEREIN IN CONN-
-* -ECTION WITH THEIR PRODUCTS.
-*
-* COPYRIGHT 2012 Synwit Technology
-*******************************************************************************************************************************************/
+/******************************************************************************************************************************************
+ * Êñá‰ª∂ÂêçÁß∞: SWM341_lcd.c
+ * ÂäüËÉΩËØ¥Êòé:	SWM341ÂçïÁâáÊú∫ÁöÑLCDÂäüËÉΩÈ©±Âä®Â∫ì
+ * ÊäÄÊúØÊîØÊåÅ:	http://www.synwit.com.cn/e/tool/gbook/?bid=1
+ * Ê≥®ÊÑè‰∫ãÈ°π:
+ * ÁâàÊú¨Êó•Êúü:	V1.1.0		2017Âπ¥10Êúà25Êó•
+ * ÂçáÁ∫ßËÆ∞ÂΩï:
+ *
+ *
+ *******************************************************************************************************************************************
+ * @attention
+ *
+ * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS WITH CODING INFORMATION
+ * REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE TIME. AS A RESULT, SYNWIT SHALL NOT BE HELD LIABLE
+ * FOR ANY DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING FROM THE CONTENT
+ * OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE CODING INFORMATION CONTAINED HEREIN IN CONN-
+ * -ECTION WITH THEIR PRODUCTS.
+ *
+ * COPYRIGHT 2012 Synwit Technology
+ *******************************************************************************************************************************************/
 #include "SWM341.h"
 #include "SWM341_lcd.h"
 
 #include <string.h>
-
-
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆:	LCD_Init()
-* π¶ƒ‹Àµ√˜:	LCD≥ı ºªØ
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*			LCD_InitStructure * initStruct    ∞¸∫¨LCDœ‡πÿ…Ë∂®÷µµƒΩ·ππÃÂ
-*  ‰    ≥ˆ: Œﬁ
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-void LCD_Init(LCD_TypeDef * LCDx, LCD_InitStructure * initStruct)
-{	
-	switch((uint32_t)LCDx)
+#ifdef MKRTOS_DRV
+#include <assert.h>
+#include <u_intr.h>
+obj_handler_t lcd_irq_obj;
+#endif
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞:	LCD_Init()
+ * ÂäüËÉΩËØ¥Êòé:	LCDÂàùÂßãÂåñ
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ *			LCD_InitStructure * initStruct    ÂåÖÂê´LCDÁõ∏ÂÖ≥ËÆæÂÆöÂÄºÁöÑÁªìÊûÑ‰Ωì
+ * Ëæì    Âá∫: Êó†
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+void LCD_Init(LCD_TypeDef *LCDx, LCD_InitStructure *initStruct)
+{
+	switch ((uint32_t)LCDx)
 	{
 	case ((uint32_t)LCD):
 		SYS->CLKEN0 |= (0x01 << SYS_CLKEN0_LCD_Pos);
 		break;
 	}
-	
-	LCDx->CR  = ((initStruct->ClkDiv - 2)  << LCD_CR_CLKDIV_Pos)   |
-				(initStruct->SampleEdge    << LCD_CR_CLKINV_Pos)   |
-				(1                         << LCD_CR_CLKALW_Pos)   |
-				((initStruct->Format & 1)  << LCD_CR_FORMAT_Pos)   |
-			    ((initStruct->Format >> 1) << LCD_CR_SEREN_Pos)    |
-				(1                         << LCD_CR_BURSTEN_Pos)  |
-				(1                         << LCD_CR_BURSTLEN_Pos) |
-				((1-initStruct->IntEOTEn)  << LCD_CR_AUTORESTA_Pos);
-	
+
+	LCDx->CR = ((initStruct->ClkDiv - 2) << LCD_CR_CLKDIV_Pos) |
+			   (initStruct->SampleEdge << LCD_CR_CLKINV_Pos) |
+			   (1 << LCD_CR_CLKALW_Pos) |
+			   ((initStruct->Format & 1) << LCD_CR_FORMAT_Pos) |
+			   ((initStruct->Format >> 1) << LCD_CR_SEREN_Pos) |
+			   (1 << LCD_CR_BURSTEN_Pos) |
+			   (1 << LCD_CR_BURSTLEN_Pos) |
+			   ((1 - initStruct->IntEOTEn) << LCD_CR_AUTORESTA_Pos);
+
 	LCDx->CRH = ((initStruct->HsyncWidth - 1) << LCD_CRH_HSW_Pos) |
-				((initStruct->Hbp - 1)        << LCD_CRH_HBP_Pos) |
-				((initStruct->HnPixel - 1)    << LCD_CRH_PIX_Pos) |
-				((initStruct->Hfp - 1)        << LCD_CRH_HFP_Pos);
-					
+				((initStruct->Hbp - 1) << LCD_CRH_HBP_Pos) |
+				((initStruct->HnPixel - 1) << LCD_CRH_PIX_Pos) |
+				((initStruct->Hfp - 1) << LCD_CRH_HFP_Pos);
+
 	LCDx->CRV = ((initStruct->VsyncWidth - 1) << LCD_CRV_VSW_Pos) |
-				((initStruct->Vbp - 1)        << LCD_CRV_VBP_Pos) |
-				((initStruct->VnPixel - 1)    << LCD_CRV_PIX_Pos) |
-				((initStruct->Vfp - 1)        << LCD_CRV_VFP_Pos);
-	
+				((initStruct->Vbp - 1) << LCD_CRV_VBP_Pos) |
+				((initStruct->VnPixel - 1) << LCD_CRV_PIX_Pos) |
+				((initStruct->Vfp - 1) << LCD_CRV_VFP_Pos);
+
 	LCDx->BGC = initStruct->Background;
-	
-	LCDx->L[0].LCR = (1    << LCD_LCR_EN_Pos)   |
-					 (0    << LCD_LCR_CKEN_Pos) |
+
+	LCDx->L[0].LCR = (1 << LCD_LCR_EN_Pos) |
+					 (0 << LCD_LCR_CKEN_Pos) |
 					 (0xFF << LCD_LCR_ALPHA_Pos);
-	
-	LCDx->L[0].WHP = (0                         << LCD_WHP_STA_Pos) |
+
+	LCDx->L[0].WHP = (0 << LCD_WHP_STA_Pos) |
 					 ((initStruct->HnPixel - 1) << LCD_WHP_STP_Pos);
-	
-	LCDx->L[0].WVP = (0                         << LCD_WVP_STA_Pos) |
+
+	LCDx->L[0].WVP = (0 << LCD_WVP_STA_Pos) |
 					 ((initStruct->VnPixel - 1) << LCD_WVP_STP_Pos);
-	
+
 	LCDx->L[0].ADDR = initStruct->DataSource;
-	
+
 	LCDx->L[0].LLEN = (initStruct->HnPixel - 1);
-	
-	LCDx->IF = 1;	//«Â≥˝±Í÷æ
+
+	LCDx->IF = 1; // Ê∏ÖÈô§Ê†áÂøó
 	LCDx->IE = initStruct->IntEOTEn;
-	
-	switch((uint32_t)LCDx)
+
+	switch ((uint32_t)LCDx)
 	{
-	case ((uint32_t)LCD):		
-		if(initStruct->IntEOTEn) NVIC_EnableIRQ(LCD_IRQn);
+	case ((uint32_t)LCD):
+		if (initStruct->IntEOTEn)
+		{
+#ifdef MKRTOS_DRV
+#define IRQ_THREAD_PRIO 31
+#define STACK_SIZE (1024 + 256)
+			static __attribute__((aligned(8))) uint8_t stack0[STACK_SIZE];
+			static uint8_t msg_buf[128];
+			extern void LCD_Handler(void);
+
+			assert(u_intr_bind(LCD_IRQn, u_irq_prio_create(0, 0), IRQ_THREAD_PRIO,
+							   stack0 + STACK_SIZE, msg_buf, LCD_Handler, &lcd_irq_obj) >= 0);
+			uirq_ack(lcd_irq_obj, LCD_IRQn);
+
+#else
+			NVIC_EnableIRQ(LCD_IRQn);
+#endif
+		}
 		break;
 	}
 }
 
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆:	LCD_LayerInit()
-* π¶ƒ‹Àµ√˜:	LCD≤„≥ı ºªØ
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*			uint32_t layerx		“™≥ı ºªØµƒLCD≤„£¨»°÷µLCD_LAYER_1°¢LCD_LAYER_2
-*			LCD_LayerInitStructure * initStruct    ∞¸∫¨LCD≤„œ‡πÿ…Ë∂®÷µµƒΩ·ππÃÂ
-*  ‰    ≥ˆ: Œﬁ
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-void LCD_LayerInit(LCD_TypeDef * LCDx, uint32_t layerx, LCD_LayerInitStructure * initStruct)
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞:	LCD_LayerInit()
+ * ÂäüËÉΩËØ¥Êòé:	LCDÂ±ÇÂàùÂßãÂåñ
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ *			uint32_t layerx		Ë¶ÅÂàùÂßãÂåñÁöÑLCDÂ±ÇÔºåÂèñÂÄºLCD_LAYER_1„ÄÅLCD_LAYER_2
+ *			LCD_LayerInitStructure * initStruct    ÂåÖÂê´LCDÂ±ÇÁõ∏ÂÖ≥ËÆæÂÆöÂÄºÁöÑÁªìÊûÑ‰Ωì
+ * Ëæì    Âá∫: Êó†
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+void LCD_LayerInit(LCD_TypeDef *LCDx, uint32_t layerx, LCD_LayerInitStructure *initStruct)
 {
-	LCDx->L[layerx].LCR = (1                 << LCD_LCR_EN_Pos)   |
-					      (0                 << LCD_LCR_CKEN_Pos) |
-					      (initStruct->Alpha << LCD_LCR_ALPHA_Pos);
-	
+	LCDx->L[layerx].LCR = (1 << LCD_LCR_EN_Pos) |
+						  (0 << LCD_LCR_CKEN_Pos) |
+						  (initStruct->Alpha << LCD_LCR_ALPHA_Pos);
+
 	LCDx->L[layerx].WHP = (initStruct->HStart << LCD_WHP_STA_Pos) |
-					      (initStruct->HStop  << LCD_WHP_STP_Pos);
-	
+						  (initStruct->HStop << LCD_WHP_STP_Pos);
+
 	LCDx->L[layerx].WVP = (initStruct->VStart << LCD_WVP_STA_Pos) |
-					      (initStruct->VStop  << LCD_WVP_STP_Pos);
-	
+						  (initStruct->VStop << LCD_WVP_STP_Pos);
+
 	LCDx->L[layerx].ADDR = initStruct->DataSource;
-	
+
 	LCDx->L[layerx].LLEN = (initStruct->HStop - initStruct->HStart);
-	
+
 	LCD->CR |= (1 << LCD_CR_VBPRELOAD_Pos);
 }
 
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆:	LCD_SetLayerPos()
-* π¶ƒ‹Àµ√˜:	LCD≤„Œª÷√…Ë∂®
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*			uint32_t layerx		“™…Ë÷√µƒLCD≤„£¨»°÷µLCD_LAYER_1°¢LCD_LAYER_2
-*			uint16_t hstart, uint16_t hstop, uint16_t vstart, uint16_t vstop£¨œÍœ∏Àµ√˜º˚ LCD_LayerInitStructure
-*  ‰    ≥ˆ: Œﬁ
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-void LCD_SetLayerPos(LCD_TypeDef * LCDx, uint32_t layerx, uint16_t hstart, uint16_t hstop, uint16_t vstart, uint16_t vstop)
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞:	LCD_SetLayerPos()
+ * ÂäüËÉΩËØ¥Êòé:	LCDÂ±Ç‰ΩçÁΩÆËÆæÂÆö
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ *			uint32_t layerx		Ë¶ÅËÆæÁΩÆÁöÑLCDÂ±ÇÔºåÂèñÂÄºLCD_LAYER_1„ÄÅLCD_LAYER_2
+ *			uint16_t hstart, uint16_t hstop, uint16_t vstart, uint16_t vstopÔºåËØ¶ÁªÜËØ¥ÊòéËßÅ LCD_LayerInitStructure
+ * Ëæì    Âá∫: Êó†
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+void LCD_SetLayerPos(LCD_TypeDef *LCDx, uint32_t layerx, uint16_t hstart, uint16_t hstop, uint16_t vstart, uint16_t vstop)
 {
 	LCDx->L[layerx].WHP = (hstart << LCD_WHP_STA_Pos) |
-					      (hstop  << LCD_WHP_STP_Pos);
-	
+						  (hstop << LCD_WHP_STP_Pos);
+
 	LCDx->L[layerx].WVP = (vstart << LCD_WVP_STA_Pos) |
-					      (vstop  << LCD_WVP_STP_Pos);
-	
+						  (vstop << LCD_WVP_STP_Pos);
+
 	LCD->CR |= (1 << LCD_CR_VBPRELOAD_Pos);
 }
 
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆: LCD_Start()
-* π¶ƒ‹Àµ√˜:	∆Ù∂Ø“ª¥Œ ˝æ›¥´ ‰
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*  ‰    ≥ˆ: Œﬁ
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-void LCD_Start(LCD_TypeDef * LCDx)
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞: LCD_Start()
+ * ÂäüËÉΩËØ¥Êòé:	ÂêØÂä®‰∏ÄÊ¨°Êï∞ÊçÆ‰º†Ëæì
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ * Ëæì    Âá∫: Êó†
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+void LCD_Start(LCD_TypeDef *LCDx)
 {
 	LCDx->START |= (1 << LCD_START_GO_Pos);
 }
 
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆: LCD_IsBusy()
-* π¶ƒ‹Àµ√˜:	 «∑Ò’˝‘⁄Ω¯–– ˝æ›¥´ ‰
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*  ‰    ≥ˆ: uint32_t			1 ’˝‘⁄¥´ ‰ ˝æ›    0  ˝æ›¥´ ‰“—ÕÍ≥…
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-uint32_t LCD_IsBusy(LCD_TypeDef * LCDx)
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞: LCD_IsBusy()
+ * ÂäüËÉΩËØ¥Êòé:	ÊòØÂê¶Ê≠£Âú®ËøõË°åÊï∞ÊçÆ‰º†Ëæì
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ * Ëæì    Âá∫: uint32_t			1 Ê≠£Âú®‰º†ËæìÊï∞ÊçÆ    0 Êï∞ÊçÆ‰º†ËæìÂ∑≤ÂÆåÊàê
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+uint32_t LCD_IsBusy(LCD_TypeDef *LCDx)
 {
 	return (LCDx->START & LCD_START_GO_Msk) ? 1 : 0;
 }
 
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆: LCD_INTEn()
-* π¶ƒ‹Àµ√˜:	LCD÷–∂œ πƒ‹£¨ÕÍ≥…÷∏∂®≥§∂»µƒ ˝æ›¥´ ‰ ±¥•∑¢÷–∂œ
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*  ‰    ≥ˆ: Œﬁ
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-void LCD_INTEn(LCD_TypeDef * LCDx)
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞: LCD_INTEn()
+ * ÂäüËÉΩËØ¥Êòé:	LCD‰∏≠Êñ≠‰ΩøËÉΩÔºåÂÆåÊàêÊåáÂÆöÈïøÂ∫¶ÁöÑÊï∞ÊçÆ‰º†ËæìÊó∂Ëß¶Âèë‰∏≠Êñ≠
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ * Ëæì    Âá∫: Êó†
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+void LCD_INTEn(LCD_TypeDef *LCDx)
 {
 	LCDx->IE = 1;
 }
 
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆: LCD_INTDis()
-* π¶ƒ‹Àµ√˜:	LCD÷–∂œΩ˚÷π£¨ÕÍ≥…÷∏∂®≥§∂»µƒ ˝æ›¥´ ‰ ±≤ª¥•∑¢÷–∂œ
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*  ‰    ≥ˆ: Œﬁ
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-void LCD_INTDis(LCD_TypeDef * LCDx)
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞: LCD_INTDis()
+ * ÂäüËÉΩËØ¥Êòé:	LCD‰∏≠Êñ≠Á¶ÅÊ≠¢ÔºåÂÆåÊàêÊåáÂÆöÈïøÂ∫¶ÁöÑÊï∞ÊçÆ‰º†ËæìÊó∂‰∏çËß¶Âèë‰∏≠Êñ≠
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ * Ëæì    Âá∫: Êó†
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+void LCD_INTDis(LCD_TypeDef *LCDx)
 {
 	LCDx->IE = 0;
 }
 
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆: LCD_INTClr()
-* π¶ƒ‹Àµ√˜:	LCD÷–∂œ±Í÷æ«Â≥˝
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*  ‰    ≥ˆ: Œﬁ
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-void LCD_INTClr(LCD_TypeDef * LCDx)
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞: LCD_INTClr()
+ * ÂäüËÉΩËØ¥Êòé:	LCD‰∏≠Êñ≠Ê†áÂøóÊ∏ÖÈô§
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ * Ëæì    Âá∫: Êó†
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+void LCD_INTClr(LCD_TypeDef *LCDx)
 {
 	LCDx->IF = 1;
 }
 
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆: LCD_INTStat()
-* π¶ƒ‹Àµ√˜:	LCD÷–∂œ◊¥Ã¨≤È—Ø
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*  ‰    ≥ˆ: uint32_t			0 Œ¥ÕÍ≥…÷∏∂®≥§∂»µƒ ˝æ›¥´ ‰   ∑«0 ÕÍ≥…÷∏∂®≥§∂»µƒ ˝æ›¥´ ‰    
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-uint32_t LCD_INTStat(LCD_TypeDef * LCDx)
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞: LCD_INTStat()
+ * ÂäüËÉΩËØ¥Êòé:	LCD‰∏≠Êñ≠Áä∂ÊÄÅÊü•ËØ¢
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ * Ëæì    Âá∫: uint32_t			0 Êú™ÂÆåÊàêÊåáÂÆöÈïøÂ∫¶ÁöÑÊï∞ÊçÆ‰º†Ëæì   Èùû0 ÂÆåÊàêÊåáÂÆöÈïøÂ∫¶ÁöÑÊï∞ÊçÆ‰º†Ëæì
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+uint32_t LCD_INTStat(LCD_TypeDef *LCDx)
 {
 	return (LCDx->IF & 1);
 }
 
-
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆:	MPULCD_Init()
-* π¶ƒ‹Àµ√˜:	MPU LCD≥ı ºªØ
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*			MPULCD_InitStructure * initStruct    ∞¸∫¨MPU LCDœ‡πÿ…Ë∂®÷µµƒΩ·ππÃÂ
-*  ‰    ≥ˆ: Œﬁ
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-void MPULCD_Init(LCD_TypeDef * LCDx, MPULCD_InitStructure * initStruct)
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞:	MPULCD_Init()
+ * ÂäüËÉΩËØ¥Êòé:	MPU LCDÂàùÂßãÂåñ
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ *			MPULCD_InitStructure * initStruct    ÂåÖÂê´MPU LCDÁõ∏ÂÖ≥ËÆæÂÆöÂÄºÁöÑÁªìÊûÑ‰Ωì
+ * Ëæì    Âá∫: Êó†
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+void MPULCD_Init(LCD_TypeDef *LCDx, MPULCD_InitStructure *initStruct)
 {
-	switch((uint32_t)LCDx)
+	switch ((uint32_t)LCDx)
 	{
 	case ((uint32_t)LCD):
 		SYS->CLKEN0 |= (0x01 << SYS_CLKEN0_LCD_Pos);
-		__NOP();__NOP();__NOP();
+		__NOP();
+		__NOP();
+		__NOP();
 		break;
 	}
-	
-	LCDx->CR  = (1              << LCD_CR_MPUEN_Pos) |
-				(LCD_FMT_RGB565 << LCD_CR_FORMAT_Pos);	//MPUƒ£ Ω÷ª÷ß≥÷RGB565
-	
-	LCDx->L[0].LCR |= (1 << LCD_LCR_EN_Pos);			//MPUƒ£ Ωœ¬–Ë“™ πƒ‹Layer1
-	
-	LCDx->MPUCR = ((initStruct->RDHoldTime    - 1) << LCD_MPUCR_RDHOLD_Pos) |
-				  ((initStruct->WRHoldTime    - 1) << LCD_MPUCR_WRHOLD_Pos) |
+
+	LCDx->CR = (1 << LCD_CR_MPUEN_Pos) |
+			   (LCD_FMT_RGB565 << LCD_CR_FORMAT_Pos); // MPUÊ®°ÂºèÂè™ÊîØÊåÅRGB565
+
+	LCDx->L[0].LCR |= (1 << LCD_LCR_EN_Pos); // MPUÊ®°Âºè‰∏ãÈúÄË¶Å‰ΩøËÉΩLayer1
+
+	LCDx->MPUCR = ((initStruct->RDHoldTime - 1) << LCD_MPUCR_RDHOLD_Pos) |
+				  ((initStruct->WRHoldTime - 1) << LCD_MPUCR_WRHOLD_Pos) |
 				  ((initStruct->CSFall_WRFall - 1) << LCD_MPUCR_CS0WR0_Pos) |
 				  ((initStruct->WRRise_CSRise - 1) << LCD_MPUCR_WR1CS1_Pos) |
 				  ((initStruct->RDCSRise_Fall - 1) << LCD_MPUCR_RCS1_0_Pos) |
 				  ((initStruct->WRCSRise_Fall - 1) << LCD_MPUCR_WCS1_0_Pos);
 }
 
-void LCD_WR_REG(LCD_TypeDef * LCDx, uint16_t reg)
+void LCD_WR_REG(LCD_TypeDef *LCDx, uint16_t reg)
 {
 	LCDx->MPUIR = reg;
-	while(LCD_IsBusy(LCDx)) __NOP();
+	while (LCD_IsBusy(LCDx))
+		__NOP();
 }
 
-void LCD_WR_DATA(LCD_TypeDef * LCDx, uint16_t val)
+void LCD_WR_DATA(LCD_TypeDef *LCDx, uint16_t val)
 {
 	LCDx->MPUDR = val;
-	while(LCD_IsBusy(LCDx)) __NOP();
+	while (LCD_IsBusy(LCDx))
+		__NOP();
 }
 
-void LCD_WriteReg(LCD_TypeDef * LCDx, uint16_t reg, uint16_t val)
+void LCD_WriteReg(LCD_TypeDef *LCDx, uint16_t reg, uint16_t val)
 {
 	LCDx->MPUIR = reg;
-	while(LCD_IsBusy(LCDx)) __NOP();
-	
+	while (LCD_IsBusy(LCDx))
+		__NOP();
+
 	LCDx->MPUDR = val;
-	while(LCD_IsBusy(LCDx)) __NOP();
+	while (LCD_IsBusy(LCDx))
+		__NOP();
 }
 
-uint16_t LCD_ReadReg(LCD_TypeDef * LCDx, uint16_t reg)
+uint16_t LCD_ReadReg(LCD_TypeDef *LCDx, uint16_t reg)
 {
 	LCDx->MPUIR = reg;
-	while(LCD_IsBusy(LCDx)) __NOP();
-	
+	while (LCD_IsBusy(LCDx))
+		__NOP();
+
 	return LCDx->MPUDR;
 }
 
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆:	MPULCD_DMAStart()
-* π¶ƒ‹Àµ√˜:	MPU LCD DMA∞·‘Àœ‘ æ ˝æ›
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*			uint32_t * buff		“™∞·‘Àµƒœ‘ æ ˝æ›
-*			uint16_t hpix		∫·œÚœÒÀÿ ˝£¨º¥√ø––œÒÀÿ ˝£¨±ÿ–Î «≈º ˝
-*			uint16_t vpix		◊›œÚœÒÀÿ ˝£¨º¥–– ˝
-*  ‰    ≥ˆ: Œﬁ
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-void MPULCD_DMAStart(LCD_TypeDef * LCDx, uint32_t * buff, uint16_t hpix, uint16_t vpix)
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞:	MPULCD_DMAStart()
+ * ÂäüËÉΩËØ¥Êòé:	MPU LCD DMAÊê¨ËøêÊòæÁ§∫Êï∞ÊçÆ
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ *			uint32_t * buff		Ë¶ÅÊê¨ËøêÁöÑÊòæÁ§∫Êï∞ÊçÆ
+ *			uint16_t hpix		Ê®™ÂêëÂÉèÁ¥†Êï∞ÔºåÂç≥ÊØèË°åÂÉèÁ¥†Êï∞ÔºåÂøÖÈ°ªÊòØÂÅ∂Êï∞
+ *			uint16_t vpix		Á∫µÂêëÂÉèÁ¥†Êï∞ÔºåÂç≥Ë°åÊï∞
+ * Ëæì    Âá∫: Êó†
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+void MPULCD_DMAStart(LCD_TypeDef *LCDx, uint32_t *buff, uint16_t hpix, uint16_t vpix)
 {
 	LCDx->MPUAR = (uint32_t)buff;
-	
+
 	LCDx->MPULEN = ((vpix - 1) << LCD_MPULEN_VPIX_Pos) |
 				   ((hpix - 1) << LCD_MPULEN_HPIX_Pos);
-	
+
 	LCDx->START |= (1 << LCD_START_GO_Pos);
 }
 
-/****************************************************************************************************************************************** 
-* ∫Ø ˝√˚≥∆:	MPULCD_DMABusy()
-* π¶ƒ‹Àµ√˜:	MPU LCD DMA∞·‘Àœ‘ æ ˝æ›√¶≤È—Ø
-*  ‰    »Î: LCD_TypeDef * LCDx	÷∏∂®“™±ª…Ë÷√µƒLCD£¨”––ß÷µ∞¸¿®LCD
-*  ‰    ≥ˆ: uint32_t			1 ∞·‘À÷–   0 ∞·‘ÀÕÍ≥…
-* ◊¢“‚ ¬œÓ: Œﬁ
-******************************************************************************************************************************************/
-uint32_t MPULCD_DMABusy(LCD_TypeDef * LCDx)
+/******************************************************************************************************************************************
+ * ÂáΩÊï∞ÂêçÁß∞:	MPULCD_DMABusy()
+ * ÂäüËÉΩËØ¥Êòé:	MPU LCD DMAÊê¨ËøêÊòæÁ§∫Êï∞ÊçÆÂøôÊü•ËØ¢
+ * Ëæì    ÂÖ•: LCD_TypeDef * LCDx	ÊåáÂÆöË¶ÅË¢´ËÆæÁΩÆÁöÑLCDÔºåÊúâÊïàÂÄºÂåÖÊã¨LCD
+ * Ëæì    Âá∫: uint32_t			1 Êê¨Ëøê‰∏≠   0 Êê¨ËøêÂÆåÊàê
+ * Ê≥®ÊÑè‰∫ãÈ°π: Êó†
+ ******************************************************************************************************************************************/
+uint32_t MPULCD_DMABusy(LCD_TypeDef *LCDx)
 {
 	return (LCDx->START & LCD_START_GO_Msk) ? 1 : 0;
 }

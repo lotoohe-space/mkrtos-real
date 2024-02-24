@@ -50,7 +50,7 @@ void console_init(void)
     meta_reg_svr_obj(&cons_obj.svr, CONS_PROT);
     u_thread_create(&cons_th, (char *)cons_stack + sizeof(cons_stack), NULL, console_read_func);
     u_thread_run(cons_th, 3);
-    printf("cons svr init...\n");
+    // printf("cons svr init...\n");
 }
 /**
  * @brief 向控制台写入数据

@@ -31,6 +31,7 @@ enum sys_op
     SYS_INFO_GET,
     REBOOT,
     MEM_INFO,
+    DIS_IRQ,
 };
 static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f);
 
@@ -56,6 +57,7 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     {
         f->r[1] = sys_tick_cnt_get();
         f->r[2] = CONFIG_KNL_TEXT_ADDR + CONFIG_BOOTFS_OFFSET;
+        f->r[3] = arch_get_sys_clk();
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
@@ -74,6 +76,12 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         mm_info(&total, &free);
         f->r[1] = total;
         f->r[2] = free;
+        tag = msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
+    case DIS_IRQ:
+    {
+        arch_disable_irq(f->r[0]);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;

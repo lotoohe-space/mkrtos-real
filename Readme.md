@@ -1,5 +1,5 @@
 ## What is MKRTOS
--The full name of MKRTOS is Micro Kernel Real Time Operating System, and its Chinese name is Micro Kernel Real Time Operating System. MKRTOS is designed as an extremely streamlined kernel that only includes functions such as thread, task, and memory management. All other functions are implemented in user mode and are compatible with the Posix standard operating system, making it fully suitable for various embedded scenarios. The architecture diagram of MKRTOS is as follows:
+--MKRTOS full name is Micro-Kernel Real-Time Operating System, Chinese name is Micro-kernel real-time operating system. MKRTOS is the first open source operating system with true micro kernel supporting MCU. The kernel only contains thread, task, memory management and other functions, and other file systems and drivers are implemented in user mode. The MKRTOS architecture diagram is as follows:
 ! [image] (./mkrtos_doc/架构图.png)
 ### The goals of MKRTOS
 -1 True microkernel design, suitable for industrial control, Internet of Things and other fields.
@@ -8,55 +8,55 @@
 -4 Featuring high stability and high resistance to failure design.
 -5 Minimalist design, supports multiple processes and threads, and supports microcontrollers.
 -6 RTOS design with high real-time performance.
-### Development background
--Microcontrollers are widely used in industries and the Internet of Things, and are suitable for operating systems such as rtthread and freertos. However, their functions are very simple, and using such RTOS comes with a certain learning cost (I have also written one, you can take a look at xTinyRTOS, which is very simple). The original intention of developing MKRTOS was to be compatible with POSIX to reduce learning costs, and during development, memory usage was also considered and optimized. Note: rtthread supports software packages, but there are also issues with architecture design and scalability.
+### Processor architectures supported by MKRTOS
+| | processor architecture to support the board | | progress
+| -------- | -------- | -------- |
+| Cortex-m3| renode/stm32f103,qemu/stm32f2 | done |
+| Cortex-m4 | renode/stm32f4 | done |
+| Cortex-m33 | swm34s | done |
+| risc-v | Qemu | X |
+| ARMv8|Qemu|X
 ### Design principles
 -1. The data exchange between services does not go through third-party components.
 -2. The principle of the simplest interface between services.
 -3. The principle of minimum kernel functionality.
 -4. Class L4 kernel (third-generation microkernel).
-### MKRTOS kernel
-#### Done
--1. Processor: Supports Cortex-M3 processors by default
--2. Inter process communication adopts synchronous communication mechanism, and the kernel does not cache any data.
--3. The kernel only needs to support systick and serial ports to start the system.
--4. The kernel is written in C language and uses object-oriented programming, with all functions abstracted as kernel objects.
--5. Kernel support objects: thread objects, process objects, factory objects, memory management objects, Log objects, IPC objects.
--4. Multi threading: Supports multi-threaded management, separates threads from tasks, and is designed with rationality.
--5. Multi process (MPU achieves process isolation): Supports memory space and object space, and processes only manage resources.
--6. irq object support, used for forwarding kernel interrupts to user mode.
--7. IPC functions are complete.
-#### Todo
--1. Cortex-M processors from other series, RISC-V, and support from Loongson.
--2. Hardware floating-point support.
--3. Support MMU to achieve process isolation.
--4. Kernel futex support (used to implement user mode locks).
-#### Doing
--1. Improve the kernel
-### Basic support for MKRTOS user mode
-#### Done
--1. Executable file: Supports bin executable files.
-#### Doing
--1. Musl libc library support.
--2. init process
--3. Shell services
--4. Path manager service
-#### Todo
--1. kconfig support.
--2. Support for Fat, Ext, and LittleFs series file systems
--3. DRV manager service
--4. Process Manager Services
--5. Character driven, block driven, display driven, and network driven support
-### MKRTOS user ecosystem
--1. Toybox commonly used command support
--2. OTA support
--3. ymodem support
--4. GUI support.
--5. LWIP support.
--6. Modubs support.
--7. CAN communication protocol support.
--8. AT protocol support.
--9. Others.
+### MKRTOS module support
+#### Completed
+- 1.Processors: Cortex-M3 processors are supported by default, more will be supported in the future
+2.The kernel does not cache any data for inter-process communication by means of synchronous communication.
+The kernel only needs to support systick and a serial port to boot the system.
+The kernel is written in C and uses object-oriented programming, and functions are abstracted into kernel objects.
+- 5. Kernel objects: thread object, process object, factory object, memory management object, Log object, IPC object, Futex object.
+- 4. Multi-thread: support multi-thread management, thread and task are separated, and the design is reasonable.
+- 5. Multi-process (MPU implementation process isolation) : Support memory space and object space, processes only manage resources.
+irq object support for forwarding kernel interrupts to user mode.
+- 7. Executables: bin executables are supported.
+- 8.musl libc library support.
+- 9.init process, process manager support, path manager support
+- 10.shell services
+- 11.kconfig support.
+- 12. Filesystem service support (fatfs filesystem is temporarily supported).
+- 13.Cortex-m4 support, hardware floating-point support.
+#### in the works
+- 1.Improve the kernel.
+- 2.drv manager service
+- 3.Ext and LittleFs filesystem support
+#### Future support
+- 1.Cortex-M other series processors, RISC-V, Godson support.
+- 2.Multi-core MCU support
+- 3. Virtualization support
+- 4. Support MMU for process isolation.
+### The MKRTOS user-mode ecosystem is in progress
+- 1.toybox common command support
+- 2.ota support
+- 3.ymodem support
+- 4.GUI support.
+- 5.lwip support.
+- 6.modubs support.
+-7.can communication protocol support.
+- 8.AT protocol support.
+- 9. Others.
 ### How to use it?
 -The project is managed using CMake and developed under Linux. It is recommended to use Ubuntu 18.04 for development.
 -The GCC compiler uses gcc arm none eabi-5_ 4-2016q3, new versions can also be used for development.
@@ -118,37 +118,10 @@ Mkrtos running
 Complie Time: Sep 16 2023 23:50:51
 Init
 ```
-### My Blog
--Welcome to the blog for communication (domain name has not yet been applied for ^ - ^): [MKRTOS Blog]（ http://124.222.90.143/ ）
--Add groupQQ communication(QQ:1358745329).
-### Logs
-*A log from a long time ago
-1. Dietlibc porting instructions, remove unnecessary CPU related folders in syscalls. h__ ARGS_ Change mmap to 1 and modify mmap S file.
-2. Modify setjump S and other documents.
-3. All The S file needs to add a compiled header.
-4. LWIP porting
-1. The implementation of the clone function needs to be completed.
-2. It is necessary to complete semaphores, mutexes, and message mailboxes.
-3. It is necessary to add a reference count to the struct socket to prevent problems when multiple processes occur. The socket, accept, and close functions need to be processed.
-4. Some other configurations.
-5. Other extensive modifications (I can't recall them).
-6. Fixed some usage bugs on April 4, 2022, such as modifying privilege mode registers in user threads, resulting in direct exceptions.
-*November 10, 2022
-1. The test version of mkrtos has a relatively stable file system and added support for mpu protection. It isolates multiple applications and removes the previous elf execution method, directly executing the bin file format.
-2. Ported the latest version of dietlbc.
-3. Fixed many previous bugs.
-*November 13, 2022
-1. A prototype of a fast IPC communication mechanism without context switching, very fast!!!
-2. Add fork_ The exec system call combines fork and exec, which is very suitable for microcontrollers and can save memory.
-*November 14, 2022
-1. Multiple applications directly reference mkrtos_ SDK project, remove duplicate files.
-2. Fix the bug in the file system truncate.
-*November 9, 2022
-1. Change the project to Cmake management.
-2. Increase QEMU support and use stm32f205rft6.
-3. Increase bootstart support.
-4. Increase support for the cpio file system.
-5. Increase software floating-point support.
-6. Add bidirectional linked lists and single linked lists
-*August 31, 2023
-1. System redesign, kernel updated to microkernel.
+### How to communicate
+
+- Add group wechat or QQ communication. QQ group: 419833232
+
+### Join the developers
+
+- Submit the code once and contact me.

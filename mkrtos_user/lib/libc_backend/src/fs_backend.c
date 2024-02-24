@@ -147,7 +147,7 @@ long be_write(long fd, char *buf, long size)
         }
         else
         {
-            cons_write(buf, size);
+            //cons_write(buf, size);
         }
         return size;
     }
@@ -241,7 +241,7 @@ long be_writev(long fd, const struct iovec *iov, long iovcnt)
             }
             else
             {
-                cons_write(iov[i].iov_base, iov[i].iov_len);
+               // cons_write(iov[i].iov_base, iov[i].iov_len);
             }
             wlen += iov[i].iov_len;
         }

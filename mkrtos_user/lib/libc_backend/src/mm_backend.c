@@ -10,14 +10,14 @@
 #include <assert.h>
 static pthread_spinlock_t lock;
 extern void *app_start_addr;
-static umword_t mm_bitemp[ROUND(CONFIG_KNL_DATA_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
+static umword_t mm_bitemp[ROUND(CONFIG_EX_RAM_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
 static void *mm_page_alloc(int page_nr)
 {
     int cnt = 0;
     mword_t find_inx = -1;
     app_info_t *info = app_info_get(app_start_addr);
     assert(info);
-    void *heap_addr = (void *)((umword_t)RAM_BASE() + info->i.heap_offset - info->i.data_offset);
+    void *heap_addr = (void *)((umword_t)TASK_RAM_BASE() + info->i.heap_offset - info->i.data_offset);
     size_t max_page_nr = (info->i.heap_size) / MK_PAGE_SIZE;
 
     if (max_page_nr == 0)
@@ -78,7 +78,7 @@ static void mm_page_free(int st, int nr)
 {
     app_info_t *info = app_info_get(app_start_addr);
     assert(info);
-    void *heap_addr = (void *)((umword_t)RAM_BASE() + info->i.heap_offset - info->i.data_offset);
+    void *heap_addr = (void *)((umword_t)TASK_RAM_BASE() + info->i.heap_offset - info->i.data_offset);
     size_t max_page_nr = (info->i.heap_size) / PAGE_SIZE;
 
     pthread_spin_lock(&lock);
@@ -142,7 +142,7 @@ umword_t be_munmap(void *start, size_t len)
 {
     app_info_t *info = app_info_get(app_start_addr);
     assert(info);
-    void *heap_addr = (void *)((umword_t)RAM_BASE() + info->i.heap_offset - info->i.data_offset);
+    void *heap_addr = (void *)((umword_t)TASK_RAM_BASE() + info->i.heap_offset - info->i.data_offset);
 
     len = ALIGN(len, PAGE_SIZE);
     // printf("munmap 0x%x, 0x%x.\n", start, len);

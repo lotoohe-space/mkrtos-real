@@ -3,17 +3,18 @@
 - MKRTOS 全称是 Micro-Kernel Real-Time Operating System，中文名字是微内核实时操作系统。MKRTOS是首款支持MCU的真微内核开源操作系统，内核只包含thread、task、内存管理等功能，其它文件系统、驱动等都在用户态实现，用户态支持应用程序动态加载，同时兼容 Posix 标准的操作系统，适用于各类嵌入式场合。MKRTOS架构图如下：
  ![image](./mkrtos_doc/架构图.png) 
 ### MKRTOS 的目标
-- 1. 真正的微内核设计，具有高稳定，高抗失效设计,适用于工业控制、物联网等领域。
-- 2. 开箱即用，支持多种平台。
-- 3. 移植方便快捷，内核只需2个驱动支持（串口与systick）。
-- 4. 简约设计，支持多进程（MPU进程保护），多线程，支持单片机。
-- 5. RTOS设计，高实时性。
-- 6. 用户态驱动，驱动也是应用程序。
+- 1. Real microkernel design, with high stability, high anti-failure design, suitable for industrial control, Internet of things and other fields.
+- 2. Out of the box, supports multiple platforms.
+- 3. Porting is convenient and fast, the kernel only needs 2 driver support (serial port and systick).
+- 4. Simple design, support for multi-process (MPU process protection), multi-threading, support for MCU.
+- 5. RTOS design, high real-time performance.
+- 6. User mode drivers, which are also applications.
 ### MKRTOS支持的处理器架构
 | 处理器架构     | 支持的板子     | 进度     |
 | -------- | -------- | -------- |
 | Cortex-m3| renode/stm32f103,qemu/stm32f2 | done |
 | Cortex-m4 | renode/stm32f4 | done |
+| Cortex-m33｜swm34s｜done|
 | risc-v | Qemu | X |
 | ARMv8|Qemu|X
 

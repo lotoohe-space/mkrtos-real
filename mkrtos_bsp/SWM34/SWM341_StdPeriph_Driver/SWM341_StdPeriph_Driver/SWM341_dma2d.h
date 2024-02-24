@@ -3,55 +3,52 @@
 
 #include <stdint.h>
 
-
-typedef struct {
-	uint16_t Interval;			// Ã¿´«ÊäÒ»¿éÊı¾İ£¨64¸ö×Ö£©£¬µÈ´ıÖ¸¶¨¸öÏµÍ³ÖÜÆÚºóÔÙ´«ÊäÏÂÒ»¸ö¿é£¬·ÀÖ¹DMA2DÕ¼ÓÃ¹ı¶àSDRAM´ø¿í£¬Ó°ÏìLCD¶ÁÈ¡ÏÔÊ¾Êı¾İ£»È¡Öµ1--1023
-	uint8_t  IntEOTEn;			// End of Transter£¨´«ÊäÍê³É£©ÖĞ¶ÏÊ¹ÄÜ
+typedef struct
+{
+	uint16_t Interval; // æ¯ä¼ è¾“ä¸€å—æ•°æ®ï¼ˆ64ä¸ªå­—ï¼‰ï¼Œç­‰å¾…æŒ‡å®šä¸ªç³»ç»Ÿå‘¨æœŸåå†ä¼ è¾“ä¸‹ä¸€ä¸ªå—ï¼Œé˜²æ­¢DMA2Då ç”¨è¿‡å¤šSDRAMå¸¦å®½ï¼Œå½±å“LCDè¯»å–æ˜¾ç¤ºæ•°æ®ï¼›å–å€¼1--1023
+	uint8_t IntEOTEn;  // End of Transterï¼ˆä¼ è¾“å®Œæˆï¼‰ä¸­æ–­ä½¿èƒ½
 } DMA2D_InitStructure;
 
-
-typedef struct {
+typedef struct
+{
 	uint32_t Address;
-	uint32_t LineOffset;		// added at the end of each line to determine the starting address of the next line
-	uint8_t  ColorMode;			// DMA2D_FMT_ARGB888¡¢DMA2D_FMT_RGB888¡¢DMA2D_FMT_RGB565¡¢...
-	uint8_t  AlphaMode;			// DMA2D_AMODE_PIXEL¡¢DMA2D_AMODE_ALPHA¡¢DMA2D_AMODE_PMULA¡¢...
-	uint8_t  Alpha;
-	
-	/* Ö»ÓĞÊä³ö²ãĞèÒªÉèÖÃÕâÁ½¸öÓò£¬Ç°¾°²ãºÍ±³¾°²ã²»ĞèÉèÖÃ */
-	uint16_t LineCount;			// ÏÔÊ¾Êı¾İĞĞÊı
-	uint16_t LinePixel;			// Ã¿ĞĞÏñËØ¸öÊı
+	uint32_t LineOffset; // added at the end of each line to determine the starting address of the next line
+	uint8_t ColorMode;	 // DMA2D_FMT_ARGB888ã€DMA2D_FMT_RGB888ã€DMA2D_FMT_RGB565ã€...
+	uint8_t AlphaMode;	 // DMA2D_AMODE_PIXELã€DMA2D_AMODE_ALPHAã€DMA2D_AMODE_PMULAã€...
+	uint8_t Alpha;
+
+	/* åªæœ‰è¾“å‡ºå±‚éœ€è¦è®¾ç½®è¿™ä¸¤ä¸ªåŸŸï¼Œå‰æ™¯å±‚å’ŒèƒŒæ™¯å±‚ä¸éœ€è®¾ç½® */
+	uint16_t LineCount; // æ˜¾ç¤ºæ•°æ®è¡Œæ•°
+	uint16_t LinePixel; // æ¯è¡Œåƒç´ ä¸ªæ•°
 } DMA2D_LayerSetting;
 
-
-#define DMA2D_LAYER_FG		0	// Foreground layer
-#define DMA2D_LAYER_BG		1	// Background layer
-#define DMA2D_LAYER_OUT		2	// Output layer
+#define DMA2D_LAYER_FG 0  // Foreground layer
+#define DMA2D_LAYER_BG 1  // Background layer
+#define DMA2D_LAYER_OUT 2 // Output layer
 
 /* Color Format */
-#define DMA2D_FMT_ARGB888   (0 | (0 << 4))
-#define DMA2D_FMT_RGB888    (1 | (0 << 4))
-#define DMA2D_FMT_RGB565    (2 | (0 << 4))
-#define DMA2D_FMT_ABGR888   (0 | (1 << 4))
-#define DMA2D_FMT_BGR888    (1 | (1 << 4))
-#define DMA2D_FMT_BGR565    (2 | (1 << 4))
+#define DMA2D_FMT_ARGB888 (0 | (0 << 4))
+#define DMA2D_FMT_RGB888 (1 | (0 << 4))
+#define DMA2D_FMT_RGB565 (2 | (0 << 4))
+#define DMA2D_FMT_ABGR888 (0 | (1 << 4))
+#define DMA2D_FMT_BGR888 (1 | (1 << 4))
+#define DMA2D_FMT_BGR565 (2 | (1 << 4))
 
 /* Alpha Mode */
-#define DMA2D_AMODE_PIXEL	(0 | (0 << 5))	// Ê¹ÓÃÏñËØµã×Ô´øAlphaÖµ
-#define DMA2D_AMODE_ALPHA	(0 | (1 << 5))	// Ê¹ÓÃÈí¼şÖ¸¶¨µÄAlphaÖµ
-#define DMA2D_AMODE_PMULA	(0 | (2 << 5))	// Ê¹ÓÃÏñËØµã×Ô´øAlphaÖµÓëÈí¼şÖ¸¶¨µÄAlphaÖµµÄ³Ë»ı
+#define DMA2D_AMODE_PIXEL (0 | (0 << 5)) // ä½¿ç”¨åƒç´ ç‚¹è‡ªå¸¦Alphaå€¼
+#define DMA2D_AMODE_ALPHA (0 | (1 << 5)) // ä½¿ç”¨è½¯ä»¶æŒ‡å®šçš„Alphaå€¼
+#define DMA2D_AMODE_PMULA (0 | (2 << 5)) // ä½¿ç”¨åƒç´ ç‚¹è‡ªå¸¦Alphaå€¼ä¸è½¯ä»¶æŒ‡å®šçš„Alphaå€¼çš„ä¹˜ç§¯
 
-
-void DMA2D_Init(DMA2D_InitStructure * initStruct);
-void DMA2D_PixelFill(DMA2D_LayerSetting * outLayer, uint32_t color);
-void DMA2D_PixelMove(DMA2D_LayerSetting * fgLayer, DMA2D_LayerSetting * outLayer);
-void DMA2D_PixelConvert(DMA2D_LayerSetting * fgLayer, DMA2D_LayerSetting * outLayer);
-void DMA2D_PixelBlend(DMA2D_LayerSetting * fgLayer, DMA2D_LayerSetting * bgLayer, DMA2D_LayerSetting * outLayer);
+void DMA2D_Init(DMA2D_InitStructure *initStruct);
+void DMA2D_PixelFill(DMA2D_LayerSetting *outLayer, uint32_t color);
+void DMA2D_PixelMove(DMA2D_LayerSetting *fgLayer, DMA2D_LayerSetting *outLayer);
+void DMA2D_PixelConvert(DMA2D_LayerSetting *fgLayer, DMA2D_LayerSetting *outLayer);
+void DMA2D_PixelBlend(DMA2D_LayerSetting *fgLayer, DMA2D_LayerSetting *bgLayer, DMA2D_LayerSetting *outLayer);
 uint32_t DMA2D_IsBusy(void);
 
 void DMA2D_INTEn(void);
 void DMA2D_INTDis(void);
 void DMA2D_INTClr(void);
 uint32_t DMA2D_INTStat(void);
-
 
 #endif // __SWM341_DMA2D_H__
