@@ -30,7 +30,7 @@ int u_thread_create(obj_handler_t *th_hd, void *stack, void *msg_buf, void (*thr
         return msg_tag_get_prot(tag);
     }
 
-    tag = thread_exec_regs(th1_hd, (umword_t)thread_func, (umword_t)stack, RAM_BASE(), 0);
+    tag = thread_exec_regs(th1_hd, (umword_t)thread_func, (umword_t)stack, TASK_RAM_BASE(), 0);
     if (msg_tag_get_prot(tag) < 0)
     {
         handler_free_umap(th1_hd);

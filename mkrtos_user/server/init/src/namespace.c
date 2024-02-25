@@ -552,7 +552,7 @@ void namespace_init(obj_handler_t ipc_hd)
     thread_set_src_pid(0);
     node_init(&ns.root_node, NULL, "", 0, DIR_NODE);
     ns_hd = ipc_hd;
-    printf("ns svr init...\n");
+    // printf("ns svr init...\n");
 }
 
 /**

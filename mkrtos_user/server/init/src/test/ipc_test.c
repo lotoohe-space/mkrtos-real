@@ -142,7 +142,7 @@ void ipc_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_msg_buf_set(th1_hd, msg_buf0);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, RAM_BASE(), 0);
+    tag = thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_bind_task(th1_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
@@ -153,7 +153,7 @@ void ipc_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_msg_buf_set(th2_hd, msg_buf1);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th2_hd, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE, RAM_BASE(), 0);
+    tag = thread_exec_regs(th2_hd, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_bind_task(th2_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
@@ -165,7 +165,7 @@ void ipc_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_msg_buf_set(th3_hd, msg_buf2);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th3_hd, (umword_t)thread_test_func3, (umword_t)stack2 + STACK_SIZE, RAM_BASE(), 0);
+    tag = thread_exec_regs(th3_hd, (umword_t)thread_test_func3, (umword_t)stack2 + STACK_SIZE, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_bind_task(th3_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);

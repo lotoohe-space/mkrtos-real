@@ -1,219 +1,230 @@
-/****************************************************************************************************************************************** 
-* ÎÄ¼þÃû³Æ: SWM341_dma2d.c
-* ¹¦ÄÜËµÃ÷:	SWM341µ¥Æ¬»úµÄDMA2D¹¦ÄÜÇý¶¯¿â
-* ¼¼ÊõÖ§³Ö:	http://www.synwit.com.cn/e/tool/gbook/?bid=1
-* ×¢ÒâÊÂÏî:
-* °æ±¾ÈÕÆÚ: V1.0.0		2016Äê1ÔÂ30ÈÕ
-* Éý¼¶¼ÇÂ¼: 
-*
-*
-*******************************************************************************************************************************************
-* @attention
-*
-* THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS WITH CODING INFORMATION 
-* REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE TIME. AS A RESULT, SYNWIT SHALL NOT BE HELD LIABLE 
-* FOR ANY DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING FROM THE CONTENT 
-* OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE CODING INFORMATION CONTAINED HEREIN IN CONN-
-* -ECTION WITH THEIR PRODUCTS.
-*
-* COPYRIGHT 2012 Synwit Technology 
-*******************************************************************************************************************************************/
+/******************************************************************************************************************************************
+ * ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½: SWM341_dma2d.c
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:	SWM341ï¿½ï¿½Æ¬ï¿½ï¿½ï¿½ï¿½DMA2Dï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * ï¿½ï¿½ï¿½ï¿½Ö§ï¿½ï¿½:	http://www.synwit.com.cn/e/tool/gbook/?bid=1
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:
+ * ï¿½æ±¾ï¿½ï¿½ï¿½ï¿½: V1.0.0		2016ï¿½ï¿½1ï¿½ï¿½30ï¿½ï¿½
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼:
+ *
+ *
+ *******************************************************************************************************************************************
+ * @attention
+ *
+ * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS WITH CODING INFORMATION
+ * REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE TIME. AS A RESULT, SYNWIT SHALL NOT BE HELD LIABLE
+ * FOR ANY DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING FROM THE CONTENT
+ * OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE CODING INFORMATION CONTAINED HEREIN IN CONN-
+ * -ECTION WITH THEIR PRODUCTS.
+ *
+ * COPYRIGHT 2012 Synwit Technology
+ *******************************************************************************************************************************************/
 #include "SWM341.h"
 #include "SWM341_dma2d.h"
 
-
-/****************************************************************************************************************************************** 
-* º¯ÊýÃû³Æ:	DMA2D_Init()
-* ¹¦ÄÜËµÃ÷:	DMA2D³õÊ¼»¯
-* Êä    Èë: DMA2D_InitStructure * initStruct
-* Êä    ³ö: ÎÞ
-* ×¢ÒâÊÂÏî: ÎÞ
-******************************************************************************************************************************************/
-void DMA2D_Init(DMA2D_InitStructure * initStruct)
+#ifdef MKRTOS_DRV
+#include <u_intr.h>
+#include <assert.h>
+obj_handler_t dma2d_irq_obj;
+#endif
+/******************************************************************************************************************************************
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:	DMA2D_Init()
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:	DMA2Dï¿½ï¿½Ê¼ï¿½ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: DMA2D_InitStructure * initStruct
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
+ ******************************************************************************************************************************************/
+void DMA2D_Init(DMA2D_InitStructure *initStruct)
 {
 	SYS->CLKEN0 |= (1 << SYS_CLKEN0_DMA2D_Pos);
-	
+
 	DMA2D->CR &= ~DMA2D_CR_WAIT_Msk;
 	DMA2D->CR |= (initStruct->Interval << DMA2D_CR_WAIT_Pos);
-	
+
 	DMA2D->IF = 0xFF;
 	DMA2D->IE = (initStruct->IntEOTEn << DMA2D_IE_DONE_Pos);
-	
-	if(initStruct->IntEOTEn)
+
+	if (initStruct->IntEOTEn)
+	{
+#ifdef MKRTOS_DRV
+#define IRQ_THREAD_PRIO 16
+#define STACK_SIZE (512 + 512)
+		static __attribute__((aligned(8))) uint8_t stack0[STACK_SIZE];
+		static uint8_t msg_buf[128];
+		extern void DMA2D_Handler(void);
+
+		assert(u_intr_bind(DMA2D_IRQn, u_irq_prio_create(1, 0), IRQ_THREAD_PRIO,
+						   stack0 + STACK_SIZE, msg_buf, DMA2D_Handler, &dma2d_irq_obj) >= 0);
+#else
 		NVIC_EnableIRQ(DMA2D_IRQn);
+#endif
+	}
 }
 
-
-/****************************************************************************************************************************************** 
-* º¯ÊýÃû³Æ:	DMA2D_PixelFill()
-* ¹¦ÄÜËµÃ÷:	DMA2DÏòÖ¸¶¨´æ´¢Æ÷ÇøÓòÌî³äÖ¸¶¨ÑÕÉ«
-* Êä    Èë: DMA2D_LayerSetting * outLayer	ÒªÌî³äµÄÎ»ÖÃ¡¢´óÐ¡¡¢ÑÕÉ«¸ñÊ½µÈ
-*			uint32_t color					ÒªÌî³äµÄÑÕÉ«
-* Êä    ³ö: ÎÞ
-* ×¢ÒâÊÂÏî: ÎÞ
-******************************************************************************************************************************************/
-void DMA2D_PixelFill(DMA2D_LayerSetting * outLayer, uint32_t color)
+/******************************************************************************************************************************************
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:	DMA2D_PixelFill()
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:	DMA2Dï¿½ï¿½Ö¸ï¿½ï¿½ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½É«
+ * ï¿½ï¿½    ï¿½ï¿½: DMA2D_LayerSetting * outLayer	Òªï¿½ï¿½ï¿½ï¿½Î»ï¿½Ã¡ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½Ê½ï¿½ï¿½
+ *			uint32_t color					Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
+ ******************************************************************************************************************************************/
+void DMA2D_PixelFill(DMA2D_LayerSetting *outLayer, uint32_t color)
 {
 	DMA2D->L[DMA2D_LAYER_OUT].COLOR = color;
-	
+
 	DMA2D->L[DMA2D_LAYER_OUT].MAR = outLayer->Address;
-	DMA2D->L[DMA2D_LAYER_OUT].OR  = outLayer->LineOffset;
+	DMA2D->L[DMA2D_LAYER_OUT].OR = outLayer->LineOffset;
 	DMA2D->L[DMA2D_LAYER_OUT].PFCCR = (outLayer->ColorMode << DMA2D_PFCCR_CFMT_Pos);
-	
+
 	DMA2D->NLR = ((outLayer->LineCount - 1) << DMA2D_NLR_NLINE_Pos) |
 				 ((outLayer->LinePixel - 1) << DMA2D_NLR_NPIXEL_Pos);
-	
+
 	DMA2D->CR &= ~DMA2D_CR_MODE_Msk;
 	DMA2D->CR |= (3 << DMA2D_CR_MODE_Pos) |
 				 (1 << DMA2D_CR_START_Pos);
 }
 
-
-/****************************************************************************************************************************************** 
-* º¯ÊýÃû³Æ:	DMA2D_PixelMove()
-* ¹¦ÄÜËµÃ÷:	DMA2DÏñËØÊý¾Ý°áÔË
-* Êä    Èë: DMA2D_LayerSetting * fgLayer	
-*			DMA2D_LayerSetting * outLayer
-* Êä    ³ö: ÎÞ
-* ×¢ÒâÊÂÏî: ÎÞ
-******************************************************************************************************************************************/
-void DMA2D_PixelMove(DMA2D_LayerSetting * fgLayer, DMA2D_LayerSetting * outLayer)
+/******************************************************************************************************************************************
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:	DMA2D_PixelMove()
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:	DMA2Dï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý°ï¿½ï¿½ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: DMA2D_LayerSetting * fgLayer
+ *			DMA2D_LayerSetting * outLayer
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
+ ******************************************************************************************************************************************/
+void DMA2D_PixelMove(DMA2D_LayerSetting *fgLayer, DMA2D_LayerSetting *outLayer)
 {
 	DMA2D->L[DMA2D_LAYER_FG].MAR = fgLayer->Address;
-	DMA2D->L[DMA2D_LAYER_FG].OR  = fgLayer->LineOffset;
+	DMA2D->L[DMA2D_LAYER_FG].OR = fgLayer->LineOffset;
 	DMA2D->L[DMA2D_LAYER_FG].PFCCR = (fgLayer->ColorMode << DMA2D_PFCCR_CFMT_Pos);
-	
+
 	DMA2D->L[DMA2D_LAYER_OUT].MAR = outLayer->Address;
-	DMA2D->L[DMA2D_LAYER_OUT].OR  = outLayer->LineOffset;
-	
+	DMA2D->L[DMA2D_LAYER_OUT].OR = outLayer->LineOffset;
+
 	DMA2D->NLR = ((outLayer->LineCount - 1) << DMA2D_NLR_NLINE_Pos) |
 				 ((outLayer->LinePixel - 1) << DMA2D_NLR_NPIXEL_Pos);
-	
+
 	DMA2D->CR &= ~DMA2D_CR_MODE_Msk;
 	DMA2D->CR |= (0 << DMA2D_CR_MODE_Pos) |
 				 (1 << DMA2D_CR_START_Pos);
 }
 
-
-/****************************************************************************************************************************************** 
-* º¯ÊýÃû³Æ:	DMA2D_PixelConvert()
-* ¹¦ÄÜËµÃ÷:	DMA2DÏñËØ×ª»»
-* Êä    Èë: DMA2D_LayerSetting * fgLayer	
-*			DMA2D_LayerSetting * outLayer
-* Êä    ³ö: ÎÞ
-* ×¢ÒâÊÂÏî: ÎÞ
-******************************************************************************************************************************************/
-void DMA2D_PixelConvert(DMA2D_LayerSetting * fgLayer, DMA2D_LayerSetting * outLayer)
+/******************************************************************************************************************************************
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:	DMA2D_PixelConvert()
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:	DMA2Dï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: DMA2D_LayerSetting * fgLayer
+ *			DMA2D_LayerSetting * outLayer
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
+ ******************************************************************************************************************************************/
+void DMA2D_PixelConvert(DMA2D_LayerSetting *fgLayer, DMA2D_LayerSetting *outLayer)
 {
 	DMA2D->L[DMA2D_LAYER_FG].MAR = fgLayer->Address;
-	DMA2D->L[DMA2D_LAYER_FG].OR  = fgLayer->LineOffset;
+	DMA2D->L[DMA2D_LAYER_FG].OR = fgLayer->LineOffset;
 	DMA2D->L[DMA2D_LAYER_FG].PFCCR = (fgLayer->ColorMode << DMA2D_PFCCR_CFMT_Pos);
-	
+
 	DMA2D->L[DMA2D_LAYER_OUT].MAR = outLayer->Address;
-	DMA2D->L[DMA2D_LAYER_OUT].OR  = outLayer->LineOffset;
+	DMA2D->L[DMA2D_LAYER_OUT].OR = outLayer->LineOffset;
 	DMA2D->L[DMA2D_LAYER_OUT].PFCCR = (outLayer->ColorMode << DMA2D_PFCCR_CFMT_Pos);
-	
+
 	DMA2D->NLR = ((outLayer->LineCount - 1) << DMA2D_NLR_NLINE_Pos) |
 				 ((outLayer->LinePixel - 1) << DMA2D_NLR_NPIXEL_Pos);
-	
+
 	DMA2D->CR &= ~DMA2D_CR_MODE_Msk;
 	DMA2D->CR |= (1 << DMA2D_CR_MODE_Pos) |
 				 (1 << DMA2D_CR_START_Pos);
 }
 
-
-/****************************************************************************************************************************************** 
-* º¯ÊýÃû³Æ:	DMA2D_PixelBlend()
-* ¹¦ÄÜËµÃ÷:	DMA2DÏñËØ»ìºÏ
-* Êä    Èë: DMA2D_LayerSetting * fgLayer
-*			DMA2D_LayerSetting * bgLayer
-*			DMA2D_LayerSetting * outLayer
-* Êä    ³ö: ÎÞ
-* ×¢ÒâÊÂÏî: ÎÞ
-******************************************************************************************************************************************/
-void DMA2D_PixelBlend(DMA2D_LayerSetting * fgLayer, DMA2D_LayerSetting * bgLayer, DMA2D_LayerSetting * outLayer)
+/******************************************************************************************************************************************
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:	DMA2D_PixelBlend()
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:	DMA2Dï¿½ï¿½ï¿½Ø»ï¿½ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: DMA2D_LayerSetting * fgLayer
+ *			DMA2D_LayerSetting * bgLayer
+ *			DMA2D_LayerSetting * outLayer
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
+ ******************************************************************************************************************************************/
+void DMA2D_PixelBlend(DMA2D_LayerSetting *fgLayer, DMA2D_LayerSetting *bgLayer, DMA2D_LayerSetting *outLayer)
 {
 	DMA2D->L[DMA2D_LAYER_FG].MAR = fgLayer->Address;
-	DMA2D->L[DMA2D_LAYER_FG].OR  = fgLayer->LineOffset;
-	DMA2D->L[DMA2D_LAYER_FG].PFCCR = (fgLayer->ColorMode << DMA2D_PFCCR_CFMT_Pos)  |
+	DMA2D->L[DMA2D_LAYER_FG].OR = fgLayer->LineOffset;
+	DMA2D->L[DMA2D_LAYER_FG].PFCCR = (fgLayer->ColorMode << DMA2D_PFCCR_CFMT_Pos) |
 									 (fgLayer->AlphaMode << DAM2D_PFCCR_AMODE_Pos) |
-									 (fgLayer->Alpha     << DMA2D_PFCCR_ALPHA_Pos);
-	
+									 (fgLayer->Alpha << DMA2D_PFCCR_ALPHA_Pos);
+
 	DMA2D->L[DMA2D_LAYER_BG].MAR = bgLayer->Address;
-	DMA2D->L[DMA2D_LAYER_BG].OR  = bgLayer->LineOffset;
-	DMA2D->L[DMA2D_LAYER_BG].PFCCR = (bgLayer->ColorMode << DMA2D_PFCCR_CFMT_Pos)  |
+	DMA2D->L[DMA2D_LAYER_BG].OR = bgLayer->LineOffset;
+	DMA2D->L[DMA2D_LAYER_BG].PFCCR = (bgLayer->ColorMode << DMA2D_PFCCR_CFMT_Pos) |
 									 (bgLayer->AlphaMode << DAM2D_PFCCR_AMODE_Pos) |
-									 (bgLayer->Alpha     << DMA2D_PFCCR_ALPHA_Pos);
-	
+									 (bgLayer->Alpha << DMA2D_PFCCR_ALPHA_Pos);
+
 	DMA2D->L[DMA2D_LAYER_OUT].MAR = outLayer->Address;
-	DMA2D->L[DMA2D_LAYER_OUT].OR  = outLayer->LineOffset;
+	DMA2D->L[DMA2D_LAYER_OUT].OR = outLayer->LineOffset;
 	DMA2D->L[DMA2D_LAYER_OUT].PFCCR = (outLayer->ColorMode << DMA2D_PFCCR_CFMT_Pos);
-	
+
 	DMA2D->NLR = ((outLayer->LineCount - 1) << DMA2D_NLR_NLINE_Pos) |
 				 ((outLayer->LinePixel - 1) << DMA2D_NLR_NPIXEL_Pos);
-	
+
 	DMA2D->CR &= ~DMA2D_CR_MODE_Msk;
 	DMA2D->CR |= (2 << DMA2D_CR_MODE_Pos) |
 				 (1 << DMA2D_CR_START_Pos);
 }
 
-
-/****************************************************************************************************************************************** 
-* º¯ÊýÃû³Æ:	DMA2D_IsBusy()
-* ¹¦ÄÜËµÃ÷:	DMA2DÃ¦²éÑ¯
-* Êä    Èë: ÎÞ
-* Êä    ³ö: uint32_t				1 ÕýÔÚ´«Êä   0 ´«ÊäÍê³É
-* ×¢ÒâÊÂÏî: ÎÞ
-******************************************************************************************************************************************/
+/******************************************************************************************************************************************
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:	DMA2D_IsBusy()
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:	DMA2DÃ¦ï¿½ï¿½Ñ¯
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: uint32_t				1 ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½   0 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
+ ******************************************************************************************************************************************/
 uint32_t DMA2D_IsBusy(void)
 {
 	return (DMA2D->CR & DMA2D_CR_START_Msk) ? 1 : 0;
 }
 
-
-/****************************************************************************************************************************************** 
-* º¯ÊýÃû³Æ: DMA2D_INTEn()
-* ¹¦ÄÜËµÃ÷:	DMA2DÖÐ¶ÏÊ¹ÄÜ£¬Íê³ÉÖ¸¶¨³¤¶ÈµÄÊý¾Ý´«ÊäÊ±´¥·¢ÖÐ¶Ï
-* Êä    Èë: ÎÞ
-* Êä    ³ö: ÎÞ
-* ×¢ÒâÊÂÏî: ÎÞ
-******************************************************************************************************************************************/
+/******************************************************************************************************************************************
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: DMA2D_INTEn()
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:	DMA2Dï¿½Ð¶ï¿½Ê¹ï¿½Ü£ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Èµï¿½ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
+ ******************************************************************************************************************************************/
 void DMA2D_INTEn(void)
 {
 	DMA2D->IE = DMA2D_IE_DONE_Msk;
 }
 
-/****************************************************************************************************************************************** 
-* º¯ÊýÃû³Æ: DMA2D_INTDis()
-* ¹¦ÄÜËµÃ÷:	DMA2DÖÐ¶Ï½ûÖ¹£¬Íê³ÉÖ¸¶¨³¤¶ÈµÄÊý¾Ý´«ÊäÊ±²»´¥·¢ÖÐ¶Ï
-* Êä    Èë: ÎÞ
-* Êä    ³ö: ÎÞ
-* ×¢ÒâÊÂÏî: ÎÞ
-******************************************************************************************************************************************/
+/******************************************************************************************************************************************
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: DMA2D_INTDis()
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:	DMA2Dï¿½Ð¶Ï½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Èµï¿½ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
+ ******************************************************************************************************************************************/
 void DMA2D_INTDis(void)
 {
 	DMA2D->IE = 0;
 }
 
-/****************************************************************************************************************************************** 
-* º¯ÊýÃû³Æ: DMA2D_INTClr()
-* ¹¦ÄÜËµÃ÷:	DMA2DÖÐ¶Ï±êÖ¾Çå³ý
-* Êä    Èë: ÎÞ
-* Êä    ³ö: ÎÞ
-* ×¢ÒâÊÂÏî: ÎÞ
-******************************************************************************************************************************************/
+/******************************************************************************************************************************************
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: DMA2D_INTClr()
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:	DMA2Dï¿½Ð¶Ï±ï¿½Ö¾ï¿½ï¿½ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
+ ******************************************************************************************************************************************/
 void DMA2D_INTClr(void)
 {
 	DMA2D->IF = DMA2D_IF_DONE_Msk;
 }
 
-/****************************************************************************************************************************************** 
-* º¯ÊýÃû³Æ: DMA2D_INTStat()
-* ¹¦ÄÜËµÃ÷:	DMA2DÖÐ¶Ï×´Ì¬²éÑ¯
-* Êä    Èë: ÎÞ
-* Êä    ³ö: uint32_t			0 Î´Íê³ÉÖ¸¶¨³¤¶ÈµÄÊý¾Ý´«Êä   1 Íê³ÉÖ¸¶¨³¤¶ÈµÄÊý¾Ý´«Êä    
-* ×¢ÒâÊÂÏî: ÎÞ
-******************************************************************************************************************************************/
+/******************************************************************************************************************************************
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: DMA2D_INTStat()
+ * ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½:	DMA2Dï¿½Ð¶ï¿½×´Ì¬ï¿½ï¿½Ñ¯
+ * ï¿½ï¿½    ï¿½ï¿½: ï¿½ï¿½
+ * ï¿½ï¿½    ï¿½ï¿½: uint32_t			0 Î´ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Èµï¿½ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½   1 ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Èµï¿½ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½
+ ******************************************************************************************************************************************/
 uint32_t DMA2D_INTStat(void)
 {
 	return (DMA2D->IF & DMA2D_IF_DONE_Msk) ? 1 : 0;

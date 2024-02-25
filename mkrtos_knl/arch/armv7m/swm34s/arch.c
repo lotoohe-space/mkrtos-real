@@ -32,7 +32,7 @@ void to_sche(void)
 void sys_startup(void)
 {
     // 设置 systick 与 pendsv优先级为最低
-    // write_reg(REG0_ADDR, MASK_LSB(read_reg(REG0_ADDR), 16) | 0xffffUL);
+    write_reg(0xE000ED00 + 0x20, (7 << 21) | (6 << 29));
     // 清空psp寄存器
     write_sysreg(0, psp);
     // 开启pensv中断
@@ -53,15 +53,15 @@ void arch_enable_irq(int inx)
 {
     NVIC_EnableIRQ(inx);
 }
+uint32_t arch_get_sys_clk(void)
+{
+    extern uint32_t SystemCoreClock;
+
+    return SystemCoreClock;
+}
 void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio)
 {
-    // TODO: 设置优先级
-    // NVIC_InitTypeDef NVIC_InitStructure;
-    // NVIC_InitStructure.NVIC_IRQChannel = inx;
-    // NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = pre_prio;
-    // NVIC_InitStructure.NVIC_IRQChannelSubPriority = sub_prio;
-    // NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    // NVIC_Init(&NVIC_InitStructure);
+    NVIC_SetPriority(inx, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), pre_prio, sub_prio));
 }
 void arch_init(void)
 {
@@ -70,6 +70,7 @@ void arch_init(void)
     SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk;
     SCB->SHCSR |= SCB_SHCSR_BUSFAULTENA_Msk;
     ((uint8_t *)(0xE000E008))[0] |= 0x6;
+
     // RCC_ClocksTypeDef RCC_ClocksStatus;
     // RCC_GetClocksFreq(&RCC_ClocksStatus);
 }

@@ -132,7 +132,7 @@ static void thread_release_stage1(kobject_t *kobj)
         assert(pos->th->status == THREAD_SUSPEND);
         thread_wait_entry_t *next = slist_next_entry(pos, &wait_send_queue, node_timeout);
 
-    if (pos->th != th)
+        if (pos->th != th)
         {
             pos->th->ipc_status = THREAD_IPC_ABORT;
             thread_ready(pos->th, TRUE);
@@ -566,14 +566,14 @@ static int thread_ipc_reply(msg_tag_t in_tag)
     return ret;
 }
 
-int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag,
+__attribute__((optimize(1))) int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag,
                     ipc_timeout_t timout, umword_t *ret_user_id, bool_t is_call)
 {
+    int ret = -EINVAL;
     if (is_call)
     {
         assert(is_call && ret_tag);
     }
-    int ret = -EINVAL;
     thread_t *cur_th = thread_get_current();
     thread_t *recv_kobj = to_th;
     mword_t lock_stats = spinlock_lock(&cur_th->kobj.lock);
@@ -644,7 +644,7 @@ again_check:
                 goto end;
             }
         }
-        preemption(); //!< 进行调度
+        preemption();
     }
     ret = 0;
 end:
@@ -796,6 +796,12 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         umword_t status = cpulock_lock();
         if (!slist_in_list(&tag_th->sche.node))
         {
+            tag_th->sche.prio = (f->r[1] >= PRIO_MAX ? PRIO_MAX - 1 : f->r[1]);
+            thread_ready(tag_th, TRUE);
+        }
+        else
+        {
+            thread_suspend(tag_th);
             tag_th->sche.prio = (f->r[1] >= PRIO_MAX ? PRIO_MAX - 1 : f->r[1]);
             thread_ready(tag_th, TRUE);
         }

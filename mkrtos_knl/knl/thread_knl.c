@@ -185,6 +185,7 @@ void start_kernel(void)
     sys_call_init();
     printk("mkrtos init done..\n");
     printk("mkrtos running..\n");
+    printk("sys freq:%d\n", arch_get_sys_clk());
     print_mkrtos_info();
     sti();
     sys_startup(); //!< 开始调度

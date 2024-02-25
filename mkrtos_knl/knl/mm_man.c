@@ -68,7 +68,17 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
             f->r[1] = ret_addr;
         }
 #else
-        tag = msg_tag_init4(0, 0, 0, -ENOSYS);
+        void *ret_mem = mm_limit_alloc(cur_task->lim, f->r[1]);
+
+        if (!ret_mem)
+        {
+            tag = msg_tag_init4(0, 0, 0, -ENOMEM);
+        }
+        else
+        {
+            f->r[1] = (umword_t)ret_mem;
+            tag = msg_tag_init4(0, 0, 0, 0);
+        }
 #endif
     }
     break;
@@ -78,7 +88,8 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         mm_pages_free_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->r[1], f->r[2]);
         tag = msg_tag_init4(0, 0, 0, 0);
 #else
-        tag = msg_tag_init4(0, 0, 0, -ENOSYS);
+        mm_limit_free(cur_task->lim, (void *)(f->r[1]));
+        tag = msg_tag_init4(0, 0, 0, 0);
 #endif
     }
     break;

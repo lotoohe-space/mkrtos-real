@@ -61,7 +61,7 @@ msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj);
 msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj, obj_handler_t ipc_obj);
 msg_tag_t thread_ipc_reply(msg_tag_t in_tag, ipc_timeout_t timeout);
 msg_tag_t thread_ipc_send(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
-msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
+ __attribute__((optimize(0)))  msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
 
 static inline ipc_msg_t *thread_get_cur_ipc_msg(void)
 {

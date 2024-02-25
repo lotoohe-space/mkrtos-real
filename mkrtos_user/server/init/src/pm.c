@@ -27,7 +27,7 @@ void pm_init(void)
 {
     pm_svr_obj_init(&pm);
     meta_reg_svr_obj(&pm.svr_obj, PM_PROT);
-    printf("pm runing..\n");
+    // printf("pm runing..\n");
 }
 /**
  * @brief pid值是不是一个task

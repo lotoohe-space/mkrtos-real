@@ -100,7 +100,7 @@ void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
         write_sysreg(0, PRIMASK); \
     } while (0)
 
-static inline void preemption(void)
+static inline __attribute__((optimize(0))) void preemption(void)
 {
     cli();
     sti();
@@ -116,3 +116,5 @@ void sys_reset(void);
 
 // systick.c
 umword_t sys_tick_cnt_get(void);
+
+uint32_t arch_get_sys_clk(void);

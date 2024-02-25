@@ -100,7 +100,7 @@ void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
         write_sysreg(0, PRIMASK); \
     } while (0)
 
-static inline void preemption(void)
+static inline __attribute__((optimize(0))) void preemption(void)
 {
     cli();
     sti();

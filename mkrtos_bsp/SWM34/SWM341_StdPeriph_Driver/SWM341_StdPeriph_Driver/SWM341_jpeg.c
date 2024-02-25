@@ -248,7 +248,7 @@ void JPEG_Decode(JPEG_TypeDef * JPEGx, jfif_info_t * jfif_info, jpeg_outset_t * 
 												(minIndx[j+3] << 24);
 		}
 		
-		for(j = 0; j < 164; j += 4)
+		for(j = 0; j < 162-4; j += 4)
 		{
 			JPEGx->HTABLE[i].AC_CODEVAL[j/4] = (jfif_info->HTable[i].AC.codeVal[j]   <<  0) |
 											   (jfif_info->HTable[i].AC.codeVal[j+1] <<  8) |

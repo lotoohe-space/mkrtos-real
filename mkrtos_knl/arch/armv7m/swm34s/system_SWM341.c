@@ -1,10 +1,10 @@
 /****************************************************************************************************************************************** 
-* �ļ�����:	system_SWM341.c
-* ����˵��:	SWM341��Ƭ����ʱ������
-* ����֧��:	http://www.synwit.com.cn/e/tool/gbook/?bid=1
-* ע������:
-* �汾����: V1.1.0		2017��10��25��
-* ������¼: 
+* ???????:	system_SWM341.c
+* ???????:	SWM341??????????????
+* ???????:	http://www.synwit.com.cn/e/tool/gbook/?bid=1
+* ???????:
+* ?��????: V1.1.0		2017??10??25??
+* ???????: 
 *
 *
 *******************************************************************************************************************************************
@@ -23,38 +23,38 @@
 
 
 /******************************************************************************************************************************************
- * ϵͳʱ���趨
+ * ??????څ
  *****************************************************************************************************************************************/
-#define SYS_CLK_20MHz		0	 	//0 �ڲ���Ƶ20MHz  RC����
-#define SYS_CLK_2M5Hz		1		//1 �ڲ���Ƶ2.5MHz RC����
-#define SYS_CLK_40MHz		2		//2 �ڲ���Ƶ40MHz  RC����
-#define SYS_CLK_5MHz		3		//3 �ڲ���Ƶ 5MHz  RC����
-#define SYS_CLK_XTAL		4		//4 �ⲿ����������4-32MHz��
-#define SYS_CLK_XTAL_DIV8	5		//5 �ⲿ����������4-32MHz�� 8��Ƶ
-#define SYS_CLK_PLL			6		//6 ���໷���
-#define SYS_CLK_PLL_DIV8	7		//7 ���໷��� 8��Ƶ
-#define SYS_CLK_32KHz		8		//8 �ڲ���Ƶ32KHz RC  ����
-#define SYS_CLK_XTAL_32K	9		//9 �ⲿ��Ƶ32KHz ��������
+#define SYS_CLK_20MHz		0	 	//0 ??????20MHz  RC????
+#define SYS_CLK_2M5Hz		1		//1 ??????2.5MHz RC????
+#define SYS_CLK_40MHz		2		//2 ??????40MHz  RC????
+#define SYS_CLK_5MHz		3		//3 ?????? 5MHz  RC????
+#define SYS_CLK_XTAL		4		//4 ????????????4-32MHz??
+#define SYS_CLK_XTAL_DIV8	5		//5 ????????????4-32MHz?? 8???
+#define SYS_CLK_PLL			6		//6 ???????
+#define SYS_CLK_PLL_DIV8	7		//7 ??????? 8???
+#define SYS_CLK_32KHz		8		//8 ??????32KHz RC  ????
+#define SYS_CLK_XTAL_32K	9		//9 ?????32KHz ????????
 
 #define SYS_CLK   SYS_CLK_PLL
 
 
-#define __HSI		(20000000UL)		//�����ڲ�ʱ��
-#define __LSI		(   32000UL)		//�����ڲ�ʱ��
-#define __HSE		(12000000UL)		//�����ⲿʱ��
-#define __LSE		(   32768UL)		//�����ⲿʱ��
+#define __HSI		(20000000UL)		//??????????
+#define __LSI		(   32000UL)		//??????????
+#define __HSE		(12000000UL)		//?????????
+#define __LSE		(   32768UL)		//?????????
 
 
-/********************************** PLL �趨 **********************************************
- * VCO���Ƶ�� = PLL����ʱ�� / INDIV * 4 * FBDIV
- * PLL���Ƶ�� = PLL����ʱ�� / INDIV * 4 * FBDIV / OUTDIV = VCO���Ƶ�� / OUTDIV
- * ע�⣺VCO���Ƶ����Ҫ�� [600MHz, 1400MHz] ֮��
+/********************************** PLL ?څ **********************************************
+ * VCO?????? = PLL??????? / INDIV * 4 * FBDIV
+ * PLL?????? = PLL??????? / INDIV * 4 * FBDIV / OUTDIV = VCO?????? / OUTDIV
+ * ???VCO??????????? [600MHz, 1400MHz] ???
  *****************************************************************************************/ 
-#define SYS_PLL_SRC   	SYS_CLK_XTAL	//��ȡֵSYS_CLK_20MHz��SYS_CLK_XTAL
+#define SYS_PLL_SRC   	SYS_CLK_XTAL	//????SYS_CLK_20MHz??SYS_CLK_XTAL
 
 #define PLL_IN_DIV		3
 
-#define PLL_FB_DIV		60
+#define PLL_FB_DIV		72
 
 
 #define PLL_OUT_DIV8	0
@@ -70,11 +70,11 @@ uint32_t CyclesPerUs      = (__HSI / 1000000); 		//Cycles per micro second
 
 
 /****************************************************************************************************************************************** 
-* ��������: 
-* ����˵��: This function is used to update the variable SystemCoreClock and must be called whenever the core clock is changed
-* ��    ��: 
-* ��    ��: 
-* ע������: 
+* ????????: 
+* ???????: This function is used to update the variable SystemCoreClock and must be called whenever the core clock is changed
+* ??    ??: 
+* ??    ??: 
+* ???????: 
 ******************************************************************************************************************************************/
 void SystemCoreClockUpdate(void)    
 {
@@ -129,13 +129,14 @@ void SystemCoreClockUpdate(void)
 	
 	CyclesPerUs = SystemCoreClock / 1000000;
 }
+void FPU_Enable(void);
 
 /****************************************************************************************************************************************** 
-* ��������: 
-* ����˵��: The necessary initializaiton of systerm
-* ��    ��: 
-* ��    ��: 
-* ע������: 
+* ????????: 
+* ???????: The necessary initializaiton of systerm
+* ??    ??: 
+* ??    ??: 
+* ???????: 
 ******************************************************************************************************************************************/
 void SystemInit(void)
 {		
@@ -216,6 +217,8 @@ void SystemInit(void)
 	SYS->USBPHYCR |= (1 << SYS_USBPHYCR_OPMODE_Pos);  	//Non-Driving, DP Pull-Up disable
 
 	SCB->VTOR = 0x00000000 | CONFIG_KNL_OFFSET;
+
+	FPU_Enable();
 }
 
 
@@ -406,7 +409,7 @@ void PLLInit(void)
 	
 	SYS->PLLCR &= ~(1 << SYS_PLLCR_OFF_Pos);
 	
-	while(SYS->PLLLOCK == 0);		//�ȴ�PLL����
+	while(SYS->PLLLOCK == 0);		//???PLL????
 	
 	SYS->PLLCR |= (1 << SYS_PLLCR_OUTEN_Pos);
 }

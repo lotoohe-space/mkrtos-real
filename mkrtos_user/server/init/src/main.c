@@ -35,10 +35,10 @@
 
 static void test(void)
 {
+    printf_test();
 #if 0
     mpu_test();
     sharea_mem_test();
-    printf_test();
     ulog_test();
     factory_test();
     thread_exit_test();

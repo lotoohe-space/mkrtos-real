@@ -26,7 +26,7 @@ add_dependencies(mkrtos_img_dump
     init_dump
     # app_dump
     shell_dump
-    fatfs_dump
-    cpiofs_dump
-    tcc_dump
+    # fatfs_dump
+    # cpiofs_dump
+    # tcc_dump
 )
