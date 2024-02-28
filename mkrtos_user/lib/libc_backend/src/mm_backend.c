@@ -10,7 +10,11 @@
 #include <assert.h>
 static pthread_spinlock_t lock;
 extern void *app_start_addr;
+#ifdef CONFIG_EX_RAM_SIZE
 static umword_t mm_bitemp[ROUND(CONFIG_EX_RAM_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
+#else
+static umword_t mm_bitemp[ROUND(CONFIG_KNL_DATA_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
+#endif
 static void *mm_page_alloc(int page_nr)
 {
     int cnt = 0;

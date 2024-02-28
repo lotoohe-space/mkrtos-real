@@ -53,6 +53,12 @@ void arch_enable_irq(int inx)
 {
     NVIC_EnableIRQ(inx);
 }
+uint32_t arch_get_sys_clk(void)
+{
+    extern uint32_t SystemCoreClock;
+
+    return SystemCoreClock;
+}
 void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio)
 {
     NVIC_InitTypeDef NVIC_InitStructure;

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 
-file(GLOB deps **/*.S *.S **/*.C *.c)
+file(GLOB deps **/*.s *.s **/*.C *.c)
 
 file(GLOB bsp_src 
 ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/SWM341_StdPeriph_Driver/*.c

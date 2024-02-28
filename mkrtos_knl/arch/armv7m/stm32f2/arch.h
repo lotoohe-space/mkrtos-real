@@ -116,3 +116,5 @@ void sys_reset(void);
 
 // systick.c
 umword_t sys_tick_cnt_get(void);
+
+uint32_t arch_get_sys_clk(void);

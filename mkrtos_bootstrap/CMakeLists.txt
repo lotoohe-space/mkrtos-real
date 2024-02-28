@@ -90,9 +90,10 @@ endif()
 add_executable(bootstrap.elf
     ${deps}
 )
-
+message("CONFIG_CPU_TYPE"=${CONFIG_CPU_TYPE})
+string(TOUPPER ${CONFIG_CPU_TYPE} cpu_type)
 set_target_properties(bootstrap.elf PROPERTIES LINK_FLAGS 
-"-T ${CMAKE_CURRENT_LIST_DIR}/bsp/${CONFIG_CPU_TYPE}/link.lds --gc-section ")
+"-T ${CMAKE_CURRENT_LIST_DIR}/bsp/${cpu_type}/link.lds --gc-section ")
 
 target_link_libraries(
     bootstrap.elf

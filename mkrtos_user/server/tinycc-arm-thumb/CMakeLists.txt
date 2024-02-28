@@ -39,8 +39,8 @@ add_executable(tcc.elf
 target_link_libraries(tcc.elf
     PUBLIC
     muslc
-    --whole-archive    
     start
+    --whole-archive    
     sys
     sys_util
     sys_svr
