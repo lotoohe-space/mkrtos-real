@@ -27,7 +27,7 @@ message(=======${CONFIG_CPU_TYPE})
 
 # -mfloat-abi=soft  -u _printf_float   -lc -lrdimon
 #-mfpu=fpv5-sp-d16
-set(CMAKE_C_FLAGS "-mcpu=${CONFIG_ARCH} -O3 -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE}  -mthumb -mno-thumb-interwork -D=MKRTOS \
+set(CMAKE_C_FLAGS "-mcpu=${CONFIG_ARCH} -O0 -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE}  -mthumb -mno-thumb-interwork -D=MKRTOS \
 -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -u _printf_float \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
 -fno-stack-protector -Wl,--gc-sections \

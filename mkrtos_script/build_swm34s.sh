@@ -7,5 +7,5 @@ export TOOLCHAIN_LIB=/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-n
 export BOARD=SWM34
 
 set -e
-cmake -G Ninja -B build/$KNL .
-cd build/$KNL && ninja
+cmake -G Ninja -B build .
+cd build && ninja

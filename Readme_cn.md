@@ -14,7 +14,7 @@
 | -------- | -------- | -------- |
 | Cortex-m3| renode/stm32f103,qemu/stm32f2 | done |
 | Cortex-m4 | renode/stm32f4 | done |
-| Cortex-m33｜swm34s｜done|
+| Cortex-m33|swm34s|done|
 | risc-v | Qemu | X |
 | ARMv8|Qemu|X
 
@@ -74,11 +74,15 @@ sudo apt install cmake
 ```
 sudo apt update
 sudo apt install ninja-build
+sudo apt install cpio srecord
+sudo apt install python3
 ```
 3. 下载gcc
 - 直接使用ubuntu命令安装的gcc arm会没有gdb，可以直接到我给定的仓库下载
 ```
 https://gitee.com/IsYourGod/mkrtos-tools.git
+64位系统使用32位gcc，需要安装
+sudo apt install libc6-i386
 ```
 4. Qemu
 - 1.Qemu可以直接下载官方的进行编译

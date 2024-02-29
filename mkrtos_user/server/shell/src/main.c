@@ -11,7 +11,7 @@ int main(int argc, char *args[])
     {
         printf("args[%d]:%s\n", i, args[i]);
     }
-    pm_run_app("lcd_drv", 0);
+    // pm_run_app("lcd_drv", 0);
     userShellInit();
     return 0;
 }

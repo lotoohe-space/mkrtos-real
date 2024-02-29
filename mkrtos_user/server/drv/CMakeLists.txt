@@ -6,4 +6,4 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMKRTOS_DRV ")
 
 
 # add_subdirectory(dm9000_drv)
-add_subdirectory(lcd_drv)
+# add_subdirectory(lcd_drv)

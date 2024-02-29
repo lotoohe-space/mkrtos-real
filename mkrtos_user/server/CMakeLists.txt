@@ -15,7 +15,7 @@ include_directories(
 add_subdirectory(init)
 add_subdirectory(shell)
 # add_subdirectory(app)
-# add_subdirectory(fs)
+add_subdirectory(fs)
 add_subdirectory(hello)
 add_subdirectory(drv)
 # add_subdirectory(test)
