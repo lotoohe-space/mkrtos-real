@@ -20,7 +20,7 @@ set(CMAKE_SIZE "${CROSS_COMPILE}size" CACHE PATH "" FORCE)
 set(PROJECT_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 
 set(BOARD $ENV{BOARD})
-include(cmake/top.cmake)
+include(mkrtos_cmake/top.cmake)
 set(ARCH ${CONFIG_ARCH} CACHE STRING "" FORCE)
 message(=======${ARCH})
 message(=======${CONFIG_CPU_TYPE})

@@ -76,6 +76,7 @@ sudo apt update
 sudo apt install ninja-build
 sudo apt install cpio srecord
 sudo apt install python3
+sudo apt install srecord
 ```
 3. 下载gcc
 - 直接使用ubuntu命令安装的gcc arm会没有gdb，可以直接到我给定的仓库下载

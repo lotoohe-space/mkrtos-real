@@ -4,14 +4,13 @@
  *  Created on: ATShining
  *      Author: Administrator
  */
-
 #include "types.h"
-#include "assert.h"
 #include "mpu.h"
 #include <mk_sys.h>
 #include <mpu_armv7.h>
 #include "thread.h"
 #include "task.h"
+#if CONFIG_MK_MPU_CFG
 static volatile umword_t *MPUCR = (umword_t *)0xE000ED94;
 
 void mpu_init(void)
@@ -65,3 +64,11 @@ void mpu_switch_to(void)
 
     mpu_switch_to_task(tk);
 }
+#else
+void mpu_switch_to(void)
+{
+}
+void mpu_switch_to_task(struct task *tk)
+{
+}
+#endif
