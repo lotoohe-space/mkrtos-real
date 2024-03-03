@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 
-file(GLOB_RECURSE deps **/*.S *.S **/*.C *.c)
+file(GLOB_RECURSE deps **/*.s *.s **/*.C *.c)
 file(GLOB bsp_src 
 ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/STM32F10x_StdPeriph_Driver/src/*.c
 ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/CMSIS/CM3/CoreSupport/core_cm3.c
