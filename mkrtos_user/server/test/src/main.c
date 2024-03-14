@@ -18,7 +18,7 @@
 int main(int argc, char *args[])
 {
     printf("argc:%d args[0]:%s\n", argc, args[0]);
-    // *((char *)0) = 0;
+
 #if 0
     malloc_test();
     rpc_test();
@@ -27,7 +27,7 @@ int main(int argc, char *args[])
     printf("%s: please input str.\n", args[0]);
     scanf("%s", data);
     printf("%s\n", data);
-#endif
     fs_test();
+#endif
     return 0;
 }

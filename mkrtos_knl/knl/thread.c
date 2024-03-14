@@ -168,13 +168,13 @@ static void thread_release_stage2(kobject_t *kobj)
     thread_t *th = container_of(kobj, thread_t, kobj);
     thread_t *cur_th = thread_get_current();
     // printk("release thread 0x%x\n", kobj);
-    mm_limit_free_align(th->lim, kobj, THREAD_BLOCK_SIZE);
 
     if (cur_th == th)
     {
         scheduler_reset();
         thread_sched();
     }
+    mm_limit_free_align(th->lim, kobj, THREAD_BLOCK_SIZE);
     // mm_trace();
 }
 

@@ -55,7 +55,7 @@ int u_thread_create(obj_handler_t *th_hd, void *stack, void *msg_buf, void (*thr
     *th_hd = th1_hd;
     return 0;
 }
-void u_thread_run(obj_handler_t th_hd, int prio)
+int u_thread_run(obj_handler_t th_hd, int prio)
 {
-    thread_run(th_hd, prio);
+    return msg_tag_get_val(thread_run(th_hd, prio));
 }

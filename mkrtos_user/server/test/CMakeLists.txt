@@ -42,8 +42,8 @@ muslc
 )
 set_target_properties(test.elf PROPERTIES LINK_FLAGS
 "-T ${CMAKE_CURRENT_LIST_DIR}/link.lds -pie --gc-section -no-dynamic-linker "
-#--no-warn-rwx-segments
 )
+#--no-warn-rwx-segments
 add_custom_target(
     test_dump ALL
     COMMAND

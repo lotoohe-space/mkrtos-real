@@ -227,7 +227,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     }
     void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
-
+    printf("stack:0x%x size:%d.\n", sp_addr, app->i.stack_size);
     umword_t *usp_top = (umword_t *)((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL);
     uenv_t uenv = {
         .log_hd = cur_env->ns_hd,

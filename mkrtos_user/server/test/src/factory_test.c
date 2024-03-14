@@ -5,8 +5,10 @@
 #include "u_hd_man.h"
 #include <assert.h>
 #include <stdio.h>
+#include <u_util.h>
 
-void factory_test(void)
+AUTO_CALL(102)
+static void factory_test(void)
 {
     obj_handler_t hd = handler_alloc();
     assert(hd != HANDLER_INVALID);

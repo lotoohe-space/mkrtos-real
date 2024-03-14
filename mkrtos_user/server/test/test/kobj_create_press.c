@@ -10,7 +10,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include "test.h"
-
+#include "u_util.h"
+AUTO_CALL(102)
 void kobj_create_press_test(void)
 {
     int i = 1000;

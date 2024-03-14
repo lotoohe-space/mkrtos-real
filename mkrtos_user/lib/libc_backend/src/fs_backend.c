@@ -14,7 +14,6 @@
 #include <u_util.h>
 #include "fd_map.h"
 #include "u_sleep.h"
-AUTO_CALL(101)
 void fs_backend_init(void)
 {
     assert(fd_map_alloc(0, 0, FD_TTY) >= 0);
@@ -147,7 +146,7 @@ long be_write(long fd, char *buf, long size)
         }
         else
         {
-            //cons_write(buf, size);
+            cons_write(buf, size);
         }
         return size;
     }
@@ -241,7 +240,7 @@ long be_writev(long fd, const struct iovec *iov, long iovcnt)
             }
             else
             {
-               // cons_write(iov[i].iov_base, iov[i].iov_len);
+               cons_write(iov[i].iov_base, iov[i].iov_len);
             }
             wlen += iov[i].iov_len;
         }

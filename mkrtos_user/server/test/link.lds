@@ -85,6 +85,11 @@ SECTIONS
         KEEP(*(SORT(.fini_array.*)))
         KEEP(*(.fini_array))
         PROVIDE_HIDDEN (__fini_array_end = .);
+
+        . = ALIGN(4);
+        _shell_command_start = .;
+        KEEP(*(shellCommand))
+        _shell_command_end = .;
     
         . = ALIGN(4);
         /* All data end */

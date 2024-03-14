@@ -22,5 +22,5 @@
 #define STACK_ATTR
 #endif
 
-__attribute__((used)) HEAP_ATTR static char heap[HEAP_SIZE];
-__attribute__((used)) STACK_ATTR static char stack[STACK_SIZE];
+__attribute__((used)) HEAP_ATTR static char _____heap_____[HEAP_SIZE];
+__attribute__((used)) STACK_ATTR static char _____stack_____[STACK_SIZE];
