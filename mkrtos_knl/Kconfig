@@ -5,6 +5,23 @@ menuconfig KNL_INFO
     bool "knl info set"
     default y
 if KNL_INFO
+    config PAGE_SHIFT
+        int "page shift"
+        default 9
+    config SMP
+        bool "support smp."
+        default n
+if SMP
+    config CPU
+        int "CPU Core number."
+        default 1
+endif
+    config BUDDY_SLAB
+        bool "use BUDDY & SLAB"
+        default n
+    config THREAD_BLOCK_SIZE
+        hex  "kthread block size"
+        default 0x400
     config KNL_TEXT_ADDR
         hex  "The first address of the kernel text section"
         default 0x8000000

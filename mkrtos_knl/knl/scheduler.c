@@ -130,3 +130,7 @@ sp_info_t *schde_to(void *usp, void *ksp, umword_t sp_type)
     sched_reset = 1;
     return &next_th->sp;
 }
+void sched_tail(void)
+{
+    /*TODO:*/
+}

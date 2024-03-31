@@ -26,15 +26,13 @@ execute_process(
 )
 string(STRIP ${DATE} DATE)
 string(STRIP ${TIME} TIME)
-# string(STRIP ${COMMIT} COMMIT)
-# string(STRIP ${BRANCH} BRANCH)
 set(code_version ${BRANCH}-${COMMIT} CACHE STRING " " FORCE)
 set(compile_time "${DATE}\" \"${TIME}" CACHE STRING " " FORCE)
 
 
 add_subdirectory(mkrtos_bootstrap)
 add_subdirectory(mkrtos_knl)
-add_subdirectory(mkrtos_img)
-add_subdirectory(mkrtos_user)
+# add_subdirectory(mkrtos_img)
+# add_subdirectory(mkrtos_user)
 
 

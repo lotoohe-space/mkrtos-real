@@ -85,15 +85,42 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "swm34s" )
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/SWM341_StdPeriph_Driver
     )
     add_subdirectory(bsp/SWM34S)
+elseif(${CONFIG_CPU_TYPE} STREQUAL "aarch64_qemu" )
+    include_directories(
+        ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/AARCH64_QEMU
+    )
+    add_subdirectory(bsp/AARCH64_QEMU)
 endif()
+
+add_custom_target(
+    gen_sys_cpio
+
+    COMMAND
+    cd ${CMAKE_SOURCE_DIR}/build/output/cpio
+    COMMAND
+    ls | cpio -H newc -o > ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio
+    COMMAND
+    cd ${CMAKE_SOURCE_DIR}/build/output
+    COMMAND
+    ${CMAKE_OBJCOPY} -I binary -O elf64-littleaarch64 -B aarch64 rootfs.cpio rootfs.cpio.elf --rename-section .data=.cpio
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/build/output
+    BYPRODUCTS ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio.elf
+)
+add_dependencies(
+    gen_sys_cpio
+    mkrtos_dump
+)
+
+set_source_files_properties(${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio.elf PROPERTIES EXTERNAL_OBJECT true)
 
 add_executable(bootstrap.elf
     ${deps}
+    ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio.elf
 )
-message("CONFIG_CPU_TYPE"=${CONFIG_CPU_TYPE})
+# message("CONFIG_CPU_TYPE="${CONFIG_CPU_TYPE})
 string(TOUPPER ${CONFIG_CPU_TYPE} cpu_type)
 set_target_properties(bootstrap.elf PROPERTIES LINK_FLAGS 
-"-T ${CMAKE_CURRENT_LIST_DIR}/bsp/${cpu_type}/link.lds --gc-section ")
+"-T ${CMAKE_CURRENT_LIST_DIR}/bsp/${cpu_type}/link.lds")
 
 target_link_libraries(
     bootstrap.elf
@@ -110,9 +137,9 @@ add_custom_target(
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output
     COMMAND
-    cp bootstrap.bin ${CMAKE_SOURCE_DIR}/build/output/bootstrap
+    mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
     COMMAND
-    cp bootstrap.bin ${CMAKE_SOURCE_DIR}/build/output/bootstrap.bin
+    cp bootstrap.bin ${CMAKE_SOURCE_DIR}/build/output/bootstrap
     COMMAND
     cp bootstrap.elf ${CMAKE_SOURCE_DIR}/build/output/bootstrap.elf
     COMMAND
@@ -120,3 +147,4 @@ add_custom_target(
 )
 add_dependencies(bootstrap_dump bootstrap.elf)
 add_dependencies(bootstrap.elf boot_bsp)
+add_dependencies(bootstrap.elf gen_sys_cpio)

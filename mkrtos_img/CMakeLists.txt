@@ -10,7 +10,7 @@ add_custom_target(
     srec_cat -output ${CMAKE_SOURCE_DIR}/build/output/kernel.img -binary
         ${CMAKE_SOURCE_DIR}/build/output/bootstrap -binary -offset 0x0
         ${CMAKE_SOURCE_DIR}/build/output/mkrtos -binary -offset ${CONFIG_KNL_OFFSET}
-        ${CMAKE_SOURCE_DIR}/build/output/init -binary -offset ${CONFIG_INIT_TASK_OFFSET}
+        # ${CMAKE_SOURCE_DIR}/build/output/init -binary -offset ${CONFIG_INIT_TASK_OFFSET}
         ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio -binary -offset ${CONFIG_BOOTFS_OFFSET}
     COMMAND
     cp ${CMAKE_SOURCE_DIR}/build/output/kernel.img ${CMAKE_SOURCE_DIR}/build/output/kernel.bin
@@ -23,9 +23,9 @@ add_custom_target(
 add_dependencies(mkrtos_img_dump
     bootstrap_dump
     mkrtos_dump
-    init_dump
+    # init_dump
     # app_dump
-    shell_dump
+    # shell_dump
     # fatfs_dump
     # cpiofs_dump
     # tcc_dump

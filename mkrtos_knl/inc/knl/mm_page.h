@@ -36,7 +36,7 @@ static inline void mm_entry_set_addr(mm_addr_t *addr, addr_t new_addr)
 }
 
 #define PAGE_NR 64
-#define PAGE_SIZE 512
+#define PAGE_SIZE (1 << CONFIG_PAGE_SHIFT)
 
 typedef struct mm_pages
 {

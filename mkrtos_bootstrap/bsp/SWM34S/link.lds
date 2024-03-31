@@ -67,5 +67,5 @@ SECTIONS
 
     __StackTop   = ORIGIN(RAM) + LENGTH(RAM);
     __StackLimit = __StackTop - SIZEOF(.stack_dummy);
-    ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")
+    assert(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")
 }

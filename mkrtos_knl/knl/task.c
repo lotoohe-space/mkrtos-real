@@ -38,7 +38,23 @@ enum task_op_code
 static bool_t task_put(kobject_t *kobj);
 static void task_release_stage1(kobject_t *kobj);
 static void task_release_stage2(kobject_t *kobj);
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+#include <slab.h>
+static slab_t *task_slab;
+#endif
 
+/**
+ * @brief 在系统初始化时调用，初始化task的内存
+ *
+ */
+static void task_mem_init(void)
+{
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    task_slab = slab_create(sizeof(task_t), "task");
+    assert(task_slab);
+#endif
+}
+INIT_KOBJ_MEM(task_mem_init);
 /**
  * @brief 为task分配其可以使用的内存空间
  *
@@ -365,7 +381,12 @@ void task_kill(task_t *tk)
 }
 task_t *task_create(ram_limit_t *lim, int is_knl)
 {
-    task_t *tk = mm_limit_alloc(lim, sizeof(task_t));
+    task_t *tk = NULL;
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    tk = slab_alloc(task_slab);
+#else
+    tk = mm_limit_alloc(lim, sizeof(task_t));
+#endif
 
     if (!tk)
     {

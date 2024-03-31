@@ -37,14 +37,20 @@ static factory_t root_factory;
  *
  */
 static factory_func factory_func_list[FACTORY_FUNC_MAX];
-
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+#include <slab.h>
+static slab_t *factory_slab;
+#endif
 /**
  * @brief 在系统初始化时调用，初始化factoyr的内存
  *
  */
 static void factory_mem_init(void)
 {
-    // Nothing.
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    factory_slab = slab_create(sizeof(factory_t), "factory");
+    assert(factory_slab);
+#endif
 }
 INIT_KOBJ_MEM(factory_mem_init);
 /**
@@ -176,8 +182,13 @@ static void factory_init(factory_t *fac, umword_t max)
  */
 static factory_t *fatory_create(ram_limit_t *lim, umword_t max)
 {
-    factory_t *kobj = mm_limit_alloc(lim, sizeof(factory_t));
+    factory_t *kobj = NULL;
 
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    kobj = slab_alloc(factory_slab);
+#else
+    kobj = mm_limit_alloc(lim, sizeof(factory_t));
+#endif
     if (!kobj)
     {
         return NULL;

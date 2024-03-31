@@ -8,7 +8,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Wno-unused-variable \
 -Wno-builtin-declaration-mismatch \
 ")
-set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
 
 message(编译参数：${CMAKE_C_FLAGS})
 add_subdirectory(arch)
@@ -37,7 +36,7 @@ add_dependencies(mkrtos.elf knl)
 add_dependencies(mkrtos.elf lib)
 
 set_target_properties(mkrtos.elf PROPERTIES 
-LINK_FLAGS "-T ${CMAKE_CURRENT_LIST_DIR}/link.lds -z max-page-size=0x1000 --gc-section ")
+LINK_FLAGS "-T ${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds -z max-page-size=0x1000 --gc-section ")
 
 add_custom_target(
     link_file_dump ALL
@@ -48,8 +47,8 @@ add_custom_target(
     -DKNL_OFFSET=${CONFIG_KNL_OFFSET}
     # -DKNL_DATA_SIZE=$ENV{KNL_DATA_SIZE}
     -include ${CMAKE_SOURCE_DIR}/build/autoconf.h
-    -E -P -<${CMAKE_CURRENT_LIST_DIR}/link.lds.S> 
-    ${CMAKE_CURRENT_LIST_DIR}/link.lds
+    -E -P -<${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds.S> 
+    ${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds
 )
 
 add_custom_target(
@@ -59,9 +58,13 @@ add_custom_target(
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output
     COMMAND
+    mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
+    COMMAND
     cp mkrtos.bin ${CMAKE_SOURCE_DIR}/build/output/mkrtos
     COMMAND
     cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/mkrtos.elf
+    COMMAND
+    cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/mkrtos.elf
     COMMAND
     ${CMAKE_OBJDUMP} -s -S mkrtos.elf > ${CMAKE_SOURCE_DIR}/build/output/mkrtos.S
     COMMAND

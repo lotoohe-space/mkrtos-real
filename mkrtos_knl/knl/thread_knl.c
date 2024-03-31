@@ -107,12 +107,12 @@ static void knl_init_2(void)
 {
     mm_trace();
 
-
     init_thread = thread_create(&root_factory_get()->limit);
     assert(init_thread);
     init_task = task_create(&root_factory_get()->limit, FALSE);
     assert(init_task);
 
+#if 0
     app_info_t *app = app_info_get((void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET));
     // 申请init的ram内存
     assert(task_alloc_base_ram(init_task, &root_factory_get()->limit, app->i.ram_size + THREAD_MSG_BUG_LEN) >= 0);
@@ -136,6 +136,7 @@ static void knl_init_2(void)
     init_thread->sche.prio = 2;
     init_task->pid = 0;
     thread_ready(init_thread, FALSE);
+#endif
 }
 INIT_STAGE2(knl_init_2);
 
@@ -161,7 +162,7 @@ void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
 
 static void print_mkrtos_info(void)
 {
-    const char *start_info[] = {
+    static const char *start_info[] = {
         " _____ ______   ___  __    ________  _________  ________  ________      \r\n",
         "|\\   _ \\  _   \\|\\  \\|\\  \\ |\\   __  \\|\\___   ___\\\\   __  \\|\\   ____\\     \r\n",
         "\\ \\  \\\\\\__\\ \\  \\ \\  \\/  /|\\ \\  \\|\\  \\|___ \\  \\_\\ \\  \\|\\  \\ \\  \\___|_    \r\n",
@@ -187,10 +188,10 @@ void start_kernel(void)
     printk("mkrtos running..\n");
     printk("sys freq:%d\n", arch_get_sys_clk());
     print_mkrtos_info();
-    sti();
+    cli();
     sys_startup(); //!< 开始调度
     thread_sched();
-    cli();
+    sti();
 
     while (1)
         ;

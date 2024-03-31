@@ -15,7 +15,7 @@
 #include "util.h"
 #include "arch.h"
 #include "ref.h"
-#define THREAD_BLOCK_SIZE 0x400 //!< 线程块大小，栈在块的顶部
+#include <thread_arch.h>
 struct task;
 typedef struct task task_t;
 struct thread;

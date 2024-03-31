@@ -76,6 +76,20 @@ static void thread_timeout_init(void)
 
 INIT_KOBJ(thread_timeout_init);
 
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+#include <buddy.h>
+#endif
+/**
+ * @brief 在系统初始化时调用，初始化thread的内存
+ *
+ */
+static void thread_mem_init(void)
+{
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+#endif
+}
+INIT_KOBJ_MEM(thread_mem_init);
+
 /**
  * @brief 线程的初始化函数
  *
@@ -311,8 +325,13 @@ void thread_todead(thread_t *th, bool_t is_sche)
  */
 thread_t *thread_create(ram_limit_t *ram)
 {
-    thread_t *th = mm_limit_alloc_align(ram, THREAD_BLOCK_SIZE, THREAD_BLOCK_SIZE);
+    thread_t *th = NULL;
 
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    th = buddy_alloc(buddy_get_alloter(), PAGE_SIZE);
+#else
+    th = mm_limit_alloc_align(ram, THREAD_BLOCK_SIZE, THREAD_BLOCK_SIZE);
+#endif
     if (!th)
     {
         return NULL;
@@ -567,7 +586,7 @@ static int thread_ipc_reply(msg_tag_t in_tag)
 }
 
 __attribute__((optimize(1))) int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag,
-                    ipc_timeout_t timout, umword_t *ret_user_id, bool_t is_call)
+                                                 ipc_timeout_t timout, umword_t *ret_user_id, bool_t is_call)
 {
     int ret = -EINVAL;
     if (is_call)

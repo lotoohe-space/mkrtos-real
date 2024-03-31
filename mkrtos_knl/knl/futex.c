@@ -271,7 +271,7 @@ static futex_lock_t *futex_find(futex_t *fst, void *uaddr)
  * @return int
  */
 static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t val,
-                         umword_t timeout /*val2*/, uint32_t uaddr2, uint32_t val3, int tid)
+                         umword_t timeout /*val2*/, umword_t uaddr2, uint32_t val3, int tid)
 
 {
     thread_t *cur_th = thread_get_current();
