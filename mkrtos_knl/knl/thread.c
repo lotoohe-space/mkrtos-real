@@ -20,12 +20,13 @@
 #include "task.h"
 #include "thread.h"
 #include "slist.h"
-#include "thread_armv7m.h"
+#include "thread_task_arch.h"
 #include "assert.h"
 #include "err.h"
 #include "map.h"
 #include "access.h"
 #include "ipc.h"
+#include "asm/mm.h"
 enum thread_op
 {
     SET_EXEC_REGS,

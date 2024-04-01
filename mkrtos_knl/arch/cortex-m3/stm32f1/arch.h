@@ -14,6 +14,28 @@
 #include "arch.h"
 #define LOG_INTR_NO 38 // USART2_IRQn
 
+/// @brief 线程信息
+typedef struct
+{
+    umword_t rg0[4]; //!< r0-r3
+    umword_t r12;
+    umword_t lr;
+    umword_t pc;
+    umword_t xpsr;
+} pf_s_t;
+typedef struct pf
+{
+    umword_t rg1[8]; //!< r4-r11
+    pf_s_t pf_s;
+} pf_t;
+
+typedef struct sp_info
+{
+    void *user_sp;   //!< 用户态的sp
+    void *knl_sp;    //!< 内核sp
+    mword_t sp_type; //!< 使用的栈类型
+} sp_info_t;
+
 #define read_reg(addr) (*((volatile umword_t *)(addr)))
 #define write_reg(addr, data)                    \
     do                                           \
@@ -88,16 +110,16 @@ void arch_disable_irq(int inx);
 void arch_enable_irq(int inx);
 void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
 
-#define sti()                                 \
+#define sti()                     \
+    do                            \
+    {                             \
+        write_sysreg(0, PRIMASK); \
+    } while (0)
+#define cli()                                 \
     do                                        \
     {                                         \
         __asm__ __volatile__("CPSID   I\n" :: \
                                  :);          \
-    } while (0)
-#define cli()                     \
-    do                            \
-    {                             \
-        write_sysreg(0, PRIMASK); \
     } while (0)
 
 static inline __attribute__((optimize(0))) void preemption(void)
@@ -118,4 +140,3 @@ void sys_reset(void);
 umword_t sys_tick_cnt_get(void);
 
 uint32_t arch_get_sys_clk(void);
-

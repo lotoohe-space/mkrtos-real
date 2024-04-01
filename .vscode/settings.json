@@ -343,7 +343,9 @@
         "slab.h": "c",
         "arm_local_reg.h": "c",
         "timer.h": "c",
-        "arm_gicv2.h": "c"
+        "arm_gicv2.h": "c",
+        "sched_arch.h": "c",
+        "thread_task_arch.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

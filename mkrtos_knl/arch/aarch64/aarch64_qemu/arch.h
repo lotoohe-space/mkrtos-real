@@ -16,12 +16,65 @@
 #include <aarch64_ptregs.h>
 #define LOG_INTR_NO 37 // USART1_IRQn
 
+/// @brief 线程信息
+typedef struct
+{
+    umword_t rg0[8]; //!< r0-r3
+    umword_t r12;
+    umword_t lr;
+    umword_t pc;
+} pf_s_t;
+typedef struct pf
+{
+    struct
+    {
+        mword_t regs[31]; //!< 基础寄存器
+        mword_t sp;       //!< sp
+        mword_t pc;       //!< pc
+        mword_t pstate;   //!< pstate
+    };
+
+    mword_t orig_x0;
+    uint32_t syscallno;
+    uint32_t unused2;
+
+    mword_t orig_addr_limit;
+    mword_t unused;
+    mword_t stackframe[2];
+} pf_t;
+
+typedef struct sp_info
+{
+    mword_t x19;
+    mword_t x20;
+    mword_t x21;
+    mword_t x22;
+    mword_t x23;
+    mword_t x24;
+    mword_t x25;
+    mword_t x26;
+    mword_t x27;
+    mword_t x28;
+    mword_t fp; // x29
+    mword_t sp;
+    mword_t pc;
+} sp_info_t;
+
 #define _barrier() __asm__ __volatile__("" : : : "memory")
 #define _dmb(ins) \
     asm volatile("dmb " #ins : : : "memory")
 #define _isb() asm volatile("isb" : : : "memory")
 #define _dsb(ins) \
     asm volatile("dsb " #ins : : : "memory")
+
+#define __arch_getl(a) (*(volatile unsigned int *)(a))
+#define __arch_putl(v, a) (*(volatile unsigned int *)(a) = (v))
+
+#define __iormb() _barrier()
+#define __iowmb() _barrier()
+
+#define readl(c) ({ unsigned int  __v = __arch_getl(c); __iormb(); __v; })
+#define writel(v, c) ({ unsigned int  __v = v; __iowmb(); __arch_putl(__v,c); })
 
 #define read_reg(addr) (*((volatile umword_t *)(addr)))
 #define write_reg(addr, data)                    \
@@ -155,7 +208,7 @@ static inline umword_t intr_status(void)
     umword_t ret;
 
     asm volatile("mrs %0, daif" : "=r"(ret));
-    return !(ret & 0xc0);
+    return !!(ret & 0xc0);
 }
 
 void sys_startup(void);

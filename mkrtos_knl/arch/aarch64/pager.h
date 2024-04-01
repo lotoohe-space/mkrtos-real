@@ -254,4 +254,3 @@ typedef struct pte
 #define PTE_ADDR_LOW (((1UL << (48 - PAGE_SHIFT)) - 1) << PAGE_SHIFT)
 #define PTE_ADDR_MASK PTE_ADDR_LOW
 
-void paging_init(void);

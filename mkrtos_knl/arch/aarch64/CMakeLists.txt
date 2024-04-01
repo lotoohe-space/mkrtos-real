@@ -30,5 +30,6 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/lib
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/knl
 
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${ARCH}/${CONFIG_CPU_TYPE}
 
 )

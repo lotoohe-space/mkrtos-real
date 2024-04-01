@@ -20,8 +20,12 @@
 #include "map.h"
 #include "app.h"
 #include "mm_wrap.h"
-#include "thread_armv7m.h"
+#include "thread_task_arch.h"
 #include "knl_misc.h"
+
+#if IS_ENABLED(CONFIG_KNL_TEST)
+#include <knl_test.h>
+#endif
 
 static uint8_t knl_msg_buf[THREAD_MSG_BUG_LEN];
 static thread_t *knl_thread;
@@ -36,7 +40,7 @@ static void knl_main(void)
 {
     umword_t status;
     umword_t status2;
-    // printk("knl main run..\n");
+    printk("knl main run..\n");
     while (1)
     {
         task_t *pos;
@@ -87,7 +91,7 @@ static void knl_init_1(void)
 
     thread_init(knl_thread, &root_factory_get()->limit);
     task_init(&knl_task, &root_factory_get()->limit, TRUE);
-
+    task_knl_init(&knl_task);
     thread_knl_pf_set(knl_thread, knl_main);
     thread_bind(knl_thread, &knl_task.kobj);
     thread_set_msg_bug(knl_thread, knl_msg_buf);
@@ -96,6 +100,7 @@ static void knl_init_1(void)
     slist_init(&del_task_head);
 }
 INIT_STAGE1(knl_init_1);
+
 
 /**
  * 初始化init线程
@@ -107,12 +112,13 @@ static void knl_init_2(void)
 {
     mm_trace();
 
+#if IS_ENABLED(CONFIG_KNL_TEST)
+    knl_test();
+#else
     init_thread = thread_create(&root_factory_get()->limit);
     assert(init_thread);
     init_task = task_create(&root_factory_get()->limit, FALSE);
     assert(init_task);
-
-#if 0
     app_info_t *app = app_info_get((void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET));
     // 申请init的ram内存
     assert(task_alloc_base_ram(init_task, &root_factory_get()->limit, app->i.ram_size + THREAD_MSG_BUG_LEN) >= 0);
@@ -195,5 +201,4 @@ void start_kernel(void)
 
     while (1)
         ;
-    // printk(".");
 }

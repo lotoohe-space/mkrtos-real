@@ -83,6 +83,10 @@ void entry_handler(void)
 {
     umword_t isr_no = arch_get_isr_no();
 
+    if (isr_no <= 0)
+    {
+        return;
+    }
     isr_no -= CONFIG_USER_ISR_START_NO; //!< 系统用的irq偏移
 
     assert(isr_no < CONFIG_IRQ_REG_TAB_SIZE);
@@ -93,7 +97,9 @@ void entry_handler(void)
         {
             irqs[isr_no].irq_tigger_func(&irqs[isr_no]);
         }
-    } else {
+    }
+    else
+    {
         arch_disable_irq(isr_no);
     }
 }

@@ -4,7 +4,14 @@ menu "Knl config"
 menuconfig KNL_INFO
     bool "knl info set"
     default y
+
+    config KNL_TEST
+    bool "enable knl test."
+    default n
 if KNL_INFO
+    config MMU
+        bool "support mmu"
+        default n
     config PAGE_SHIFT
         int "page shift"
         default 9

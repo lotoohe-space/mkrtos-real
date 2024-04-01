@@ -15,11 +15,11 @@
 #include "config.h"
 #include "thread.h"
 #include "mk_sys.h"
-#include "mpu.h"
 #include <psci.h>
 #include <arm_gicv2.h>
 #include <timer/timer.h>
 #include <hyp.h>
+#include <sche_arch.h>
 __ALIGN__(THREAD_BLOCK_SIZE)
 static uint8_t thread_knl_stack[THREAD_BLOCK_SIZE] = {0};
 void *_estack = thread_knl_stack + THREAD_BLOCK_SIZE;
@@ -29,8 +29,7 @@ void *_estack = thread_knl_stack + THREAD_BLOCK_SIZE;
  */
 void to_sche(void)
 {
-    // 开启pensv中断
-    /*TODO:*/
+    sche_arch_sw_context();
 }
 /**
  * 进行一些系统的初始化

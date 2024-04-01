@@ -1,6 +1,5 @@
 
 #include <arch.h>
-#include "early_boot.h"
 #include "asm/sysregs.h"
 #include "asm/base.h"
 #include "asm/mm.h"
@@ -10,7 +9,8 @@
 #include <config.h>
 #include <spinlock.h>
 #include <assert.h>
-
+#include <mm_page.h>
+#include <early_boot.h>
 #define DATA_BOOT_SECTION ".data.boot"
 #define TEXT_BOOT_SECTION ".text.boot"
 

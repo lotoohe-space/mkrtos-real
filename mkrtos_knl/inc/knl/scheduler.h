@@ -11,7 +11,7 @@
 #include "slist.h"
 
 #define PRIO_MAX WORD_BITS
-
+extern umword_t sched_reset;
 typedef struct sched
 {
     int prio;

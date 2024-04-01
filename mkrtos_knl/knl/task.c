@@ -21,6 +21,9 @@
 #include "assert.h"
 #include "access.h"
 #include "printk.h"
+#if IS_ENABLED(CONFIG_MMU)
+#include "early_boot.h"
+#endif
 /**
  * @brief 任务的操作码
  *
@@ -334,7 +337,12 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     task->kobj.put_func = task_put;
     task->kobj.stage_1_func = task_release_stage1;
     task->kobj.stage_2_func = task_release_stage2;
+
+#if IS_ENABLED(CONFIG_MMU)
+    knl_pdir_init(&task->mm_space.mem_dir, task->mm_space.mem_dir.dir, 3);
+#else
     mm_space_add(&task->mm_space, CONFIG_KNL_TEXT_ADDR, CONFIG_KNL_TEXT_SIZE, REGION_RO); // TODO:这里应该用config.配置
+#endif
 }
 
 static bool_t task_put(kobject_t *kobj)

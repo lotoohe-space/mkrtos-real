@@ -89,26 +89,7 @@ enum thread_ipc_state
     THREAD_TIMEOUT,
     THREAD_IPC_ABORT,
 };
-typedef struct
-{
-    umword_t rg0[4]; //!< r0-r3
-    umword_t r12;
-    umword_t lr;
-    umword_t pc;
-    umword_t xpsr;
-} pf_s_t;
-typedef struct pf
-{
-    umword_t rg1[8]; //!< r4-r11
-    pf_s_t pf_s;
-} pf_t;
 
-typedef struct sp_info
-{
-    void *user_sp;   //!< 用户态的sp
-    void *knl_sp;    //!< 内核sp
-    mword_t sp_type; //!< 使用的栈类型
-} sp_info_t;
 
 typedef struct msg_buf
 {

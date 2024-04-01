@@ -187,20 +187,9 @@ tsk     .req    x28             // current thread_info
 el1_irq:
 	kernel_entry 2
 	bl entry_handler
-	get_thread_info tsk
-//	bl 2f
-//1:
-//	kernel_exit 2
-//2:
-//	mov x24, lr
-	//bl sched_printf
 	bl SysTick_Handler
 	kernel_exit 2
-//	ret x24
-	//
 
-//string_test:
-//	.string "t"
 
 .global trigger_alignment
 trigger_alignment:
@@ -230,9 +219,6 @@ ret_form_run:
 	mov x0, x20
 	blr x19
 1:
-	//ldr x19, =test_user_stack
-	//add x19, x19, #(4096 - 8)
-	//msr sp_el1, x19
 	b ret_to_user
 	
 /* 进程切换： 保存prev进程的上下文，并且恢复next进程
