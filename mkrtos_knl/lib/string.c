@@ -1,6 +1,13 @@
 
 #include "types.h"
 #include "string.h"
+
+int memcmp(const void *vl, const void *vr, size_t n)
+{
+	const unsigned char *l=vl, *r=vr;
+	for (; n && *l == *r; n--, l++, r++);
+	return n ? *l-*r : 0;
+}
 void *memccpy(void *dst, const void *src, int c, size_t count)
 {
     char *a = dst;

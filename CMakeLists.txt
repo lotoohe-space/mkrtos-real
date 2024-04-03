@@ -33,6 +33,6 @@ set(compile_time "${DATE}\" \"${TIME}" CACHE STRING " " FORCE)
 add_subdirectory(mkrtos_bootstrap)
 add_subdirectory(mkrtos_knl)
 # add_subdirectory(mkrtos_img)
-# add_subdirectory(mkrtos_user)
+add_subdirectory(mkrtos_user)
 
 

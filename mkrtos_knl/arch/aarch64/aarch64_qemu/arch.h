@@ -11,9 +11,10 @@
 #pragma once
 
 #include "types.h"
-#include "arch.h"
 #include <thread_arch.h>
 #include <aarch64_ptregs.h>
+
+#define ARCH_WORD_SIZE 64
 #define LOG_INTR_NO 37 // USART1_IRQn
 
 /// @brief 线程信息

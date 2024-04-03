@@ -22,10 +22,14 @@
 #include "mm_wrap.h"
 #include "thread_task_arch.h"
 #include "knl_misc.h"
-
+#include <assert.h>
 #if IS_ENABLED(CONFIG_KNL_TEST)
 #include <knl_test.h>
 #endif
+#if ARCH_WORD_SIZE == 64
+#include <elf64.h>
+#endif
+#include <cpio.h>
 
 static uint8_t knl_msg_buf[THREAD_MSG_BUG_LEN];
 static thread_t *knl_thread;
@@ -101,7 +105,6 @@ static void knl_init_1(void)
 }
 INIT_STAGE1(knl_init_1);
 
-
 /**
  * 初始化init线程
  * 初始化用户态任务
@@ -115,33 +118,41 @@ static void knl_init_2(void)
 #if IS_ENABLED(CONFIG_KNL_TEST)
     knl_test();
 #else
-    init_thread = thread_create(&root_factory_get()->limit);
-    assert(init_thread);
-    init_task = task_create(&root_factory_get()->limit, FALSE);
-    assert(init_task);
-    app_info_t *app = app_info_get((void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET));
-    // 申请init的ram内存
-    assert(task_alloc_base_ram(init_task, &root_factory_get()->limit, app->i.ram_size + THREAD_MSG_BUG_LEN) >= 0);
-    void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
-    void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 
-    thread_set_msg_bug(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
-    thread_bind(init_thread, &init_task->kobj);
-    thread_user_pf_set(init_thread, (void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET), (void *)((umword_t)sp_addr_top - 8),
-                       init_task->mm_space.mm_block, 0);
-    assert(obj_map_root(&init_thread->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, THREAD_PROT)));
-    assert(obj_map_root(&init_task->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, TASK_PROT)));
-    for (int i = FACTORY_PORT_START; i < FACTORY_PORT_END; i++)
-    {
-        kobject_t *kobj = global_get_kobj(i);
-        if (kobj)
-        {
-            assert(obj_map_root(kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, i)));
-        }
-    }
-    init_thread->sche.prio = 2;
-    init_task->pid = 0;
-    thread_ready(init_thread, FALSE);
+    extern mword_t cpio_images;
+
+    umword_t ret_addr;
+
+    ret_addr = cpio_find_file(cpio_images, (umword_t)(-1), "init.elf");
+    assert(ret_addr);
+    elf_load(ret_addr);
+    // init_thread = thread_create(&root_factory_get()->limit);
+    // assert(init_thread);
+    // init_task = task_create(&root_factory_get()->limit, FALSE);
+    // assert(init_task);
+    // app_info_t *app = app_info_get((void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET));
+    // // 申请init的ram内存
+    // assert(task_alloc_base_ram(init_task, &root_factory_get()->limit, app->i.ram_size + THREAD_MSG_BUG_LEN) >= 0);
+    // void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
+    // void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
+
+    // thread_set_msg_bug(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
+    // thread_bind(init_thread, &init_task->kobj);
+    // thread_user_pf_set(init_thread, (void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET), (void *)((umword_t)sp_addr_top - 8),
+    //                    init_task->mm_space.mm_block, 0);
+    // assert(obj_map_root(&init_thread->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, THREAD_PROT)));
+    // assert(obj_map_root(&init_task->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, TASK_PROT)));
+    // for (int i = FACTORY_PORT_START; i < FACTORY_PORT_END; i++)
+    // {
+    //     kobject_t *kobj = global_get_kobj(i);
+    //     if (kobj)
+    //     {
+    //         assert(obj_map_root(kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, i)));
+    //     }
+    // }
+    // init_thread->sche.prio = 2;
+    // init_task->pid = 0;
+    // thread_ready(init_thread, FALSE);
 #endif
 }
 INIT_STAGE2(knl_init_2);

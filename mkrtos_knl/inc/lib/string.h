@@ -2,6 +2,7 @@
 
 #include "types.h"
 
+int memcmp(const void *vl, const void *vr, size_t n);
 void *memccpy(void *dst, const void *src, int c, size_t count);
 void memcpy(void *dst, void *src, size_t len);
 void *memset(void *dst, char s, size_t count);

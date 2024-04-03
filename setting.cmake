@@ -27,7 +27,10 @@ message(======="CPU_TYPE=${CONFIG_CPU_TYPE}")
 
 # -mfloat-abi=soft  -u _printf_float   -lc -lrdimon
 #-mfpu=fpv5-sp-d16
-if (${CONFIG_ARCH} STREQUAL "cortex-m3" OR ${CONFIG_ARCH} STREQUAL "cortex-m4")
+if (${CONFIG_ARCH} STREQUAL "cortex-m3" OR 
+    ${CONFIG_ARCH} STREQUAL "cortex-m4" OR 
+    ${CONFIG_ARCH} STREQUAL "cortex-m33"
+    )
     include(armv7_8.cmake)
 elseif(${CONFIG_ARCH} STREQUAL "aarch64" )
     include(aarch64.cmake)
