@@ -101,12 +101,12 @@ log_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame
         {
         case WRITE_DATA:
             tag = log_write_data(
-                (log_t *)kobj, (const char *)(&f->r[1]),
+                (log_t *)kobj, (const char *)(&f->regs[1]),
                 MIN(in_tag.msg_buf_len * WORD_BYTES, WORD_BYTES * 5));
             break;
         case READ_DATA:
         {
-            int ret = log_read_data((log_t *)kobj, (uint8_t *)(&f->r[1]), MIN(f->r[1], WORD_BYTES * 5));
+            int ret = log_read_data((log_t *)kobj, (uint8_t *)(&f->regs[1]), MIN(f->regs[1], WORD_BYTES * 5));
             tag = msg_tag_init4(0, 0, 0, ret);
         }
         break;
@@ -117,7 +117,7 @@ log_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame
             tag = msg_tag_init4(0, 0, 0, -ENOSYS);
             break;
         }
-        f->r[0] = tag.raw;
+        f->regs[0] = tag.raw;
     }
     else if (sys_p.prot == IRQ_PROT)
     {
@@ -125,7 +125,7 @@ log_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame
     }
     else
     {
-        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
     return;

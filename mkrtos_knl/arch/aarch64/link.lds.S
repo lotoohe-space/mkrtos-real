@@ -3,11 +3,11 @@ ENTRY(_start);
 SECTIONS
 {
 	/*
-	 * 设置mkrtos的加载入口地址为0x80000
+	 *
 	 *
 	 * 这里“.”表示location counter，当前位置
 	 */
-	. = 0x40000000+0x1000;
+	. = CONFIG_KNL_DATA_ADDR+0x1000;
 	kernel_start = .;
 	/*
 	 * 这里是第一个段text.boot，起始地址就是0x80000

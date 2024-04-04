@@ -4,7 +4,7 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))							   //!< 最小值
 #define ALIGN(mem, align) (((mem) + ((align) - 1)) & (~((align) - 1))) //!< 向上对齐
 
-umword_t cpio_find_file(umword_t st, umword_t en, const char *name)
+umword_t cpio_find_file(umword_t st, umword_t en, const char *name, size_t *size)
 {
 	uint8_t rByte;
 	int32_t bk_inx;
@@ -22,6 +22,10 @@ umword_t cpio_find_file(umword_t st, umword_t en, const char *name)
 		const char *f_name = (char *)(i + sizeof(cpio_fs_t));
 		if (strcmp(f_name, name) == 0)
 		{
+			if (size)
+			{
+				*size = htoi(file_info->c_filesize, 8);
+			}
 			return (mword_t)(ALIGN(i + sizeof(cpio_fs_t) + name_size, 4));
 		}
 

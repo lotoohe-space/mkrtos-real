@@ -2,6 +2,8 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
+
 #include "u_arch.h"
 #include "u_util.h"
 typedef unsigned long umword_t;
@@ -32,9 +34,9 @@ typedef union mk_sd
 #define mk_sd_get_hd(sd) ((obj_handler_t)((sd).hd))
 #define mk_sd_get_fd(sd) ((int)((sd).fd))
 
-#ifndef NULL
-#define NULL ((void *)0)
-#endif
+// #ifndef NULL
+// #define NULL ((void *)0)
+// #endif
 
 #ifndef FALSE
 #define FALSE 0

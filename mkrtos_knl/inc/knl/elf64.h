@@ -1,4 +1,5 @@
 #pragma once
 
 #include <types.h>
-int elf_load(umword_t elf_data);
+#include <task.h>
+int elf_load(task_t *task, umword_t elf_data, size_t size, addr_t *entry_addr);

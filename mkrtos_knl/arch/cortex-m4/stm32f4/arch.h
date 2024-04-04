@@ -25,7 +25,7 @@ typedef struct
 } pf_s_t;
 typedef struct pf
 {
-    umword_t rg1[8]; //!< r4-r11
+    umword_t regs[8]; //!< r4-r11
     pf_s_t pf_s;
 } pf_t;
 

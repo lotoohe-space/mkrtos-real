@@ -62,6 +62,7 @@ int main(int argc, char *args[])
     uenv_t *env;
 
     ulog_write_str(LOG_PROT, "init..\n");
+    u_env_default_init();
     env = u_get_global_env();
     rpc_meta_init(THREAD_MAIN, &env->ns_hd);
     namespace_init(env->ns_hd);

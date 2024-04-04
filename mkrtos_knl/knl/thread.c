@@ -189,8 +189,12 @@ static void thread_release_stage2(kobject_t *kobj)
         scheduler_reset();
         thread_sched();
     }
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    mm_limit_free_buddy(th->lim, kobj, THREAD_BLOCK_SIZE);
+#else
     mm_limit_free_align(th->lim, kobj, THREAD_BLOCK_SIZE);
     // mm_trace();
+#endif
 }
 
 /**
@@ -329,7 +333,7 @@ thread_t *thread_create(ram_limit_t *ram)
     thread_t *th = NULL;
 
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
-    th = buddy_alloc(buddy_get_alloter(), PAGE_SIZE);
+    th = mm_limit_alloc_buddy(ram, PAGE_SIZE);
 #else
     th = mm_limit_alloc_align(ram, THREAD_BLOCK_SIZE, THREAD_BLOCK_SIZE);
 #endif
@@ -685,7 +689,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
     task_t *cur_task = thread_get_current_task();
     thread_t *cur_th = thread_get_current();
     thread_t *to_th = (thread_t *)kobj;
-    umword_t ipc_type = f->r[1];
+    umword_t ipc_type = f->regs[1];
     obj_handler_t th_hd = 0;
     int ret = -EINVAL;
 
@@ -693,13 +697,13 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
     {
     case IPC_CALL:
     {
-        msg_tag_t in_tag = msg_tag_init(f->r[0]);
+        msg_tag_t in_tag = msg_tag_init(f->regs[0]);
         msg_tag_t recv_tag;
-        th_hd = f->r[2];
-        ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->r[3]);
+        th_hd = f->regs[2];
+        ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->regs[3]);
 
         to_th->user_id = user_id;
-        ret = thread_ipc_call(to_th, in_tag, &recv_tag, ipc_tm_out, &f->r[1], TRUE);
+        ret = thread_ipc_call(to_th, in_tag, &recv_tag, ipc_tm_out, &f->regs[1], TRUE);
         if (ret < 0)
         {
             return msg_tag_init4(0, 0, 0, ret);
@@ -708,7 +712,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
     }
     case IPC_REPLY:
     {
-        msg_tag_t in_tag = msg_tag_init(f->r[0]);
+        msg_tag_t in_tag = msg_tag_init(f->regs[0]);
 
         ret = thread_ipc_reply(in_tag);
         return msg_tag_init4(0, 0, 0, ret);
@@ -717,10 +721,10 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
     case IPC_WAIT:
     {
         msg_tag_t ret_msg;
-        ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->r[3]);
-        kobject_t *ipc_kobj = obj_space_lookup_kobj_cmp_type(&cur_task->obj_space, f->r[4], IPC_TYPE);
+        ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->regs[3]);
+        kobject_t *ipc_kobj = obj_space_lookup_kobj_cmp_type(&cur_task->obj_space, f->regs[4], IPC_TYPE);
 
-        int ret = thread_ipc_recv(&ret_msg, ipc_tm_out, &f->r[1], (ipc_t *)ipc_kobj);
+        int ret = thread_ipc_recv(&ret_msg, ipc_tm_out, &f->regs[1], (ipc_t *)ipc_kobj);
         if (ret < 0)
         {
             return msg_tag_init4(0, 0, 0, ret);
@@ -729,10 +733,10 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
     }
     case IPC_SEND:
     {
-        msg_tag_t in_tag = msg_tag_init(f->r[0]);
+        msg_tag_t in_tag = msg_tag_init(f->regs[0]);
         msg_tag_t recv_tag;
-        // th_hd = f->r[2];
-        ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->r[3]);
+        // th_hd = f->regs[2];
+        ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->regs[3]);
 
         to_th->user_id = user_id;
         ret = thread_ipc_call(to_th, in_tag, NULL, ipc_tm_out, NULL, FALSE);
@@ -754,7 +758,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
 
     if (sys_p.prot != THREAD_PROT)
     {
-        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
 
@@ -764,19 +768,19 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     {
         umword_t stack_bottom = 0;
 
-        if (f->r[4]) //!< cp_stack
+        if (f->regs[4]) //!< cp_stack
         {
             stack_bottom = (umword_t)(cur_th->msg.msg);
         }
-        thread_set_exc_regs(tag_th, f->r[1], f->r[2], f->r[3], stack_bottom);
+        thread_set_exc_regs(tag_th, f->regs[1], f->regs[2], f->regs[3], stack_bottom);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
     case MSG_BUG_SET:
     {
-        if (is_rw_access(thread_get_bind_task(tag_th), (void *)(f->r[1]), THREAD_MSG_BUG_LEN, FALSE))
+        if (is_rw_access(thread_get_bind_task(tag_th), (void *)(f->regs[1]), THREAD_MSG_BUG_LEN, FALSE))
         {
-            thread_set_msg_bug(tag_th, (void *)(f->r[1]));
+            thread_set_msg_bug(tag_th, (void *)(f->regs[1]));
             tag = msg_tag_init4(0, 0, 0, 0);
         }
         else
@@ -787,8 +791,8 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     }
     case MSG_BUG_GET:
     {
-        f->r[1] = (umword_t)(tag_th->msg.msg);
-        f->r[2] = THREAD_MSG_BUG_LEN;
+        f->regs[1] = (umword_t)(tag_th->msg.msg);
+        f->regs[2] = THREAD_MSG_BUG_LEN;
         if (tag_th->msg.msg == NULL)
         {
             tag = msg_tag_init4(0, 0, 0, -EACCES);
@@ -816,13 +820,13 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         umword_t status = cpulock_lock();
         if (!slist_in_list(&tag_th->sche.node))
         {
-            tag_th->sche.prio = (f->r[1] >= PRIO_MAX ? PRIO_MAX - 1 : f->r[1]);
+            tag_th->sche.prio = (f->regs[1] >= PRIO_MAX ? PRIO_MAX - 1 : f->regs[1]);
             thread_ready(tag_th, TRUE);
         }
         else
         {
             thread_suspend(tag_th);
-            tag_th->sche.prio = (f->r[1] >= PRIO_MAX ? PRIO_MAX - 1 : f->r[1]);
+            tag_th->sche.prio = (f->regs[1] >= PRIO_MAX ? PRIO_MAX - 1 : f->regs[1]);
             thread_ready(tag_th, TRUE);
         }
         cpulock_set(status);
@@ -831,15 +835,15 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     break;
     case BIND_TASK:
     {
-        kobject_t *task_kobj = obj_space_lookup_kobj_cmp_type(&task->obj_space, f->r[1], TASK_TYPE);
+        kobject_t *task_kobj = obj_space_lookup_kobj_cmp_type(&task->obj_space, f->regs[1], TASK_TYPE);
         if (task_kobj == NULL)
         {
-            f->r[0] = msg_tag_init4(0, 0, 0, -ENOENT).raw;
+            f->regs[0] = msg_tag_init4(0, 0, 0, -ENOENT).raw;
             return;
         }
         thread_bind(tag_th, task_kobj);
         tag = msg_tag_init4(0, 0, 0, 0);
-        // printk("thread bind to %d\n", f->r[1]);
+        // printk("thread bind to %d\n", f->regs[1]);
     }
     break;
     case YIELD:
@@ -854,7 +858,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     }
     break;
     }
-    f->r[0] = tag.raw;
+    f->regs[0] = tag.raw;
 }
 
 /**

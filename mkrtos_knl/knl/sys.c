@@ -48,16 +48,16 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
     if (sys_p.prot != SYS_PROT)
     {
-        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
     switch (sys_p.op)
     {
     case SYS_INFO_GET:
     {
-        f->r[1] = sys_tick_cnt_get();
-        f->r[2] = CONFIG_KNL_TEXT_ADDR + CONFIG_BOOTFS_OFFSET;
-        f->r[3] = arch_get_sys_clk();
+        f->regs[1] = sys_tick_cnt_get();
+        f->regs[2] = CONFIG_KNL_TEXT_ADDR + CONFIG_BOOTFS_OFFSET;
+        f->regs[3] = arch_get_sys_clk();
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
@@ -74,14 +74,14 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         size_t free;
 
         mm_info(&total, &free);
-        f->r[1] = total;
-        f->r[2] = free;
+        f->regs[1] = total;
+        f->regs[2] = free;
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
     case DIS_IRQ:
     {
-        arch_disable_irq(f->r[0]);
+        arch_disable_irq(f->regs[0]);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
@@ -89,7 +89,7 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         tag = msg_tag_init4(0, 0, 0, -ENOSYS);
         break;
     }
-    f->r[0] = tag.raw;
+    f->regs[0] = tag.raw;
     return;
 }
 

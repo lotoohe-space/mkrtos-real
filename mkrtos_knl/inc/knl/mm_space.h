@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types.h"
-#include "mm_page.h"
+#include <mm_page.h>
 #include <assert.h>
 #include <util.h>
 #if CONFIG_MK_MPU_CFG
@@ -34,10 +34,6 @@ typedef struct mm_space
     size_t mm_block_size; //!< 私有内存块的大小
 } mm_space_t;
 
-static inline page_entry_t *mm_space_get_pdir(mm_space_t *sp)
-{
-    return &sp->mem_dir;
-}
 
 enum region_rights
 {
@@ -69,6 +65,11 @@ static inline void mm_space_del(mm_space_t *m_space, umword_t addr)
 void mm_space_init(mm_space_t *mm_space, int is_knl);
 bool_t mm_space_add(mm_space_t *m_space, umword_t addr, umword_t size, uint8_t attrs);
 void mm_space_del(mm_space_t *m_space, umword_t addr);
+
+static inline page_entry_t *mm_space_get_pdir(mm_space_t *sp)
+{
+    return &sp->mem_dir;
+}
 #endif
 #endif
 

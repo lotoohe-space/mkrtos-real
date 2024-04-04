@@ -1,7 +1,7 @@
 ENTRY(_start);
 SECTIONS
 {
- . = 0x40000000+0x1000;
+ . = 0x40000000 +0x1000;
  kernel_start = .;
  _text_boot = .;
  .text.boot :

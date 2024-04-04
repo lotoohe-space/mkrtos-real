@@ -418,7 +418,7 @@ void fs_svr_close(int fd)
 int fs_svr_unlink(char *path)
 {
     ns_node_t *node;
-    int ret_inx;
+    size_t ret_inx;
 
     node = node_lookup(&ns.root_node, path, &ret_inx);
     if (!node)

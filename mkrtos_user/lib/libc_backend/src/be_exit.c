@@ -11,7 +11,6 @@
 #include "u_ipc.h"
 #include "u_sys.h"
 #include "u_futex.h"
-#include <futex.h>
 #include <assert.h>
 #include <limits.h>
 #include <pthread.h>
@@ -19,13 +18,19 @@
 #include <unistd.h>
 #include <assert.h>
 #include <errno.h>
+#include <syscall_backend.h>
+#undef hidden
+#undef weak
+#define hidden
+#include <features.h>
+#include <futex.h>
 #include <pthread_impl.h>
 #include <atomic.h>
 #define FUTEX_WAKE_CLEAR 10
 
 void be_exit(long exit_code)
 {
-    struct pthread *pt = __pthread_self();
+    struct __pthread *pt = __pthread_self();
     int th_hd = pt->hd;
     int *old_ctid = (int *)(pt->ctid);
 

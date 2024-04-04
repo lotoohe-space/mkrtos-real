@@ -3,6 +3,8 @@
 #include <types.h>
 #include <task.h>
 #include <thread.h>
+#include <esr.h>
+#include <syscall.h>
 umword_t thread_get_pfa(void)
 {
     umword_t a;
@@ -12,10 +14,8 @@ umword_t thread_get_pfa(void)
 }
 void thread_sync_entry(entry_frame_t *regs)
 {
-    umword_t ec = 0;
-    // umword_t ec = arm_esr_ec(esr_get());
-    // thread_t *th = thread_current();
-    // task_t *tk = (task_t *)th->task;
+    umword_t ec = arm_esr_ec(esr_get());
+    thread_t *th = thread_get_current();
 
     switch (ec)
     {
@@ -43,7 +43,7 @@ void thread_sync_entry(entry_frame_t *regs)
     case 0x11:
     case 0x15:
     case 0x16:
-        // svc_handler(regs);
+        syscall_entry(regs);
         return;
     case 0x00:
         return;

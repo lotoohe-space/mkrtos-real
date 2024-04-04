@@ -12,6 +12,9 @@
 #include "types.h"
 #include "mm_wrap.h"
 #include "string.h"
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+#include <buddy.h>
+#endif
 void obj_space_init(obj_space_t *obj_space, ram_limit_t *ram)
 {
     for (int i = 0; i < CONFIG_OBJ_MAP_TAB_SIZE; i++)
@@ -55,7 +58,12 @@ obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobj
 
     if (!obj_space->tab.tabs[tab_inx])
     {
-        obj_space->tab.tabs[tab_inx] = mm_limit_alloc(ram, sizeof(obj_map_item_t));
+        obj_space->tab.tabs[tab_inx] =
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+            buddy_alloc(buddy_get_alloter(), PAGE_SIZE);
+#else
+            mm_limit_alloc(ram, sizeof(obj_map_item_t));
+#endif
         if (!obj_space->tab.tabs[tab_inx])
         {
             return NULL;

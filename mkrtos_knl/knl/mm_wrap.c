@@ -81,3 +81,57 @@ void mm_limit_free_align(ram_limit_t *limit, void *mem, size_t size)
     mem_free_align(mm_get_global(), (char *)mem);
     ram_limit_free(limit, size);
 }
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+#include <buddy.h>
+void *mm_limit_alloc_buddy(ram_limit_t *limit, size_t size)
+{
+    if (ram_limit_alloc(limit, size) == FALSE)
+    {
+        return NULL;
+    }
+    void *new_mem = buddy_alloc(buddy_get_alloter(), size);
+
+    if (!new_mem)
+    {
+        ram_limit_free(limit, size);
+        return NULL;
+    }
+
+    return (char *)new_mem;
+}
+void mm_limit_free_buddy(ram_limit_t *limit, void *mem, size_t size)
+{
+    if (!mem)
+    {
+        return;
+    }
+    buddy_free(buddy_get_alloter(), (char *)mem);
+    ram_limit_free(limit, size);
+}
+#include <slab.h>
+void *mm_limit_alloc_slab(slab_t *slab, ram_limit_t *limit)
+{
+    if (ram_limit_alloc(limit, slab_get_item_size(slab)) == FALSE)
+    {
+        return NULL;
+    }
+    void *new_mem = slab_alloc(slab);
+
+    if (!new_mem)
+    {
+        ram_limit_free(limit, slab_get_item_size(slab));
+        return NULL;
+    }
+
+    return (char *)new_mem;
+}
+void mm_limit_free_slab(slab_t *slab, ram_limit_t *limit, void *mem)
+{
+    if (!mem)
+    {
+        return;
+    }
+    slab_free(slab, (char *)mem);
+    ram_limit_free(limit, slab_get_item_size(slab));
+}
+#endif

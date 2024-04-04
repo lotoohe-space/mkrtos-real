@@ -7,9 +7,13 @@
 #include "u_log.h"
 #include "u_thread.h"
 #include "u_sys.h"
-#include <pthread_impl.h>
 #include <errno.h>
 #include <u_sleep.h>
+#undef hidden
+#undef weak
+#define hidden
+#include <features.h>
+#include <pthread_impl.h>
 long be_set_tid_address(int *val)
 {
     struct pthread *pt = pthread_self();

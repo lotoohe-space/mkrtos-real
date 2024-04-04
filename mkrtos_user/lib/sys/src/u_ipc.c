@@ -11,7 +11,7 @@ enum ipc_op
 };
 msg_tag_t ipc_bind(obj_handler_t obj, obj_handler_t th_obj, umword_t user_obj)
 {
-    register volatile umword_t r0 asm("r0");
+    register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create(IPC_BIND, IPC_PROT, obj).raw,
                th_obj,
@@ -23,7 +23,7 @@ msg_tag_t ipc_bind(obj_handler_t obj, obj_handler_t th_obj, umword_t user_obj)
     asm __volatile__(""
                      :
                      :
-                     : "r0");
+                     : ARCH_REG_0);
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;

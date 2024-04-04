@@ -48,7 +48,7 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
 
     if (sys_p.prot != MM_PROT)
     {
-        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
     switch (sys_p.op)
@@ -57,7 +57,7 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     {
 #if 0
         addr_t ret_addr;
-        int ret = mm_pages_alloc_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->r[1], &ret_addr, f->r[2]);
+        int ret = mm_pages_alloc_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->regs[1], &ret_addr, f->regs[2]);
         if (ret < 0)
         {
             tag = msg_tag_init4(0, 0, 0, ret);
@@ -65,10 +65,10 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         else
         {
             tag = msg_tag_init4(0, 0, 0, 0);
-            f->r[1] = ret_addr;
+            f->regs[1] = ret_addr;
         }
 #else
-        void *ret_mem = mm_limit_alloc(cur_task->lim, f->r[1]);
+        void *ret_mem = mm_limit_alloc(cur_task->lim, f->regs[1]);
 
         if (!ret_mem)
         {
@@ -76,7 +76,7 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         }
         else
         {
-            f->r[1] = (umword_t)ret_mem;
+            f->regs[1] = (umword_t)ret_mem;
             tag = msg_tag_init4(0, 0, 0, 0);
         }
 #endif
@@ -85,10 +85,10 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     case MM_FREE:
     {
 #if 0
-        mm_pages_free_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->r[1], f->r[2]);
+        mm_pages_free_page(&cur_task->mm_space.mm_pages, cur_task->lim, f->regs[1], f->regs[2]);
         tag = msg_tag_init4(0, 0, 0, 0);
 #else
-        mm_limit_free(cur_task->lim, (void *)(f->r[1]));
+        mm_limit_free(cur_task->lim, (void *)(f->regs[1]));
         tag = msg_tag_init4(0, 0, 0, 0);
 #endif
     }
@@ -100,8 +100,8 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
 
         if (regi_info)
         {
-            umword_t size = f->r[2];
-            umword_t addr = f->r[1];
+            umword_t size = f->regs[2];
+            umword_t addr = f->regs[1];
 
 #if CONFIG_MPU_VERSION == 1
             if ((!is_power_of_2(size)) && ((addr & (~(size - 1))) != 0))
@@ -138,7 +138,7 @@ static void mm_man_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         tag = msg_tag_init4(0, 0, 0, -ENOSYS);
         break;
     }
-    f->r[0] = tag.raw;
+    f->regs[0] = tag.raw;
 }
 void mm_man_dump(void)
 {

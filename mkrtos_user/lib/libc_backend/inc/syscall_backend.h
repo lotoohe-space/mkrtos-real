@@ -71,14 +71,13 @@ umword_t be_mmap2(void *start,
                   long _offset);
 long be_clock_gettime(clockid_t clk_id, struct timespec *tp);
 
-umword_t sys_mmap2(va_list ap);
+long sys_mmap2(va_list ap);
 long sys_set_tid_address(va_list ap);
 long sys_set_thread_area(va_list ap);
 void sys_exit(va_list ap);
-umword_t sys_munmap(va_list ap);
+long sys_munmap(va_list ap);
 int be_futex(uint32_t *uaddr, int futex_op, uint32_t val,
              const struct timespec *timeout, uint32_t uaddr2, uint32_t val3);
-
 void pthread_cnt_inc(void);
 int pthread_cnt_dec(void);
 int pthread_get(void);

@@ -10,9 +10,9 @@ enum share_mem_op
 
 msg_tag_t share_mem_map(obj_handler_t obj, uint8_t attrs, umword_t *addr, umword_t *size)
 {
-    register volatile umword_t r0 asm("r0");
-    register volatile umword_t r1 asm("r1");
-    register volatile umword_t r2 asm("r2");
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    register volatile umword_t r1 asm(ARCH_REG_1);
+    register volatile umword_t r2 asm(ARCH_REG_2);
     mk_syscall(syscall_prot_create4(SHARE_MEM_MAP, SHARE_MEM_PROT, obj, FALSE).raw,
                attrs,
                0,
@@ -23,7 +23,7 @@ msg_tag_t share_mem_map(obj_handler_t obj, uint8_t attrs, umword_t *addr, umword
     asm __volatile__(""
                      :
                      :
-                     : "r0", "r1", "r2");
+                     : ARCH_REG_0, ARCH_REG_1, ARCH_REG_2);
     if (addr)
     {
         *addr = r1;
@@ -36,7 +36,7 @@ msg_tag_t share_mem_map(obj_handler_t obj, uint8_t attrs, umword_t *addr, umword
 }
 msg_tag_t share_mem_unmap(obj_handler_t obj)
 {
-    register volatile umword_t r0 asm("r0");
+    register volatile umword_t r0 asm(ARCH_REG_0);
     mk_syscall(syscall_prot_create4(SHARE_MEM_UNMAP, SHARE_MEM_PROT, obj, FALSE).raw,
                0,
                0,
@@ -47,6 +47,6 @@ msg_tag_t share_mem_unmap(obj_handler_t obj)
     asm __volatile__(""
                      :
                      :
-                     : "r0");
+                     : ARCH_REG_0);
     return msg_tag_init(r0);
 }

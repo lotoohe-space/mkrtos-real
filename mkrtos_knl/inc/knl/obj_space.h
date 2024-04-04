@@ -5,7 +5,7 @@
 #include "assert.h"
 #include "types.h"
 #include "mm_wrap.h"
-
+#include <arch.h>
 // #define CONFIG_OBJ_MAP_TAB_SIZE 4
 // #define CONFIG_OBJ_MAP_ENTRY_SIZE 8
 

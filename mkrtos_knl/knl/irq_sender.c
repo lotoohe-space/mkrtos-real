@@ -124,7 +124,7 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
 
     if (sys_p.prot != IRQ_PROT)
     {
-        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
 
@@ -132,7 +132,7 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     {
     case BIND_IRQ:
     {
-        umword_t irq_no = f->r[1];
+        umword_t irq_no = f->regs[1];
 
         if (irq_alloc(irq_no, irq, irq_tigger) == FALSE)
         {
@@ -142,13 +142,13 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         }
         irq->irq_id = irq_no;                                              //!< 设置绑定后的irq号
         ref_counter_inc(&irq->ref);                                        //!< 绑定后引用计数+1
-        arch_set_enable_irq_prio(irq_no, f->r[2] & 0xffff, f->r[2] >> 16); //!< 绑定时设置优先级
+        arch_set_enable_irq_prio(irq_no, f->regs[2] & 0xffff, f->regs[2] >> 16); //!< 绑定时设置优先级
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
     case UNBIND_IRQ:
     {
-        umword_t irq_no = f->r[1];
+        umword_t irq_no = f->regs[1];
         bool_t suc = irq_sender_unbind(irq, irq_no);
 
         tag = msg_tag_init4(0, 0, 0, suc ? 0 : -EACCES);
@@ -157,7 +157,7 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     case WAIT_IRQ:
     {
         ref_counter_inc(&th->ref);
-        int ret = irq_sender_wait(irq, th, f->r[1]);
+        int ret = irq_sender_wait(irq, th, f->regs[1]);
         ref_counter_dec_and_release(&th->ref, &irq->kobj); //! 引用计数+1
         tag = msg_tag_init4(0, 0, 0, ret);
     }
@@ -172,7 +172,7 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         break;
     }
 
-    f->r[0] = tag.raw;
+    f->regs[0] = tag.raw;
 }
 static bool_t irq_sender_put(kobject_t *kobj)
 {

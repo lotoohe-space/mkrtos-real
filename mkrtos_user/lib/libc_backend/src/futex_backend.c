@@ -22,6 +22,11 @@
 #include <futex.h>
 #include <assert.h>
 #include <limits.h>
+#include <syscall_backend.h>
+#include <features.h>
+#undef hidden
+#undef weak
+#define hidden
 #include <pthread_impl.h>
 #include <time.h>
 #include <errno.h>

@@ -14,23 +14,23 @@ enum log_op
 };
 static msg_tag_t ulog_read_bytes_raw(obj_handler_t obj_inx, umword_t data[5], int len)
 {
-    register volatile umword_t r0 asm("r0");
-    register volatile umword_t r1 asm("r1");
-    register volatile umword_t r2 asm("r2");
-    register volatile umword_t r3 asm("r3");
-    register volatile umword_t r4 asm("r4");
-    register volatile umword_t r5 asm("r5");
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    register volatile umword_t r1 asm(ARCH_REG_1);
+    register volatile umword_t r2 asm(ARCH_REG_2);
+    register volatile umword_t r3 asm(ARCH_REG_3);
+    register volatile umword_t r4 asm(ARCH_REG_4);
+    register volatile umword_t r5 asm(ARCH_REG_5);
     mk_syscall(syscall_prot_create(READ_DATA, LOG_PROT, obj_inx).raw,
-            msg_tag_init4(0, 0, 0, 0).raw,
-            len,
-            0,
-            0,
-            0,
-            0);
-            asm __volatile__(""
+               msg_tag_init4(0, 0, 0, 0).raw,
+               len,
+               0,
+               0,
+               0,
+               0);
+    asm __volatile__(""
                      :
                      :
-                     : "r0","r1","r2","r3","r4","r5");
+                     : ARCH_REG_0, ARCH_REG_1, ARCH_REG_2, ARCH_REG_3, ARCH_REG_4, ARCH_REG_5);
     msg_tag_t tag = msg_tag_init(r0);
     {
         ((umword_t *)data)[0] = r1;
@@ -73,12 +73,12 @@ void ulog_write_bytes(obj_handler_t obj_inx, const uint8_t *data, umword_t len)
         {
             umword_t *write_word_buf = (umword_t *)write_buf;
             mk_syscall(syscall_prot_create(WRITE_DATA, LOG_PROT, obj_inx).raw,
-                    msg_tag_init4(0, ROUND_UP(i, WORD_BYTES), 0, 0).raw,
-                    write_word_buf[0],
-                    write_word_buf[1],
-                    write_word_buf[2],
-                    write_word_buf[3],
-                    write_word_buf[4]);
+                       msg_tag_init4(0, ROUND_UP(i, WORD_BYTES), 0, 0).raw,
+                       write_word_buf[0],
+                       write_word_buf[1],
+                       write_word_buf[2],
+                       write_word_buf[3],
+                       write_word_buf[4]);
         }
         if (j >= len)
         {

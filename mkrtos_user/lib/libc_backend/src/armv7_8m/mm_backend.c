@@ -129,7 +129,7 @@ umword_t be_mmap2(void *start,
     }
     return addr;
 }
-umword_t sys_mmap2(va_list ap)
+long sys_mmap2(va_list ap)
 {
     void *start;
     size_t len;
@@ -152,7 +152,7 @@ umword_t be_munmap(void *start, size_t len)
     // printf("munmap 0x%x, 0x%x.\n", start, len);
     mm_page_free(((umword_t)(start) - (umword_t)heap_addr) / PAGE_SIZE, len / PAGE_SIZE);
 }
-umword_t sys_munmap(va_list ap)
+long  sys_munmap(va_list ap)
 {
     void *start;
     size_t len;

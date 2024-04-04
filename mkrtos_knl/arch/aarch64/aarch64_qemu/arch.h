@@ -13,7 +13,8 @@
 #include "types.h"
 #include <thread_arch.h>
 #include <aarch64_ptregs.h>
-
+#include <asm/mm.h>
+#include <early_boot.h>
 #define ARCH_WORD_SIZE 64
 #define LOG_INTR_NO 37 // USART1_IRQn
 

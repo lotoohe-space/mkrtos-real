@@ -31,4 +31,4 @@ static inline int64_t check_magic(char *magic)
 }
 
 int htoi(char *str, int len);
-umword_t cpio_find_file(umword_t st, umword_t en, const char *name);
+umword_t cpio_find_file(umword_t st, umword_t en, const char *name, size_t *size);

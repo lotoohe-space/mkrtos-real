@@ -101,7 +101,7 @@ static inline void kobject_invalidate(kobject_t *kobj)
 static inline void kobject_invoke(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     /*TODO:*/
-    f->r[0] = msg_tag_init4(0, 0, 0, -ENOSYS).raw;
+    f->regs[0] = msg_tag_init4(0, 0, 0, -ENOSYS).raw;
 }
 static inline bool_t kobject_put(kobject_t *kobj)
 {

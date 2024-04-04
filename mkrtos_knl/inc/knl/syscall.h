@@ -1,11 +1,9 @@
 #pragma once
 
 #include "types.h"
+#include <arch.h>
 
-typedef struct entry_frame
-{
-    mword_t r[8];
-} entry_frame_t;
+typedef pf_t entry_frame_t;
 
-typedef void (*syscall_entry_func)(entry_frame_t entry);
-void syscall_entry(entry_frame_t entry);
+typedef void (*syscall_entry_func)(entry_frame_t *entry);
+void syscall_entry(entry_frame_t *entry);

@@ -199,7 +199,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
 
     if (sys_p.prot != TASK_PROT)
     {
-        f->r[0] = msg_tag_init4(0, 0, 0, -EINVAL).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -EINVAL).raw;
         return;
     }
 
@@ -213,7 +213,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->r[1]);
+        kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->regs[1]);
 
         if (!source_kobj)
         {
@@ -221,7 +221,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, 0);
             break;
         }
-        f->r[1] = source_kobj->kobj_type;
+        f->regs[1] = source_kobj->kobj_type;
         spinlock_set(&tag_task->kobj.lock, status);
         tag = msg_tag_init4(0, 0, 0, 1);
     }
@@ -239,8 +239,8 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             break;
         }
         int ret = obj_map_src_dst(&tag_task->obj_space, &cur_task->obj_space,
-                                  f->r[2], f->r[1],
-                                  tag_task->lim, f->r[3], &del);
+                                  f->regs[2], f->regs[1],
+                                  tag_task->lim, f->regs[3], &del);
         kobj_del_list_to_do(&del);
         task_unlock_2(&tag_task->kobj.lock, &cur_task->kobj.lock, st0, st1);
         tag = msg_tag_init4(0, 0, 0, ret);
@@ -258,7 +258,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             break;
         }
         kobj_del_list_init(&kobj_list);
-        obj_unmap(&tag_task->obj_space, vpage_create_raw(f->r[1]), &kobj_list);
+        obj_unmap(&tag_task->obj_space, vpage_create_raw(f->regs[1]), &kobj_list);
         kobj_del_list_to_do(&kobj_list);
         spinlock_set(&tag_task->kobj.lock, status);
         tag = msg_tag_init4(0, 0, 0, 0);
@@ -272,9 +272,9 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        int ret = task_alloc_base_ram(tag_task, tag_task->lim, f->r[1]);
+        int ret = task_alloc_base_ram(tag_task, tag_task->lim, f->regs[1]);
         tag = msg_tag_init4(0, 0, 0, ret);
-        f->r[1] = (umword_t)(tag_task->mm_space.mm_block);
+        f->regs[1] = (umword_t)(tag_task->mm_space.mm_block);
         spinlock_set(&tag_task->kobj.lock, status);
     }
     break;
@@ -283,8 +283,8 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         void *mem;
         size_t size;
 
-        umword_t st_addr = f->r[0];
-        size_t cp_size = f->r[1];
+        umword_t st_addr = f->regs[0];
+        size_t cp_size = f->regs[1];
 
         if (cp_size > THREAD_MSG_BUG_LEN)
         {
@@ -305,12 +305,12 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     }
     case TASK_SET_PID: //!< 设置pid
     {
-        tag = msg_tag_init4(0, 0, 0, task_set_pid(tag_task, f->r[0]));
+        tag = msg_tag_init4(0, 0, 0, task_set_pid(tag_task, f->regs[0]));
     }
     break;
     case TASK_GET_PID: //!< 获取pid
     {
-        f->r[1] = tag_task->pid;
+        f->regs[1] = tag_task->pid;
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
@@ -318,7 +318,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         break;
     }
 
-    f->r[0] = tag.raw;
+    f->regs[0] = tag.raw;
 }
 
 void task_init(task_t *task, ram_limit_t *ram, int is_knl)
@@ -366,12 +366,20 @@ static void task_release_stage2(kobject_t *kobj)
     // task_t *cur_tk = thread_get_current_task();
 
     obj_space_release(&tk->obj_space, tk->lim);
+
+    if (tk->mm_space.mm_block)
+    {
 #if CONFIG_MK_MPU_CFG
-    mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
+        mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
 #else
-    mm_limit_free(tk->lim, tk->mm_space.mm_block);
+        mm_limit_free(tk->lim, tk->mm_space.mm_block);
 #endif
+    }
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    mm_limit_free_slab(task_slab, tk->lim, tk);
+#else
     mm_limit_free(tk->lim, tk);
+#endif
     // if (cur_tk == tk)
     // {
     thread_sched();
@@ -391,7 +399,7 @@ task_t *task_create(ram_limit_t *lim, int is_knl)
 {
     task_t *tk = NULL;
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
-    tk = slab_alloc(task_slab);
+    tk = mm_limit_alloc_slab(task_slab, lim);
 #else
     tk = mm_limit_alloc(lim, sizeof(task_t));
 #endif

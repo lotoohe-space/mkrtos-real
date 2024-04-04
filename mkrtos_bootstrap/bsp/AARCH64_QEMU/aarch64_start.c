@@ -3,17 +3,12 @@
 #include <elf_loader.h>
 #include <uart.h>
 #include "cpio.h"
-__ALIGN__(16)
-uint64_t stack[4096 / sizeof(uint64_t)];
-
 
 #define KERNEL_NAME "mkrtos.elf"
 
-// 内核的启动地址，其它核跳转使用
-extern uint64_t knl_entry;
-// #define KERNEL_NAME "mkrtos_smart.elf"
-#define KERNEL_IMG_START_ADDR (0x40000000 + 0x01000000 + 0x4000)
-
+__ALIGN__(16)
+uint64_t stack[4096 / sizeof(uint64_t)];
+extern uint64_t knl_entry; // 内核的启动地址，其它核跳转使用
 typedef void (*main_func)(umword_t cpio_addr);
 
 void jump2kernel(addr_t cpio_start, addr_t cpio_end)

@@ -30,9 +30,14 @@
 #include <unistd.h>
 #include <assert.h>
 #include <errno.h>
+#undef hidden
+#undef weak
+#define hidden
+#include <features.h>
 #include <pthread_impl.h>
 #include <atomic.h>
 static int pthread_cnt = 1;
+#define PTHREAD_DONT_RUN 0x1
 
 void pthread_cnt_inc(void)
 {

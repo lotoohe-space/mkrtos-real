@@ -34,6 +34,24 @@ typedef struct ipc_wait_bind_entry
     thread_t *th;
 } ipc_wait_bind_entry_t;
 
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+#include <slab.h>
+static slab_t *ipc_slab;
+#endif
+
+/**
+ * @brief 在系统初始化时调用，初始化task的内存
+ *
+ */
+static void ipc_obj_slab_init(void)
+{
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    ipc_slab = slab_create(sizeof(ipc_t), "ipc");
+    assert(ipc_slab);
+#endif
+}
+INIT_KOBJ_MEM(ipc_obj_slab_init);
+
 int ipc_bind(ipc_t *ipc, obj_handler_t th_hd, umword_t user_id, thread_t *th_kobj)
 {
     int ret = -EINVAL;
@@ -109,7 +127,7 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     if (sys_p.prot != IPC_PROT && sys_p.prot != THREAD_PROT)
     {
         //!< ipc对象拥有代理thread消息的功能，所以这里对与thread协议进行放宽
-        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
     switch (sys_p.op)
@@ -122,7 +140,7 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
             tag = msg_tag_init4(0, 0, 0, -EPROTO);
             break;
         }
-        ret = ipc_bind(ipc, f->r[0], f->r[1], NULL);
+        ret = ipc_bind(ipc, f->regs[0], f->regs[1], NULL);
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
@@ -165,7 +183,7 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     default:
         break;
     }
-    f->r[0] = tag.raw;
+    f->regs[0] = tag.raw;
 }
 static void ipc_release_stage1(kobject_t *kobj)
 {
@@ -190,7 +208,11 @@ static void ipc_release_stage2(kobject_t *kobj)
 {
     ipc_t *ipc = container_of(kobj, ipc_t, kobj);
 
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    mm_limit_free_slab(ipc_slab, ipc->lim, kobj);
+#else
     mm_limit_free(ipc->lim, kobj);
+#endif
     // printk("ipc release 0x%x\n", kobj);
 }
 static bool_t ipc_put(kobject_t *kobj)
@@ -214,8 +236,13 @@ static void ipc_init(ipc_t *ipc, ram_limit_t *lim)
 }
 static ipc_t *ipc_create(ram_limit_t *lim)
 {
-    ipc_t *ipc = mm_limit_alloc(lim, sizeof(ipc_t));
+    ipc_t *ipc;
 
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    ipc = mm_limit_alloc_slab(ipc_slab, lim);
+#else  
+    ipc = mm_limit_alloc(lim, sizeof(ipc_t));
+#endif
     if (!ipc)
     {
         return NULL;

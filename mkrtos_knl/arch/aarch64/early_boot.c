@@ -145,7 +145,7 @@ static SECTION(TEXT_BOOT_SECTION) void boot_init_pageing(page_entry_t *kpdir, bo
     write_sysreg(0x00ff4400, mair_el2);
     if (init_pages)
     {
-        map_mm(kpdir, 0x40000000, 0x40000000, 30, 1, 0x709);
+        map_mm(kpdir, CONFIG_KNL_DATA_ADDR, CONFIG_KNL_DATA_ADDR, 30, 1, 0x709);
         // map_mm(kpdir, _text_boot, _text_boot, PAGE_SHIFT, ALIGN(_edata_boot - _text_boot, PAGE_SIZE) >> PAGE_SHIFT, 0x70b);
         // map_mm(kpdir, _text, _edata_boot, PAGE_SHIFT, ALIGN(_buddy_data_end - _text, PAGE_SIZE) >> PAGE_SHIFT, 0x70b);
         map_mm(kpdir, PBASE, PBASE, 21, DEVICE_SIZE >> 21, 0x709);

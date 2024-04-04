@@ -14,6 +14,7 @@ add_subdirectory(arch)
 add_subdirectory(drivers)
 add_subdirectory(knl)
 add_subdirectory(lib)
+add_subdirectory(test)
 
 add_executable(mkrtos.elf
    ${deps}
@@ -28,12 +29,14 @@ target_link_libraries(
     arch
     lib
     drv
+    test
     --no-whole-archive
 )
 add_dependencies(mkrtos.elf arch)
 add_dependencies(mkrtos.elf drv)
 add_dependencies(mkrtos.elf knl)
 add_dependencies(mkrtos.elf lib)
+add_dependencies(mkrtos.elf test)
 
 set_target_properties(mkrtos.elf PROPERTIES 
 LINK_FLAGS "-T ${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds -z max-page-size=0x1000 --gc-section ")

@@ -3,6 +3,7 @@
 #include <thread.h>
 #include <factory.h>
 #include <thread_task_arch.h>
+
 static void th_test(void *arg)
 {
     int a[20];
@@ -35,7 +36,7 @@ static void th_test2(void *arg)
         printk("\n");
     }
 }
-void knl_test(void)
+void kthread_test_init(void)
 {
     thread_t *thread2;
     task_t *cur_tk = thread_get_current_task();

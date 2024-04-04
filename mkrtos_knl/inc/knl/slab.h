@@ -38,6 +38,10 @@ typedef struct slab
     spinlock_t lock;
 } slab_t;
 
+static inline size_t slab_get_item_size(slab_t *slab)
+{
+    return slab->align_size;
+}
 slab_t *slab_create(size_t align_size, const char *name);
 void slab_release(slab_t *slab);
 void *slab_alloc(slab_t *slab);

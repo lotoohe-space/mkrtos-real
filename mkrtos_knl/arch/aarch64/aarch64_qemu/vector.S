@@ -119,10 +119,10 @@ vectors:
 	   当前系统运行在EL1时使用EL0的栈指针SP
 	   这是一种异常错误的类型
 	 */
-	vtentry el1_sync_invalid
-	vtentry el1_irq_invalid
-	vtentry el1_fiq_invalid
-	vtentry el1_error_invalid
+	vtentry el2_sync_invalid
+	vtentry el2_irq_invalid
+	vtentry el2_fiq_invalid
+	vtentry el2_error_invalid
 
 	/* Current EL with SPx
 	   当前系统运行在EL1时使用EL1的栈指针SP
@@ -131,45 +131,47 @@ vectors:
 	   Note: 我们暂时只实现IRQ中断
 	 */
 
-	vtentry el1_sync_invalid
-	vtentry el1_irq
-	vtentry el1_fiq_invalid
-	vtentry el1_error_invalid
+	vtentry el2_sync_invalid
+	vtentry el2_irq
+	vtentry el2_fiq_invalid
+	vtentry el2_error_invalid
 
 	/* Lower EL using AArch64
 	   在用户态的aarch64的程序发生了异常
 	 */
-	vtentry el1_sync_invalid
+	vtentry el1_sync
 	vtentry el1_irq
-	vtentry el0_fiq_invalid
-	vtentry el0_error_invalid
+	vtentry el1_fiq_invalid
+	vtentry el1_error_invalid
 
 	/* Lower EL using AArch32
 	   在用户态的aarch32的程序发生了异常
 	 */
-	vtentry el0_sync_invalid
-	vtentry el0_irq_invalid
-	vtentry el0_fiq_invalid
-	vtentry el0_error_invalid
-el1_sync_invalid:
+	vtentry el1_sync_invalid
+	vtentry el1_irq_invalid
+	vtentry el1_fiq_invalid
+	vtentry el1_error_invalid
+el1_sync:
 	kernel_entry 2
-	//mrs x25, ESR_EL2
-	//lsr x24, x25, 26
-	//cmp x24, 0x16
-	//b.eq el2_svc
-	//inv_entry 0, BAD_SYNC
-	//el2_svc:
-	//	mov x0, sp
-	//	bl el2_svc_handler
 	bl thread_sync_entry
 	b ret_to_user
 
+el2_sync_invalid:
+	inv_entry 1, BAD_SYNC
+el2_irq_invalid:
+	inv_entry 1, BAD_IRQ
+el2_fiq_invalid:
+	inv_entry 1, BAD_FIQ
+el2_error_invalid:
+	inv_entry 1, BAD_ERROR
 el1_irq_invalid:
 	inv_entry 1, BAD_IRQ
 el1_fiq_invalid:
 	inv_entry 1, BAD_FIQ
 el1_error_invalid:
 	inv_entry 1, BAD_ERROR
+el1_sync_invalid:
+	inv_entry 0, BAD_SYNC
 el0_sync_invalid:
 	inv_entry 0, BAD_SYNC
 el0_irq_invalid:
@@ -185,6 +187,7 @@ tsk     .req    x28             // current thread_info
 	and     \rd, \rd, #(~(4096 - 1))   // top of stack
 	.endm
 el1_irq:
+el2_irq:
 	kernel_entry 2
 	bl entry_handler
 	bl SysTick_Handler

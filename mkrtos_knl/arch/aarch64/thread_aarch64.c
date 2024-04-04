@@ -37,8 +37,14 @@ void thread_knl_pf_set(thread_t *cur_th, void *pc)
 }
 void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram, umword_t stack)
 {
-    /*TODO:*/
-    assert(0);
+    pf_t *pt = ((pf_t *)((char *)cur_th + THREAD_BLOCK_SIZE)) - 1;
+
+    pt->pstate = PSR_MODE_EL1h;
+    pt->pc = (umword_t)pc;
+    cur_th->sp.x19 = 0;
+    cur_th->sp.x20 = 0 /*arg*/;
+    cur_th->sp.pc = (mword_t)ret_form_run;
+    cur_th->sp.sp = (umword_t)pt;
 }
 void task_knl_init(task_t *knl_tk)
 {

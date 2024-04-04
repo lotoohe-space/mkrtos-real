@@ -4,12 +4,15 @@ file(GLOB_RECURSE deps *.c *.S)
 
 add_executable(init.elf
     ${deps}
+    ${START_SRC_INIT}
 )
 target_link_libraries(init.elf
     PUBLIC
-    start_init
-    muslc
+    -Bstatic
+    ${LIBC_NAME}
+    ${START_LIB}
     --whole-archive
+    libc_be
     sys
     sys_util
     sys_svr
@@ -27,45 +30,33 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/cpio
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/init/src
-
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
-)
-add_dependencies(init.elf
-muslc
-util
 )
 set_target_properties(init.elf PROPERTIES LINK_FLAGS
-"-T ${CMAKE_CURRENT_LIST_DIR}/link.lds -pie --gc-section  -no-dynamic-linker "
+"-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "
 #--no-warn-rwx-segments
 )
 #-T ${CMAKE_CURRENT_LIST_DIR}/link.lds
 add_custom_target(
     init_dump ALL
-    COMMAND
-    ${CMAKE_OBJDUMP} -s -S init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.S
-    COMMAND
-    ${CMAKE_READELF} -a init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.txt
-    COMMAND
-    ${CMAKE_OBJCOPY} -O binary -S init.elf init.bin
+    # COMMAND
+    # ${CMAKE_OBJDUMP} -s -S init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.S
+    # COMMAND
+    # ${CMAKE_READELF} -a init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.txt
+    # COMMAND
+    # ${CMAKE_OBJCOPY} -O binary -S init.elf init.bin
     COMMAND
     ${CMAKE_SIZE} init.elf
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output
+    # COMMAND
+    # cp init.bin ${CMAKE_SOURCE_DIR}/build/output/init
+    # COMMAND
+    # cp init.elf ${CMAKE_SOURCE_DIR}/build/output/init.elf
     COMMAND
-    cp init.bin ${CMAKE_SOURCE_DIR}/build/output/init
-    COMMAND
-    cp init.elf ${CMAKE_SOURCE_DIR}/build/output/init.elf
+    cp init.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/init.elf
     COMMAND
     cp ${CMAKE_CURRENT_LIST_DIR}/src/init.cfg ${CMAKE_SOURCE_DIR}/build/output/cpio/
 )
 
 add_dependencies(init_dump init.elf)
-add_dependencies(init.elf muslc)
-
- 
+add_dependencies(init.elf libc_be util)

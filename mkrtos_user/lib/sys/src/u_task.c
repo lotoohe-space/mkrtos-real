@@ -14,7 +14,7 @@ enum task_op_code
 };
 msg_tag_t task_set_pid(obj_handler_t dst_task, umword_t pid)
 {
-    register volatile umword_t r0 asm("r0");
+    register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create(TASK_SET_PID, TASK_PROT, dst_task).raw,
                pid,
@@ -26,15 +26,15 @@ msg_tag_t task_set_pid(obj_handler_t dst_task, umword_t pid)
     asm __volatile__(""
                      :
                      :
-                     : "r0");
+                     : ARCH_REG_0);
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
 }
 msg_tag_t task_get_pid(obj_handler_t dst_task, umword_t *pid)
 {
-    register volatile umword_t r0 asm("r0");
-    register volatile umword_t r1 asm("r1");
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    register volatile umword_t r1 asm(ARCH_REG_1);
 
     mk_syscall(syscall_prot_create(TASK_GET_PID, TASK_PROT, dst_task).raw,
                0,
@@ -46,7 +46,7 @@ msg_tag_t task_get_pid(obj_handler_t dst_task, umword_t *pid)
     asm __volatile__(""
                      :
                      :
-                     : "r0", "r1");
+                     : ARCH_REG_0, ARCH_REG_1);
     if (pid)
     {
         *pid = r1;
@@ -56,8 +56,8 @@ msg_tag_t task_get_pid(obj_handler_t dst_task, umword_t *pid)
 }
 msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx, int *obj_type)
 {
-    register volatile umword_t r0 asm("r0");
-    register volatile umword_t r1 asm("r1");
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    register volatile umword_t r1 asm(ARCH_REG_1);
 
     mk_syscall(syscall_prot_create(TASK_OBJ_VALID, TASK_PROT, dst_task).raw,
                0,
@@ -69,7 +69,7 @@ msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx, int *obj
     asm __volatile__(""
                      :
                      :
-                     : "r0");
+                     : ARCH_REG_0);
     if (obj_type)
     {
         *obj_type = r1;
@@ -80,7 +80,7 @@ msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx, int *obj
 
 msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t dst_obj, uint8_t attrs)
 {
-    register volatile umword_t r0 asm("r0");
+    register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create(TASK_OBJ_MAP, TASK_PROT, dst_task).raw,
                0,
@@ -92,7 +92,7 @@ msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t 
     asm __volatile__(""
                      :
                      :
-                     : "r0");
+                     : ARCH_REG_0);
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
@@ -100,7 +100,7 @@ msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t 
 
 msg_tag_t task_unmap(obj_handler_t task_han, vpage_t vpage)
 {
-    register volatile umword_t r0 asm("r0");
+    register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create(TASK_OBJ_UNMAP, TASK_PROT, task_han).raw,
                0,
@@ -115,8 +115,8 @@ msg_tag_t task_unmap(obj_handler_t task_han, vpage_t vpage)
 }
 msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *alloc_addr)
 {
-    register volatile umword_t r0 asm("r0");
-    register volatile umword_t r1 asm("r1");
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    register volatile umword_t r1 asm(ARCH_REG_1);
 
     mk_syscall(syscall_prot_create(TASK_ALLOC_RAM_BASE, TASK_PROT, task_han).raw,
                0,
@@ -128,7 +128,7 @@ msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *all
     asm __volatile__(""
                      :
                      :
-                     : "r0", "r1");
+                     : ARCH_REG_0, ARCH_REG_1);
     if (alloc_addr)
     {
         *alloc_addr = r1;
@@ -138,7 +138,7 @@ msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *all
 }
 msg_tag_t task_copy_data(obj_handler_t task_obj, void *st_addr, umword_t size)
 {
-    register volatile umword_t r0 asm("r0");
+    register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create(TASK_COPY_DATA, TASK_PROT, task_obj).raw,
                st_addr,
@@ -150,7 +150,7 @@ msg_tag_t task_copy_data(obj_handler_t task_obj, void *st_addr, umword_t size)
     asm __volatile__(""
                      :
                      :
-                     : "r0", "r1");
+                     : ARCH_REG_0, ARCH_REG_1);
 
     return msg_tag_init(r0);
 }

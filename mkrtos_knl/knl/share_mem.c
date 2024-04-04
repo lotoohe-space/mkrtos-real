@@ -135,7 +135,7 @@ static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
 
     if (sys_p.prot != SHARE_MEM_PROT)
     {
-        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
     switch (sys_p.op)
@@ -144,7 +144,7 @@ static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     {
         uint8_t attr;
 
-        attr = f->r[0] & 0xff;
+        attr = f->regs[0] & 0xff;
         int map_ret = share_mem_map_task(sm);
 
         if (map_ret >= 0)
@@ -165,8 +165,8 @@ static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
                 }
             }
         }
-        f->r[1] = (umword_t)sm->mem;
-        f->r[2] = sm->size;
+        f->regs[1] = (umword_t)sm->mem;
+        f->regs[2] = sm->size;
         tag = msg_tag_init4(0, 0, 0, map_ret);
     }
     break;
@@ -183,7 +183,7 @@ static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     break;
     }
 
-    f->r[0] = tag.raw;
+    f->regs[0] = tag.raw;
 }
 static void share_mem_unmap(obj_space_t *obj_space, kobject_t *kobj)
 {
