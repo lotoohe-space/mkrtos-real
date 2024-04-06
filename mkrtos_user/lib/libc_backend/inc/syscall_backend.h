@@ -63,7 +63,7 @@ long be_ioctl(long fd, long req, void *args);
 long be_set_tid_address(int *val);
 long be_set_thread_area(void *p);
 umword_t be_munmap(void *start, size_t len);
-umword_t be_mmap2(void *start,
+umword_t be_mmap(void *start,
                   size_t len,
                   long prot,
                   long flags,
@@ -71,7 +71,7 @@ umword_t be_mmap2(void *start,
                   long _offset);
 long be_clock_gettime(clockid_t clk_id, struct timespec *tp);
 
-long sys_mmap2(va_list ap);
+long sys_mmap(va_list ap);
 long sys_set_tid_address(va_list ap);
 long sys_set_thread_area(va_list ap);
 void sys_exit(va_list ap);

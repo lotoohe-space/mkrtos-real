@@ -26,6 +26,8 @@ typedef char bool_t;
 typedef unsigned long obj_addr_t;
 typedef umword_t uintptr_t;
 typedef umword_t addr_t;
+typedef umword_t paddr_t;
+typedef umword_t vaddr_t;
 typedef umword_t obj_handler_t;
 typedef umword_t time_t;
 typedef umword_t pid_t;

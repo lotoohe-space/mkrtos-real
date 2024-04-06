@@ -183,6 +183,10 @@ msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
                0,
                0,
                0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0);
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;

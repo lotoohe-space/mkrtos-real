@@ -14,6 +14,7 @@
 #include <u_util.h>
 #include "fd_map.h"
 #include "u_sleep.h"
+// AUTO_CALL(101)
 void fs_backend_init(void)
 {
     assert(fd_map_alloc(0, 0, FD_TTY) >= 0);

@@ -21,10 +21,10 @@ typedef struct task task_t;
 struct thread;
 typedef struct thread thread_t;
 
-#define THREAD_MSG_BUG_LEN 128UL     //!< 最小的消息寄存器大小
-#define MSG_BUF_HAS_DATA_FLAGS 0x01U //!< 已经有数据了
-#define MSG_BUF_RECV_R_FLAGS 0x02U   //!< 接收来自recv_th的消息
-#define MSG_BUF_REPLY_FLAGS 0x04U    //!< 回复消息给send_th
+#define THREAD_MSG_BUG_LEN CONFIG_THREAD_MSG_BUG_LEN //!< 最小的消息寄存器大小
+#define MSG_BUF_HAS_DATA_FLAGS 0x01U                 //!< 已经有数据了
+#define MSG_BUF_RECV_R_FLAGS 0x02U                   //!< 接收来自recv_th的消息
+#define MSG_BUF_REPLY_FLAGS 0x04U                    //!< 回复消息给send_th
 
 #define IPC_MSG_SIZE 96
 #define MAP_BUF_SIZE 16
@@ -90,10 +90,12 @@ enum thread_ipc_state
     THREAD_IPC_ABORT,
 };
 
-
 typedef struct msg_buf
 {
-    void *msg;     //!< buf，长度是固定的 @see THREAD_MSG_BUG_LEN
+    void *msg; //!< buf，长度是固定的 @see THREAD_MSG_BUG_LEN
+#if IS_ENABLED(CONFIG_MMU)
+    void *umsg; //!< 消息对应的内核的地址
+#endif
     msg_tag_t tag; //!< 存放发送的临时标识
 } msg_buf_t;
 
@@ -121,11 +123,16 @@ typedef struct thread
     umword_t magic; //!< maigc
 } thread_t;
 
-static inline void thread_set_msg_bug(thread_t *th, void *msg)
+static inline void thread_set_msg_bug(thread_t *th, void *msg, void *umsg)
 {
     th->msg.msg = msg;
+    th->msg.umsg = umsg;
 }
 static inline void *thread_get_msg_buf(thread_t *th)
+{
+    return th->msg.umsg;
+}
+static inline void *thread_get_kmsg_buf(thread_t *th)
 {
     return th->msg.msg;
 }

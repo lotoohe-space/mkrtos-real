@@ -7,7 +7,7 @@ SECTIONS
 	 *
 	 * 这里“.”表示location counter，当前位置
 	 */
-	. = CONFIG_KNL_DATA_ADDR + 0x01000000;
+	. = CONFIG_KNL_DATA_ADDR + 0x1000;
 	/*
 	 * text代码段
 	 */

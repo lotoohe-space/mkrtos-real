@@ -243,7 +243,8 @@ cpu_switch_to:
 	stp     x25, x26, [x8], #16
 	stp     x27, x28, [x8], #16
 	stp     x29, x9, [x8], #16
-	str     lr, [x8]
+	mrs		x9, sp_el1
+	stp     lr, x9, [x8]
 
 	mov     x8, x1
 	ldp     x19, x20, [x8], #16
@@ -252,6 +253,8 @@ cpu_switch_to:
 	ldp     x25, x26, [x8], #16
 	ldp     x27, x28, [x8], #16
 	ldp     x29, x9, [x8], #16
-	ldr     lr, [x8]
+	ldr     lr, [x8], #8
 	mov     sp, x9
+	ldr		x9, [x8]
+	msr		sp_el1, x9
 	ret

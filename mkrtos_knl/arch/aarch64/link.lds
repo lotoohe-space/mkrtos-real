@@ -1,7 +1,7 @@
 ENTRY(_start);
 SECTIONS
 {
- . = 0x40000000 +0x1000;
+ . = 0x40000000 +0x1000000;
  kernel_start = .;
  _text_boot = .;
  .text.boot :
@@ -76,10 +76,4 @@ SECTIONS
  _ebss = .;
  . = ALIGN(4096);
  _buddy_data_start = .;
- .buddy :
- {
-  *(.buddy*)
-  . += 0x1000000;
- }
- _buddy_data_end = .;
 }

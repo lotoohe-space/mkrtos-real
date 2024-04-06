@@ -18,6 +18,7 @@ static void th_test(void *arg)
             printk("%d ", a[i]);
         }
         printk("\n");
+        thread_sched();
     }
 }
 static void th_test2(void *arg)
@@ -34,6 +35,7 @@ static void th_test2(void *arg)
             printk("%d,", a[i]);
         }
         printk("\n");
+        thread_sched();
     }
 }
 void kthread_test_init(void)

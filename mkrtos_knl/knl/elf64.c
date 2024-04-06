@@ -2,6 +2,11 @@
 #include <types.h>
 #include <thread.h>
 #include <task.h>
+#include <string.h>
+#include <printk.h>
+#include <buddy.h>
+#include <arch.h>
+
 typedef uint16_t Elf64_Half;
 typedef uint32_t Elf64_Word;
 typedef uint64_t Elf64_Addr;
@@ -73,10 +78,7 @@ typedef struct
 
 #define ELFMAG "\177ELF"
 #define SELFMAG 4
-#include <string.h>
-#include <printk.h>
-#include <buddy.h>
-#include <arch.h>
+
 int elf_check(Elf64_Ehdr *ehdr)
 {
     if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG) != 0)
@@ -142,7 +144,8 @@ int elf_load(task_t *task, umword_t elf_data, size_t size, addr_t *entry_addr)
     {
         if (elf_phdr->p_type == PT_LOAD)
         {
-            memcpy((char *)mem + (elf_phdr->p_vaddr - st_addr), (void *)(elf_data + elf_phdr->p_offset),
+            memcpy((char *)mem + (elf_phdr->p_vaddr - st_addr),
+                   (void *)(elf_data + elf_phdr->p_offset),
                    elf_phdr->p_filesz);
             offset += ALIGN(elf_phdr->p_memsz, elf_phdr->p_align);
         }

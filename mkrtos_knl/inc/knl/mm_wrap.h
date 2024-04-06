@@ -13,6 +13,7 @@ void mm_info(size_t *total, size_t *free);
 
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <buddy.h>
+void *mm_buddy_alloc_one_page(void);
 void *mm_limit_alloc_buddy(ram_limit_t *limit, size_t size);
 void mm_limit_free_buddy(ram_limit_t *limit, void *mem, size_t size);
 #include <slab.h>

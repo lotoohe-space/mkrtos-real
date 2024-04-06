@@ -14,9 +14,16 @@
 #include "assert.h"
 #include <early_boot.h>
 #include <mm_page.h>
-void mm_space_init(mm_space_t *mm_space, int is_knl)
+static umword_t global_asid = 1;
+int mm_space_init(mm_space_t *mm_space, int is_knl)
 {
+    int ret = 0;
+
     page_entry_init(&mm_space->mem_dir);
+    mm_space->asid = global_asid++;
+    ret = task_vma_init(&mm_space->mem_vma);
+
+    return ret;
 }
 bool_t mm_space_add(mm_space_t *m_space,
                     umword_t addr,

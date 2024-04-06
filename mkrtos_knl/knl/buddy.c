@@ -8,9 +8,9 @@
 #include <printk.h>
 #include <assert.h>
 #include <spinlock.h>
-#define BUDDY_ENTRY_MAX_CN 1024
 
-static buddy_entry_t buddy_entry_simp_slab[BUDDY_ENTRY_MAX_CN];
+static buddy_entry_t *buddy_entry_simp_slab;
+static size_t buddy_entry_cn = 0;
 static buddy_order_t buddy_kmem;
 
 static inline size_t to_size(size_t order);
@@ -46,7 +46,7 @@ static inline void buddy_entry_clr_lr(buddy_entry_t *be)
 
 static buddy_entry_t *buddy_entry_alloc(void)
 {
-    for (int i = 0; i < BUDDY_ENTRY_MAX_CN; i++)
+    for (int i = 0; i < buddy_entry_cn; i++)
     {
         if (!BUDDY_ENTRY_VALID(&buddy_entry_simp_slab[i]))
         {
@@ -77,12 +77,31 @@ int buddy_init(buddy_order_t *buddy, addr_t start_addr, size_t size)
     {
         return -1;
     }
-    buddy->heap_addr = start_addr;
     spinlock_init(&buddy->lock);
     for (int i = 0; i < BUDDY_MAX_ORDER; i++)
     {
         slist_init(&buddy->order_tab[i].b_order);
     }
+    size_t entry_cn = 0;
+
+    int iffs = ffs(size);
+    if (!is_power_of_2(iffs))
+    {
+        iffs++;
+    }
+    while (iffs >= PAGE_SHIFT)
+    {
+        entry_cn += ((1UL << iffs) >> PAGE_SHIFT);
+        iffs--;
+    }
+    buddy_entry_simp_slab = (void *)start_addr;
+    size_t entrys_size = ALIGN(entry_cn * (sizeof(buddy_entry_t)), PAGE_SIZE);
+    start_addr += entrys_size;
+    size -= entrys_size;
+    buddy->heap_addr = start_addr;
+    buddy_entry_cn = entry_cn;
+
+    printk("buddy mem size:%dMB\n", size / 1024 / 1024);
 
     size_t remain_size = size;
     addr_t add_addr = buddy->heap_addr;
@@ -92,16 +111,21 @@ int buddy_init(buddy_order_t *buddy, addr_t start_addr, size_t size)
     {
         int i_ffs = ffs(remain_size);
         i_ffs -= PAGE_SHIFT;
+        if (i_ffs >= BUDDY_MAX_ORDER)
+        {
+            i_ffs = BUDDY_MAX_ORDER;
+        }
+
         buddy_entry_t *new_be = buddy_entry_alloc();
         if (!new_be)
         {
             return -1;
         }
         buddy_entry_init(new_be, add_addr);
-        slist_add(&buddy->order_tab[i_ffs - 1].b_order, &new_be->next);
+        slist_add(&buddy->order_tab[i_ffs == 0 ? 1 : i_ffs - 1].b_order, &new_be->next);
         buddy->order_tab[i_ffs - 1].nr_free++;
 
-        remain_size = size - to_size(i_ffs);
+        remain_size -= to_size(i_ffs);
         add_addr += to_size(i_ffs);
     }
     buddy->heap_size = size;

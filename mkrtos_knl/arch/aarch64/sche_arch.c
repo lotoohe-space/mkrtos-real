@@ -14,7 +14,7 @@ static void sw_mmu(thread_t *next_thread)
     if (p_curr_dir != p_next_dir)
     {
         _dsb(sy);
-        write_sysreg(p_next_dir | (1UL << 48) /*TODO:*/, vttbr_el2);
+        write_sysreg(p_next_dir | (next_task->mm_space.asid << 48) /*TODO:*/, vttbr_el2); // 切换用户态页表
         _dsb(ish);
         _isb();
         asm volatile("ic iallu");

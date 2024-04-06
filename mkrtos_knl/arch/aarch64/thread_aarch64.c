@@ -41,10 +41,12 @@ void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram, um
 
     pt->pstate = PSR_MODE_EL1h;
     pt->pc = (umword_t)pc;
+    pt->sp = (umword_t)user_sp;
     cur_th->sp.x19 = 0;
-    cur_th->sp.x20 = 0 /*arg*/;
+    cur_th->sp.x20 = 0;
     cur_th->sp.pc = (mword_t)ret_form_run;
     cur_th->sp.sp = (umword_t)pt;
+    cur_th->sp.u_sp = (umword_t)user_sp;
 }
 void task_knl_init(task_t *knl_tk)
 {

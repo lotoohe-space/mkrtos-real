@@ -1,6 +1,8 @@
 #pragma once
 #include "u_types.h"
 #include "u_arch_hard.h"
+
+
 #define MK_PAGE_SIZE (1UL << CONFIG_PAGE_SHIFT)
 #define WORD_BYTES (sizeof(void *))
 #define WORD_BITS (WORD_BYTES * 8)

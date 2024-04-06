@@ -16,6 +16,4 @@ void mm_test(void)
     mm_free_page(MM_PROT, mem1, 2);
     mm_free_page(MM_PROT, mem, 2);
     printf("mm test success.\n");
-    // memset(mem, 0, 512);
-    // memset(mem1, 0, 512);
 }

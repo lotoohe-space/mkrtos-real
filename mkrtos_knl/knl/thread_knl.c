@@ -98,7 +98,7 @@ static void knl_init_1(void)
     task_knl_init(&knl_task);
     thread_knl_pf_set(knl_thread, knl_main);
     thread_bind(knl_thread, &knl_task.kobj);
-    thread_set_msg_bug(knl_thread, knl_msg_buf);
+    thread_set_msg_bug(knl_thread, knl_msg_buf, knl_msg_buf);
     thread_ready(knl_thread, FALSE);
 
     slist_init(&del_task_head);
@@ -135,8 +135,12 @@ static void knl_init_2(void)
     ret_addr = cpio_find_file(cpio_images, (umword_t)(-1), "init.elf", &size);
     assert(ret_addr);
     elf_load(init_task, ret_addr, size, &entry);
-    thread_set_msg_bug(init_thread, NULL /*TODO:*/);
-    thread_user_pf_set(init_thread, (void *)(entry), NULL,
+    void *init_msg_buf = mm_buddy_alloc_one_page();
+    assert(init_msg_buf);
+    map_mm(mm_space_get_pdir(&init_task->mm_space), 0xE0000000,
+           (addr_t)init_msg_buf, PAGE_SHIFT, 1, 0x7ff);
+    thread_set_msg_bug(init_thread, (void *)init_msg_buf, (void *)0xE0000000);
+    thread_user_pf_set(init_thread, (void *)(entry), (void *)0xdeaddead,
                        NULL, 0);
 #else
     app_info_t *app = app_info_get((void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET));
@@ -145,7 +149,7 @@ static void knl_init_2(void)
     void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 
-    thread_set_msg_bug(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
+    thread_set_msg_bug(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
     thread_user_pf_set(init_thread, (void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET), (void *)((umword_t)sp_addr_top - 8),
                        init_task->mm_space.mm_block, 0);
 #endif

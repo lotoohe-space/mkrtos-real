@@ -36,7 +36,7 @@ typedef struct ipc_wait_bind_entry
 
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <slab.h>
-static slab_t *ipc_slab;
+slab_t *ipc_slab;
 #endif
 
 /**

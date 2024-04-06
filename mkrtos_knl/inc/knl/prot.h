@@ -25,6 +25,7 @@ enum kobj_prot
     FUTEX_PROT,
     IRQ_PROT,
     SHARE_MEM_PROT, // 10
+    VMA_PROT,
     MAX_PROT,
 };
 

@@ -7,10 +7,10 @@ SECTIONS
 	 *
 	 * 这里“.”表示location counter，当前位置
 	 */
-	. = CONFIG_KNL_DATA_ADDR+0x1000;
+	. = CONFIG_KNL_DATA_ADDR+CONFIG_KNL_OFFSET;
 	kernel_start = .;
 	/*
-	 * 这里是第一个段text.boot，起始地址就是0x80000
+	 * 这里是第一个段text.boot
 	 * 这个段存放了benos的第一条指令
 	 */
 	_text_boot = .;
@@ -92,7 +92,7 @@ SECTIONS
 	}
 	_edata = .;
 
-		/*
+	/*
 	 * bss段
 	 *
 	 * ALIGN(8)表示8个字节对齐
@@ -110,12 +110,14 @@ SECTIONS
 
 	. = ALIGN(4096);
 	_buddy_data_start = .;
+	/*
 	.buddy :
 	{
 		*(.buddy*) 
 		. += 0x1000000;
 	}
 	_buddy_data_end = .;
+	*/
 
 
 }

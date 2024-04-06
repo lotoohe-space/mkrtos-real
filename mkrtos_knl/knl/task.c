@@ -358,6 +358,10 @@ static void task_release_stage1(kobject_t *kobj)
     kobj_del_list_init(&kobj_list);
     obj_unmap_all(&tk->obj_space, &kobj_list);
     kobj_del_list_to_do(&kobj_list);
+
+#if IS_ENABLED(CONFIG_MMU)
+    task_vma_clean(&tk->mm_space.mem_vma);
+#endif
 }
 static void task_release_stage2(kobject_t *kobj)
 {

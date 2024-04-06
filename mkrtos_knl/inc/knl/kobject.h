@@ -44,6 +44,7 @@ enum knl_obj_type
     SYS_TYPE,
     FUTEX_TYPE,
     SHARE_MEM_TYPE,
+    VMAM_TYPE,
 };
 
 typedef struct kobject

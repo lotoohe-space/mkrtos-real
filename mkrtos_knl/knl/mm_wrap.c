@@ -83,6 +83,10 @@ void mm_limit_free_align(ram_limit_t *limit, void *mem, size_t size)
 }
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <buddy.h>
+void *mm_buddy_alloc_one_page(void)
+{
+    return buddy_alloc(buddy_get_alloter(), PAGE_SIZE);
+}
 void *mm_limit_alloc_buddy(ram_limit_t *limit, size_t size)
 {
     if (ram_limit_alloc(limit, size) == FALSE)

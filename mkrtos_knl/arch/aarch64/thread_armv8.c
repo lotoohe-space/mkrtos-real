@@ -5,6 +5,8 @@
 #include <thread.h>
 #include <esr.h>
 #include <syscall.h>
+#include <vma.h>
+#include <thread_knl.h>
 umword_t thread_get_pfa(void)
 {
     umword_t a;
@@ -16,27 +18,30 @@ void thread_sync_entry(entry_frame_t *regs)
 {
     umword_t ec = arm_esr_ec(esr_get());
     thread_t *th = thread_get_current();
+    task_t *tk = thread_get_bind_task(th);
 
     switch (ec)
     {
     case 0x20:
     {
-        // mword_t addr = thread_get_pfa();
+        mword_t addr = thread_get_pfa();
 
-        // if (vma_page_fault(&tk->vmam, &tk->mem_dir, MASK_LSB(addr, PAGE_SHIFT)) == NULL) {
-        //     //TODO: 如果是init进程则内核死机，否则干掉进程
-        //     MKRTOS_ASSERT(0);
-        // }
+        if (task_vma_page_fault(&tk->mm_space.mem_vma, ALIGN_DOWN(addr, PAGE_SIZE)) < 0)
+        {
+            printk("0x20 pfa:0x%x\n", addr);
+            task_knl_kill(th, FALSE);
+        }
     }
         return;
     case 0x24:
     {
-        // mword_t addr = thread_get_pfa();
+        mword_t addr = thread_get_pfa();
 
-        // if (vma_page_fault(&tk->vmam, &tk->mem_dir, MASK_LSB(addr, PAGE_SHIFT)) == NULL) {
-        //     //TODO: 如果是init进程则内核死机，否则干掉进程
-        //     MKRTOS_ASSERT(0);
-        // }
+        if (task_vma_page_fault(&tk->mm_space.mem_vma, ALIGN_DOWN(addr, PAGE_SIZE)) < 0)
+        {
+            printk("0x24 pfa:0x%x\n", addr);
+            task_knl_kill(th, FALSE);
+        }
     }
         return;
     case 0x12:

@@ -15,7 +15,7 @@
 #define ROUND_DOWN(a, b) ((a) / (b))                      //!< a/b向下取整
 
 #define GET_LSB(a, b) (a & (~((~0ULL) << (b))))
-#define MASK_LSB(a, b) (a & ((~0ULL) << (b))) //!< 屏蔽低位
+#define MASK_LSB(a, b) ((a >> (b)) << (b)) //!< 屏蔽低位
 
 #define ARRARY_LEN(a) (sizeof(a) / sizeof((a)[0])) //!< 数组长度
 

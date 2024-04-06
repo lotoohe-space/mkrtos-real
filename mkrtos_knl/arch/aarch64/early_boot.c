@@ -24,16 +24,17 @@ extern char _edata_boot[];
 extern char _ebss[];
 extern char _text[];
 extern char _buddy_data_start[];
-extern char _buddy_data_end[];
 
-#define BOOT_PAGER_NR 128
-// __ALIGN__(THREAD_BLOCK_SIZE) SECTION(DATA_BOOT_SECTION) uint8_t boot_stack[THREAD_BLOCK_SIZE] = {0};
+#define BOOT_PAGER_NR 64
 static SECTION(DATA_BOOT_SECTION) __ALIGN__(PAGE_SIZE) uint8_t pages[BOOT_PAGER_NR * SYS_CPU_NUM][PAGE_SIZE];
 static SECTION(DATA_BOOT_SECTION) uint8_t pages_used[BOOT_PAGER_NR * SYS_CPU_NUM];
 static SECTION(TEXT_BOOT_SECTION) inline int boot_get_current_cpu_id(void)
 {
     return read_sysreg(mpidr_el1) & 0XFFUL;
 }
+/**
+ * 启动时使用这个分配内存，buddy初始化完成后，使用buddy分配内存
+ */
 static SECTION(TEXT_BOOT_SECTION) void *page_alloc(void)
 {
     for (int i = 0; i < BOOT_PAGER_NR * SYS_CPU_NUM; i++)
@@ -57,7 +58,12 @@ static SECTION(TEXT_BOOT_SECTION) void page_free(void *mem)
         }
     }
 }
-
+static page_alloc_fn page_alloc_cb = page_alloc;
+SECTION(TEXT_BOOT_SECTION)
+void mmu_page_alloc_set(page_alloc_fn fn)
+{
+    page_alloc_cb = fn;
+}
 static SECTION(TEXT_BOOT_SECTION) void *boot_memset(void *dst, int s, size_t count)
 {
     register char *a = dst;
@@ -89,22 +95,23 @@ void knl_pdir_init(page_entry_t *pdir, pte_t *dir, int page_deep)
     pdir->lv_shift_sizes[2] = 21;
     pdir->lv_shift_sizes[3] = 12;
 }
-
 SECTION(TEXT_BOOT_SECTION)
-pte_t *pages_walk(page_entry_t *pdir, addr_t virt_addr, mword_t size, void *(*fn_alloc)(void))
+pte_t *pages_walk(page_entry_t *pdir, addr_t virt_addr, mword_t order, void *(*fn_alloc)(void))
 {
     int i;
     pte_t *next = &pdir->dir[(virt_addr >> pdir->lv_shift_sizes[(PAGE_DEEP - pdir->depth)]) & 0x1ffUL];
 
+    // 找到所在深度
     for (i = (PAGE_DEEP - pdir->depth); i < PAGE_DEEP; i++)
     {
-        if (pdir->lv_shift_sizes[i] == size)
+        if (pdir->lv_shift_sizes[i] == order)
         {
             break;
         }
     }
     assert(i != PAGE_DEEP);
 
+    // 向下循环查找，遇到没有分配的页表，则分配
     for (int j = (PAGE_DEEP - pdir->depth); j < PAGE_DEEP; j++)
     {
         if (j == i)
@@ -113,10 +120,20 @@ pte_t *pages_walk(page_entry_t *pdir, addr_t virt_addr, mword_t size, void *(*fn
         }
         if (next->pte == 0)
         {
-            next->pte = (mword_t)fn_alloc();
-            assert(next->pte);
-            next->pte |= 3UL;
-            _dmb(ishst);
+            if (!fn_alloc)
+            {
+                return NULL;
+            }
+            else
+            {
+                next->pte = (mword_t)fn_alloc();
+                if (!(next->pte))
+                {
+                    return NULL;
+                }
+                next->pte |= 3UL;
+                _dmb(ishst);
+            }
         }
         assert((j + 1) < PAGE_DEEP);
         next = &((pte_t *)(next->pte & ~3UL))[(virt_addr >> pdir->lv_shift_sizes[j + 1]) & 0x1ffUL];
@@ -124,17 +141,36 @@ pte_t *pages_walk(page_entry_t *pdir, addr_t virt_addr, mword_t size, void *(*fn
     assert(0);
 }
 SECTION(TEXT_BOOT_SECTION)
-void map_mm(page_entry_t *pdir, addr_t virt_addr, addr_t phys_addr,
-            mword_t page_order, mword_t pfn_cn, mword_t attr)
+int map_mm(page_entry_t *pdir, addr_t virt_addr, addr_t phys_addr,
+           mword_t page_order, mword_t pfn_cn, mword_t attr)
 {
     for (mword_t i = 0; i < pfn_cn; i++)
     {
-        pte_t *pte = pages_walk(pdir, virt_addr + (i << page_order), page_order, page_alloc);
+        pte_t *pte = pages_walk(pdir, virt_addr + (i << page_order), page_order, page_alloc_cb);
 
-        assert(pte);
+        if (pte == NULL)
+        {
+            return -ENOMEM;
+        }
         pte->pte = (phys_addr + (i << page_order)) | attr;
         _dmb(ishst);
     }
+    return 0;
+}
+SECTION(TEXT_BOOT_SECTION)
+int unmap_mm(page_entry_t *pdir, addr_t virt_addr, mword_t page_order, mword_t pfn_cn)
+{
+    for (mword_t i = 0; i < pfn_cn; i++)
+    {
+        pte_t *pte = pages_walk(pdir, virt_addr + (i << page_order), page_order, NULL);
+
+        if (pte != NULL)
+        {
+            pte->pte = 0;
+            _dmb(ishst);
+        }
+    }
+    return 0;
 }
 
 static SECTION(TEXT_BOOT_SECTION) void boot_init_pageing(page_entry_t *kpdir, bool_t init_pages)
@@ -145,9 +181,19 @@ static SECTION(TEXT_BOOT_SECTION) void boot_init_pageing(page_entry_t *kpdir, bo
     write_sysreg(0x00ff4400, mair_el2);
     if (init_pages)
     {
-        map_mm(kpdir, CONFIG_KNL_DATA_ADDR, CONFIG_KNL_DATA_ADDR, 30, 1, 0x709);
-        // map_mm(kpdir, _text_boot, _text_boot, PAGE_SHIFT, ALIGN(_edata_boot - _text_boot, PAGE_SIZE) >> PAGE_SHIFT, 0x70b);
-        // map_mm(kpdir, _text, _edata_boot, PAGE_SHIFT, ALIGN(_buddy_data_end - _text, PAGE_SIZE) >> PAGE_SHIFT, 0x70b);
+        int i_ffs = ffs(CONFIG_KNL_DATA_SIZE) + (is_power_of_2(CONFIG_KNL_DATA_SIZE) ? 0 : 1);
+        int i_cn = 0;
+
+        // 进行1比1映射
+        do
+        {
+            map_mm(kpdir, CONFIG_KNL_DATA_ADDR + ((1U << 30) * i_cn),
+                   CONFIG_KNL_DATA_ADDR + ((1U << 30) * i_cn),
+                   i_ffs > 30 ? 30 : i_ffs, 1, 0x709);
+            i_ffs--;
+            i_cn++;
+        } while (i_ffs >= 30);
+        // 外设地址也是1比1映射
         map_mm(kpdir, PBASE, PBASE, 21, DEVICE_SIZE >> 21, 0x709);
     }
     tmp = read_sysreg(ID_AA64MMFR0_EL1);

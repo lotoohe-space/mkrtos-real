@@ -4,8 +4,9 @@
 #include <mm_page.h>
 #include <assert.h>
 #include <util.h>
-#if CONFIG_MK_MPU_CFG
+#if IS_ENABLED(CONFIG_MMU)
 #include <early_boot.h>
+#include <vma.h>
 #endif
 #if !IS_ENABLED(CONFIG_MMU)
 typedef struct region_info
@@ -24,16 +25,17 @@ typedef struct region_info
 #endif
 typedef struct mm_space
 {
-#if CONFIG_MK_MPU_CFG
+#if IS_ENABLED(CONFIG_MK_MPU_CFG)
     region_info_t pt_regions[CONFIG_REGION_NUM]; //!< mpu内存保护块
 #endif
 #if IS_ENABLED(CONFIG_MMU)
     page_entry_t mem_dir; //!< MMU根映射表，存放映射信息
+    task_vma_t mem_vma;
+    umword_t asid;
 #endif
     void *mm_block;       //!< task 的私有内存块
     size_t mm_block_size; //!< 私有内存块的大小
 } mm_space_t;
-
 
 enum region_rights
 {
@@ -41,17 +43,16 @@ enum region_rights
     REGION_RO = 2,
     REGION_RWX = 3,
 };
-#if CONFIG_MK_MPU_CFG
-
+#if IS_ENABLED(CONFIG_MK_MPU_CFG)
 region_info_t *mm_space_alloc_pt_region(mm_space_t *m_space);
 void mm_space_free_pt_region(mm_space_t *m_space, region_info_t *ri);
 
-void mm_space_init(mm_space_t *mm_space, int is_knl);
+int mm_space_init(mm_space_t *mm_space, int is_knl);
 bool_t mm_space_add(mm_space_t *m_space, umword_t addr, umword_t size, uint8_t attrs);
 void mm_space_del(mm_space_t *m_space, umword_t addr);
 #else
 #if !IS_ENABLED(CONFIG_MMU)
-static inline void mm_space_init(mm_space_t *mm_space, int is_knl)
+static inline int mm_space_init(mm_space_t *mm_space, int is_knl)
 {
 }
 static inline bool_t mm_space_add(mm_space_t *m_space, umword_t addr, umword_t size, uint8_t attrs)
@@ -62,7 +63,7 @@ static inline void mm_space_del(mm_space_t *m_space, umword_t addr)
 {
 }
 #else
-void mm_space_init(mm_space_t *mm_space, int is_knl);
+int mm_space_init(mm_space_t *mm_space, int is_knl);
 bool_t mm_space_add(mm_space_t *m_space, umword_t addr, umword_t size, uint8_t attrs);
 void mm_space_del(mm_space_t *m_space, umword_t addr);
 

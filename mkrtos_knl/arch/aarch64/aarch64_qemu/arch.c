@@ -68,7 +68,7 @@ extern char _rodata[], _erodata[];
 extern char _data[], _edata[];
 extern char _bss[], _ebss[];
 extern char _buddy_data_start[];
-extern char _buddy_data_end[];
+// extern char _buddy_data_end[];
 
 static void print_mem(void)
 {
@@ -91,9 +91,8 @@ static void print_mem(void)
     printk("        .bss: 0x%08lx - 0x%08lx (%6ld B)\n",
            (unsigned long)_bss, (unsigned long)_ebss,
            (unsigned long)(_ebss - _bss));
-    printk("      .buddy: 0x%08lx - 0x%08lx (%6ld B)\n",
-           (unsigned long)_buddy_data_start, (unsigned long)_buddy_data_end,
-           (unsigned long)(_buddy_data_end - _buddy_data_start));
+    printk("      .buddy: 0x%08lx - \n",
+           (unsigned long)_buddy_data_start);
 }
 
 void arch_init(void)

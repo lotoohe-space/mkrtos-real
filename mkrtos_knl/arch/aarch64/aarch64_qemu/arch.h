@@ -60,6 +60,7 @@ typedef struct sp_info
     mword_t fp; // x29
     mword_t sp;
     mword_t pc;
+    mword_t u_sp;//user_sp
 } sp_info_t;
 
 #define _barrier() __asm__ __volatile__("" : : : "memory")

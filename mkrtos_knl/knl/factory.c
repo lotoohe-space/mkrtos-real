@@ -185,7 +185,7 @@ static factory_t *fatory_create(ram_limit_t *lim, umword_t max)
     factory_t *kobj = NULL;
 
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
-    kobj = slab_alloc(factory_slab);
+    kobj = mm_limit_alloc_slab(factory_slab, lim);
 #else
     kobj = mm_limit_alloc(lim, sizeof(factory_t));
 #endif

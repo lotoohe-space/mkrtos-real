@@ -10,6 +10,10 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 ")
 
 message(编译参数：${CMAKE_C_FLAGS})
+
+include_directories(
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/knl/mm
+)
 add_subdirectory(arch)
 add_subdirectory(drivers)
 add_subdirectory(knl)

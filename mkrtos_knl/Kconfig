@@ -23,6 +23,9 @@ if SMP
         int "CPU Core number."
         default 1
 endif
+    config THREAD_MSG_BUG_LEN
+        int "thread msg bud size"
+        default 128
     config BUDDY_SLAB
         bool "use BUDDY & SLAB"
         default n
