@@ -6,7 +6,7 @@
 #include <printk.h>
 #include <buddy.h>
 #include <arch.h>
-
+#include <vma.h>
 typedef uint16_t Elf64_Half;
 typedef uint32_t Elf64_Word;
 typedef uint64_t Elf64_Addr;
@@ -150,6 +150,9 @@ int elf_load(task_t *task, umword_t elf_data, size_t size, addr_t *entry_addr)
             offset += ALIGN(elf_phdr->p_memsz, elf_phdr->p_align);
         }
     }
-    map_mm(mm_space_get_pdir(&task->mm_space), st_addr,
-           (addr_t)mem, PAGE_SHIFT, mem_size / PAGE_SIZE, 0x7ff);
+    assert(task_vma_alloc(&task->mm_space.mem_vma,
+                          vma_addr_create(0xf /*TODO:*/, VMA_ADDR_RESV, st_addr),
+                          mem_size, (paddr_t)mem, 0) >= 0);
+    // map_mm(mm_space_get_pdir(&task->mm_space), st_addr,
+    //        (addr_t)mem, PAGE_SHIFT, mem_size / PAGE_SIZE, 0x7ff);
 }

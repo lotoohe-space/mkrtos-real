@@ -79,6 +79,10 @@ static inline paddr_t vma_node_get_paddr(vma_t *data)
 {
     return data->paddr << PAGE_SHIFT;
 }
+static inline void vma_node_set_paddr(vma_t *data, paddr_t addr)
+{
+    data->paddr = addr >> PAGE_SHIFT;
+}
 static inline bool_t vma_node_get_used(vma_t *data)
 {
     return !!(data->flags & VMA_USED_NODE);

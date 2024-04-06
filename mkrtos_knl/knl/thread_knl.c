@@ -29,6 +29,9 @@
 #if ARCH_WORD_SIZE == 64
 #include <elf64.h>
 #endif
+#if IS_ENABLED(CONFIG_MMU)
+#include <vma.h>
+#endif
 #include <cpio.h>
 
 static uint8_t knl_msg_buf[THREAD_MSG_BUG_LEN];
@@ -137,8 +140,11 @@ static void knl_init_2(void)
     elf_load(init_task, ret_addr, size, &entry);
     void *init_msg_buf = mm_buddy_alloc_one_page();
     assert(init_msg_buf);
-    map_mm(mm_space_get_pdir(&init_task->mm_space), 0xE0000000,
-           (addr_t)init_msg_buf, PAGE_SHIFT, 1, 0x7ff);
+    assert(task_vma_alloc(&init_task->mm_space.mem_vma,
+                          vma_addr_create(0xf /*TODO:*/, VMA_ADDR_RESV, 0xE0000000),
+                          PAGE_SIZE, (paddr_t)init_msg_buf, 0) >= 0);
+    // map_mm(mm_space_get_pdir(&init_task->mm_space), 0xE0000000,
+    //        (addr_t)init_msg_buf, PAGE_SHIFT, 1, 0x7ff);
     thread_set_msg_bug(init_thread, (void *)init_msg_buf, (void *)0xE0000000);
     thread_user_pf_set(init_thread, (void *)(entry), (void *)0xdeaddead,
                        NULL, 0);
@@ -225,5 +231,7 @@ void start_kernel(void)
     sti();
 
     while (1)
-        ;
+    {
+        knl_main();
+    }
 }

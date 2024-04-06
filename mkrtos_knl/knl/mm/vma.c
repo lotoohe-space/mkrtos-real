@@ -399,6 +399,7 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
     vma_node_set_used(node_data);
     vma_addr_set_flags(&node_data->vaddr, vma_addr_get_flags(vaddr));
     vma_addr_set_prot(&node_data->vaddr, vma_addr_get_prot(vaddr));
+    vma_node_set_paddr(node_data, paddr);
     task_vma->idle_tree.cmp = vma_idl_tree_insert_cmp_handler;
     mln_rbtree_insert(&task_vma->idle_tree, node);
 
@@ -637,7 +638,7 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr)
     {
         return lock_status;
     }
-    printk("page fault:0x%x.\n", addr);
+    // printk("page fault:0x%x.\n", addr);
     // 1.查找
     task = container_of(container_of(task_vma, mm_space_t, mem_vma), task_t, mm_space);
     task_vma->idle_tree.cmp = vma_idl_tree_wrap_cmp_handler;

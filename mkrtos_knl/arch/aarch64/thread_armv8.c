@@ -14,6 +14,18 @@ umword_t thread_get_pfa(void)
     asm volatile("mrs %0, far_el2" : "=r"(a));
     return a;
 }
+static void dump_stack(umword_t pc, umword_t x29)
+{
+    uint64_t result[5];
+    printk("pc:0x%x x29:0x%x\n", pc, x29);
+    result[0] = pc;
+    for (size_t i = 1; i < sizeof(result) / sizeof(umword_t); i++)
+    {
+        result[i] = (*(umword_t *)(x29 + 8)) - 4;
+        x29 = *(umword_t *)(x29);
+    }
+    printk("knl pf stack: 0x%x,0x%x,0x%x,0x%x,0x%x\n", result[0], result[1], result[2], result[3], result[4]);
+}
 void thread_sync_entry(entry_frame_t *regs)
 {
     umword_t ec = arm_esr_ec(esr_get());
@@ -29,6 +41,8 @@ void thread_sync_entry(entry_frame_t *regs)
         if (task_vma_page_fault(&tk->mm_space.mem_vma, ALIGN_DOWN(addr, PAGE_SIZE)) < 0)
         {
             printk("0x20 pfa:0x%x\n", addr);
+            printk("pc:0x%x x29:0x%x\n", regs->pc, regs->regs[29]);
+            // dump_stack(regs->pc, regs->regs[29]);
             task_knl_kill(th, FALSE);
         }
     }
@@ -40,6 +54,7 @@ void thread_sync_entry(entry_frame_t *regs)
         if (task_vma_page_fault(&tk->mm_space.mem_vma, ALIGN_DOWN(addr, PAGE_SIZE)) < 0)
         {
             printk("0x24 pfa:0x%x\n", addr);
+            dump_stack(regs->pc, regs->regs[29]);
             task_knl_kill(th, FALSE);
         }
     }
