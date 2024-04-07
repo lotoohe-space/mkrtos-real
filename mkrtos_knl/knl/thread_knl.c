@@ -141,10 +141,8 @@ static void knl_init_2(void)
     void *init_msg_buf = mm_buddy_alloc_one_page();
     assert(init_msg_buf);
     assert(task_vma_alloc(&init_task->mm_space.mem_vma,
-                          vma_addr_create(0xf /*TODO:*/, VMA_ADDR_RESV, 0xE0000000),
+                          vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0xE0000000),
                           PAGE_SIZE, (paddr_t)init_msg_buf, 0) >= 0);
-    // map_mm(mm_space_get_pdir(&init_task->mm_space), 0xE0000000,
-    //        (addr_t)init_msg_buf, PAGE_SHIFT, 1, 0x7ff);
     thread_set_msg_bug(init_thread, (void *)init_msg_buf, (void *)0xE0000000);
     thread_user_pf_set(init_thread, (void *)(entry), (void *)0xdeaddead,
                        NULL, 0);

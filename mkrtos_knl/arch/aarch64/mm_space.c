@@ -12,7 +12,7 @@
 #include "util.h"
 #include "mm_space.h"
 #include "assert.h"
-#include <early_boot.h>
+#include <mmu.h>
 #include <mm_page.h>
 static umword_t global_asid = 1;
 int mm_space_init(mm_space_t *mm_space, int is_knl)

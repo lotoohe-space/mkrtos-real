@@ -526,7 +526,8 @@ static int rbtree_iterate_alloc_tree_del(mln_rbtree_node_t *node, void *udata)
         vma_addr_get_addr(node_data->vaddr) + node_data->size <= param->addr + param->size)
     {
         // 解除映射
-        unmap_mm(mm_space_get_pdir(param->mm_space), vma_addr_get_addr(node_data->vaddr), PAGE_SHIFT, 1);
+        unmap_mm(mm_space_get_pdir(param->mm_space),
+                 vma_addr_get_addr(node_data->vaddr), PAGE_SHIFT, 1);
 
         // 从红黑树中删除
         mln_rbtree_delete(param->r_tree, node);
@@ -700,7 +701,8 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr)
     }
     // 4.进行映射
     ret = map_mm(mm_space_get_pdir(&task->mm_space), addr,
-                 (addr_t)mem, PAGE_SHIFT, 1, 0x7ff); /*TODO:设置权限*/
+                 (addr_t)mem, PAGE_SHIFT, 1,
+                 vpage_attrs_to_page_attrs(vma_addr_get_prot(node_data->vaddr))); /*TODO:设置权限*/
     if (ret < 0)
     {
         ret = -ENOMEM;

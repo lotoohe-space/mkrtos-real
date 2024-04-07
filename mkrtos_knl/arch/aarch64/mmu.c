@@ -10,7 +10,7 @@
 #include <spinlock.h>
 #include <assert.h>
 #include <mm_page.h>
-#include <early_boot.h>
+#include <mmu.h>
 #define DATA_BOOT_SECTION ".data.boot"
 #define TEXT_BOOT_SECTION ".text.boot"
 

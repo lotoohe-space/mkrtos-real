@@ -1,7 +1,7 @@
 
 
 // #include <config.h>
-#include <early_boot.h>
+#include <mmu.h>
 #include <config.h>
 #include <util.h>
 #include <arch.h>

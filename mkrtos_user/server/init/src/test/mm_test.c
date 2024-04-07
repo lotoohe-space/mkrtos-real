@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#if 0
 void mm_test(void)
 {
     void *mem = mm_alloc_page(MM_PROT, 2, REGION_RWX);
@@ -17,3 +18,4 @@ void mm_test(void)
     mm_free_page(MM_PROT, mem, 2);
     printf("mm test success.\n");
 }
+#endif

@@ -17,7 +17,7 @@
 #include "arch.h"
 #include "string.h"
 #include <asm/system.h>
-#include <early_boot.h>
+#include <mmu.h>
 #include <task.h>
 extern void ret_form_run(void);
 syscall_entry_func syscall_handler_get(void)

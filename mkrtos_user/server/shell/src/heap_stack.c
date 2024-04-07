@@ -1,4 +1,4 @@
-
+#ifndef CONFIG_MMU
 #define HEAP_SIZE 2048
 #define STACK_SIZE (1024 + 512)
 
@@ -15,3 +15,4 @@
 
 __attribute__((used)) HEAP_ATTR static char _____heap_____[HEAP_SIZE];
 __attribute__((used)) STACK_ATTR static char _____stack_____[STACK_SIZE];
+#endif

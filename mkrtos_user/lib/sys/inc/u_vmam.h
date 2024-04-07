@@ -1,6 +1,17 @@
 #pragma once
 #include <u_types.h>
 #include <u_prot.h>
+
+enum vpage_prot_attrs
+{
+    VPAGE_PROT_RO = 1,                                      //!< 只读
+    VPAGE_PROT_RW = VPAGE_PROT_RO | 0x2,                    //!< 读写
+    VPAGE_PROT_RWX = (VPAGE_PROT_RO | VPAGE_PROT_RW | 0x4), //!< 读写执行
+};
+
+#define VMA_ADDR_RESV 0x1    //!< 保留内存
+#define VMA_ADDR_UNCACHE 0x2 //!< uncache内存
+
 typedef union vma_addr
 {
     umword_t raw;

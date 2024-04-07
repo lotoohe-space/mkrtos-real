@@ -4,10 +4,8 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/libc_backend/inc
 )
 if (${ARCH_NAME} STREQUAL "armv7_8m")
-    set(START_LIB muslc)
+    set(START_LIB start)
 
-    add_subdirectory(init)
-    add_subdirectory(shell)
     # add_subdirectory(app)
     add_subdirectory(fs)
     add_subdirectory(hello)
@@ -33,5 +31,7 @@ elseif(${CONFIG_ARCH} STREQUAL "aarch64" )
         ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crti.o 
         ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crtn.o
     )
-    add_subdirectory(init)
 endif()
+add_subdirectory(init)
+add_subdirectory(shell)
+

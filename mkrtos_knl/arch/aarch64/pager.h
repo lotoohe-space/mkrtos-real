@@ -68,8 +68,9 @@ typedef struct pte
 #define PTE_TYPE_FAULT (0UL << 0)
 #define PTE_TYPE_PAGE (3UL << 0)
 #define PTE_TABLE_BIT (1UL << 1)
-#define PTE_USER (1UL << 6)    /* AP[1] */
-#define PTE_RDONLY (1UL << 7)  /* AP[2] */
+#define PTE_RDONLY (1UL << 6)  /* AP[2] */
+#define PTE_WONLY (2UL << 6)
+#define PTE_RW  (3UL<<6)
 #define PTE_SHARED (3UL << 8)  /* SH[1:0], inner shareable */
 #define PTE_AF (1UL << 10)     /* Access Flag */
 #define PTE_NG (1UL << 11)     /* nG */

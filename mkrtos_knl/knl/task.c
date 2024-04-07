@@ -22,7 +22,7 @@
 #include "access.h"
 #include "printk.h"
 #if IS_ENABLED(CONFIG_MMU)
-#include "early_boot.h"
+#include "arch.h"
 #endif
 /**
  * @brief 任务的操作码

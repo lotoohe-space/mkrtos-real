@@ -55,7 +55,9 @@
         "u_prot.h": "c",
         "vma.h": "c",
         "thread.h": "c",
-        "thread_knl.h": "c"
+        "thread_knl.h": "c",
+        "shell.h": "c",
+        "shell_secure_user.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

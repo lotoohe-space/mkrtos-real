@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <util.h>
 #if IS_ENABLED(CONFIG_MMU)
-#include <early_boot.h>
+#include <arch.h>
 #include <vma.h>
 #endif
 #if !IS_ENABLED(CONFIG_MMU)

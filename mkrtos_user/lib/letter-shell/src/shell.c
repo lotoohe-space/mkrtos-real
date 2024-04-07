@@ -206,9 +206,9 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
     shell->commandList.base = (ShellCommand *)(&_shell_command_start);
     shell->commandList.count = ((size_t)(&_shell_command_end) - (size_t)(&_shell_command_start)) / sizeof(ShellCommand);
 #ifdef MKRTOS
+#ifndef CONFIG_MMU
     extern void *app_start_addr;
     unsigned long start_addr = ((unsigned long)app_start_addr) & (~3UL);
-#endif
     for (int i = 0; i < shell->commandList.count; i++)
     {
         ShellCommand *cmd = (ShellCommand *)(shell->commandList.base) + i;
@@ -237,6 +237,8 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
             cmd->data.key.function = (int (*)())((unsigned long)cmd->data.key.function + start_addr | 0x1);
         }
     }
+#endif
+#endif
 #else
 #error not supported compiler, please use command table mode
 #endif

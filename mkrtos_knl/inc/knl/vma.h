@@ -4,6 +4,18 @@
 #include <arch.h>
 #include <rbtree_mm.h>
 
+enum vpage_prot_attrs
+{
+    VPAGE_PROT_RO = 1, //!< 只读
+    VPAGE_PROT_WO = 0x2,
+    VPAGE_PROT_RW = VPAGE_PROT_RO | VPAGE_PROT_WO, //!< 读写
+    VPAGE_PROT_X = 0x4,
+    VPAGE_PROT_RWX = (VPAGE_PROT_RO | VPAGE_PROT_RW | VPAGE_PROT_X), //!< 读写执行
+
+    VPAGE_PROT_UNCACHE = 0x10, //!< 不使用缓存
+    VPAGE_PROT_IN_KNL = 0x20,  //!< 内核中使用
+};
+
 #define VMA_ADDR_RESV 0x1    //!< 保留内存
 #define VMA_ADDR_UNCACHE 0x2 //!< uncache内存
 
@@ -14,9 +26,9 @@ typedef union vma_addr
     umword_t raw;
     struct
     {
-        umword_t prot : 4;
+        umword_t prot : 6;
         umword_t flags : 4;
-        umword_t resv : 4;
+        umword_t resv : 2;
         umword_t addr : (sizeof(void *) * 8 - PAGE_SHIFT);
     };
 } vma_addr_t;

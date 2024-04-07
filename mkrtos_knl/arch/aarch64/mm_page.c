@@ -1,7 +1,7 @@
 #include <buddy.h>
 #include <asm/mm.h>
 #include "mm_page.h"
-#include <early_boot.h>
+#include <mmu.h>
 int page_entry_init(page_entry_t *entry)
 {
     entry->dir = buddy_alloc(buddy_get_alloter(), PAGE_SIZE);

@@ -151,8 +151,6 @@ int elf_load(task_t *task, umword_t elf_data, size_t size, addr_t *entry_addr)
         }
     }
     assert(task_vma_alloc(&task->mm_space.mem_vma,
-                          vma_addr_create(0xf /*TODO:*/, VMA_ADDR_RESV, st_addr),
+                          vma_addr_create(VPAGE_PROT_RWX, VMA_ADDR_RESV, st_addr),
                           mem_size, (paddr_t)mem, 0) >= 0);
-    // map_mm(mm_space_get_pdir(&task->mm_space), st_addr,
-    //        (addr_t)mem, PAGE_SHIFT, mem_size / PAGE_SIZE, 0x7ff);
 }
