@@ -56,7 +56,11 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     case SYS_INFO_GET:
     {
         f->regs[1] = sys_tick_cnt_get();
+#if IS_ENABLED(CONFIG_MMU)
+        f->regs[2] = CONFIG_BOOT_FS_VADDR;
+#else
         f->regs[2] = CONFIG_KNL_TEXT_ADDR + CONFIG_BOOTFS_OFFSET;
+#endif
         f->regs[3] = arch_get_sys_clk();
         tag = msg_tag_init4(0, 0, 0, 0);
     }

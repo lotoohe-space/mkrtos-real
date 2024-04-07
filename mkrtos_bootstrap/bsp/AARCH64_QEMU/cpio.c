@@ -1,6 +1,7 @@
 #include "mk_sys.h"
 #include "cpio.h"
 #include <string.h>
+
 #define MIN(a, b) ((a) < (b) ? (a) : (b))							   //!< 最小值
 #define ALIGN(mem, align) (((mem) + ((align) - 1)) & (~((align) - 1))) //!< 向上对齐
 
@@ -25,7 +26,7 @@ umword_t cpio_find_file(umword_t st, umword_t en, const char *name)
 			return (mword_t)(ALIGN(i + sizeof(cpio_fs_t) + name_size, 4));
 		}
 
-		if (strcmp("TRAILER!!", f_name) == 0)
+		if (strcmp("TRAILER!!!", f_name) == 0)
 		{
 			return 0;
 		}

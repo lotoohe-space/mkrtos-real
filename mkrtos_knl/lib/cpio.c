@@ -1,9 +1,42 @@
 #include "mk_sys.h"
 #include "cpio.h"
+#include <util.h>
 #include <string.h>
-#define MIN(a, b) ((a) < (b) ? (a) : (b))							   //!< 最小值
-#define ALIGN(mem, align) (((mem) + ((align) - 1)) & (~((align) - 1))) //!< 向上对齐
+#include <arch.h>
+// #define MIN(a, b) ((a) < (b) ? (a) : (b))							   //!< 最小值
+// #define ALIGN(mem, align) (((mem) + ((align) - 1)) & (~((align) - 1))) //!< 向上对齐
+static int htoi(char *str, int len);
 
+umword_t cpio_get_size(umword_t st)
+{
+	cpio_fs_t *file_info;
+	umword_t i;
+
+	for (i = st; st < (umword_t)(-1);)
+	{
+		file_info = (cpio_fs_t *)i;
+
+		if (check_magic((char *)file_info) < 0)
+		{
+			return 0;
+		}
+		int name_size = htoi(file_info->c_namesize, 8);
+
+		const char *f_name = (char *)(i + sizeof(cpio_fs_t));
+
+		if (strcmp("TRAILER!!!", f_name) == 0)
+		{
+			break;
+		}
+		int file_size = htoi(file_info->c_filesize, 8);
+
+		i = ALIGN(ALIGN(i + sizeof(cpio_fs_t) + name_size, 4) +
+					  file_size,
+				  4);
+	}
+
+	return ALIGN(i, PAGE_SIZE) - st;
+}
 umword_t cpio_find_file(umword_t st, umword_t en, const char *name, size_t *size)
 {
 	uint8_t rByte;
@@ -42,7 +75,7 @@ umword_t cpio_find_file(umword_t st, umword_t en, const char *name, size_t *size
 	return 0;
 }
 
-int htoi(char *str, int len)
+static int htoi(char *str, int len)
 {
 	int n = 0;
 	int i = 0;

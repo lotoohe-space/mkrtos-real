@@ -33,10 +33,11 @@ SECTIONS
  }
  bss_end = .;
  _ebss = .;
- . = ALIGN(0x8);
+ . = ALIGN(4096);
  .cpio : {
   cpio_start = .;
   *(.cpio*)
+  . = ALIGN(4096);
   cpio_end = .;
  }
 }

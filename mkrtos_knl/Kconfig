@@ -12,6 +12,14 @@ if KNL_INFO
     config MMU
         bool "support mmu"
         default n
+if MMU
+    config MSG_BUF_VADDR
+        hex "msg buf vaddr in task."
+        default 0xE0000000
+    config BOOT_FS_VADDR
+        hex "boot fs vaddr in init task."
+        default 0xE0001000
+endif
     config PAGE_SHIFT
         int "page shift"
         default 9

@@ -86,6 +86,11 @@ int fd_map_get(int fd, fd_map_entry_t *new_entry)
     int row_inx = fd / CONFIG_FD_MAP_ROW_CN;
     int inx = fd % CONFIG_FD_MAP_ROW_CN;
 
+    if (fd_map.row[row_inx] == NULL)
+    {
+        return -1;
+    }
+
     *new_entry = fd_map.row[row_inx]->entry[inx];
     return 0;
 }

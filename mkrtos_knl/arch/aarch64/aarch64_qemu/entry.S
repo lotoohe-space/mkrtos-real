@@ -16,7 +16,7 @@ sp_addr:
 .globl cpio_images
 .section ".data.boot"
 cpio_images:
-	.quad 0 //pt regs is 320 bytes.
+	.quad 0
 
 .align 3
 .global cpu_jump_addr

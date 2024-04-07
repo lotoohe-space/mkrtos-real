@@ -119,7 +119,7 @@ int elf_load(task_t *task, umword_t elf_data, size_t size, addr_t *entry_addr)
     {
         if (elf_phdr->p_type == PT_LOAD)
         {
-            printk("[] paddr:0x%x vaddr:0x%x memsize:%d filesize:%d ofst:%d align:0x%x\n",
+            printk("[elf] paddr:0x%x vaddr:0x%x memsize:%d filesize:%d ofst:%d align:0x%x\n",
                    elf_phdr->p_vaddr, elf_phdr->p_paddr, elf_phdr->p_memsz, elf_phdr->p_filesz,
                    elf_phdr->p_offset, elf_phdr->p_align);
 

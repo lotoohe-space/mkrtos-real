@@ -35,8 +35,8 @@
 
 static void test(void)
 {
-    malloc_test();
 #if 0
+    malloc_test();
     printf_test();
     mpu_test();
     sharea_mem_test();
@@ -72,8 +72,8 @@ int main(int argc, char *args[])
 
     test();
 
-    // ret = parse_cfg(DEFAULT_INIT_CFG, env);
-    // printf("run app num is %d.\n", ret);
+    ret = parse_cfg(DEFAULT_INIT_CFG, env);
+    printf("run app num is %d.\n", ret);
     namespace_loop();
     return 0;
 }

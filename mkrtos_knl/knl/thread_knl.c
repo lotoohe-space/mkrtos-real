@@ -141,9 +141,12 @@ static void knl_init_2(void)
     void *init_msg_buf = mm_buddy_alloc_one_page();
     assert(init_msg_buf);
     assert(task_vma_alloc(&init_task->mm_space.mem_vma,
-                          vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0xE0000000),
+                          vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, CONFIG_MSG_BUF_VADDR),
                           PAGE_SIZE, (paddr_t)init_msg_buf, 0) >= 0);
-    thread_set_msg_bug(init_thread, (void *)init_msg_buf, (void *)0xE0000000);
+    assert(task_vma_alloc(&init_task->mm_space.mem_vma,
+                          vma_addr_create(VPAGE_PROT_RO, VMA_ADDR_RESV, CONFIG_BOOT_FS_VADDR),
+                          cpio_get_size(cpio_images), (paddr_t)cpio_images, 0) >= 0);
+    thread_set_msg_bug(init_thread, (void *)init_msg_buf, (void *)CONFIG_MSG_BUF_VADDR);
     thread_user_pf_set(init_thread, (void *)(entry), (void *)0xdeaddead,
                        NULL, 0);
 #else

@@ -61,10 +61,14 @@ SECTIONS
 	bss_end = .;
 	_ebss = .;
 
-	. = ALIGN(0x8);
+	/**
+	 * 这里必须要按页对齐，这个物理地址会映射给用户态
+	 */
+	. = ALIGN(4096);
 	.cpio : {
 		cpio_start = .;
 		*(.cpio*)
+		. = ALIGN(4096);
 		cpio_end = .;
 	}
 }
