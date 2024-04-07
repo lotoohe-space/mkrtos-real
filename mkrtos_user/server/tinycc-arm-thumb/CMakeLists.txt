@@ -35,16 +35,16 @@ file(GLOB deps
 )
 add_executable(tcc.elf
     ${deps}
+    ${START_SRC}
 )
 target_link_libraries(tcc.elf
     PUBLIC
-    muslc
-    start
+    ${LIBC_NAME}
+    ${START_LIB}
     --whole-archive    
     sys
     sys_util
     sys_svr
-    mr
     --no-whole-archive
     ${GCC_LIB_PATH}/libgcc.a
 )
@@ -59,24 +59,9 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tinycc-arm-thumb
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tinycc-arm-thumb/lib
     # ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tcc-0.9.27/include
-
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
-
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tcc/bsp/core_inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/tcc/bsp/inc
-)
-add_dependencies(tcc.elf
-muslc
 )
 set_target_properties(tcc.elf PROPERTIES LINK_FLAGS
-"-T ${CMAKE_CURRENT_LIST_DIR}/link.lds -pie --gc-section -no-dynamic-linker "
-#--no-warn-rwx-segments
+"-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "
 )
 # 
 add_custom_target(
@@ -93,15 +78,15 @@ add_custom_target(
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
     # COMMAND
     # cp tcc.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc
-    # COMMAND
-    # cp tcc.elf ${CMAKE_SOURCE_DIR}/build/output/tcc.elf
+    COMMAND
+    cp tcc.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc.elf
 )
 
 add_dependencies(tcc_dump tcc.elf)
 add_dependencies(tcc_dump sys)
 add_dependencies(tcc_dump sys_util)
-add_dependencies(tcc_dump mr)
+# add_dependencies(tcc_dump mr)
 add_dependencies(tcc_dump sys_svr)
-add_dependencies(tcc_dump start)
-add_dependencies(tcc_dump muslc)
+# add_dependencies(tcc_dump start)
+# add_dependencies(tcc_dump muslc)
  

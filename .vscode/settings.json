@@ -57,7 +57,8 @@
         "thread.h": "c",
         "thread_knl.h": "c",
         "shell.h": "c",
-        "shell_secure_user.h": "c"
+        "shell_secure_user.h": "c",
+        "u_log.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

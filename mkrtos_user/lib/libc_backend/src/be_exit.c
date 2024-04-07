@@ -23,14 +23,14 @@
 #undef weak
 #define hidden
 #include <features.h>
-#include <futex.h>
 #include <pthread_impl.h>
+#include <futex.h>
 #include <atomic.h>
 #define FUTEX_WAKE_CLEAR 10
 
 void be_exit(long exit_code)
 {
-    struct __pthread *pt = __pthread_self();
+    struct pthread *pt = __pthread_self();
     int th_hd = pt->hd;
     int *old_ctid = (int *)(pt->ctid);
 

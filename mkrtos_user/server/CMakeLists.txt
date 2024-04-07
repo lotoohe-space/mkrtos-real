@@ -13,7 +13,6 @@ if (${ARCH_NAME} STREQUAL "armv7_8m")
     add_subdirectory(test)
     # add_subdirectory(net)
     # add_subdirectory(tcc-0.9.27)
-    add_subdirectory(tinycc-arm-thumb)
 elseif(${CONFIG_ARCH} STREQUAL "aarch64" )
     set(
         START_LIB
@@ -34,4 +33,5 @@ elseif(${CONFIG_ARCH} STREQUAL "aarch64" )
 endif()
 add_subdirectory(init)
 add_subdirectory(shell)
+add_subdirectory(tinycc-arm-thumb)
 
