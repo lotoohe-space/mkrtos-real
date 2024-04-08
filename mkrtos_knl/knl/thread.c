@@ -421,8 +421,8 @@ static void thread_timeout_del_recv(thread_t *th)
  */
 static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
 {
-    void *src = src_th->msg.msg;
-    void *dst = dst_th->msg.msg;
+    void *src = thread_get_kmsg_buf(src_th);
+    void *dst = thread_get_kmsg_buf(dst_th);
     ipc_msg_t *src_ipc;
     ipc_msg_t *dst_ipc;
     task_t *src_tk = thread_get_bind_task(src_th);
@@ -644,7 +644,6 @@ again_check:
             goto end;
         }
 
-        thread_ready(recv_kobj, TRUE); //!< 直接唤醒接受者
         if (is_call)
         {
             if (recv_kobj->ipc_kobj)
@@ -668,6 +667,7 @@ again_check:
                 goto end;
             }
         }
+        thread_ready(recv_kobj, TRUE); //!< 直接唤醒接受者
         preemption();
     }
     ret = 0;
@@ -780,7 +780,8 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     {
         if (is_rw_access(thread_get_bind_task(tag_th), (void *)(f->regs[1]), THREAD_MSG_BUG_LEN, FALSE))
         {
-            thread_set_msg_buf(tag_th, NULL /*TODO:*/, (void *)(f->regs[1]));
+            thread_set_msg_buf(tag_th, (void *)mm_get_paddr(mm_space_get_pdir(&task->mm_space), f->regs[1], PAGE_SHIFT),
+                               (void *)(f->regs[1]));
             tag = msg_tag_init4(0, 0, 0, 0);
         }
         else

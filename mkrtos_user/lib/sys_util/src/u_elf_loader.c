@@ -280,7 +280,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
 
     app_stack_push_umword(hd_task, &usp_top, 0);
 
-    app_stack_push_umword(hd_task, &usp_top, (umword_t)app_env);
+    app_stack_push_umword(hd_task, &usp_top, (umword_t)app_env - (addr_t)sp_addr + 0x8000000);
     app_stack_push_umword(hd_task, &usp_top, 0xfe);
 
     app_stack_push_umword(hd_task, &usp_top, MK_PAGE_SIZE);

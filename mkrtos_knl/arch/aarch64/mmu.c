@@ -172,6 +172,17 @@ int unmap_mm(page_entry_t *pdir, addr_t virt_addr, mword_t page_order, mword_t p
     }
     return 0;
 }
+SECTION(TEXT_BOOT_SECTION)
+umword_t mm_get_paddr(page_entry_t *pdir, addr_t virt_addr, mword_t page_order)
+{
+    pte_t *pte = pages_walk(pdir, virt_addr + (0 << page_order), page_order, NULL);
+
+    if (pte != NULL)
+    {
+        return MASK_LSB(pte->pte, page_order) << (MWORD_BITS - 47) >> (MWORD_BITS - 47);
+    }
+    return 0;
+}
 
 static SECTION(TEXT_BOOT_SECTION) void boot_init_pageing(page_entry_t *kpdir, bool_t init_pages)
 {
@@ -184,7 +195,8 @@ static SECTION(TEXT_BOOT_SECTION) void boot_init_pageing(page_entry_t *kpdir, bo
         int i_ffs = ffs(CONFIG_KNL_DATA_SIZE) + (is_power_of_2(CONFIG_KNL_DATA_SIZE) ? 0 : 1);
         int i_cn = 0;
 
-        if (i_ffs<30) {
+        if (i_ffs < 30)
+        {
             i_ffs = 30;
         }
 
