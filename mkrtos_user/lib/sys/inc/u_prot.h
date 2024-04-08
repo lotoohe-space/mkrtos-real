@@ -48,7 +48,7 @@ typedef union msg_tag
     .map_buf_len = (buf_words),                                  \
     .prot = (p)})
 #define msg_tag_get_prot(tag) \
-    ((int16_t)((tag).prot))
+    ((int)((tag).prot))
 #define msg_tag_get_val(tag) msg_tag_get_prot(tag)
 
 typedef union syscall_prot

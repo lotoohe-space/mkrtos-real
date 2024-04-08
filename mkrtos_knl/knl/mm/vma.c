@@ -15,7 +15,7 @@
 #include <task.h>
 
 static slab_t *vma_slab;
-
+static int vma_idl_tree_insert_cmp_handler(const void *key, const void *data);
 /**
  * @brief 在系统初始化时调用，初始化vma的内存
  *
@@ -82,6 +82,7 @@ int task_vma_init(task_vma_t *vma)
                            vma_addr_create(0, 0, 0x1000),
                            0x100000000 - 0x1000,
                            0);
+    vma->idle_tree.cmp = vma_idl_tree_insert_cmp_handler;
     mln_rbtree_insert(&vma->idle_tree, node);
 }
 
@@ -429,7 +430,7 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
         //!< 设置分配后的地址
         *ret_vaddr = alloc_addr;
     }
-    printk("alloc:[0x%x 0x%x]\n", alloc_addr, alloc_addr + size - 1);
+    // printk("alloc:[0x%x 0x%x] size:0x%x\n", alloc_addr, alloc_addr + size - 1, size);
     ret = 0;
 end:
     task_vma_unlock(task_vma, lock_status);
@@ -485,6 +486,8 @@ static int rbtree_iterate_tree_grant(mln_rbtree_node_t *node, void *udata)
     vma_idl_tree_iter_grant_params_t *param = udata;
     vma_t *node_data = mln_rbtree_node_data_get(node);
 
+    // printk("[grant][0x%lx 0x%lx] [0x%lx:0x%lx]\n", vma_addr_get_addr(node_data->vaddr), vma_addr_get_addr(node_data->vaddr) + node_data->size,
+    //       param->addr, param->size);
     if (vma_addr_get_addr(node_data->vaddr) >= param->addr &&
         vma_addr_get_addr(node_data->vaddr) + node_data->size <= param->addr + param->size)
     {
@@ -496,19 +499,22 @@ static int rbtree_iterate_tree_grant(mln_rbtree_node_t *node, void *udata)
         vaddr_t dst_addr;
 
         dst_addr = vma_addr_get_addr(node_data->vaddr) - param->addr + param->dst_addr;
-        
+
         // 解除映射
         unmap_mm(mm_space_get_pdir(src_mm_space),
                  vma_addr_get_addr(node_data->vaddr), PAGE_SHIFT, 1);
-        
-        int ret = map_mm(mm_space_get_pdir(src_mm_space), dst_addr,
-                 (addr_t)vma_node_get_paddr(node_data), PAGE_SHIFT, 1,
-                 vpage_attrs_to_page_attrs(vma_addr_get_prot(node_data->vaddr)));
 
-        if (ret >= 0) {
+        int ret = map_mm(mm_space_get_pdir(dst_mm_space), dst_addr,
+                         (addr_t)vma_node_get_paddr(node_data), PAGE_SHIFT, 1,
+                         vpage_attrs_to_page_attrs(vma_addr_get_prot(node_data->vaddr)));
+
+        if (ret >= 0)
+        {
             param->grant_size += PAGE_SIZE;
         }
+        //printk("vaddr:0x%x grant vaddr:0x%x 0x%x\n", vma_addr_get_addr(node_data->vaddr), dst_addr, PAGE_SIZE);
         vma_addr_set_addr(&node_data->vaddr, dst_addr);
+        param->r_dst_tree->cmp = vma_idl_tree_insert_cmp_handler;
         mln_rbtree_insert(param->r_dst_tree, node);
     }
     return 0;
@@ -566,7 +572,7 @@ int task_vma_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma, vaddr_t s
         goto end;
     }
     // 查找目的
-    dst_task_vma->idle_tree.cmp = vma_idl_tree_eq_cmp_handler;
+    dst_task_vma->idle_tree.cmp = vma_idl_tree_eq_cmp_handler; /**TODO:应该检查是否被包裹 */
     dst_node = mln_rbtree_search(
         &dst_task_vma->idle_tree,
         &(vma_idl_tree_insert_params_t){
@@ -575,12 +581,22 @@ int task_vma_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma, vaddr_t s
         }); //!< 查找是否存在
     if (!mln_rbtree_null(dst_node, &dst_task_vma->idle_tree))
     {
+        // vma_t *dst_node_dat = mln_rbtree_node_data_get(dst_node);
+
+        // if (!vma_node_get_used(dst_node_dat))
+        // {
+        //     mln_rbtree_delete(&dst_task_vma->idle_tree, dst_node);
+        //     vma_node_free(&dst_task_vma->idle_tree, dst_node);
+        // }
+        // else
+        // {
         ret = -EEXIST;
         goto end;
+        // }
     }
 
     /*转移映射*/
-    mln_rbtree_delete(&src_task_vma->idle_tree,src_node);
+    mln_rbtree_delete(&src_task_vma->idle_tree, src_node);
 
     vma_idl_tree_iter_grant_params_t params = {
         .addr = src_addr,
@@ -591,10 +607,11 @@ int task_vma_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma, vaddr_t s
         .src_mm_vma = src_task_vma,
         .dst_mm_vma = dst_task_vma,
     };
-    //从源task的分配树中转移到目的task的分配树中。
+    // 从源task的分配树中转移到目的task的分配树中。
     mln_rbtree_iterate(&src_task_vma->alloc_tree, rbtree_iterate_tree_grant, &params);
 
-    mln_rbtree_insert(&src_task_vma->idle_tree,src_node);
+    dst_task_vma->idle_tree.cmp = vma_idl_tree_insert_cmp_handler;
+    mln_rbtree_insert(&dst_task_vma->idle_tree, src_node);
     ret = params.grant_size;
 end:
     task_vma_unlock_two(src_task_vma, dst_task_vma, lock_status0, lock_status1);
@@ -804,7 +821,7 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr)
     {
         return lock_status;
     }
-    // printk("page fault:0x%x.\n", addr);
+    //printk("page fault:0x%x.\n", addr);
     // 1.查找
     task = container_of(container_of(task_vma, mm_space_t, mem_vma), task_t, mm_space);
     task_vma->idle_tree.cmp = vma_idl_tree_wrap_cmp_handler;

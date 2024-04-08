@@ -27,7 +27,6 @@ slab_t *slab_create(size_t align_size, const char *name)
     {
         return NULL;
     }
-    printk("alloc addr 0x%x.\n", mem);
     slab_t *tmp_slab = (slab_t *)mem;
 
     spinlock_init(&tmp_slab->lock);
@@ -113,6 +112,10 @@ again:
 
         for (size_t i = 0; i < alloc_size / (slab->align_size + sizeof(slab_block_head_t)); i++)
         {
+            if ((i + 1) * (slab->align_size + sizeof(slab_block_head_t)) + (slab->align_size + sizeof(slab_block_head_t)) > alloc_size)
+            {
+                break;
+            }
             slab_block_head_t *slab_block = (slab_block_head_t *)((mem + sizeof(slab_head_t)) +
                                                                   (i * (slab->align_size + sizeof(slab_block_head_t))));
 

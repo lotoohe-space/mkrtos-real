@@ -70,8 +70,9 @@ static void *app_stack_push_str(obj_handler_t task_obj, umword_t **stack, const 
     int len = strlen(str) + 1;
 
     *stack -= ALIGN(len, sizeof(void *)) / sizeof(void *);
-    for (int i = 0; i < len; i++) {
-        ((char*)(*stack))[i] = str[i];
+    for (int i = 0; i < len; i++)
+    {
+        ((char *)(*stack))[i] = str[i];
     }
 
     return *stack;
@@ -95,7 +96,7 @@ static int thread_set_msg_buf(obj_handler_t hd_task, obj_handler_t hd_thread)
 {
     addr_t mem;
     msg_tag_t tag;
-    
+
     tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RW, 0, 0), PAGE_SIZE, 0, (addr_t *)(&mem));
     if (msg_tag_get_val(tag) < 0)
     {
@@ -107,7 +108,7 @@ static int thread_set_msg_buf(obj_handler_t hd_task, obj_handler_t hd_thread)
     {
         return msg_tag_get_val(tag);
     }
-    //设置msgbuff,TODO:内核需要获取到对应的物理地址
+    // 设置msgbuff,TODO:内核需要获取到对应的物理地址
     tag = thread_msg_buf_set(hd_thread, (void *)(CONFIG_MSG_BUF_VADDR));
     if (msg_tag_get_val(tag) < 0)
     {
@@ -163,7 +164,8 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     }
 
     ret = elf_load(addr, size, &entry_addr, hd_task);
-    if (ret < 0) {
+    if (ret < 0)
+    {
         goto end_del_obj;
     }
 
@@ -227,10 +229,10 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         goto end_del_obj;
     }
-    ret = thread_set_msg_buf(hd_task,  hd_thread);
-    if (ret < 0) {
+    ret = thread_set_msg_buf(hd_task, hd_thread);
+    if (ret < 0)
+    {
         goto end_del_obj;
-
     }
     tag = task_set_pid(hd_task, hd_task); //!< 设置进程的pid就是进程hd号码
     if (msg_tag_get_prot(tag) < 0)
@@ -244,15 +246,18 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     void *sp_addr;
     void *sp_addr_top;
 
-    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, 0), CONFIG_PAGE_SHIFT * 8, 0, (addr_t *)(&sp_addr));
+#define MAIN_THREAD_STACK_SIZE ((1 << CONFIG_PAGE_SHIFT) * 8)
+
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, 0),
+                       MAIN_THREAD_STACK_SIZE, 0, (addr_t *)(&sp_addr));
     if (msg_tag_get_val(tag) < 0)
     {
         goto end_del_obj;
     }
-    sp_addr_top = (char *)sp_addr_top + CONFIG_PAGE_SHIFT * 8;
+    sp_addr_top = (char *)sp_addr + MAIN_THREAD_STACK_SIZE;
 
-    printf("stack:0x%x size:%d.\n", sp_addr,  CONFIG_PAGE_SHIFT * 8);
-    umword_t *usp_top = (umword_t *)((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL);
+    printf("stack:0x%x size:%d.\n", sp_addr, MAIN_THREAD_STACK_SIZE);
+    umword_t *usp_top = (umword_t *)((umword_t)((umword_t)sp_addr_top - sizeof(void *)) & ~0x7UL);
     uenv_t uenv = {
         .log_hd = cur_env->ns_hd,
         .ns_hd = cur_env->ns_hd,
@@ -284,7 +289,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     app_stack_push_umword(hd_task, &usp_top, 0);
     for (int i = 0; i < envp_cn; i++)
     {
-        app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_envp);
+        app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_envp - (addr_t)sp_addr + 0x8000000);
         cp_envp += ALIGN(strlen(envp[i]), sizeof(void *));
     }
     if (arg_cn)
@@ -292,21 +297,34 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
         app_stack_push_umword(hd_task, &usp_top, 0);
         for (int i = 0; i < arg_cn; i++)
         {
-            app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_args);
+            app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_args - (addr_t)sp_addr + 0x8000000);
             cp_args += ALIGN(strlen(argv[i]) + 1, sizeof(void *));
         }
     }
     app_stack_push_umword(hd_task, &usp_top, arg_cn);
 
     printf("pid:%d stack:%p\n", hd_task, usp_top);
-    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)usp_top, 0, 0);
+    tag = thread_exec_regs(hd_thread, (umword_t)entry_addr, (umword_t)usp_top - (addr_t)sp_addr + 0x8000000, 0, 0);
     assert(msg_tag_get_prot(tag) >= 0);
+
+    tag = u_vmam_grant(VMA_PROT, hd_task, (addr_t)sp_addr, 0x8000000, MAIN_THREAD_STACK_SIZE);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto free_data;
+    }
+
     /*启动线程运行*/
     tag = thread_run(hd_thread, 2);
     assert(msg_tag_get_prot(tag) >= 0);
     task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_thread));
     handler_free(hd_thread);
     return 0;
+
+free_data:
+    if (sp_addr)
+    {
+        u_vmam_free(VMA_PROT, (addr_t)sp_addr, MAIN_THREAD_STACK_SIZE);
+    }
 end_del_obj:
     if (hd_thread != HANDLER_INVALID)
     {

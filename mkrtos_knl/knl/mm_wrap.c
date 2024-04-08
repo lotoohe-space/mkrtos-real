@@ -85,7 +85,12 @@ void mm_limit_free_align(ram_limit_t *limit, void *mem, size_t size)
 #include <buddy.h>
 void *mm_buddy_alloc_one_page(void)
 {
-    return buddy_alloc(buddy_get_alloter(), PAGE_SIZE);
+    void *mem = buddy_alloc(buddy_get_alloter(), PAGE_SIZE);
+
+    if (mem) {
+        memset(mem, 0, PAGE_SIZE);
+    }
+    return mem;
 }
 void *mm_limit_alloc_buddy(ram_limit_t *limit, size_t size)
 {

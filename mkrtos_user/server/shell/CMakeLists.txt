@@ -12,6 +12,7 @@ target_link_libraries(sh.elf
     ${LIBC_NAME}
     ${START_LIB}
     --whole-archive
+    libc_be
     sys
     sys_util
     sys_svr

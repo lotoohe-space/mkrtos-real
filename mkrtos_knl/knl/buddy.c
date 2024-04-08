@@ -272,6 +272,7 @@ void *buddy_alloc(buddy_order_t *buddy, size_t size)
     }
 end:
     spinlock_set(&buddy->lock, l_state);
+    //printk("alloc addr 0x%x.\n", ret_mem);
     return ret_mem;
 }
 static inline addr_t get_buddy_addr(buddy_entry_t *merge_be, size_t size)

@@ -40,7 +40,7 @@ void thread_sync_entry(entry_frame_t *regs)
 
         if (task_vma_page_fault(&tk->mm_space.mem_vma, ALIGN_DOWN(addr, PAGE_SIZE)) < 0)
         {
-            printk("0x20 pfa:0x%x\n", addr);
+            printk("[knl]0x20 pfa:0x%x\n", addr);
             printk("pc:0x%x x29:0x%x\n", regs->pc, regs->regs[29]);
             // dump_stack(regs->pc, regs->regs[29]);
             task_knl_kill(th, FALSE);
@@ -53,7 +53,7 @@ void thread_sync_entry(entry_frame_t *regs)
 
         if (task_vma_page_fault(&tk->mm_space.mem_vma, ALIGN_DOWN(addr, PAGE_SIZE)) < 0)
         {
-            printk("0x24 pfa:0x%x\n", addr);
+            printk("[knl]0x24 pfa:0x%x\n", addr);
             // dump_stack(regs->pc, regs->regs[29]);
             task_knl_kill(th, FALSE);
         }

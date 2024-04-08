@@ -46,9 +46,9 @@
             "environment": [],
             "externalConsole": false,
             // "miDebuggerPath": "/opt/homebrew/bin/arm-none-eabi-gdb",
-            "miDebuggerPath": "/home/mkrtos-smart/toolchains/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin/aarch64-none-elf-gdb",
+            "miDebuggerPath": "/home/zhangzheng/gcc-arm-10.3-2021.07-aarch64-aarch64-none-elf/bin/aarch64-none-elf-gdb",
             // "miDebuggerPath": "/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-gdb",
-            "miDebuggerServerAddress": "127.0.0.1:33333",
+            "miDebuggerServerAddress": "127.0.0.1:3333",
             "MIMode": "gdb",
             "setupCommands": [
                 {
