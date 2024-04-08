@@ -7,6 +7,7 @@ enum
 {
     VMA_ALLOC,
     VMA_FREE,
+    VMA_GRANT,
 };
 
 msg_tag_t u_vmam_alloc(obj_handler_t obj, vma_addr_t addr, size_t size, addr_t paddr, addr_t *vaddr)
@@ -29,6 +30,25 @@ msg_tag_t u_vmam_alloc(obj_handler_t obj, vma_addr_t addr, size_t size, addr_t p
     {
         *vaddr = r1;
     }
+
+    return msg_tag_init(r0);
+}
+msg_tag_t u_vmam_grant(obj_handler_t obj, obj_handler_t dst_task_obj, 
+    addr_t src_addr, addr_t dst_addr, size_t size)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+
+    mk_syscall(syscall_prot_create4(VMA_GRANT, VMA_PROT, obj, FALSE).raw,
+               dst_task_obj,
+               src_addr,
+               dst_addr,
+               size,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0);
 
     return msg_tag_init(r0);
 }

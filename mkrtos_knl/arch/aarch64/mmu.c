@@ -184,6 +184,10 @@ static SECTION(TEXT_BOOT_SECTION) void boot_init_pageing(page_entry_t *kpdir, bo
         int i_ffs = ffs(CONFIG_KNL_DATA_SIZE) + (is_power_of_2(CONFIG_KNL_DATA_SIZE) ? 0 : 1);
         int i_cn = 0;
 
+        if (i_ffs<30) {
+            i_ffs = 30;
+        }
+
         // 进行1比1映射
         do
         {

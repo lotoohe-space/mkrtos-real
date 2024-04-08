@@ -11,6 +11,7 @@
 #include "u_types.h"
 #include "u_prot.h"
 #include "u_app.h"
+#include "u_arch.h"
 #include "u_factory.h"
 #include "u_mm.h"
 #include "u_task.h"
@@ -26,6 +27,9 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <u_elf64.h>
+#include <u_vmam.h>
+
 /**
  * @brief 向栈中存放数据
  *
@@ -49,11 +53,8 @@ static umword_t app_stack_push(umword_t *stack, umword_t val)
  */
 static void *app_stack_push_umword(obj_handler_t task_obj, umword_t **stack, umword_t val)
 {
-    ipc_msg_t *msg = thread_get_cur_ipc_msg();
     (*stack)--;
-
-    msg->msg_buf[0] = val;
-    task_copy_data(task_obj, *stack, sizeof(umword_t));
+    *(*stack) = val;
 
     return *stack;
 }
@@ -66,17 +67,12 @@ static void *app_stack_push_umword(obj_handler_t task_obj, umword_t **stack, umw
  */
 static void *app_stack_push_str(obj_handler_t task_obj, umword_t **stack, const char *str)
 {
-    ipc_msg_t *msg = thread_get_cur_ipc_msg();
     int len = strlen(str) + 1;
-    char *cp_data = (char *)msg->msg_buf;
 
-    len = MIN(len, ARRAY_SIZE(msg->msg_buf) * sizeof(umword_t));
     *stack -= ALIGN(len, sizeof(void *)) / sizeof(void *);
-
-    memcpy(cp_data, str, len);
-    cp_data[len - 1] = 0;
-
-    task_copy_data(task_obj, *stack, len);
+    for (int i = 0; i < len; i++) {
+        ((char*)(*stack))[i] = str[i];
+    }
 
     return *stack;
 }
@@ -91,20 +87,34 @@ static void *app_stack_push_str(obj_handler_t task_obj, umword_t **stack, const 
  */
 static void *app_stack_push_array(obj_handler_t task_obj, umword_t **stack, uint8_t *arr, size_t len)
 {
-    ipc_msg_t *msg = thread_get_cur_ipc_msg();
-    char *cp_data = (char *)msg->msg_buf;
-
-    len = MIN(len, ARRAY_SIZE(msg->msg_buf) * sizeof(umword_t));
     *stack -= ALIGN(len, sizeof(void *)) / sizeof(void *);
-
-    memcpy(cp_data, arr, len);
-    cp_data[len - 1] = 0;
-
-    task_copy_data(task_obj, *stack, len);
-
+    memcpy(*stack, arr, len);
     return *stack;
 }
-
+static int thread_set_msg_buf(obj_handler_t hd_task, obj_handler_t hd_thread)
+{
+    addr_t mem;
+    msg_tag_t tag;
+    
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RW, 0, 0), PAGE_SIZE, 0, (addr_t *)(&mem));
+    if (msg_tag_get_val(tag) < 0)
+    {
+        return msg_tag_get_val(tag);
+    }
+    memset((void *)mem, 0, PAGE_SIZE);
+    tag = u_vmam_grant(VMA_PROT, hd_task, (addr_t)mem, CONFIG_MSG_BUF_VADDR, PAGE_SIZE);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        return msg_tag_get_val(tag);
+    }
+    //设置msgbuff,TODO:内核需要获取到对应的物理地址
+    tag = thread_msg_buf_set(hd_thread, (void *)(CONFIG_MSG_BUF_VADDR));
+    if (msg_tag_get_val(tag) < 0)
+    {
+        return msg_tag_get_val(tag);
+    }
+    return 0;
+}
 /**
  * @brief 加载并执行一个app
  *
@@ -115,6 +125,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
 {
     msg_tag_t tag;
     sys_info_t sys_info;
+    int ret;
 
     tag = sys_read_info(SYS_PROT, &sys_info);
     if (msg_tag_get_val(tag) < 0)
@@ -123,24 +134,18 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     }
     int type;
     umword_t addr;
-    int ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL, &type, &addr);
+    umword_t size;
+
+    ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, &size, &type, &addr);
 
     if (ret < 0 || (ret >= 0 && type == 1))
     {
         return -ENOENT;
     }
 
-    app_info_t *app = app_info_get((void *)addr);
-
-    if (app == NULL)
-    {
-        printf("app format is error.\n");
-        return -1;
-    }
-    printf("%s addr is [0x%x]\n", name, app);
-    umword_t ram_base;
     obj_handler_t hd_task = handler_alloc();
     obj_handler_t hd_thread = handler_alloc();
+    addr_t entry_addr;
 
     if (hd_task == HANDLER_INVALID)
     {
@@ -156,16 +161,22 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         goto end_del_obj;
     }
+
+    ret = elf_load(addr, size, &entry_addr, hd_task);
+    if (ret < 0) {
+        goto end_del_obj;
+    }
+
     tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_thread));
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = task_alloc_ram_base(hd_task, app->i.ram_size, &ram_base);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
+    // tag = task_alloc_ram_base(hd_task, app->i.ram_size, &ram_base);
+    // if (msg_tag_get_prot(tag) < 0)
+    // {
+    //     goto end_del_obj;
+    // }
     tag = task_map(hd_task, hd_task, TASK_PROT, 0);
     if (msg_tag_get_prot(tag) < 0)
     {
@@ -201,6 +212,11 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         goto end_del_obj;
     }
+    tag = task_map(hd_task, VMA_PROT, VMA_PROT, KOBJ_DELETE_RIGHT);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
     tag = task_map(hd_task, cur_env->ns_hd, cur_env->ns_hd, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
@@ -211,10 +227,10 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         goto end_del_obj;
     }
-    tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + app->i.ram_size));
-    if (msg_tag_get_prot(tag) < 0)
-    {
+    ret = thread_set_msg_buf(hd_task,  hd_thread);
+    if (ret < 0) {
         goto end_del_obj;
+
     }
     tag = task_set_pid(hd_task, hd_task); //!< 设置进程的pid就是进程hd号码
     if (msg_tag_get_prot(tag) < 0)
@@ -225,9 +241,17 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         *pid = hd_task;
     }
-    void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
-    void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
-    printf("stack:0x%x size:%d.\n", sp_addr, app->i.stack_size);
+    void *sp_addr;
+    void *sp_addr_top;
+
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, 0), CONFIG_PAGE_SHIFT * 8, 0, (addr_t *)(&sp_addr));
+    if (msg_tag_get_val(tag) < 0)
+    {
+        goto end_del_obj;
+    }
+    sp_addr_top = (char *)sp_addr_top + CONFIG_PAGE_SHIFT * 8;
+
+    printf("stack:0x%x size:%d.\n", sp_addr,  CONFIG_PAGE_SHIFT * 8);
     umword_t *usp_top = (umword_t *)((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL);
     uenv_t uenv = {
         .log_hd = cur_env->ns_hd,
@@ -275,8 +299,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     app_stack_push_umword(hd_task, &usp_top, arg_cn);
 
     printf("pid:%d stack:%p\n", hd_task, usp_top);
-    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)usp_top,
-                           ram_base, 0);
+    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)usp_top, 0, 0);
     assert(msg_tag_get_prot(tag) >= 0);
     /*启动线程运行*/
     tag = thread_run(hd_thread, 2);

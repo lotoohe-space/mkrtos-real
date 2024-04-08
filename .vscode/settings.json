@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        ".*": ".cc",
         "types.h": "c",
         "string.h": "c",
         "cpio.h": "c",
@@ -58,7 +59,10 @@
         "thread_knl.h": "c",
         "shell.h": "c",
         "shell_secure_user.h": "c",
-        "u_log.h": "c"
+        "u_log.h": "c",
+        "elf.h": "c",
+        "u_vmam.h": "c",
+        "u_arch_hard.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

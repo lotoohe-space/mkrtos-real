@@ -31,6 +31,7 @@ enum
 {
     VMA_ALLOC,
     VMA_FREE,
+    VMA_GRANT,
 };
 
 static void vma_obj_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
@@ -66,7 +67,24 @@ static void vma_obj_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_
     {
         int ret;
 
-        task_vma_free(&tk->mm_space.mem_vma, f->regs[0], f->regs[1]);
+        ret = task_vma_free(&tk->mm_space.mem_vma, f->regs[0], f->regs[1]);
+        f->regs[0] = msg_tag_init4(0, 0, 0, ret).raw;
+    }
+    break;
+    case VMA_GRANT:
+    {
+        int ret;
+
+        kobject_t *kobj;
+
+        kobj = obj_space_lookup_kobj_cmp_type(&tk->obj_space, f->regs[0], TASK_TYPE);
+        if (kobj==NULL) {
+            f->regs[0] = msg_tag_init4(0, 0, 0, -ENOENT).raw;
+            break;
+        }
+
+        ret = task_vma_grant(&tk->mm_space.mem_vma, &((task_t *)kobj)->mm_space.mem_vma,
+            f->regs[1], f->regs[2], f->regs[3]);
         f->regs[0] = msg_tag_init4(0, 0, 0, ret).raw;
     }
     break;

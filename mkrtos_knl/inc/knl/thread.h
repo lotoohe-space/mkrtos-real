@@ -123,7 +123,7 @@ typedef struct thread
     umword_t magic; //!< maigc
 } thread_t;
 
-static inline void thread_set_msg_bug(thread_t *th, void *msg, void *umsg)
+static inline void thread_set_msg_buf(thread_t *th, void *msg, void *umsg)
 {
     th->msg.msg = msg;
     th->msg.umsg = umsg;

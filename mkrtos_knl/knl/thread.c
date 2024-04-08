@@ -780,7 +780,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     {
         if (is_rw_access(thread_get_bind_task(tag_th), (void *)(f->regs[1]), THREAD_MSG_BUG_LEN, FALSE))
         {
-            thread_set_msg_bug(tag_th, NULL /*TODO:*/, (void *)(f->regs[1]));
+            thread_set_msg_buf(tag_th, NULL /*TODO:*/, (void *)(f->regs[1]));
             tag = msg_tag_init4(0, 0, 0, 0);
         }
         else

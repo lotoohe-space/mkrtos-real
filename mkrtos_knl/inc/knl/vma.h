@@ -124,7 +124,20 @@ int task_vma_init(task_vma_t *vma);
  */
 int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
                    paddr_t paddr, vaddr_t *ret_vaddr);
-
+/**
+ * @brief 将一个task的内存转移给另一个task
+ * 1.查找源中是否存在
+ * 2.查找目的中是否存在
+ * 3.虚拟地址节点从源中删除，插入到目的
+ * 4.物理地址从源中解除映射，并从树中删除，插入到目的，并映射到目的端。
+ * @param src_task_vma
+ * @param dst_task_vma
+ * @param src_addr
+ * @param size
+ * @return int
+ */
+int task_vma_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma,
+        vaddr_t src_addr, vaddr_t dst_addr, size_t size);
 /**
  * @brief 释放申请的虚拟内存，并释放已经申请的物理内存
  * 1.从分配树中找到需要的节点

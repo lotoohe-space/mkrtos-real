@@ -26,6 +26,8 @@
 #define SECTION(section) __attribute__((__section__(section)))
 #define __ALIGN__(size) __attribute__((aligned(size)))
 
+#define __WEAK__ __attribute__((weak))
+
 #define container_of(ptr, type, member) \
     ((type *)(((umword_t)(ptr)) - ((umword_t)(&(((type *)0)->member)))))
 

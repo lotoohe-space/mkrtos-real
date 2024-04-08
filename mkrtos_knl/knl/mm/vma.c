@@ -461,6 +461,59 @@ static int vma_idl_tree_eq_cmp_handler(const void *key, const void *data)
         return 1;
     }
 }
+typedef struct vma_idl_tree_iter_grant_params
+{
+    vaddr_t addr;
+    vaddr_t dst_addr;
+    size_t size;
+    mln_rbtree_t *r_src_tree;
+    mln_rbtree_t *r_dst_tree;
+    task_vma_t *src_mm_vma;
+    task_vma_t *dst_mm_vma;
+
+    size_t grant_size;
+} vma_idl_tree_iter_grant_params_t;
+/**
+ * @brief 迭代转移
+ *
+ * @param node
+ * @param udata
+ * @return int
+ */
+static int rbtree_iterate_tree_grant(mln_rbtree_node_t *node, void *udata)
+{
+    vma_idl_tree_iter_grant_params_t *param = udata;
+    vma_t *node_data = mln_rbtree_node_data_get(node);
+
+    if (vma_addr_get_addr(node_data->vaddr) >= param->addr &&
+        vma_addr_get_addr(node_data->vaddr) + node_data->size <= param->addr + param->size)
+    {
+        mm_space_t *src_mm_space = container_of(param->src_mm_vma, mm_space_t, mem_vma);
+        mm_space_t *dst_mm_space = container_of(param->dst_mm_vma, mm_space_t, mem_vma);
+
+        // 从红黑树中删除
+        mln_rbtree_delete(param->r_src_tree, node);
+        vaddr_t dst_addr;
+
+        dst_addr = vma_addr_get_addr(node_data->vaddr) - param->addr + param->dst_addr;
+        
+        // 解除映射
+        unmap_mm(mm_space_get_pdir(src_mm_space),
+                 vma_addr_get_addr(node_data->vaddr), PAGE_SHIFT, 1);
+        
+        int ret = map_mm(mm_space_get_pdir(src_mm_space), dst_addr,
+                 (addr_t)vma_node_get_paddr(node_data), PAGE_SHIFT, 1,
+                 vpage_attrs_to_page_attrs(vma_addr_get_prot(node_data->vaddr)));
+
+        if (ret >= 0) {
+            param->grant_size += PAGE_SIZE;
+        }
+        vma_addr_set_addr(&node_data->vaddr, dst_addr);
+        mln_rbtree_insert(param->r_dst_tree, node);
+    }
+    return 0;
+}
+
 /**
  * @brief 将一个task的内存转移给另一个task
  * 1.查找源中是否存在
@@ -473,7 +526,7 @@ static int vma_idl_tree_eq_cmp_handler(const void *key, const void *data)
  * @param size
  * @return int
  */
-int task_vam_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma, vaddr_t src_addr, size_t size)
+int task_vma_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma, vaddr_t src_addr, vaddr_t dst_addr, size_t size)
 {
     assert(src_task_vma);
     assert(dst_task_vma);
@@ -491,7 +544,6 @@ int task_vam_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma, vaddr_t s
     {
         return lock_status;
     }
-    /*TODO:*/
     mln_rbtree_node_t *src_node;
     mln_rbtree_node_t *dst_node;
 
@@ -519,22 +571,33 @@ int task_vam_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma, vaddr_t s
         &dst_task_vma->idle_tree,
         &(vma_idl_tree_insert_params_t){
             .size = size,
-            .addr = src_addr,
+            .addr = dst_addr,
         }); //!< 查找是否存在
-    if (mln_rbtree_null(dst_node, &dst_task_vma->idle_tree))
-    {
-        ret = -ENOENT;
-        goto end;
-    }
-    if (vma_node_get_used(mln_rbtree_node_data_get(dst_node)))
+    if (!mln_rbtree_null(dst_node, &dst_task_vma->idle_tree))
     {
         ret = -EEXIST;
         goto end;
     }
 
-    ret = 0;
+    /*转移映射*/
+    mln_rbtree_delete(&src_task_vma->idle_tree,src_node);
+
+    vma_idl_tree_iter_grant_params_t params = {
+        .addr = src_addr,
+        .dst_addr = dst_addr,
+        .size = size,
+        .r_src_tree = &src_task_vma->alloc_tree,
+        .r_dst_tree = &dst_task_vma->alloc_tree,
+        .src_mm_vma = src_task_vma,
+        .dst_mm_vma = dst_task_vma,
+    };
+    //从源task的分配树中转移到目的task的分配树中。
+    mln_rbtree_iterate(&src_task_vma->alloc_tree, rbtree_iterate_tree_grant, &params);
+
+    mln_rbtree_insert(&src_task_vma->idle_tree,src_node);
+    ret = params.grant_size;
 end:
-    task_vma_unlock_two(src_task_vma, dst_task_vma);
+    task_vma_unlock_two(src_task_vma, dst_task_vma, lock_status0, lock_status1);
     return ret;
 }
 
@@ -804,12 +867,15 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr)
     // 4.进行映射
     ret = map_mm(mm_space_get_pdir(&task->mm_space), addr,
                  (addr_t)mem, PAGE_SHIFT, 1,
-                 vpage_attrs_to_page_attrs(vma_addr_get_prot(node_data->vaddr))); /*TODO:设置权限*/
+                 vpage_attrs_to_page_attrs(vma_addr_get_prot(node_data->vaddr)));
     if (ret < 0)
     {
+        vma_node_free(&task_vma->alloc_tree, alloc_node);
         ret = -ENOMEM;
         goto end;
     }
+    task_vma->alloc_tree.cmp = vma_idl_tree_insert_cmp_handler;
+    mln_rbtree_insert(&task_vma->alloc_tree, alloc_node);
     ret = 0;
 end:
     task_vma_unlock(task_vma, lock_status);
