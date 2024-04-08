@@ -330,6 +330,27 @@ void task_vma_unlock(task_vma_t *task_vma, mword_t status)
     task = container_of(container_of(task_vma, mm_space_t, mem_vma), task_t, mm_space);
     spinlock_set(&task->kobj.lock, status);
 }
+mword_t task_vma_lock_two(task_vma_t *task_vma_0, task_vma_t *task_vma_1, mword_t *status0, mword_t *status1)
+{
+    mword_t status;
+    assert(status0);
+    assert(status1);
+
+    status = task_vma_lock(task_vma_0);
+    if (status < 0)
+    {
+        return status;
+    }
+    *status0 = status;
+    status = task_vma_lock(task_vma_1);
+    *status1 = status;
+    return status;
+}
+void task_vma_unlock_two(task_vma_t *task_vma_0, task_vma_t *task_vma_1, mword_t status0, mword_t status1)
+{
+    task_vma_unlock(task_vma_1, status1);
+    task_vma_unlock(task_vma_0, status1);
+}
 /**
  * 分配步骤
  * 1.找到一个空闲的合适的虚拟内存区域
@@ -421,7 +442,7 @@ end:
  * 0 两个参数相同
  * 1 第一个参数大于第二个参数
  */
-static int vma_idl_tree_free_cmp_handler(const void *key, const void *data)
+static int vma_idl_tree_eq_cmp_handler(const void *key, const void *data)
 {
     vma_idl_tree_insert_params_t *key_p = (vma_idl_tree_insert_params_t *)key;
     vma_t *data_p = (vma_t *)data;
@@ -440,6 +461,83 @@ static int vma_idl_tree_free_cmp_handler(const void *key, const void *data)
         return 1;
     }
 }
+/**
+ * @brief 将一个task的内存转移给另一个task
+ * 1.查找源中是否存在
+ * 2.查找目的中是否存在
+ * 3.虚拟地址节点从源中删除，插入到目的
+ * 4.物理地址从源中解除映射，并从树中删除，插入到目的，并映射到目的端。
+ * @param src_task_vma
+ * @param dst_task_vma
+ * @param src_addr
+ * @param size
+ * @return int
+ */
+int task_vam_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma, vaddr_t src_addr, size_t size)
+{
+    assert(src_task_vma);
+    assert(dst_task_vma);
+    if ((size & (PAGE_SIZE - 1)) != 0)
+    {
+        return -EINVAL;
+    }
+    mword_t lock_status;
+    mword_t lock_status0;
+    mword_t lock_status1;
+    int ret = -EINVAL;
+
+    lock_status = task_vma_lock_two(src_task_vma, dst_task_vma, &lock_status0, &lock_status1);
+    if (lock_status < 0)
+    {
+        return lock_status;
+    }
+    /*TODO:*/
+    mln_rbtree_node_t *src_node;
+    mln_rbtree_node_t *dst_node;
+
+    // 查找源
+    src_task_vma->idle_tree.cmp = vma_idl_tree_eq_cmp_handler;
+    src_node = mln_rbtree_search(
+        &src_task_vma->idle_tree,
+        &(vma_idl_tree_insert_params_t){
+            .size = size,
+            .addr = src_addr,
+        }); //!< 查找是否存在
+    if (mln_rbtree_null(src_node, &src_task_vma->idle_tree))
+    {
+        ret = -ENOENT;
+        goto end;
+    }
+    if (!vma_node_get_used(mln_rbtree_node_data_get(src_node)))
+    {
+        ret = -ENOENT;
+        goto end;
+    }
+    // 查找目的
+    dst_task_vma->idle_tree.cmp = vma_idl_tree_eq_cmp_handler;
+    dst_node = mln_rbtree_search(
+        &dst_task_vma->idle_tree,
+        &(vma_idl_tree_insert_params_t){
+            .size = size,
+            .addr = src_addr,
+        }); //!< 查找是否存在
+    if (mln_rbtree_null(dst_node, &dst_task_vma->idle_tree))
+    {
+        ret = -ENOENT;
+        goto end;
+    }
+    if (vma_node_get_used(mln_rbtree_node_data_get(dst_node)))
+    {
+        ret = -EEXIST;
+        goto end;
+    }
+
+    ret = 0;
+end:
+    task_vma_unlock_two(src_task_vma, dst_task_vma);
+    return ret;
+}
+
 /**
  * @brief 合并节点
  *
@@ -553,12 +651,16 @@ int task_vma_free(task_vma_t *task_vma, vaddr_t addr, size_t size)
     mword_t lock_status;
 
     assert(task_vma);
+    if ((size & (PAGE_SIZE - 1)) != 0)
+    {
+        return -EINVAL;
+    }
     lock_status = task_vma_lock(task_vma);
     if (lock_status < 0)
     {
         return lock_status;
     }
-    task_vma->idle_tree.cmp = vma_idl_tree_free_cmp_handler;
+    task_vma->idle_tree.cmp = vma_idl_tree_eq_cmp_handler;
     find_node = mln_rbtree_search(
         &task_vma->idle_tree,
         &(vma_idl_tree_insert_params_t){
