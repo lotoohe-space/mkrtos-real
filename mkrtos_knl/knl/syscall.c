@@ -38,7 +38,7 @@ void syscall_entry(entry_frame_t *entry)
             goto end;
         }
     }
-
+    sti();
     if (kobj->invoke_func)
     {
         kobj->invoke_func(kobj, sys_p, msg_tag_init(entry->regs[0]), entry);

@@ -44,13 +44,19 @@ void sys_reset(void)
 {
     /*TODO:*/
 }
+umword_t arch_get_isr_no(void)
+{
+    return gicv2_get_irqnr(arm_gicv2_get_global());
+}
 void arch_disable_irq(int inx)
 {
     /*TODO:*/
+    gic2_set_mask(arm_gicv2_get_global(), inx);
 }
 void arch_enable_irq(int inx)
 {
     /*TODO:*/
+    gic2_set_unmask(arm_gicv2_get_global(), inx);
 }
 uint32_t arch_get_sys_clk(void)
 {
@@ -60,6 +66,7 @@ uint32_t arch_get_sys_clk(void)
 void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio)
 {
     /*TODO:*/
+    gic2_set_prio(arm_gicv2_get_global(), inx, pre_prio);
 }
 extern char _data_boot[], _edata_boot[];
 extern char _text_boot[], _etext_boot[];

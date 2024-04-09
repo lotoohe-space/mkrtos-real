@@ -62,7 +62,9 @@
         "u_log.h": "c",
         "elf.h": "c",
         "u_vmam.h": "c",
-        "u_arch_hard.h": "c"
+        "u_arch_hard.h": "c",
+        "arm_gicv2.h": "c",
+        "sche_arch.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

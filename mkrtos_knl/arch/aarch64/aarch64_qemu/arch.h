@@ -11,12 +11,14 @@
 #pragma once
 
 #include "types.h"
-#include <thread_arch.h>
 #include <aarch64_ptregs.h>
 #include <asm/mm.h>
 #include <mmu.h>
+#include <thread_arch.h>
+
 #define ARCH_WORD_SIZE 64
-#define LOG_INTR_NO 37 // USART1_IRQn
+#define SYSTICK_INTR_NO 30
+#define LOG_INTR_NO    37 // USART1_IRQn
 
 /// @brief 线程信息
 typedef struct
@@ -26,8 +28,7 @@ typedef struct
     umword_t lr;
     umword_t pc;
 } pf_s_t;
-typedef struct pf
-{
+typedef struct pf {
     struct
     {
         mword_t regs[31]; //!< 基础寄存器
@@ -45,8 +46,7 @@ typedef struct pf
     mword_t stackframe[2];
 } pf_t;
 
-typedef struct sp_info
-{
+typedef struct sp_info {
     mword_t x19;
     mword_t x20;
     mword_t x21;
@@ -60,7 +60,7 @@ typedef struct sp_info
     mword_t fp; // x29
     mword_t sp;
     mword_t pc;
-    mword_t u_sp;//user_sp
+    mword_t u_sp; // user_sp
 } sp_info_t;
 
 #define _barrier() __asm__ __volatile__("" : : : "memory")
@@ -70,19 +70,18 @@ typedef struct sp_info
 #define _dsb(ins) \
     asm volatile("dsb " #ins : : : "memory")
 
-#define __arch_getl(a) (*(volatile unsigned int *)(a))
+#define __arch_getl(a)    (*(volatile unsigned int *)(a))
 #define __arch_putl(v, a) (*(volatile unsigned int *)(a) = (v))
 
 #define __iormb() _barrier()
 #define __iowmb() _barrier()
 
-#define readl(c) ({ unsigned int  __v = __arch_getl(c); __iormb(); __v; })
+#define readl(c)     ({ unsigned int  __v = __arch_getl(c); __iormb(); __v; })
 #define writel(v, c) ({ unsigned int  __v = v; __iowmb(); __arch_putl(__v,c); })
 
 #define read_reg(addr) (*((volatile umword_t *)(addr)))
 #define write_reg(addr, data)                    \
-    do                                           \
-    {                                            \
+    do {                                         \
         _barrier();                              \
         (*((volatile umword_t *)(addr))) = data; \
         _barrier();                              \
@@ -90,8 +89,7 @@ typedef struct sp_info
 
 #define read_reg32(addr) (*((volatile uint32_t *)(addr)))
 #define write_reg32(addr, data)                            \
-    do                                                     \
-    {                                                      \
+    do {                                                   \
         _barrier();                                        \
         (*((volatile uint32_t *)(addr))) = (uint32_t)data; \
         _barrier();                                        \
@@ -124,25 +122,22 @@ static inline int arch_get_current_cpu_id(void)
 }
 
 #define is_run_knl() \
-    ({               \
-        /*TODO:*/    \
-    })
+    ({/*TODO:*/      \
+      0})
 
 void to_sche(void);
 
 #define get_sp() (                                 \
     {                                              \
         mword_t sp;                                \
-        do                                         \
-        {                                          \
+        do {                                       \
             asm volatile("mov %0, sp" : "=r"(sp)); \
         } while (0);                               \
         sp;                                        \
     })
 #define set_sp(sp) (                                \
     {                                               \
-        do                                          \
-        {                                           \
+        do {                                        \
             asm volatile("mov sp, %0" : : "r"(sp)); \
         } while (0);                                \
     })
@@ -150,11 +145,8 @@ static inline umword_t arch_get_sp(void)
 {
     return get_sp();
 }
-static inline umword_t arch_get_isr_no(void)
-{
-    /*TODO:获取中断号*/
-    return 0;
-}
+umword_t arch_get_isr_no(void);
+
 static inline void arch_set_knl_sp(umword_t sp)
 {
     set_sp(sp);
@@ -178,8 +170,7 @@ void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
  * 开中断
  */
 #define sti()                 \
-    do                        \
-    {                         \
+    do {                      \
         asm volatile(         \
             "msr daifclr, #3" \
             :                 \
@@ -191,8 +182,7 @@ void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
  * 关中断
  */
 #define cli()                 \
-    do                        \
-    {                         \
+    do {                      \
         asm volatile(         \
             "msr daifset, #3" \
             :                 \
