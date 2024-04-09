@@ -26,7 +26,11 @@ void obj_space_release(obj_space_t *obj_space, ram_limit_t *ram)
 {
     for (int i = 0; i < CONFIG_OBJ_MAP_TAB_SIZE; i++)
     {
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+        buddy_free(buddy_get_alloter(), obj_space->tab.tabs[i]);
+#else
         mm_limit_free(ram, obj_space->tab.tabs[i]);
+#endif
     }
 }
 void obj_space_del(obj_space_t *obj_space, obj_addr_t inx)

@@ -209,8 +209,11 @@ int pm_rpc_run_app(const char *path, int flags)
     pid_t pid;
     int ret;
     printf("pm run %s.\n", path);
-
-    ret = app_load(path, u_get_global_env(), &pid, NULL, 0, NULL, 0);
+    char *args[] = {
+        (char *)path,
+        "-t",
+    };
+    ret = app_load(path, u_get_global_env(), &pid, args, 2, NULL, 0);
     if (ret > 0)
     {
         if (!(flags & PM_APP_BG_RUN))

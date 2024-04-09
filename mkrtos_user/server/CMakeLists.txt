@@ -7,7 +7,6 @@ if (${ARCH_NAME} STREQUAL "armv7_8m")
     set(START_LIB start)
 
     # add_subdirectory(app)
-    add_subdirectory(fs)
     add_subdirectory(hello)
     add_subdirectory(drv)
     add_subdirectory(test)
@@ -34,4 +33,5 @@ endif()
 add_subdirectory(init)
 add_subdirectory(shell)
 add_subdirectory(tinycc-arm-thumb)
+add_subdirectory(fs)
 
