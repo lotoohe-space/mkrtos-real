@@ -14,7 +14,8 @@
  * ID1024-ID8191，reserved
  * 8192及其以上，LPI
  */
-typedef struct gic {
+typedef struct gic
+{
     uint16_t irqs_number; //!< 支持的irq数量
 
     addr_t disp_base_addr;  //!< 分发器起始地址
@@ -24,33 +25,33 @@ typedef struct gic {
 // #define GIC2_BASE (0xFF840000)
 // #define GIC2_GICD_BASE (GIC2_BASE + 0x1000)
 
-#define GICD_CTLR(GIC2_GICD_BASE)        (0x0 + GIC2_GICD_BASE)
-#define GICD_TYPER(GIC2_GICD_BASE)       (0x4 + GIC2_GICD_BASE)
-#define GICD_IIDR(GIC2_GICD_BASE)        (0x8 + GIC2_GICD_BASE)
-#define GICD_IGROUPRn(GIC2_GICD_BASE)    (0x80 + GIC2_GICD_BASE)
-#define GICD_ISENABLERn(GIC2_GICD_BASE)  (0x100 + GIC2_GICD_BASE)
-#define GICD_ICENABLERn(GIC2_GICD_BASE)  (0x180 + GIC2_GICD_BASE)
-#define GICD_ISPENDRn(GIC2_GICD_BASE)    (0x200 + GIC2_GICD_BASE)
-#define GICD_ICPENDRn(GIC2_GICD_BASE)    (0x280 + GIC2_GICD_BASE)
-#define GICD_ISACTIVERn(GIC2_GICD_BASE)  (0x300 + GIC2_GICD_BASE)
-#define GICD_ICACTIVERn(GIC2_GICD_BASE)  (0x380 + GIC2_GICD_BASE)
+#define GICD_CTLR(GIC2_GICD_BASE) (0x0 + GIC2_GICD_BASE)
+#define GICD_TYPER(GIC2_GICD_BASE) (0x4 + GIC2_GICD_BASE)
+#define GICD_IIDR(GIC2_GICD_BASE) (0x8 + GIC2_GICD_BASE)
+#define GICD_IGROUPRn(GIC2_GICD_BASE) (0x80 + GIC2_GICD_BASE)
+#define GICD_ISENABLERn(GIC2_GICD_BASE) (0x100 + GIC2_GICD_BASE)
+#define GICD_ICENABLERn(GIC2_GICD_BASE) (0x180 + GIC2_GICD_BASE)
+#define GICD_ISPENDRn(GIC2_GICD_BASE) (0x200 + GIC2_GICD_BASE)
+#define GICD_ICPENDRn(GIC2_GICD_BASE) (0x280 + GIC2_GICD_BASE)
+#define GICD_ISACTIVERn(GIC2_GICD_BASE) (0x300 + GIC2_GICD_BASE)
+#define GICD_ICACTIVERn(GIC2_GICD_BASE) (0x380 + GIC2_GICD_BASE)
 #define GICD_IPRIORITYRn(GIC2_GICD_BASE) (0x400 + GIC2_GICD_BASE)
-#define GICD_ITARGETSRn(GIC2_GICD_BASE)  (0x800 + GIC2_GICD_BASE)
-#define GICD_ICFGRn(GIC2_GICD_BASE)      (0xC00 + GIC2_GICD_BASE)
-#define GICD_SGIR(GIC2_GICD_BASE)        (0xf00 + GIC2_GICD_BASE)
-#define GICD_CPENDSGIRn(GIC2_GICD_BASE)  (0xf10 + GIC2_GICD_BASE)
-#define GICD_SPENDSGIRn(GIC2_GICD_BASE)  (0xf20 + GIC2_GICD_BASE)
+#define GICD_ITARGETSRn(GIC2_GICD_BASE) (0x800 + GIC2_GICD_BASE)
+#define GICD_ICFGRn(GIC2_GICD_BASE) (0xC00 + GIC2_GICD_BASE)
+#define GICD_SGIR(GIC2_GICD_BASE) (0xf00 + GIC2_GICD_BASE)
+#define GICD_CPENDSGIRn(GIC2_GICD_BASE) (0xf10 + GIC2_GICD_BASE)
+#define GICD_SPENDSGIRn(GIC2_GICD_BASE) (0xf20 + GIC2_GICD_BASE)
 
 // #define (GIC2_GICC_BASE) (GIC2_BASE + 0x2000)
-#define GICC_CTLR(GIC2_GICC_BASE)  (0x0 + GIC2_GICC_BASE)
-#define GICC_PMR(GIC2_GICC_BASE)   (0x4 + GIC2_GICC_BASE)
-#define GICC_BPR(GIC2_GICC_BASE)   (0x8 + GIC2_GICC_BASE)
-#define GICC_IAR(GIC2_GICC_BASE)   (0xc + GIC2_GICC_BASE)
-#define GICC_EOIR(GIC2_GICC_BASE)  (0x10 + GIC2_GICC_BASE)
-#define GICC_RPR(GIC2_GICC_BASE)   (0x14 + GIC2_GICC_BASE)
+#define GICC_CTLR(GIC2_GICC_BASE) (0x0 + GIC2_GICC_BASE)
+#define GICC_PMR(GIC2_GICC_BASE) (0x4 + GIC2_GICC_BASE)
+#define GICC_BPR(GIC2_GICC_BASE) (0x8 + GIC2_GICC_BASE)
+#define GICC_IAR(GIC2_GICC_BASE) (0xc + GIC2_GICC_BASE)
+#define GICC_EOIR(GIC2_GICC_BASE) (0x10 + GIC2_GICC_BASE)
+#define GICC_RPR(GIC2_GICC_BASE) (0x14 + GIC2_GICC_BASE)
 #define GICC_HPPIR(GIC2_GICC_BASE) (0x18 + GIC2_GICC_BASE)
-#define GICC_APRn(GIC2_GICC_BASE)  (0xd0 + GIC2_GICC_BASE)
-#define GICC_IIDR(GIC2_GICC_BASE)  (0x00FC + GIC2_GICC_BASE)
+#define GICC_APRn(GIC2_GICC_BASE) (0xd0 + GIC2_GICC_BASE)
+#define GICC_IIDR(GIC2_GICC_BASE) (0x00FC + GIC2_GICC_BASE)
 
 #define MAX_INTR_NO 1020
 
@@ -226,12 +227,14 @@ static inline void gic_dist_init(gic_t *irq)
 {
     gic_disable(irq);
 
-    for (int i = 32; i < irq->irqs_number; i++) {
+    for (int i = 32; i < irq->irqs_number; i++)
+    {
         gic2_set_unmask(irq, i);
         gic2_set_edge_mode(irq, i, 0);
         gic2_clear_active(irq, i);
     }
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 16; i++)
+    {
         gic2_set_unmask(irq, i);
     }
 
@@ -240,7 +243,8 @@ static inline void gic_dist_init(gic_t *irq)
 static inline void gic_inter_init(gic_t *irq)
 {
 
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < 32; i++)
+    {
         gic2_set_prio(irq, i, 0xa0);
     }
 
@@ -254,7 +258,8 @@ static inline void gic2_eoi_irq(gic_t *irq, int inx)
 static inline void gic_init(gic_t *irq, addr_t disp_addr, addr_t inter_addr)
 {
     irq->irqs_number = ((read_reg32(GICD_TYPER(disp_addr)) & 0x1ful) + 1) * 32;
-    if (irq->irqs_number > MAX_INTR_NO) {
+    if (irq->irqs_number > MAX_INTR_NO)
+    {
         irq->irqs_number = MAX_INTR_NO;
     }
     irq->disp_base_addr = disp_addr;

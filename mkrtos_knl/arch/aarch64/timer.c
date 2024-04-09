@@ -2,8 +2,10 @@
 #include <asm/arm_local_reg.h>
 #include <asm/timer.h>
 #include <arm_gicv2.h>
-
-#define GENERIC_TIMER_IRQ 30
+#include <irq.h>
+#include <assert.h>
+#include "timer.h"
+#define GENERIC_TIMER_IRQ SYSTICK_INTR_NO
 
 static unsigned int arch_timer_rate;
 
@@ -61,9 +63,10 @@ static void enable_timer_interrupt(int inx)
 		break;
 	}
 }
-
 void timer_init(int cpu)
 {
+	assert(irq_alloc(GENERIC_TIMER_IRQ, NULL, systick_handler));
+
 	arch_timer_rate = generic_timer_get_freq();
 	arch_timer_rate /= CONFIG_SYS_SCHE_HZ;
 
@@ -74,10 +77,6 @@ void timer_init(int cpu)
 	gic2_set_target_cpu(arm_gicv2_get_global(), GENERIC_TIMER_IRQ, 1 << cpu);
 	printk("cpu:%d timer dis:0x%x\n", arch_get_current_cpu_id(),
 		   gic2_get_target_cpu(arm_gicv2_get_global(), GENERIC_TIMER_IRQ));
-
-	// enable_timer_interrupt(cpu);
-	// write_sysreg(0x3UL, cntkctl_el1);
-	// write_sysreg(0x1UL, cnthctl_el2);
 }
 void handle_timer_irq(void)
 {

@@ -17,7 +17,7 @@
 #include "mk_sys.h"
 #include <psci.h>
 #include <arm_gicv2.h>
-#include <timer/timer.h>
+#include <timer.h>
 #include <hyp.h>
 #include <sche_arch.h>
 __ALIGN__(THREAD_BLOCK_SIZE)
@@ -29,7 +29,8 @@ void *_estack = thread_knl_stack + THREAD_BLOCK_SIZE;
  */
 void to_sche(void)
 {
-    sche_arch_sw_context();
+    gic2_set_pending(arm_gicv2_get_global(), SYSTICK_INTR_NO);
+    // sche_arch_sw_context();
 }
 /**
  * 进行一些系统的初始化
@@ -108,6 +109,6 @@ void arch_init(void)
     print_mem();
     psci_init();
     gic_init(arm_gicv2_get_global(),
-             0x08000000, 0x08010000); /*TODO:*/
+             0x08000000, 0x8010000); /*TODO:*/
 }
 INIT_LOW_HARD(arch_init);

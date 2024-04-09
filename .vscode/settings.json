@@ -64,7 +64,10 @@
         "u_vmam.h": "c",
         "u_arch_hard.h": "c",
         "arm_gicv2.h": "c",
-        "sche_arch.h": "c"
+        "sche_arch.h": "c",
+        "irq_sender.h": "c",
+        "timer.h": "c",
+        "arm_local_reg.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

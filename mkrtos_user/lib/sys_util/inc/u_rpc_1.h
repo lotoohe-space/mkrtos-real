@@ -23,7 +23,7 @@
         int off = 0;                                                                                                               \
         int off_map = 0;                                                                                                           \
         int ret = -1;                                                                                                              \
-        int op_val = op;                                                                                                           \
+        umword_t op_val = op;                                                                                                           \
         /*拷贝op*/                                                                                                               \
         rpc_memcpy(msg_ipc->msg_buf, &op_val, sizeof(op_val));                                                                     \
         off += rpc_align(sizeof(op_val), __alignof(op));                                                                           \

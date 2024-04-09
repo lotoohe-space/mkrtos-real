@@ -101,7 +101,7 @@ static void knl_init_1(void)
     task_knl_init(&knl_task);
     thread_knl_pf_set(knl_thread, knl_main);
     thread_bind(knl_thread, &knl_task.kobj);
-    thread_set_msg_bug(knl_thread, knl_msg_buf, knl_msg_buf);
+    thread_set_msg_buf(knl_thread, knl_msg_buf, knl_msg_buf);
     thread_ready(knl_thread, FALSE);
 
     slist_init(&del_task_head);
@@ -146,7 +146,7 @@ static void knl_init_2(void)
     assert(task_vma_alloc(&init_task->mm_space.mem_vma,
                           vma_addr_create(VPAGE_PROT_RO, VMA_ADDR_RESV, CONFIG_BOOT_FS_VADDR),
                           cpio_get_size(cpio_images), (paddr_t)cpio_images, 0) >= 0);
-    thread_set_msg_bug(init_thread, (void *)init_msg_buf, (void *)CONFIG_MSG_BUF_VADDR);
+    thread_set_msg_buf(init_thread, (void *)init_msg_buf, (void *)CONFIG_MSG_BUF_VADDR);
     thread_user_pf_set(init_thread, (void *)(entry), (void *)0xdeaddead,
                        NULL, 0);
 #else
@@ -156,7 +156,7 @@ static void knl_init_2(void)
     void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 
-    thread_set_msg_bug(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
+    thread_set_msg_buf(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
     thread_user_pf_set(init_thread, (void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET), (void *)((umword_t)sp_addr_top - 8),
                        init_task->mm_space.mm_block, 0);
 #endif
@@ -228,7 +228,8 @@ void start_kernel(void)
     print_mkrtos_info();
     cli();
     sys_startup(); //!< 开始调度
-    thread_sched();
+    thread_sched(TRUE);
+    to_sche();
     sti();
 
     while (1)

@@ -190,7 +190,6 @@ el1_irq:
 el2_irq:
 	kernel_entry 2
 	bl entry_handler
-	bl SysTick_Handler
 	kernel_exit 2
 
 

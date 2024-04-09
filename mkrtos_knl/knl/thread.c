@@ -187,7 +187,7 @@ static void thread_release_stage2(kobject_t *kobj)
     if (cur_th == th)
     {
         scheduler_reset();
-        thread_sched();
+        thread_sched(TRUE);
     }
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
     mm_limit_free_buddy(th->lim, kobj, THREAD_BLOCK_SIZE);
@@ -249,7 +249,7 @@ void thread_suspend(thread_t *th)
     // }
     scheduler_del(&th->sche);
     th->status = THREAD_SUSPEND;
-    thread_sched();
+    thread_sched(TRUE);
 }
 /**
  * @brief 线程死亡
@@ -264,7 +264,7 @@ void thread_dead(thread_t *th)
     }
     scheduler_del(&th->sche);
     th->status = THREAD_DEAD;
-    thread_sched();
+    thread_sched(TRUE);
 }
 
 /**
@@ -272,7 +272,7 @@ void thread_dead(thread_t *th)
  *
  * @param th
  */
-void thread_sched(void)
+bool_t thread_sched(bool_t is_sche)
 {
     umword_t status = cpulock_lock();
     sched_t *next_sche = scheduler_next();
@@ -283,10 +283,14 @@ void thread_sched(void)
     {
         cpulock_set(status);
 
-        return;
+        return FALSE;
     }
-    to_sche();
+    if (is_sche)
+    {
+        to_sche();
+    }
     cpulock_set(status);
+    return TRUE;
 }
 /**
  * @brief 线程进入就绪态
@@ -305,7 +309,7 @@ void thread_ready(thread_t *th, bool_t is_sche)
     th->status = THREAD_READY;
     if (is_sche)
     {
-        thread_sched();
+        thread_sched(TRUE);
     }
     cpulock_set(status);
 }
@@ -319,7 +323,7 @@ void thread_todead(thread_t *th, bool_t is_sche)
     th->status = THREAD_TODEAD;
     if (is_sche)
     {
-        thread_sched();
+        thread_sched(TRUE);
     }
 }
 /**
@@ -590,7 +594,7 @@ static int thread_ipc_reply(msg_tag_t in_tag)
     return ret;
 }
 
-__attribute__((optimize(1))) int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag,
+__attribute__((optimize(0))) int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag,
                                                  ipc_timeout_t timout, umword_t *ret_user_id, bool_t is_call)
 {
     int ret = -EINVAL;
@@ -643,6 +647,7 @@ again_check:
             //!< 拷贝失败
             goto end;
         }
+        thread_ready(recv_kobj, TRUE); //!< 直接唤醒接受者
 
         if (is_call)
         {
@@ -667,7 +672,6 @@ again_check:
                 goto end;
             }
         }
-        thread_ready(recv_kobj, TRUE); //!< 直接唤醒接受者
         preemption();
     }
     ret = 0;
@@ -770,7 +774,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
 
         if (f->regs[4]) //!< cp_stack
         {
-            stack_bottom = (umword_t)(cur_th->msg.msg);
+            stack_bottom = (umword_t)(thread_get_msg_buf(cur_th));
         }
         thread_set_exc_regs(tag_th, f->regs[1], f->regs[2], f->regs[3], stack_bottom);
         tag = msg_tag_init4(0, 0, 0, 0);
@@ -778,9 +782,10 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     break;
     case MSG_BUG_SET:
     {
-        if (is_rw_access(thread_get_bind_task(tag_th), (void *)(f->regs[1]), THREAD_MSG_BUG_LEN, FALSE))
+        task_t *tag_tk = thread_get_bind_task(tag_th);
+        if (is_rw_access(tag_tk, (void *)(f->regs[1]), THREAD_MSG_BUG_LEN, FALSE))
         {
-            thread_set_msg_buf(tag_th, (void *)mm_get_paddr(mm_space_get_pdir(&task->mm_space), f->regs[1], PAGE_SHIFT),
+            thread_set_msg_buf(tag_th, (void *)mm_get_paddr(mm_space_get_pdir(&tag_tk->mm_space), f->regs[1], PAGE_SHIFT),
                                (void *)(f->regs[1]));
             tag = msg_tag_init4(0, 0, 0, 0);
         }
@@ -849,7 +854,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
     break;
     case YIELD:
     {
-        thread_sched();
+        thread_sched(TRUE);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;

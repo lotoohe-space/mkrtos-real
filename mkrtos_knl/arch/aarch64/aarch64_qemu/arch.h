@@ -18,7 +18,7 @@
 
 #define ARCH_WORD_SIZE 64
 #define SYSTICK_INTR_NO 30
-#define LOG_INTR_NO    37 // USART1_IRQn
+#define LOG_INTR_NO    33
 
 /// @brief 线程信息
 typedef struct

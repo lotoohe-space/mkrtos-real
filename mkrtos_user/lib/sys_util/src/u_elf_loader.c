@@ -108,7 +108,7 @@ static int thread_set_msg_buf(obj_handler_t hd_task, obj_handler_t hd_thread)
     {
         return msg_tag_get_val(tag);
     }
-    // 设置msgbuff,TODO:内核需要获取到对应的物理地址
+    // 设置msgbuff
     tag = thread_msg_buf_set(hd_thread, (void *)(CONFIG_MSG_BUF_VADDR));
     if (msg_tag_get_val(tag) < 0)
     {

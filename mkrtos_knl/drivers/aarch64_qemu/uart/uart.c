@@ -5,6 +5,7 @@
 #include "init.h"
 #include "queue.h"
 #include <irq.h>
+#include <arm_gicv2.h>
 
 #define UART01x_DR 0x00         /* Data read or written from the interface. */
 #define UART01x_RSR 0x04        /* Receive status register (Read). */
@@ -129,8 +130,25 @@ static queue_t queue;
 static uint8_t queue_data[QUEUE_LEN];
 void uart_tigger(irq_entry_t *irq)
 {
-    // q_enqueue(&queue, USART_ReceiveData(USART1));
-    /*TODO:*/
+    int ch;
+
+    ch = read_reg32(UART011_BASE_ADDR + UART01x_DR);
+    if (ch & 0x0f00)
+    {
+        write_reg32(UART011_BASE_ADDR + UART01x_ECR, 0);
+        goto end;
+    }
+    ch &= 0xff;
+    q_enqueue(&queue, ch);
+    mword_t status = cpulock_lock();
+
+    if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
+    {
+        thread_ready(irq->irq->wait_thread, TRUE);
+    }
+    cpulock_set(status);
+end:
+    gic2_eoi_irq(arm_gicv2_get_global(), LOG_INTR_NO);
 }
 
 void uart_init(void)
@@ -153,9 +171,17 @@ void uart_init(void)
             break;
         }
     }
+    unsigned long mask = UART011_RXIM | UART011_RTIM;
+
+    write_reg32(UART011_BASE_ADDR + UART011_ICR, 0xffff & ~mask);
+    write_reg32(UART011_BASE_ADDR + UART01x_ECR, 0xff);
+    write_reg32(UART011_BASE_ADDR + UART011_IMSC, read_reg32(UART011_BASE_ADDR + UART011_IMSC) | mask);
+    // write_reg32(UART011_BASE_ADDR + UART011 IMSC, read_reg32(UART011_BASE_ADDR + UART011_IMSC) & ~mask);
+
+    gic2_set_unmask(arm_gicv2_get_global(), LOG_INTR_NO);
+    gic2_set_target_cpu(arm_gicv2_get_global(), LOG_INTR_NO, 1 << arch_get_current_cpu_id());
 }
 INIT_HIGH_HAD(uart_init);
-
 
 void uart_set(uart_t *uart)
 {
