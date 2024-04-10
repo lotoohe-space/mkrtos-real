@@ -53,7 +53,7 @@ if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
     add_custom_target(
         sh_dump_elf ALL
         COMMAND
-        cp sh.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/sh.elf
+        cp sh.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/sh
     )
     add_dependencies(sh_dump_elf shell_dump)
 endif()

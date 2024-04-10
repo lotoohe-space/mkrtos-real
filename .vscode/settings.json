@@ -70,7 +70,8 @@
         "arm_local_reg.h": "c",
         "thread_task_arch.h": "c",
         "mm_space.h": "c",
-        "spinlock_arch.h": "c"
+        "spinlock_arch.h": "c",
+        "app.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

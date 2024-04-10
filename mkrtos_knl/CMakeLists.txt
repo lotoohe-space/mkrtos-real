@@ -79,7 +79,7 @@ if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
     add_custom_target(
         mkrtos_dump_elf ALL
         COMMAND
-        cp init.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/mkrtos.elf
+        cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/mkrtos.elf
     )
     add_dependencies(mkrtos_dump_elf mkrtos_dump)
 endif()

@@ -1,4 +1,5 @@
-#ifndef CONFIG_MMU
+#include <u_util.h>
+#if !IS_ENABLED(CONFIG_MMU)
 #define HEAP_SIZE 2048
 #define STACK_SIZE (1024 + 512)
 

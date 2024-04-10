@@ -1,4 +1,5 @@
-#ifndef CONFIG_MMU
+#include <u_util.h>
+#if !IS_ENABLED(CONFIG_MMU)
 /**
  * @file heap_stack.c
  * @author ATShining (1358745329@qq.com)

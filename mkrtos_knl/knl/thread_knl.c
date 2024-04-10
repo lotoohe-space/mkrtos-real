@@ -127,13 +127,13 @@ static void knl_init_2(void)
 
     init_thread = thread_create(&root_factory_get()->limit);
     assert(init_thread);
-    init_task = task_create(&root_factory_get()->limit, FALSE);
+     init_task = task_create(&root_factory_get()->limit, FALSE);
     assert(init_task);
 
 #if IS_ENABLED(CONFIG_ELF_LAUNCH)
     addr_t entry;
 
-    ret_addr = cpio_find_file(cpio_images, (umword_t)(-1), "init.elf", &size);
+    ret_addr = cpio_find_file(cpio_images, (umword_t)(-1), "init", &size);
     assert(ret_addr);
     elf_load(init_task, ret_addr, size, &entry);
     void *init_msg_buf = mm_buddy_alloc_one_page();
@@ -149,6 +149,7 @@ static void knl_init_2(void)
                        NULL, 0);
 #else
     app_info_t *app = app_info_get((void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET));
+    assert(app);
     // 申请init的ram内存
     assert(task_alloc_base_ram(init_task, &root_factory_get()->limit, app->i.ram_size + THREAD_MSG_BUG_LEN) >= 0);
     void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
@@ -227,7 +228,7 @@ void start_kernel(void)
     cli();
     sys_startup(); //!< 开始调度
     thread_sched(TRUE);
-    to_sche();
+    // to_sche();
     sti();
 
     while (1)

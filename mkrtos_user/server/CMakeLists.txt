@@ -5,6 +5,7 @@ include_directories(
 )
 if (${ARCH_NAME} STREQUAL "armv7_8m")
     set(START_LIB start)
+    set(START_INIT_LIB start_init)
 
     # add_subdirectory(app)
     add_subdirectory(hello)
@@ -17,6 +18,8 @@ elseif(${CONFIG_ARCH} STREQUAL "aarch64" )
         START_LIB
         ""
     )
+    set(START_INIT_LIB "")
+
     set(
         START_SRC
         ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crt1.o 

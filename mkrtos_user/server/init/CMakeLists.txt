@@ -10,7 +10,7 @@ target_link_libraries(init.elf
     PUBLIC
     -Bstatic
     ${LIBC_NAME}
-    ${START_LIB}
+    ${START_INIT_LIB}
     --whole-archive
     libc_be
     sys
@@ -59,7 +59,7 @@ if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
     add_custom_target(
         init_dump_elf ALL
         COMMAND
-        cp init.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/init.elf
+        cp init.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/init
     )
     add_dependencies(init_dump_elf init_dump)
 endif()
