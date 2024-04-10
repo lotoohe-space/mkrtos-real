@@ -105,7 +105,7 @@ static inline void vma_node_set_used(vma_t *data)
 }
 static inline void vma_node_set_unused(vma_t *data)
 {
-    data->flags &= ~(1 << VMA_USED_NODE);
+    data->flags &= ~(VMA_USED_NODE);
 }
 
 typedef struct task_vma

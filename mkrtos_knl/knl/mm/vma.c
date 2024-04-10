@@ -81,6 +81,19 @@ int task_vma_init(task_vma_t *vma)
     mln_rbtree_insert(&vma->idle_tree, node);
 }
 
+void task_vma_rbtree_print(mln_rbtree_t *t, mln_rbtree_node_t *root)
+{
+    if (root == &(t->nil)) {
+        return;
+    }
+    vma_t *data = mln_rbtree_node_data_get(root);
+
+    task_vma_rbtree_print(t, root->left);
+    printk("[0x%lx 0x%lx U:%d 0x%x]\n", vma_addr_get_addr(data->vaddr), vma_addr_get_addr(data->vaddr) + data->size,
+           vma_node_get_used(data), vma_addr_get_prot(data->vaddr));
+    task_vma_rbtree_print(t, root->right);
+}
+
 static mln_rbtree_node_t *task_vma_tree_find(mln_rbtree_t *tree, rbtree_cmp cmp, void *data)
 {
     mln_rbtree_node_t *rn;
@@ -113,6 +126,26 @@ static int vma_idl_tree_insert_cmp_handler(const void *key, const void *data)
         return -1;
     } else if (vma_addr_get_addr(key_p->vaddr) >= vma_addr_get_addr(data_p->vaddr) &&
                (vma_addr_get_addr(key_p->vaddr) + key_p->size) <= vma_addr_get_addr(data_p->vaddr) + data_p->size) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+/**
+ * 返回值：
+ * -1 第一个参数小于第二个参数
+ * 0 两个参数相同
+ * 1 第一个参数大于第二个参数
+ */
+static int vma_idl_tree_wrap_cmp_handler(const void *key, const void *data)
+{
+    vma_idl_tree_insert_params_t *key_p = (vma_idl_tree_insert_params_t *)key;
+    vma_t *data_p = (vma_t *)data;
+
+    if (key_p->addr + key_p->size <= vma_addr_get_addr(data_p->vaddr)) {
+        return -1;
+    } else if (key_p->addr >= vma_addr_get_addr(data_p->vaddr) &&
+               (key_p->addr + key_p->size) <= vma_addr_get_addr(data_p->vaddr) + data_p->size) {
         return 0;
     } else {
         return 1;
@@ -340,6 +373,9 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
     if (lock_status < 0) {
         return lock_status;
     }
+    printk("alloc pre:\n");
+    task_vma_rbtree_print(&task_vma->idle_tree, mln_rbtree_root(&task_vma->idle_tree));
+
     if (vma_addr_get_addr(vaddr) == 0) {
         node = task_vma_idle_tree_find(task_vma, size);
         if (!node) {
@@ -387,6 +423,7 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
         *ret_vaddr = alloc_addr;
     }
     printk("alloc:[0x%x 0x%x] size:0x%x\n", alloc_addr, alloc_addr + size - 1, size);
+    task_vma_rbtree_print(&task_vma->idle_tree, mln_rbtree_root(&task_vma->idle_tree));
     ret = 0;
 end:
     task_vma_unlock(task_vma, lock_status);
@@ -516,26 +553,28 @@ int task_vma_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma, vaddr_t s
         goto end;
     }
     // 查找目的
-    dst_task_vma->idle_tree.cmp = vma_idl_tree_eq_cmp_handler; /**TODO:应该检查是否被包裹 */
+    dst_task_vma->idle_tree.cmp = vma_idl_tree_wrap_cmp_handler; /**TODO:应该检查是否被包裹 */
     dst_node = mln_rbtree_search(
         &dst_task_vma->idle_tree,
         &(vma_idl_tree_insert_params_t){
             .size = size,
             .addr = dst_addr,
         }); //!< 查找是否存在
-    if (!mln_rbtree_null(dst_node, &dst_task_vma->idle_tree)) {
-        // vma_t *dst_node_dat = mln_rbtree_node_data_get(dst_node);
-
-        // if (!vma_node_get_used(dst_node_dat))
-        // {
-        //     mln_rbtree_delete(&dst_task_vma->idle_tree, dst_node);
-        //     vma_node_free(&dst_task_vma->idle_tree, dst_node);
-        // }
-        // else
-        // {
+    if (mln_rbtree_null(dst_node, &dst_task_vma->idle_tree)) {
         ret = -EEXIST;
         goto end;
-        // }
+    } else {
+        vma_t *dst_node_dat = mln_rbtree_node_data_get(dst_node);
+
+        if (vma_node_get_used(dst_node_dat)) {
+            ret = -EEXIST;
+            goto end;
+        }
+        ret = task_vma_node_split(&dst_task_vma->idle_tree, dst_node, dst_addr, size);
+        if (ret < 0) {
+            goto end;
+        }
+        vma_node_free(&dst_task_vma->idle_tree, dst_node);
     }
 
     /*转移映射*/
@@ -558,13 +597,15 @@ int task_vma_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma, vaddr_t s
                       dst_addr);
     mln_rbtree_insert(&dst_task_vma->idle_tree, src_node);
     ret = params.grant_size;
+    printk("grant:\n");
+    task_vma_rbtree_print(&dst_task_vma->idle_tree, mln_rbtree_root(&dst_task_vma->idle_tree));
 end:
     task_vma_unlock_two(src_task_vma, dst_task_vma, lock_status0, lock_status1);
     return ret;
 }
 
 /**
- * @brief 合并节点
+ * @brief 合并节点TODO:合并时属性不一致也不能合并
  *
  * @param r_tree
  * @param node
@@ -587,35 +628,57 @@ static int vma_node_merge(mln_rbtree_t *r_tree, mln_rbtree_node_t *node)
     r_tree->cmp = vma_idl_tree_insert_cmp_handler;
 
     data_node = mln_rbtree_node_data_get(node);
-    mln_rbtree_delete(r_tree, node);
+    vma_node_set_unused(data_node);
 
-    if (mln_rbtree_null(lnode, r_tree) && mln_rbtree_null(rnode, r_tree)) {
+    int l_dmerge = !!mln_rbtree_null(lnode, r_tree) || ((!mln_rbtree_null(lnode, r_tree)) && (vma_node_get_used(((vma_t *)mln_rbtree_node_data_get(lnode))) !=
+                                                                                              vma_node_get_used(data_node)) ||
+                                                        (vma_node_get_used(((vma_t *)mln_rbtree_node_data_get(lnode))) && ((vma_addr_get_prot(((vma_t *)mln_rbtree_node_data_get(lnode))->vaddr) !=
+                                                                                                                            vma_addr_get_prot(data_node->vaddr)) ||
+                                                                                                                           (vma_addr_get_flags(((vma_t *)mln_rbtree_node_data_get(lnode))->vaddr) !=
+                                                                                                                            vma_addr_get_flags(data_node->vaddr)))));
+    int r_dmerge = !!mln_rbtree_null(rnode, r_tree) || ((!mln_rbtree_null(rnode, r_tree)) && (vma_node_get_used(mln_rbtree_node_data_get(rnode)) !=
+                                                                                              vma_node_get_used(data_node)) ||
+                                                        (vma_node_get_used(mln_rbtree_node_data_get(rnode)) && ((vma_addr_get_prot(((vma_t *)mln_rbtree_node_data_get(rnode))->vaddr) !=
+                                                                                                                 vma_addr_get_prot(data_node->vaddr)) ||
+                                                                                                                (vma_addr_get_flags(((vma_t *)mln_rbtree_node_data_get(rnode))->vaddr) !=
+                                                                                                                 vma_addr_get_flags(data_node->vaddr)))));
+    if (l_dmerge && r_dmerge) {
         // 左右都是空的
+        vma_node_set_unused(data_node);
         return 0;
-    } else if (mln_rbtree_null(lnode, r_tree)) {
-        // 左边是空的
+    } else if (l_dmerge && !r_dmerge) { // 左边是空的
+        mln_rbtree_delete(r_tree, node);
+
         r_datanode = mln_rbtree_node_data_get(rnode);
 
-        if (vma_node_get_used(r_datanode) != vma_node_get_used(data_node)) {
-            return 0;
-        }
         data_node->size += r_datanode->size;
         mln_rbtree_delete(r_tree, rnode);
         vma_node_free(r_tree, rnode);
 
         mln_rbtree_insert(r_tree, node);
-    } else if (mln_rbtree_null(rnode, r_tree)) {
-        // 右边是空的
-        r_datanode = mln_rbtree_node_data_get(rnode);
+    } else if (!l_dmerge && r_dmerge) { // 右边是空的
+        mln_rbtree_delete(r_tree, node);
 
-        if (vma_node_get_used(r_datanode) != vma_node_get_used(data_node)) {
-            return 0;
-        }
-        mln_rbtree_delete(r_tree, rnode);
-        r_datanode->size += data_node->size;
-        vma_addr_set_addr(&r_datanode->vaddr, vma_addr_get_addr(data_node->vaddr));
-        mln_rbtree_insert(r_tree, rnode);
+        l_datanode = mln_rbtree_node_data_get(lnode);
+
+        mln_rbtree_delete(r_tree, lnode);
+        l_datanode->size += data_node->size;
+        mln_rbtree_insert(r_tree, lnode);
         vma_node_free(r_tree, node);
+    } else {
+        mln_rbtree_delete(r_tree, node);
+        r_datanode = mln_rbtree_node_data_get(rnode);
+        l_datanode = mln_rbtree_node_data_get(lnode);
+
+        mln_rbtree_delete(r_tree, lnode);
+        mln_rbtree_delete(r_tree, rnode);
+
+        data_node->size += l_datanode->size;
+        data_node->size += r_datanode->size;
+
+        mln_rbtree_insert(r_tree, node);
+        vma_node_free(r_tree, lnode);
+        vma_node_free(r_tree, rnode);
     }
     return 0;
 }
@@ -701,30 +764,13 @@ int task_vma_free(task_vma_t *task_vma, vaddr_t addr, size_t size)
     mln_rbtree_iterate(&task_vma->alloc_tree, rbtree_iterate_alloc_tree_del, &param);
     vma_node_merge(&task_vma->idle_tree, find_node);
     ret = 0;
+    printk("free:\n");
+    task_vma_rbtree_print(&task_vma->idle_tree, mln_rbtree_root(&task_vma->idle_tree));
 end:
     task_vma_unlock(task_vma, lock_status);
     return ret;
 }
-/**
- * 返回值：
- * -1 第一个参数小于第二个参数
- * 0 两个参数相同
- * 1 第一个参数大于第二个参数
- */
-static int vma_idl_tree_wrap_cmp_handler(const void *key, const void *data)
-{
-    vma_idl_tree_insert_params_t *key_p = (vma_idl_tree_insert_params_t *)key;
-    vma_t *data_p = (vma_t *)data;
 
-    if (key_p->addr + key_p->size <= vma_addr_get_addr(data_p->vaddr)) {
-        return -1;
-    } else if (key_p->addr >= vma_addr_get_addr(data_p->vaddr) &&
-               (key_p->addr + key_p->size) <= vma_addr_get_addr(data_p->vaddr) + data_p->size) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
 /**
  * @brief 缺页的处理流程
  * 1.查找已经分配的表中是否存在

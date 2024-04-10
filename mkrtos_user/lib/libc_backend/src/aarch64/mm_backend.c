@@ -74,6 +74,6 @@ long sys_munmap(va_list ap)
     void *start;
     size_t len;
 
-    ARG_2_BE(ap, len, size_t, start, void *);
+    ARG_2_BE(ap, start, void *, len, size_t);
     return be_munmap(start, len);
 }

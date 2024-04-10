@@ -38,12 +38,12 @@ void syscall_entry(entry_frame_t *entry)
             goto end;
         }
     }
-    sti();
+    sti(); //开启中断
     if (kobj->invoke_func)
     {
         kobj->invoke_func(kobj, sys_p, msg_tag_init(entry->regs[0]), entry);
     }
-    cli();
+    cli(); //关闭中断
 end:;
 #if !IS_ENABLED(CONFIG_MMU)
     addr_t u_sp = arch_get_user_sp();

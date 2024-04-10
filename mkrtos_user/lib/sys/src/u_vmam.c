@@ -57,7 +57,7 @@ msg_tag_t u_vmam_free(obj_handler_t obj, addr_t addr, size_t size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 
-    mk_syscall(syscall_prot_create4(VMA_ALLOC, VMA_PROT, obj, FALSE).raw,
+    mk_syscall(syscall_prot_create4(VMA_FREE, VMA_PROT, obj, FALSE).raw,
                addr,
                size,
                0,
