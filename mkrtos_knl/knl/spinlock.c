@@ -12,8 +12,11 @@
 #include "cpulock.h"
 #include "spinlock.h"
 #include <arch.h>
+#include <util.h>
+#if IS_ENABLED(CONFIG_SMP)
 #include <atomics.h>
 #include <spinlock_arch.h>
+#endif
 void spinlock_init(spinlock_t *lock)
 {
     lock->val &= ~3UL;
@@ -40,7 +43,7 @@ mword_t spinlock_lock(spinlock_t *lock)
         cpulock_set(status);
         return -1;
     }
-#if CONFIG_SMP
+#if IS_ENABLED(CONFIG_SMP)
     spinlock_lock_arch(lock);
     _dmb(ish);
 #endif
@@ -48,7 +51,7 @@ mword_t spinlock_lock(spinlock_t *lock)
 }
 void spinlock_set(spinlock_t *lock, mword_t status)
 {
-#if CONFIG_SMP
+#if IS_ENABLED(CONFIG_SMP)
     _dmb(ish);
     spinlock_unlock_arch(lock);
 #endif

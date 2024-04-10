@@ -126,11 +126,17 @@ typedef struct thread
 static inline void thread_set_msg_buf(thread_t *th, void *msg, void *umsg)
 {
     th->msg.msg = msg;
+#if IS_ENABLED(CONFIG_MMU)
     th->msg.umsg = umsg;
+#endif
 }
 static inline void *thread_get_msg_buf(thread_t *th)
 {
+#if IS_ENABLED(CONFIG_MMU)
     return th->msg.umsg;
+#else
+    return th->msg.msg;
+#endif
 }
 static inline void *thread_get_kmsg_buf(thread_t *th)
 {

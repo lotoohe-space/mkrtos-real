@@ -7,7 +7,7 @@
 export TOOLCHAIN=/home/zhangzheng/gcc-arm/gcc-arm-none-eabi-10.3-2021.10/bin/
 export TOOLCHAIN_LIB=/home/zhangzheng/gcc-arm/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp
 export BOARD=STM32F205
-export CROSS_COMPILE=arm-none-eabi-
+export CROSS_COMPILE_NAME=arm-none-eabi-
 
 set -e
 cmake -G Ninja -B build/$KNL .

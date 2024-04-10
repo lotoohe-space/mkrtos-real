@@ -34,6 +34,7 @@ if (${CONFIG_CPU_TYPE} STREQUAL "stm32f1")
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/CMSIS/CM3/CoreSupport
     )
     add_subdirectory(bsp/STM32F1)
+    set(PACK_CMD "${CMAKE_OBJCOPY} -I binary -O elf32-littlearm -B arm rootfs.cpio rootfs.cpio.elf --rename-section .data=.cpio")
 elseif(${CONFIG_CPU_TYPE} STREQUAL "stm32f2" )
 
     file(GLOB bsp_src ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/STM32F2xx_StdPeriph_Driver/src/*.c)
@@ -46,6 +47,7 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "stm32f2" )
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/CMSIS/Device/ST/STM32F2xx/Include
     )
     add_subdirectory(bsp/STM32F2)
+    set(PACK_CMD "${CMAKE_OBJCOPY} -I binary -O elf32-littlearm -B arm rootfs.cpio rootfs.cpio.elf --rename-section .data=.cpio")
 elseif(${CONFIG_CPU_TYPE} STREQUAL "stm32f4" )
     if(${CONFIG_BOARD_NAME} STREQUAL "STM32F407VET6" )
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F40_41xxx ")
@@ -63,12 +65,14 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "stm32f4" )
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Device/ST/STM32F4xx/Include
     )
     add_subdirectory(bsp/STM32F4)
+    set(PACK_CMD "${CMAKE_OBJCOPY} -I binary -O elf32-littlearm -B arm rootfs.cpio rootfs.cpio.elf --rename-section .data=.cpio")
 elseif(${CONFIG_CPU_TYPE} STREQUAL "Cortex-R52" )
     include_directories(
         ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/Cortex-R52
 
     )
     add_subdirectory(bsp/Cortex-R52)
+    set(PACK_CMD "${CMAKE_OBJCOPY} -I binary -O elf32-littlearm -B arm rootfs.cpio rootfs.cpio.elf --rename-section .data=.cpio")
 elseif(${CONFIG_CPU_TYPE} STREQUAL "swm34s" )
 
     file(GLOB bsp_src 
@@ -85,11 +89,13 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "swm34s" )
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/SWM341_StdPeriph_Driver
     )
     add_subdirectory(bsp/SWM34S)
+    set(PACK_CMD "${CMAKE_OBJCOPY} -I binary -O elf32-littlearm -B arm rootfs.cpio rootfs.cpio.elf --rename-section .data=.cpio")
 elseif(${CONFIG_CPU_TYPE} STREQUAL "aarch64_qemu" )
     include_directories(
         ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/AARCH64_QEMU
     )
     add_subdirectory(bsp/AARCH64_QEMU)
+    set(PACK_CMD "${CMAKE_OBJCOPY} -I binary -O elf64-littleaarch64 -B aarch64 rootfs.cpio rootfs.cpio.elf --rename-section .data=.cpio")
 endif()
 
 add_custom_target(
@@ -102,10 +108,11 @@ add_custom_target(
     COMMAND
     cd ${CMAKE_SOURCE_DIR}/build/output
     COMMAND
-    ${CMAKE_OBJCOPY} -I binary -O elf64-littleaarch64 -B aarch64 rootfs.cpio rootfs.cpio.elf --rename-section .data=.cpio
+    eval ${PACK_CMD}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/build/output
     BYPRODUCTS ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio.elf
-)
+    )
+    # ${CMAKE_OBJCOPY} -I binary -O elf64-littleaarch64 -B aarch64 rootfs.cpio rootfs.cpio.elf --rename-section .data=.cpio
 add_dependencies(
     gen_sys_cpio
     mkrtos_dump
@@ -128,6 +135,7 @@ target_link_libraries(
     --whole-archive
     boot_bsp
     --no-whole-archive
+    ${GCC_LIB_PATH}/libgcc.a
 )
 
 add_custom_target(

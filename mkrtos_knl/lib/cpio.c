@@ -1,4 +1,4 @@
-#include "mk_sys.h"
+// #include "mk_sys.h"
 #include "cpio.h"
 #include <util.h>
 #include <string.h>

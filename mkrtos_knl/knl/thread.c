@@ -26,7 +26,7 @@
 #include "map.h"
 #include "access.h"
 #include "ipc.h"
-#include "asm/mm.h"
+#include "arch.h"
 enum thread_op
 {
     SET_EXEC_REGS,
@@ -785,8 +785,13 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         task_t *tag_tk = thread_get_bind_task(tag_th);
         if (is_rw_access(tag_tk, (void *)(f->regs[1]), THREAD_MSG_BUG_LEN, FALSE))
         {
+#if IS_ENABLED(CONFIG_MMU)
             thread_set_msg_buf(tag_th, (void *)mm_get_paddr(mm_space_get_pdir(&tag_tk->mm_space), f->regs[1], PAGE_SHIFT),
                                (void *)(f->regs[1]));
+#else
+            thread_set_msg_buf(tag_th, (void *)(f->regs[1]),
+                               (void *)(f->regs[1]));
+#endif
             tag = msg_tag_init4(0, 0, 0, 0);
         }
         else

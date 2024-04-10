@@ -239,7 +239,7 @@ static share_mem_t *share_mem_create(ram_limit_t *lim, size_t max)
 
 #if CONFIG_MK_MPU_CFG
 #if CONFIG_MPU_VERSION == 1
-    if (max < PAGE_SIZE || !is_power_of_2(max))
+    if (max < (1UL << CONFIG_PAGE_SHIFT) || !is_power_of_2(max))
     {
         //!< 大小必须是2的整数倍
         return NULL;

@@ -13,13 +13,14 @@
 #include "mm_space.h"
 #include "mpu.h"
 #include "assert.h"
-#if CONFIG_MK_MPU_CFG
-void mm_space_init(mm_space_t *mm_space, int is_knl)
+#if IS_ENABLED(CONFIG_MK_MPU_CFG)
+int mm_space_init(mm_space_t *mm_space, int is_knl)
 {
     for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         mm_space->pt_regions[i].region_inx = -1;
     }
+    return 0;
 }
 region_info_t *mm_space_alloc_pt_region(mm_space_t *m_space)
 {
