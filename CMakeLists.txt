@@ -32,7 +32,9 @@ set(compile_time "${DATE}\" \"${TIME}" CACHE STRING " " FORCE)
 
 add_subdirectory(mkrtos_bootstrap)
 add_subdirectory(mkrtos_knl)
-# add_subdirectory(mkrtos_img)
+if ((NOT DEFINED CONFIG_MMU) OR (CONFIG_MMU STREQUAL "n"))
+    add_subdirectory(mkrtos_img)
+endif()
 add_subdirectory(mkrtos_user)
 
 

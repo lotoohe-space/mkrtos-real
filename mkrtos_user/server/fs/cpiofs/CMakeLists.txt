@@ -59,9 +59,14 @@ add_custom_target(
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
     COMMAND
     cp cpiofs.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/cpiofs
-    COMMAND
-    cp cpiofs.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/cpiofs.elf
 )
-
+if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
+    add_custom_target(
+        cpiofs_dump_elf ALL
+        COMMAND
+        cp cpiofs.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/cpiofs.elf
+    )
+    add_dependencies(cpiofs_dump_elf cpiofs_dump)
+endif()
 add_dependencies(cpiofs_dump cpiofs.elf)
  

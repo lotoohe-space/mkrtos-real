@@ -48,7 +48,12 @@ SECTIONS
     _mkrtos_init_start = .;
     KEEP (*(SORT(.mkrtos.init.*)))
     _mkrtos_init_end = .;
-	
+    
+    . = ALIGN(4);
+    cpio_start = .;
+    *(.cpio*)
+    . = ALIGN(4096);
+    cpio_end = .;
 
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */

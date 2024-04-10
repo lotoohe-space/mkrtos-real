@@ -71,12 +71,18 @@ add_custom_target(
     COMMAND
     cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/mkrtos.elf
     COMMAND
-    cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/mkrtos.elf
-    COMMAND
     ${CMAKE_OBJDUMP} -s -S mkrtos.elf > ${CMAKE_SOURCE_DIR}/build/output/mkrtos.S
     COMMAND
     ${CMAKE_SIZE} mkrtos.elf
 )
+if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
+    add_custom_target(
+        mkrtos_dump_elf ALL
+        COMMAND
+        cp init.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/mkrtos.elf
+    )
+    add_dependencies(mkrtos_dump_elf mkrtos_dump)
+endif()
 add_dependencies(mkrtos.elf link_file_dump)
 add_dependencies(mkrtos_dump mkrtos.elf)
 add_dependencies(mkrtos_dump knl)

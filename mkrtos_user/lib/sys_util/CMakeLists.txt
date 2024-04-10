@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.13)
 
 
 file(GLOB_RECURSE deps  *.c *.S)
-if (DEFINED CONFIG_ELF_LAUNCH)
-    if (CONFIG_ELF_LAUNCH STREQUAL "y")
-        list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/src/u_app_loader.c)
-        list(APPEND deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/src/u_elf_loader.c)
-    endif()
+if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
+    list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/src/u_app_loader.c)
+else()
+    list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/src/u_elf_loader.c)
+    list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/src/u_elf64.c)
 endif()
 
 add_library(

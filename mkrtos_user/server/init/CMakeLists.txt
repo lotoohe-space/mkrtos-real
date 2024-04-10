@@ -42,21 +42,26 @@ add_custom_target(
     ${CMAKE_OBJDUMP} -s -S init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.S
     # COMMAND
     # ${CMAKE_READELF} -a init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.txt
-    # COMMAND
-    # ${CMAKE_OBJCOPY} -O binary -S init.elf init.bin
+    COMMAND
+    ${CMAKE_OBJCOPY} -O binary -S init.elf init.bin
     COMMAND
     ${CMAKE_SIZE} init.elf
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output
-    # COMMAND
-    # cp init.bin ${CMAKE_SOURCE_DIR}/build/output/init
-    # COMMAND
-    # cp init.elf ${CMAKE_SOURCE_DIR}/build/output/init.elf
     COMMAND
-    cp init.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/init.elf
+    cp init.bin ${CMAKE_SOURCE_DIR}/build/output/init
     COMMAND
     cp ${CMAKE_CURRENT_LIST_DIR}/src/init.cfg ${CMAKE_SOURCE_DIR}/build/output/cpio/
+    COMMAND
+    cp init.elf ${CMAKE_SOURCE_DIR}/build/output/init.elf
 )
-
+if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
+    add_custom_target(
+        init_dump_elf ALL
+        COMMAND
+        cp init.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/init.elf
+    )
+    add_dependencies(init_dump_elf init_dump)
+endif()
 add_dependencies(init_dump init.elf)
 add_dependencies(init.elf libc_be util)

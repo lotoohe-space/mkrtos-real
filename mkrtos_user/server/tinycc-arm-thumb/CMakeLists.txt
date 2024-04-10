@@ -78,10 +78,16 @@ add_custom_target(
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
     # COMMAND
     # cp tcc.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc
-    COMMAND
-    cp tcc.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc.elf
-)
 
+)
+if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
+    add_custom_target(
+        tcc_dump_elf ALL
+        COMMAND
+        cp tcc.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc.elf
+    )
+    add_dependencies(tcc_dump_elf tcc_dump)
+endif()
 add_dependencies(tcc_dump tcc.elf)
 add_dependencies(tcc_dump sys)
 add_dependencies(tcc_dump sys_util)

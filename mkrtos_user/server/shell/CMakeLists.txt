@@ -47,9 +47,16 @@ add_custom_target(
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
     COMMAND
-    cp sh.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/sh.elf
+    cp sh.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/sh
 )
-
+if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
+    add_custom_target(
+        sh_dump_elf ALL
+        COMMAND
+        cp sh.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/sh.elf
+    )
+    add_dependencies(sh_dump_elf shell_dump)
+endif()
 add_dependencies(shell_dump sh.elf)
 add_dependencies(shell_dump sys)
 add_dependencies(shell_dump sys_util)
