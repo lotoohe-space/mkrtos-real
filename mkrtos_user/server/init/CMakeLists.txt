@@ -38,8 +38,8 @@ set_target_properties(init.elf PROPERTIES LINK_FLAGS
 #-T ${CMAKE_CURRENT_LIST_DIR}/link.lds
 add_custom_target(
     init_dump ALL
-    # COMMAND
-    # ${CMAKE_OBJDUMP} -s -S init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.S
+    COMMAND
+    ${CMAKE_OBJDUMP} -s -S init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.S
     # COMMAND
     # ${CMAKE_READELF} -a init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.txt
     # COMMAND

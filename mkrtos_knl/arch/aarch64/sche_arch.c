@@ -17,7 +17,8 @@ static void sw_mmu(thread_t *next_thread)
         write_sysreg(p_next_dir | (next_task->mm_space.asid << 48) /*TODO:*/, vttbr_el2); // 切换用户态页表
         _dsb(ish);
         _isb();
-        asm volatile("ic iallu");
+        // printk("asid:%lx.\n", (next_task->mm_space.asid << 48));
+        // asm volatile("ic iallu");
 
         // mword_t vttbr;
         // // FIXME: could do a compare for the current VMID before loading

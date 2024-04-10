@@ -20,8 +20,8 @@ int mm_space_init(mm_space_t *mm_space, int is_knl)
     int ret = 0;
 
     page_entry_init(&mm_space->mem_dir);
-    mm_space->asid = global_asid++;
     ret = task_vma_init(&mm_space->mem_vma);
+    mm_space->asid = global_asid++;
 
     return ret;
 }
