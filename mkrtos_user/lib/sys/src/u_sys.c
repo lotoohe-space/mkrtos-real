@@ -15,7 +15,7 @@ enum sys_op
     DIS_IRQ,
 };
 
-msg_tag_t sys_read_info(obj_handler_t obj, sys_info_t *info)
+msg_tag_t sys_read_info(obj_handler_t obj, sys_info_t *info, umword_t flags)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     register volatile umword_t r1 asm(ARCH_REG_1);
@@ -23,7 +23,7 @@ msg_tag_t sys_read_info(obj_handler_t obj, sys_info_t *info)
     register volatile umword_t r3 asm(ARCH_REG_3);
 
     mk_syscall(syscall_prot_create(SYS_INFO_GET, SYS_PROT, obj).raw,
-               0,
+               flags,
                0,
                0,
                0,

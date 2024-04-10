@@ -26,8 +26,8 @@ typedef struct thread thread_t;
 #define MSG_BUF_RECV_R_FLAGS 0x02U                   //!< 接收来自recv_th的消息
 #define MSG_BUF_REPLY_FLAGS 0x04U                    //!< 回复消息给send_th
 
-#define IPC_MSG_SIZE 96
-#define MAP_BUF_SIZE 16
+#define IPC_MSG_SIZE CONFIG_THREAD_IPC_MSG_LEN
+#define MAP_BUF_SIZE CONFIG_THREAD_MAP_BUF_LEN
 #define IPC_USER_SIZE 12
 
 #if (IPC_MSG_SIZE + MAP_BUF_SIZE + IPC_USER_SIZE) > THREAD_MSG_BUG_LEN

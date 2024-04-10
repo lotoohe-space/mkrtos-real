@@ -42,9 +42,9 @@ typedef struct msg_tag
         struct
         {
             umword_t flags : 4;
-            umword_t msg_buf_len : 5;
-            umword_t map_buf_len : 2;
-            umword_t prot : WORD_BITS - 12;
+            umword_t msg_buf_len : 7;
+            umword_t map_buf_len : 5;
+            umword_t prot : WORD_BITS - 16;
         };
     };
 } msg_tag_t;

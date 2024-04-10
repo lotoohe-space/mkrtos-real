@@ -121,7 +121,7 @@ long be_clock_gettime(clockid_t clk_id, struct timespec *tp)
         return -ENODEV;
     }
     sys_info_t info;
-    sys_read_info(SYS_PROT, &info);
+    sys_read_info(SYS_PROT, &info, 0);
 
     unsigned long ts = info.sys_tick;
 

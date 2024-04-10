@@ -8,31 +8,37 @@
  * @copyright Copyright (c) 2023
  *
  */
-#include "log.h"
+#include "arch.h"
 #include "factory.h"
-#include "kobject.h"
 #include "globals.h"
 #include "init.h"
+#include "kobject.h"
+#include "log.h"
+#include "mm_wrap.h"
 #include "printk.h"
 #include "types.h"
 #include "util.h"
-#include "arch.h"
-#include "mm_wrap.h"
+#if IS_ENABLED(CONFIG_MMU)
+#include <vma.h>
+#endif
+#include <cpio.h>
+#include <globals.h>
+#include <task.h>
+#include <thread.h>
 
-typedef struct sys
-{
+typedef struct sys {
     kobject_t kobj;
 } sys_t;
 
 static sys_t sys_obj;
 
-enum sys_op
-{
+enum sys_op {
     SYS_INFO_GET,
     REBOOT,
     MEM_INFO,
     DIS_IRQ,
 };
+#define SYS_FLAGS_MAP_CPIO_FS 0x1
 static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f);
 
 static void sys_reg(void)
@@ -45,35 +51,39 @@ INIT_KOBJ(sys_reg);
 
 static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
+    int ret = 0;
     msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
-    if (sys_p.prot != SYS_PROT)
-    {
+    if (sys_p.prot != SYS_PROT) {
         f->regs[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
-    switch (sys_p.op)
-    {
-    case SYS_INFO_GET:
-    {
+    switch (sys_p.op) {
+    case SYS_INFO_GET: {
+        umword_t flags = f->regs[0];
+        addr_t cpio_addr;
+
         f->regs[1] = sys_tick_cnt_get();
 #if IS_ENABLED(CONFIG_MMU)
-        f->regs[2] = CONFIG_BOOT_FS_VADDR;
+        if (flags & SYS_FLAGS_MAP_CPIO_FS) {
+            ret = task_vma_alloc(&(thread_get_current_task()->mm_space.mem_vma),
+                                 vma_addr_create(VPAGE_PROT_RO, VMA_ADDR_RESV, 0),
+                                 cpio_get_size(cpio_images), (paddr_t)cpio_images, &cpio_addr);
+            f->regs[2] = cpio_addr;
+        } else {
+            f->regs[2] = CONFIG_BOOT_FS_VADDR;
+        }
 #else
         f->regs[2] = CONFIG_KNL_TEXT_ADDR + CONFIG_BOOTFS_OFFSET;
 #endif
         f->regs[3] = arch_get_sys_clk();
-        tag = msg_tag_init4(0, 0, 0, 0);
-    }
-    break;
-    case REBOOT:
-    {
+        tag = msg_tag_init4(0, 0, 0, ret);
+    } break;
+    case REBOOT: {
         printk("sys reboot.\n");
         sys_reset();
         tag = msg_tag_init4(0, 0, 0, 0);
-    }
-    break;
-    case MEM_INFO:
-    {
+    } break;
+    case MEM_INFO: {
         size_t total;
         size_t free;
 
@@ -81,14 +91,11 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         f->regs[1] = total;
         f->regs[2] = free;
         tag = msg_tag_init4(0, 0, 0, 0);
-    }
-    break;
-    case DIS_IRQ:
-    {
+    } break;
+    case DIS_IRQ: {
         arch_disable_irq(f->regs[0]);
         tag = msg_tag_init4(0, 0, 0, 0);
-    }
-    break;
+    } break;
     default:
         tag = msg_tag_init4(0, 0, 0, -ENOSYS);
         break;

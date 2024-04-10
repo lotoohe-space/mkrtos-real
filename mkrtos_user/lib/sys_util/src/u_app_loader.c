@@ -116,7 +116,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     msg_tag_t tag;
     sys_info_t sys_info;
 
-    tag = sys_read_info(SYS_PROT, &sys_info);
+    tag = sys_read_info(SYS_PROT, &sys_info, 0);
     if (msg_tag_get_val(tag) < 0)
     {
         return -ENOENT;
