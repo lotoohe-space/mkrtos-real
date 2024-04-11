@@ -15,8 +15,8 @@
 | Cortex-m3| renode/stm32f103,qemu/stm32f2 | done |
 | Cortex-m4 | renode/stm32f4 | done |
 | Cortex-m33|swm34s|done|
+| ARMv8 | Qemu | done |
 | risc-v | Qemu | X |
-| ARMv8|Qemu|X
 
 ### 设计原则
 - 1.服务间数据交互不经过第三方组件。
