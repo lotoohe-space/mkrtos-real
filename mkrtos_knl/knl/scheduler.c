@@ -14,7 +14,8 @@
 #include "thread.h"
 #include "init.h"
 #include <arch.h>
-static scheduler_t scheduler;
+#include <pre_cpu.h>
+static PER_CPU(scheduler_t, scheduler);
 umword_t sched_reset = 0;
 
 void scheduler_reset(void)
@@ -27,24 +28,31 @@ void scheduler_reset(void)
 
 scheduler_t *scheduler_get_current(void)
 {
-    return &scheduler;
+    return pre_cpu_get_current_cpu_var(&scheduler);
 }
-
+scheduler_t *scheduler_get_cpu(int inx)
+{
+    return pre_cpu_get_var_cpu(inx, &scheduler);
+}
 void scheduler_init(void)
 {
     for (int i = 0; i < PRIO_MAX; i++)
     {
-        slist_init(&(scheduler.prio_list[i]));
+        slist_init(&(scheduler_get_current()->prio_list[i]));
     }
 }
-INIT_HIGH_HAD(scheduler_init);
+INIT_KOBJ(scheduler_init);
 void scheduler_add(sched_t *node)
+{
+    scheduler_add_to_cpu(node, arch_get_current_cpu_id());
+}
+void scheduler_add_to_cpu(sched_t *node, int cpu)
 {
     thread_t *node_th = container_of(node, thread_t, sche);
 
     assert(node_th->magic == THREAD_MAGIC);
 
-    scheduler_t *sched = scheduler_get_current();
+    scheduler_t *sched = scheduler_get_cpu(cpu);
     assert(node->prio >= 0);
     assert(node->prio < PRIO_MAX);
 
@@ -88,9 +96,9 @@ void scheduler_del(sched_t *node)
         sched->cur_sche = NULL;
     }
 }
-sched_t *scheduler_next(void)
+sched_t *scheduler_next_cpu(int cpu)
 {
-    scheduler_t *sche = scheduler_get_current();
+    scheduler_t *sche = scheduler_get_cpu(cpu);
     sched_t *next_sch = NULL;
     slist_head_t *next = NULL;
 
@@ -110,6 +118,10 @@ sched_t *scheduler_next(void)
     assert(next_sch->prio < PRIO_MAX);
     sche->cur_sche = next_sch;
     return next_sch;
+}
+sched_t *scheduler_next(void)
+{
+    return scheduler_next_cpu(arch_get_current_cpu_id());
 }
 
 void sched_tail(void)

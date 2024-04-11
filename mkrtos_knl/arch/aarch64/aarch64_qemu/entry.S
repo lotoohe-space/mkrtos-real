@@ -1,5 +1,7 @@
 #include <asm/sysregs.h>
 #include <asm_config.h>
+#include <complier.h>
+
 .section  .rodata
 .align 3
 .globl string1
@@ -35,10 +37,6 @@ per_cpu_stack_addr:
 _start:
 	msr daifset, #0xf	// 关闭中断
 	mov x9, x0
-#ifdef CONFIG_DEBUG_ON_EARLY_ASM
-        /* init uart and print the string*/
-	bl __init_uart
-#endif
 
 	mrs x5, CurrentEL
 	cmp x5, #CurrentEL_EL3
@@ -46,9 +44,6 @@ _start:
 	b el2_entry
 
 el3_entry:
-#ifdef CONFIG_DEBUG_ON_EARLY_ASM
-	bl print_el
-#endif
 	ldr x0, =SCTLR_EL2_VALUE_MMU_DISABLED
 	msr sctlr_el2, x0
 
@@ -116,3 +111,25 @@ jump_kenel_main:
 	ldr x1, = start_kernel
 	br x1
 	b .
+
+.section ".text"
+
+BEGIN_FUNC(per_cpu_boot_func)
+	//进入多核启动流程
+	mrs	x0, mpidr_el1	// 读取该寄存器获取处理器id
+	and	x0, x0,#0xFF	// Check processor id
+	cbz	x0, percpu_spin_loop		// Hang for all non-primary CPU
+
+	//spin table
+	ldr x1, = cpu_jump_addr
+	lsl x2, x0, MWORD_SHIFT
+percpu_spin_jump:
+	ldr x3, [x1, x2]
+	cbz x3, percpu_spin_jump
+	ldr x4, = per_cpu_stack_addr
+	ldr x4, [x4, x2] //获取sp启动的值
+	mov sp, x4 //cpu启动的sp地址
+	br x3
+percpu_spin_loop:
+	b .
+END_FUNC(per_cpu_boot_func)

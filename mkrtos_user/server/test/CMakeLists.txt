@@ -2,21 +2,22 @@ cmake_minimum_required(VERSION 3.13)
 
 file(GLOB_RECURSE deps *.c *.S)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_STDPERIPH_DRIVER=1 \
-")
-
-
 add_executable(test.elf
     ${deps}
+    ${START_SRC}
 )
 target_link_libraries(test.elf
     PUBLIC
-    start
-    muslc
+    -Bstatic
+    ${LIBC_NAME}
+    ${START_LIB}
+    --whole-archive
+    libc_be
+    --no-whole-archive
+    printf
     sys
     sys_util
     sys_svr
-    mr
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -25,25 +26,16 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
-
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/test/src/test
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/test/bsp/core_inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/test/bsp/inc
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/printf/src/printf
 )
-add_dependencies(test.elf
-muslc
+set_target_properties(sh.elf PROPERTIES LINK_FLAGS
+"-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "
 )
-set_target_properties(test.elf PROPERTIES LINK_FLAGS
-"-T ${CMAKE_CURRENT_LIST_DIR}/link.lds -pie --gc-section -no-dynamic-linker "
-)
-#--no-warn-rwx-segments
 add_custom_target(
     test_dump ALL
     COMMAND
@@ -61,8 +53,16 @@ add_custom_target(
     COMMAND
     cp test.elf ${CMAKE_SOURCE_DIR}/build/output/test.elf
 )
-
+if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
+    add_custom_target(
+        test_dump_elf ALL
+        COMMAND
+        cp test.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/test.elf
+    )
+    add_dependencies(test_dump_elf test_dump)
+endif()
 add_dependencies(test_dump test.elf)
 add_dependencies(test_dump sys)
 add_dependencies(test_dump sys_util)
+add_dependencies(test_dump sys_svr)
  

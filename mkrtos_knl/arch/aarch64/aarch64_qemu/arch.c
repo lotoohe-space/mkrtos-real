@@ -20,10 +20,13 @@
 #include <timer.h>
 #include <hyp.h>
 #include <sche_arch.h>
+#include <spin_table.h>
+#include <thread_knl.h>
 __ALIGN__(THREAD_BLOCK_SIZE)
-static uint8_t thread_knl_stack[THREAD_BLOCK_SIZE] = {0};
-void *_estack = thread_knl_stack + THREAD_BLOCK_SIZE;
-
+static uint8_t thread_knl_stack[CONFIG_CPU][THREAD_BLOCK_SIZE] = {0};
+void *_estack = &thread_knl_stack[0] + THREAD_BLOCK_SIZE;
+static void other_cpu_boot(void);
+extern void _start(void);
 /**
  * 进行调度
  */
@@ -37,13 +40,16 @@ void to_sche(void)
  */
 void sys_startup(void)
 {
-    /*TODO:*/
-    init_arm_hyp();
     timer_init(arch_get_current_cpu_id());
+    for (int i = 1; i < CONFIG_CPU; i++)
+    {
+        cpu_start_to(i, thread_knl_stack[i], other_cpu_boot);
+        psci_cpu_on(i, (umword_t)_start);
+    }
 }
 void sys_reset(void)
 {
-    /*TODO:*/
+    psci_system_reset();
 }
 umword_t arch_get_isr_no(void)
 {
@@ -51,12 +57,10 @@ umword_t arch_get_isr_no(void)
 }
 void arch_disable_irq(int inx)
 {
-    /*TODO:*/
     gic2_set_mask(arm_gicv2_get_global(), inx);
 }
 void arch_enable_irq(int inx)
 {
-    /*TODO:*/
     gic2_set_unmask(arm_gicv2_get_global(), inx);
 }
 uint32_t arch_get_sys_clk(void)
@@ -66,7 +70,6 @@ uint32_t arch_get_sys_clk(void)
 }
 void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio)
 {
-    /*TODO:*/
     gic2_set_prio(arm_gicv2_get_global(), inx, pre_prio);
 }
 extern char _data_boot[], _edata_boot[];
@@ -105,10 +108,32 @@ static void print_mem(void)
 
 void arch_init(void)
 {
-    printk("MKRTOS running on EL:%d\n", arch_get_currentel() >> 2);
+    printk("MKRTOS running on EL:%d\n", arch_get_currentel());
     print_mem();
+    init_arm_hyp();
     psci_init();
     gic_init(arm_gicv2_get_global(),
              0x08000000, 0x8010000); /*TODO:*/
 }
 INIT_LOW_HARD(arch_init);
+static void arch_cpu_knl_init(void)
+{
+    init_arm_hyp();
+    scheduler_init(); //!< 初始化其他cpu的调度队列
+    gic_init(arm_gicv2_get_global(), 0x08000000, 0x8010000);
+    knl_init_1();
+    timer_init(arch_get_current_cpu_id());
+}
+static void other_cpu_boot(void)
+{
+    cli();
+    per_cpu_boot_mapping(FALSE);
+
+    mword_t elx = arch_get_currentel();
+
+    printk("cpuid %d run el%d.\n", arch_get_current_cpu_id(), elx);
+    arch_cpu_knl_init();
+    sti();
+    while (1)
+        ;
+}

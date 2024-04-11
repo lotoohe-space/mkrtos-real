@@ -36,5 +36,7 @@ scheduler_t *scheduler_get_current(void);
 void scheduler_init(void);
 sched_t *scheduler_next(void);
 void scheduler_add(sched_t *node);
+void scheduler_add_to_cpu(sched_t *node, int cpu);
+sched_t *scheduler_next_cpu(int cpu);
 void scheduler_del(sched_t *node);
 void scheduler_reset(void);

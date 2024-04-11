@@ -89,10 +89,13 @@ void entry_handler(void)
     }
     isr_no -= CONFIG_USER_ISR_START_NO; //!< 系统用的irq偏移
 
-    assert(isr_no < CONFIG_IRQ_REG_TAB_SIZE);
+    if (isr_no >= CONFIG_IRQ_REG_TAB_SIZE)
+    {
+        assert(isr_no < CONFIG_IRQ_REG_TAB_SIZE);
+    }
     // if (isr_no != 30)
     // {
-    //     printk("%d.\n", isr_no);
+    //     printk("==============%d.\n", isr_no);
     // }
     if (!irq_check_usability(isr_no))
     {

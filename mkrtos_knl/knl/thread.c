@@ -27,6 +27,8 @@
 #include "access.h"
 #include "ipc.h"
 #include "arch.h"
+#include <pre_cpu.h>
+
 enum thread_op
 {
     SET_EXEC_REGS,
@@ -66,13 +68,16 @@ static inline void thread_wait_entry_init(thread_wait_entry_t *entry, thread_t *
     entry->times = times;
 }
 
-static slist_head_t wait_send_queue;
-static slist_head_t wait_recv_queue;
+static PER_CPU(slist_head_t, wait_send_queue);
+static PER_CPU(slist_head_t, wait_recv_queue);
 
 static void thread_timeout_init(void)
 {
-    slist_init(&wait_send_queue);
-    slist_init(&wait_recv_queue);
+    for (int i = 0; i < CONFIG_CPU; i++)
+    {
+        slist_init(pre_cpu_get_var_cpu(i, &wait_send_queue));
+        slist_init(pre_cpu_get_var_cpu(i, &wait_recv_queue));
+    }
 }
 
 INIT_KOBJ(thread_timeout_init);
@@ -142,10 +147,10 @@ static void thread_release_stage1(kobject_t *kobj)
     }
     thread_wait_entry_t *pos;
 
-    slist_foreach_not_next(pos, &wait_send_queue, node_timeout)
+    slist_foreach_not_next(pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue), node_timeout)
     {
         assert(pos->th->status == THREAD_SUSPEND);
-        thread_wait_entry_t *next = slist_next_entry(pos, &wait_send_queue, node_timeout);
+        thread_wait_entry_t *next = slist_next_entry(pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue), node_timeout);
 
         if (pos->th != th)
         {
@@ -162,10 +167,10 @@ static void thread_release_stage1(kobject_t *kobj)
     }
     thread_wait_entry_t *pos2;
 
-    slist_foreach_not_next(pos2, &wait_recv_queue, node)
+    slist_foreach_not_next(pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue), node)
     {
         assert(pos2->th->status == THREAD_SUSPEND);
-        thread_wait_entry_t *next = slist_next_entry(pos2, &wait_recv_queue, node);
+        thread_wait_entry_t *next = slist_next_entry(pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue), node);
 
         if (pos2->th != th)
         {
@@ -297,21 +302,31 @@ bool_t thread_sched(bool_t is_sche)
  *
  * @param th
  */
-void thread_ready(thread_t *th, bool_t is_sche)
+void thread_ready_to_cpu(thread_t *th, int cpu, bool_t is_sche)
 {
+    assert(cpu < CONFIG_CPU);
     umword_t status = cpulock_lock();
 
-    // if (!!slist_in_list(&th->sche.node))
-    // {
     assert(!slist_in_list(&th->sche.node));
-    // }
-    scheduler_add(&th->sche);
+    scheduler_add_to_cpu(&th->sche, cpu);
     th->status = THREAD_READY;
     if (is_sche)
     {
-        thread_sched(TRUE);
+        umword_t status = cpulock_lock();
+        sched_t *next_sche = scheduler_next_cpu(cpu);
+
+        assert(th->magic == THREAD_MAGIC);
     }
     cpulock_set(status);
+}
+/**
+ * @brief 线程进入就绪态
+ *
+ * @param th
+ */
+void thread_ready(thread_t *th, bool_t is_sche)
+{
+    thread_ready_to_cpu(th, arch_get_current_cpu_id(), is_sche);
 }
 void thread_todead(thread_t *th, bool_t is_sche)
 {
@@ -360,10 +375,10 @@ void thread_timeout_check(ssize_t tick)
 {
     thread_wait_entry_t *pos;
 
-    slist_foreach_not_next(pos, &wait_send_queue, node_timeout)
+    slist_foreach_not_next(pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue), node_timeout)
     {
         assert(pos->th->status == THREAD_SUSPEND);
-        thread_wait_entry_t *next = slist_next_entry(pos, &wait_send_queue, node_timeout);
+        thread_wait_entry_t *next = slist_next_entry(pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue), node_timeout);
         if (pos->times > 0)
         {
             pos->times -= tick;
@@ -381,10 +396,12 @@ void thread_timeout_check(ssize_t tick)
         pos = next;
     }
     thread_wait_entry_t *pos2;
-    slist_foreach_not_next(pos2, &wait_recv_queue, node)
+    slist_foreach_not_next(pos2,
+                           (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue), node)
     {
         assert(pos2->th->status == THREAD_SUSPEND);
-        thread_wait_entry_t *next = slist_next_entry(pos2, &wait_recv_queue, node);
+        thread_wait_entry_t *next = slist_next_entry(pos2,
+                                                     (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue), node);
 
         if (pos2->times > 0)
         {
@@ -402,9 +419,9 @@ void thread_timeout_check(ssize_t tick)
 static void thread_timeout_del_recv(thread_t *th)
 {
     thread_wait_entry_t *pos2;
-    slist_foreach_not_next(pos2, &wait_recv_queue, node)
+    slist_foreach_not_next(pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue), node)
     {
-        thread_wait_entry_t *next = slist_next_entry(pos2, &wait_recv_queue, node);
+        thread_wait_entry_t *next = slist_next_entry(pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue), node);
 
         if (pos2->th == th)
         {
@@ -516,7 +533,7 @@ static int thread_ipc_recv(msg_tag_t *ret_msg, ipc_timeout_t timeout,
         if (timeout.recv_timeout)
         {
             thread_wait_entry_init(&wait, cur_th, timeout.recv_timeout);
-            slist_add_append(&wait_recv_queue, &wait.node); //!< 放到等待队列中
+            slist_add_append(pre_cpu_get_current_cpu_var(&wait_recv_queue), &wait.node); //!< 放到等待队列中
         }
     }
     thread_suspend(cur_th); //!< 挂起
@@ -620,7 +637,7 @@ again_check:
 
         thread_wait_entry_init(&wait, cur_th, timout.send_timeout);
         slist_add_append(&recv_kobj->wait_send_head, &wait.node); //!< 放到线程的等待队列中
-        slist_add_append(&wait_send_queue, &wait.node_timeout);
+        slist_add_append(pre_cpu_get_current_cpu_var(&wait_send_queue), &wait.node_timeout);
         thread_suspend(cur_th); //!< 挂起
         preemption();
         if (cur_th->ipc_status == THREAD_IPC_ABORT)
@@ -832,7 +849,14 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_t
         if (!slist_in_list(&tag_th->sche.node))
         {
             tag_th->sche.prio = (f->regs[1] >= PRIO_MAX ? PRIO_MAX - 1 : f->regs[1]);
-            thread_ready(tag_th, TRUE);
+            if (f->regs[2] >= CONFIG_CPU)
+            {
+                thread_ready(tag_th, TRUE);
+            }
+            else
+            {
+                thread_ready_to_cpu(tag_th, f->regs[2], TRUE);
+            }
         }
         else
         {

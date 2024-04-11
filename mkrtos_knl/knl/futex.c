@@ -27,7 +27,7 @@
 #include "access.h"
 #include "limits.h"
 #include "futex.h"
-
+#include <pre_cpu.h>
 /**
  * @brief 以下是futex的操作码
  *
@@ -93,7 +93,7 @@ typedef struct futex_wait_item
     mword_t sleep_times;
 } futex_wait_item_t;
 
-static slist_head_t wait_list; //!< futex的等待队列
+static PER_CPU(slist_head_t, wait_list); //!< futex的等待队列
 
 /**
  * @brief 初始化一个超时等待队列
@@ -101,7 +101,10 @@ static slist_head_t wait_list; //!< futex的等待队列
  */
 static void futex_wait_list_init(void)
 {
-    slist_init(&wait_list);
+    for (int i = 0; i < CONFIG_CPU; i++)
+    {
+        slist_init(pre_cpu_get_var_cpu(i, &wait_list));
+    }
 }
 INIT_KOBJ(futex_wait_list_init);
 /**
@@ -112,9 +115,9 @@ void futex_timeout_times_tick(void)
 {
     futex_wait_item_t *item;
 
-    slist_foreach_not_next(item, &wait_list, node) //!< 第一次循环等待的ipc
+    slist_foreach_not_next(item, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_list), node) //!< 第一次循环等待的ipc
     {
-        futex_wait_item_t *next = slist_next_entry(item, &wait_list, node);
+        futex_wait_item_t *next = slist_next_entry(item, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_list), node);
         if (item->sleep_times > 0)
         {
             if ((--item->sleep_times) == 0)
@@ -366,7 +369,7 @@ static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t v
                 };
 
                 slist_init(&item.node);
-                slist_add_append(&wait_list, &item.node);
+                slist_add_append((slist_head_t *)pre_cpu_get_current_cpu_var(&wait_list), &item.node);
                 thread_suspend(cur_th);
                 preemption();
                 if (item.sleep_times <= 0)

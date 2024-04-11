@@ -92,7 +92,7 @@ static void knl_main(void)
  * 初始化内核线程
  * 初始化内核任务
  */
-static void knl_init_1(void)
+void knl_init_1(void)
 {
     knl_thread = thread_get_current();
 
@@ -104,7 +104,6 @@ static void knl_init_1(void)
     thread_set_msg_buf(knl_thread, knl_msg_buf, knl_msg_buf);
     thread_ready(knl_thread, FALSE);
 
-    slist_init(&del_task_head);
 }
 INIT_STAGE1(knl_init_1);
 
@@ -117,7 +116,7 @@ INIT_STAGE1(knl_init_1);
 static void knl_init_2(void)
 {
     mm_trace();
-
+    slist_init(&del_task_head);
 #if IS_ENABLED(CONFIG_KNL_TEST)
     knl_test();
 #else

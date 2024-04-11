@@ -31,37 +31,37 @@ typedef struct
 typedef struct pf {
     struct
     {
-        mword_t regs[31]; //!< 基础寄存器
-        mword_t sp;       //!< sp
-        mword_t pc;       //!< pc
-        mword_t pstate;   //!< pstate
+        umword_t regs[31]; //!< 基础寄存器
+        umword_t sp;       //!< sp
+        umword_t pc;       //!< pc
+        umword_t pstate;   //!< pstate
     };
 
-    mword_t orig_x0;
+    umword_t orig_x0;
     uint32_t syscallno;
     uint32_t unused2;
 
-    mword_t orig_addr_limit;
-    mword_t unused;
-    mword_t stackframe[2];
+    umword_t orig_addr_limit;
+    umword_t unused;
+    umword_t stackframe[2];
 } pf_t;
 
 typedef struct sp_info {
-    mword_t x19;
-    mword_t x20;
-    mword_t x21;
-    mword_t x22;
-    mword_t x23;
-    mword_t x24;
-    mword_t x25;
-    mword_t x26;
-    mword_t x27;
-    mword_t x28;
-    mword_t fp; // x29
-    mword_t sp;
-    mword_t pc;
-    mword_t u_sp; // user_sp
-    mword_t tpidr_el0;
+    umword_t x19;
+    umword_t x20;
+    umword_t x21;
+    umword_t x22;
+    umword_t x23;
+    umword_t x24;
+    umword_t x25;
+    umword_t x26;
+    umword_t x27;
+    umword_t x28;
+    umword_t fp; // x29
+    umword_t sp;
+    umword_t pc;
+    umword_t u_sp; // user_sp
+    umword_t tpidr_el0;
 } sp_info_t;
 
 #define _barrier() __asm__ __volatile__("" : : : "memory")
@@ -115,7 +115,7 @@ static inline uint64_t arch_get_currentel(void)
 
     asm volatile("mrs %0, CurrentEL"
                  : "=r"(_val));
-    return _val;
+    return _val >> 2;
 }
 static inline int arch_get_current_cpu_id(void)
 {
