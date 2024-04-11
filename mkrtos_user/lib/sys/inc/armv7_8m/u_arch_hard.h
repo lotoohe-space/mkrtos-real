@@ -19,3 +19,6 @@
 #define ARCH_REG_5 "r5"
 #define ARCH_REG_6 "r6"
 #define ARCH_REG_7 "r7"
+
+#define ARCH_WORD_SIZE 32
+

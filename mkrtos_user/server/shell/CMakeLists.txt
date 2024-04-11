@@ -48,6 +48,8 @@ add_custom_target(
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
     COMMAND
     cp sh.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/sh
+    COMMAND
+    cp sh.elf ${CMAKE_SOURCE_DIR}/build/output/sh.elf
 )
 if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
     add_custom_target(

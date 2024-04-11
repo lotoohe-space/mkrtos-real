@@ -13,7 +13,7 @@ if (${CONFIG_ARCH} STREQUAL "cortex-m3" OR
     -fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
     " )
 
-    set(CORTEX_M_LINK_FLAGS "-pie")
+    set(CORTEX_M_LINK_FLAGS " -pie ")
     set(LIBC_NAME "muslc")
     set(ARCH_NAME "armv7_8m")
 

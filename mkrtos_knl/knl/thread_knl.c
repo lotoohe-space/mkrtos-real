@@ -233,6 +233,6 @@ void start_kernel(void)
 
     while (1)
     {
-        knl_main();
+        // knl_main();
     }
 }

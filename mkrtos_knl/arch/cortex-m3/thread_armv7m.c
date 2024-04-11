@@ -19,7 +19,7 @@
 #include "string.h"
 typedef struct entry_frame_tmp
 {
-    umword_t r[6];
+    umword_t r[8];
 } entry_frame_tmp_t;
 
 static void syscall_entry_raw(entry_frame_tmp_t entry);

@@ -47,8 +47,13 @@ typedef union msg_tag
     .msg_buf_len = (msg_words),                                  \
     .map_buf_len = (buf_words),                                  \
     .prot = (p)})
+#if ARCH_WORD_SIZE == 64
 #define msg_tag_get_prot(tag) \
     ((int)((tag).prot))
+#else
+#define msg_tag_get_prot(tag) \
+    ((short)((tag).prot))
+#endif
 #define msg_tag_get_val(tag) msg_tag_get_prot(tag)
 
 typedef union syscall_prot

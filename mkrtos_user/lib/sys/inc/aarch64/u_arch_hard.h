@@ -14,3 +14,6 @@
 #define ARCH_REG_5 "x5"
 #define ARCH_REG_6 "x6"
 #define ARCH_REG_7 "x7"
+
+#define ARCH_WORD_SIZE 64
+

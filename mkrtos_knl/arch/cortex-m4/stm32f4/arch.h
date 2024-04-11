@@ -124,8 +124,8 @@ void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
 
 static inline void preemption(void)
 {
-    cli();
     sti();
+    cli();
 }
 
 static inline umword_t intr_status(void)
