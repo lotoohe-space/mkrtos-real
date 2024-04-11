@@ -210,7 +210,7 @@ int pm_rpc_run_app(const char *path, int flags)
     int ret;
     printf("pm run %s.\n", path);
     char *args[] = {
-        (char *)path,
+        "xx",/*TODO:*修正参数传递*/
         "-t",
     };
     ret = app_load(path, u_get_global_env(), &pid, args, 2, NULL, 0);

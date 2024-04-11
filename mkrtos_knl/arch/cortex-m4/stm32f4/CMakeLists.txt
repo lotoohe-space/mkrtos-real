@@ -13,7 +13,8 @@ add_library(knl_bsp STATIC ${deps})
 target_include_directories(
     knl_bsp
     PUBLIC
-    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/armv7m/stm32f4
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/${CONFIG_CPU_TYPE}
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/lib
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/knl

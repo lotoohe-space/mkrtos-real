@@ -12,6 +12,8 @@
 
 #include "types.h"
 #include "arch.h"
+
+#define PAGE_SIZE 512
 #define LOG_INTR_NO 38 // USART2_IRQn
 
 /// @brief 线程信息

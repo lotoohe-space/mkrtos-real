@@ -19,5 +19,6 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/lib
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/knl
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/armv7m/stm32f1
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/${CONFIG_CPU_TYPE}
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/
 )

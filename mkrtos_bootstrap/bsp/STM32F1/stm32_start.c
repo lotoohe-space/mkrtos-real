@@ -10,7 +10,7 @@ void sram_init(void)
 {
     FSMC_SRAM_Init();
 }
-void jump2kernel(void)
+void jump2kernel(addr_t cpio_start, addr_t cpio_end)
 {
 #if CONFIG_KNL_EXRAM
     sram_init();

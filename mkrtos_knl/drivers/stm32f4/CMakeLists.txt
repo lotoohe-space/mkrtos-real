@@ -13,4 +13,5 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/drv
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/CMSIS/Include
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/
 )
