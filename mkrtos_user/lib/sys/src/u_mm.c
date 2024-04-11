@@ -13,10 +13,10 @@ enum mm_op
 };
 void *mm_alloc_page(obj_handler_t obj_inx, umword_t pnf_nr, uint8_t attrs)
 {
-    register volatile umword_t r0 asm("r0");
-    register volatile umword_t r1 asm("r1");
-    register volatile umword_t r2 asm("r2");
-    register volatile umword_t r3 asm("r3");
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    register volatile umword_t r1 asm(ARCH_REG_1);
+    register volatile umword_t r2 asm(ARCH_REG_2);
+    register volatile umword_t r3 asm(ARCH_REG_3);
     mk_syscall(syscall_prot_create(MM_ALLOC, MM_PROT, obj_inx).raw,
             0,
             pnf_nr,
@@ -27,7 +27,7 @@ void *mm_alloc_page(obj_handler_t obj_inx, umword_t pnf_nr, uint8_t attrs)
     asm __volatile__(""
                      :
                      :
-                     : "r0", "r1", "r2", "r3");
+                     : ARCH_REG_0, ARCH_REG_1, ARCH_REG_2, ARCH_REG_3);
     {
         msg_tag_t tag = msg_tag_init(r0);
 
@@ -51,7 +51,7 @@ void mm_free_page(obj_handler_t obj_inx, void *addr, umword_t pfn_nr)
 }
 msg_tag_t mm_align_alloc(obj_handler_t obj_inx, void *addr, umword_t size)
 {
-    register volatile umword_t r0 asm("r0");
+    register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create(MM_ALIGN_ALLOC, MM_PROT, obj_inx).raw,
             0,

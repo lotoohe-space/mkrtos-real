@@ -22,7 +22,7 @@ enum irq_sender_op
 };
 msg_tag_t uirq_bind(obj_handler_t obj_inx, umword_t irq_no, u_irq_prio_t prio_sub_pre)
 {
-    register volatile umword_t r0 asm("r0");
+    register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create(BIND_IRQ, IRQ_PROT, obj_inx).raw,
                0,
@@ -34,14 +34,14 @@ msg_tag_t uirq_bind(obj_handler_t obj_inx, umword_t irq_no, u_irq_prio_t prio_su
     asm __volatile__(""
                      :
                      :
-                     : "r0");
+                     : ARCH_REG_0);
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
 }
 msg_tag_t uirq_wait(obj_handler_t obj_inx, int flags)
 {
-    register volatile umword_t r0 asm("r0");
+    register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create(WAIT_IRQ, IRQ_PROT, obj_inx).raw,
                0,
@@ -53,14 +53,14 @@ msg_tag_t uirq_wait(obj_handler_t obj_inx, int flags)
     asm __volatile__(""
                      :
                      :
-                     : "r0");
+                     : ARCH_REG_0);
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;
 }
 msg_tag_t uirq_ack(obj_handler_t obj_inx, umword_t irq_no)
 {
-    register volatile umword_t r0 asm("r0");
+    register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create(ACK_IRQ, IRQ_PROT, obj_inx).raw,
                0,
@@ -72,7 +72,7 @@ msg_tag_t uirq_ack(obj_handler_t obj_inx, umword_t irq_no)
     asm __volatile__(""
                      :
                      :
-                     : "r0");
+                     : ARCH_REG_0);
     msg_tag_t tag = msg_tag_init(r0);
 
     return tag;

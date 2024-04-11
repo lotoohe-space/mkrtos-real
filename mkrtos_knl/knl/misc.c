@@ -13,10 +13,10 @@
 #include "mm.h"
 #include "mm_space.h"
 #include "util.h"
-#include "mpu.h"
 #include "printk.h"
 
 #if CONFIG_MK_MPU_CFG
+#include "mpu.h"
 static bool_t mpu_calc(
     mm_space_t *ms,
     umword_t mem_start_addr,

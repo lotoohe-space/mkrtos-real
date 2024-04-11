@@ -4,7 +4,48 @@ menu "Knl config"
 menuconfig KNL_INFO
     bool "knl info set"
     default y
+
+    config KNL_TEST
+    bool "enable knl test."
+    default n
 if KNL_INFO
+    config MMU
+        bool "support mmu"
+        default n
+if MMU
+    config MSG_BUF_VADDR
+        hex "msg buf vaddr in task."
+        default 0xE0000000
+    config BOOT_FS_VADDR
+        hex "boot fs vaddr in init task."
+        default 0xE0001000
+endif
+    config PAGE_SHIFT
+        int "page shift"
+        default 9
+    config SMP
+        bool "support smp."
+        default n
+if SMP
+    config CPU
+        int "CPU Core number."
+        default 1
+endif
+    config THREAD_MSG_BUG_LEN
+        int "thread msg buf size"
+        default 128
+    config THREAD_IPC_MSG_LEN
+        int "thread ipc msg max size"
+        default 96
+    config THREAD_MAP_BUF_LEN
+        int "thread ipc map buf max size."
+        default 16
+    config BUDDY_SLAB
+        bool "use BUDDY & SLAB"
+        default n
+    config THREAD_BLOCK_SIZE
+        hex  "kthread block size"
+        default 0x400
     config KNL_TEXT_ADDR
         hex  "The first address of the kernel text section"
         default 0x8000000

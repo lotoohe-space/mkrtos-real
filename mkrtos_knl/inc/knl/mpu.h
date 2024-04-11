@@ -17,6 +17,7 @@ void mpu_calc_regs(region_info_t *region, umword_t addr, umword_t ffs_val,
 void mpu_switch_to(void);
 void mpu_switch_to_task(struct task *tk);
 #else
+#if !IS_ENABLED(CONFIG_MMU)
 static inline void mpu_init(void)
 {
 }
@@ -37,6 +38,15 @@ static inline void mpu_region_set(int inx, umword_t rbar, umword_t rasr)
 static inline void mpu_region_clr(int inx)
 {
 }
-void mpu_switch_to(void);
-void mpu_switch_to_task(struct task *tk);
+static inline void mpu_switch_to(void)
+{
+}
+static inline void mpu_switch_to_task(struct task *tk)
+{
+}
+#else
+static inline void mpu_switch_to_task(struct task *tk)
+{
+}
+#endif
 #endif

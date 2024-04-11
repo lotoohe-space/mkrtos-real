@@ -13,7 +13,8 @@ enum kobj_prot
     SYS_PROT,
     FUTEX_PROT,
     IRQ_PROT,
-    SHARE_MEM_PROT,
+    SHARE_MEM_PROT, // 10
+    VMA_PROT,
     MAX_PROT,
 };
 
@@ -30,9 +31,9 @@ typedef union msg_tag
     struct
     {
         umword_t flags : 4; // 3bit:代表错误由内核报告
-        umword_t msg_buf_len : 5;
-        umword_t map_buf_len : 2;
-        umword_t prot : WORD_BITS - 12;
+        umword_t msg_buf_len : 7;
+        umword_t map_buf_len : 5;
+        umword_t prot : WORD_BITS - 16;
     };
 } msg_tag_t;
 
@@ -46,8 +47,13 @@ typedef union msg_tag
     .msg_buf_len = (msg_words),                                  \
     .map_buf_len = (buf_words),                                  \
     .prot = (p)})
+#if ARCH_WORD_SIZE == 64
 #define msg_tag_get_prot(tag) \
-    ((int16_t)((tag).prot))
+    ((int)((tag).prot))
+#else
+#define msg_tag_get_prot(tag) \
+    ((short)((tag).prot))
+#endif
 #define msg_tag_get_val(tag) msg_tag_get_prot(tag)
 
 typedef union syscall_prot

@@ -21,6 +21,9 @@
 #include "assert.h"
 #include "access.h"
 #include "printk.h"
+#if IS_ENABLED(CONFIG_MMU)
+#include "arch.h"
+#endif
 /**
  * @brief 任务的操作码
  *
@@ -38,7 +41,23 @@ enum task_op_code
 static bool_t task_put(kobject_t *kobj);
 static void task_release_stage1(kobject_t *kobj);
 static void task_release_stage2(kobject_t *kobj);
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+#include <slab.h>
+static slab_t *task_slab;
+#endif
 
+/**
+ * @brief 在系统初始化时调用，初始化task的内存
+ *
+ */
+static void task_mem_init(void)
+{
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    task_slab = slab_create(sizeof(task_t), "task");
+    assert(task_slab);
+#endif
+}
+INIT_KOBJ_MEM(task_mem_init);
 /**
  * @brief 为task分配其可以使用的内存空间
  *
@@ -180,7 +199,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
 
     if (sys_p.prot != TASK_PROT)
     {
-        f->r[0] = msg_tag_init4(0, 0, 0, -EINVAL).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -EINVAL).raw;
         return;
     }
 
@@ -194,7 +213,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->r[1]);
+        kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->regs[1]);
 
         if (!source_kobj)
         {
@@ -202,7 +221,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, 0);
             break;
         }
-        f->r[1] = source_kobj->kobj_type;
+        f->regs[1] = source_kobj->kobj_type;
         spinlock_set(&tag_task->kobj.lock, status);
         tag = msg_tag_init4(0, 0, 0, 1);
     }
@@ -220,8 +239,8 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             break;
         }
         int ret = obj_map_src_dst(&tag_task->obj_space, &cur_task->obj_space,
-                                  f->r[2], f->r[1],
-                                  tag_task->lim, f->r[3], &del);
+                                  f->regs[2], f->regs[1],
+                                  tag_task->lim, f->regs[3], &del);
         kobj_del_list_to_do(&del);
         task_unlock_2(&tag_task->kobj.lock, &cur_task->kobj.lock, st0, st1);
         tag = msg_tag_init4(0, 0, 0, ret);
@@ -239,7 +258,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             break;
         }
         kobj_del_list_init(&kobj_list);
-        obj_unmap(&tag_task->obj_space, vpage_create_raw(f->r[1]), &kobj_list);
+        obj_unmap(&tag_task->obj_space, vpage_create_raw(f->regs[1]), &kobj_list);
         kobj_del_list_to_do(&kobj_list);
         spinlock_set(&tag_task->kobj.lock, status);
         tag = msg_tag_init4(0, 0, 0, 0);
@@ -253,9 +272,9 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        int ret = task_alloc_base_ram(tag_task, tag_task->lim, f->r[1]);
+        int ret = task_alloc_base_ram(tag_task, tag_task->lim, f->regs[1]);
         tag = msg_tag_init4(0, 0, 0, ret);
-        f->r[1] = (umword_t)(tag_task->mm_space.mm_block);
+        f->regs[1] = (umword_t)(tag_task->mm_space.mm_block);
         spinlock_set(&tag_task->kobj.lock, status);
     }
     break;
@@ -264,8 +283,8 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         void *mem;
         size_t size;
 
-        umword_t st_addr = f->r[0];
-        size_t cp_size = f->r[1];
+        umword_t st_addr = f->regs[0];
+        size_t cp_size = f->regs[1];
 
         if (cp_size > THREAD_MSG_BUG_LEN)
         {
@@ -286,12 +305,12 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     }
     case TASK_SET_PID: //!< 设置pid
     {
-        tag = msg_tag_init4(0, 0, 0, task_set_pid(tag_task, f->r[0]));
+        tag = msg_tag_init4(0, 0, 0, task_set_pid(tag_task, f->regs[0]));
     }
     break;
     case TASK_GET_PID: //!< 获取pid
     {
-        f->r[1] = tag_task->pid;
+        f->regs[1] = tag_task->pid;
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
@@ -299,7 +318,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         break;
     }
 
-    f->r[0] = tag.raw;
+    f->regs[0] = tag.raw;
 }
 
 void task_init(task_t *task, ram_limit_t *ram, int is_knl)
@@ -318,7 +337,12 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     task->kobj.put_func = task_put;
     task->kobj.stage_1_func = task_release_stage1;
     task->kobj.stage_2_func = task_release_stage2;
+
+#if IS_ENABLED(CONFIG_MMU)
+    knl_pdir_init(&task->mm_space.mem_dir, task->mm_space.mem_dir.dir, 3);
+#else
     mm_space_add(&task->mm_space, CONFIG_KNL_TEXT_ADDR, CONFIG_KNL_TEXT_SIZE, REGION_RO); // TODO:这里应该用config.配置
+#endif
 }
 
 static bool_t task_put(kobject_t *kobj)
@@ -334,6 +358,10 @@ static void task_release_stage1(kobject_t *kobj)
     kobj_del_list_init(&kobj_list);
     obj_unmap_all(&tk->obj_space, &kobj_list);
     kobj_del_list_to_do(&kobj_list);
+
+#if IS_ENABLED(CONFIG_MMU)
+    task_vma_clean(&tk->mm_space.mem_vma);
+#endif
 }
 static void task_release_stage2(kobject_t *kobj)
 {
@@ -342,15 +370,24 @@ static void task_release_stage2(kobject_t *kobj)
     // task_t *cur_tk = thread_get_current_task();
 
     obj_space_release(&tk->obj_space, tk->lim);
+
+    if (tk->mm_space.mm_block)
+    {
 #if CONFIG_MK_MPU_CFG
-    mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
+        mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
 #else
-    mm_limit_free(tk->lim, tk->mm_space.mm_block);
+        mm_limit_free(tk->lim, tk->mm_space.mm_block);
 #endif
+    }
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    mm_limit_free_slab(task_slab, tk->lim, tk);
+#else
     mm_limit_free(tk->lim, tk);
+#endif
     // if (cur_tk == tk)
     // {
-    thread_sched();
+    thread_sched(TRUE);
+    to_sche();
     // }
     // mm_trace();
     printk("release tk %x\n", tk);
@@ -361,11 +398,17 @@ void task_kill(task_t *tk)
     kobj_del_list_init(&kobj_list);
     obj_unmap(&tk->obj_space, vpage_create3(KOBJ_DELETE_RIGHT, 0, TASK_PROT), &kobj_list);
     kobj_del_list_to_do(&kobj_list);
-    thread_sched();
+    thread_sched(TRUE);
+    to_sche();
 }
 task_t *task_create(ram_limit_t *lim, int is_knl)
 {
-    task_t *tk = mm_limit_alloc(lim, sizeof(task_t));
+    task_t *tk = NULL;
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    tk = mm_limit_alloc_slab(task_slab, lim);
+#else
+    tk = mm_limit_alloc(lim, sizeof(task_t));
+#endif
 
     if (!tk)
     {

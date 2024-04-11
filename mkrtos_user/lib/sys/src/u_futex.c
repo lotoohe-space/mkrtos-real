@@ -28,7 +28,7 @@ msg_tag_t futex_ctrl(obj_handler_t obj, uint32_t *uaddr, int futex_op, uint32_t 
     msg->msg_buf[5] = (umword_t)val3;
     msg->msg_buf[6] = (umword_t)tid;
     {
-        register volatile umword_t r0 asm("r0");
+        register volatile umword_t r0 asm(ARCH_REG_0);
         mk_syscall(syscall_prot_create(FUTEX_CTRL, FUTEX_PROT, obj).raw,
                    0,
                    0,

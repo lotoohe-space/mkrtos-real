@@ -271,7 +271,7 @@ static futex_lock_t *futex_find(futex_t *fst, void *uaddr)
  * @return int
  */
 static int futex_dispose(futex_t *fst, uint32_t *uaddr, int futex_op, uint32_t val,
-                         umword_t timeout /*val2*/, uint32_t uaddr2, uint32_t val3, int tid)
+                         umword_t timeout /*val2*/, umword_t uaddr2, uint32_t val3, int tid)
 
 {
     thread_t *cur_th = thread_get_current();
@@ -507,13 +507,13 @@ static void futex_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_ta
 
     if (sys_p.prot != FUTEX_PROT)
     {
-        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
     msg = thread_get_msg_buf(th);
     if (msg == NULL)
     {
-        f->r[0] = msg_tag_init4(0, 0, 0, -ENOBUFS).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -ENOBUFS).raw;
         return;
     }
     switch (sys_p.op)
@@ -534,7 +534,7 @@ static void futex_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_ta
     }
     break;
     }
-    f->r[0] = tag.raw;
+    f->regs[0] = tag.raw;
 }
 /**
  * @brief 在task结束时，需要删除某个task所关联的futex

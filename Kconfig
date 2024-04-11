@@ -17,7 +17,9 @@ config ARCH
 config FLOAT_TYPE
     string "float type is soft or hard"
     default "soft"
-
+config ELF_LAUNCH
+    bool "elf app launch"
+    default n
 config RTT_DIR
     string ""
     default "./"

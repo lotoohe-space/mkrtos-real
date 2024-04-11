@@ -168,7 +168,7 @@ again_alloc:
         void *split_addr = mem_split(_this, mem, (ptr_t)align_ptr - (ptr_t)mem);
         if (split_addr == NULL)
         {
-            *(((uint32_t *)(align_ptr)) - 1) = (uint32_t)mem;
+            *(((size_t *)(align_ptr)) - 1) = (size_t)mem;
             return align_ptr;
         }
         mem_free(_this, mem);
@@ -189,7 +189,7 @@ again_alloc:
 void mem_free_align(mem_t *_this, void *f_mem)
 {
     struct mem_heap *mem;
-    void *real_mem;
+    umword_t *real_mem;
     int find = 0;
 
     umword_t status = spinlock_lock(&_this->lock);
@@ -206,7 +206,7 @@ void mem_free_align(mem_t *_this, void *f_mem)
 
     if (mem == _this->heap_end)
     {
-        real_mem = (void *)(*(((uint32_t *)(f_mem)) - 1));
+        real_mem = (umword_t *)(*(((umword_t *)(f_mem)) - 1));
         mem_free(_this, real_mem);
         // #if MEM_TRACE
         //		mem_trace(_this);

@@ -4,7 +4,7 @@ file(GLOB deps *.c *.S)
 
 add_library(drv STATIC ${deps})
 include_directories(
-    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/armv7m/${CONFIG_CPU_TYPE}
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/${CONFIG_CPU_TYPE}
 )
 if (${CONFIG_CPU_TYPE} STREQUAL "stm32f1")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F10X_XL ")
@@ -35,6 +35,8 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "swm34s" )
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/CMSIS/CoreSupport
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/SWM341_StdPeriph_Driver
     )
+elseif(${CONFIG_CPU_TYPE} STREQUAL "aarch64_qemu" )
+
 endif()
 add_subdirectory(${CONFIG_CPU_TYPE})
 

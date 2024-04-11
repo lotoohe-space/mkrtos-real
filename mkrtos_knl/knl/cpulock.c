@@ -20,7 +20,7 @@ umword_t cpulock_lock(void)
     umword_t res;
 
     res = intr_status();
-    sti();
+    cli();
     return res;
 }
 /**
@@ -44,10 +44,10 @@ void cpulock_set(umword_t s)
 {
     if (s)
     {
-        sti();
+        cli();
     }
     else
     {
-        cli();
+        sti();
     }
 }

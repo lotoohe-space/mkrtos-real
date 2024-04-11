@@ -15,19 +15,19 @@
 #include "util.h"
 #include "arch.h"
 #include "ref.h"
-#define THREAD_BLOCK_SIZE 0x400 //!< 线程块大小，栈在块的顶部
+#include <thread_arch.h>
 struct task;
 typedef struct task task_t;
 struct thread;
 typedef struct thread thread_t;
 
-#define THREAD_MSG_BUG_LEN 128UL     //!< 最小的消息寄存器大小
-#define MSG_BUF_HAS_DATA_FLAGS 0x01U //!< 已经有数据了
-#define MSG_BUF_RECV_R_FLAGS 0x02U   //!< 接收来自recv_th的消息
-#define MSG_BUF_REPLY_FLAGS 0x04U    //!< 回复消息给send_th
+#define THREAD_MSG_BUG_LEN CONFIG_THREAD_MSG_BUG_LEN //!< 最小的消息寄存器大小
+#define MSG_BUF_HAS_DATA_FLAGS 0x01U                 //!< 已经有数据了
+#define MSG_BUF_RECV_R_FLAGS 0x02U                   //!< 接收来自recv_th的消息
+#define MSG_BUF_REPLY_FLAGS 0x04U                    //!< 回复消息给send_th
 
-#define IPC_MSG_SIZE 96
-#define MAP_BUF_SIZE 16
+#define IPC_MSG_SIZE CONFIG_THREAD_IPC_MSG_LEN
+#define MAP_BUF_SIZE CONFIG_THREAD_MAP_BUF_LEN
 #define IPC_USER_SIZE 12
 
 #if (IPC_MSG_SIZE + MAP_BUF_SIZE + IPC_USER_SIZE) > THREAD_MSG_BUG_LEN
@@ -89,30 +89,13 @@ enum thread_ipc_state
     THREAD_TIMEOUT,
     THREAD_IPC_ABORT,
 };
-typedef struct
-{
-    umword_t rg0[4]; //!< r0-r3
-    umword_t r12;
-    umword_t lr;
-    umword_t pc;
-    umword_t xpsr;
-} pf_s_t;
-typedef struct pf
-{
-    umword_t rg1[8]; //!< r4-r11
-    pf_s_t pf_s;
-} pf_t;
-
-typedef struct sp_info
-{
-    void *user_sp;   //!< 用户态的sp
-    void *knl_sp;    //!< 内核sp
-    mword_t sp_type; //!< 使用的栈类型
-} sp_info_t;
 
 typedef struct msg_buf
 {
-    void *msg;     //!< buf，长度是固定的 @see THREAD_MSG_BUG_LEN
+    void *msg; //!< buf，长度是固定的 @see THREAD_MSG_BUG_LEN
+#if IS_ENABLED(CONFIG_MMU)
+    void *umsg; //!< 消息对应的内核的地址
+#endif
     msg_tag_t tag; //!< 存放发送的临时标识
 } msg_buf_t;
 
@@ -140,11 +123,22 @@ typedef struct thread
     umword_t magic; //!< maigc
 } thread_t;
 
-static inline void thread_set_msg_bug(thread_t *th, void *msg)
+static inline void thread_set_msg_buf(thread_t *th, void *msg, void *umsg)
 {
     th->msg.msg = msg;
+#if IS_ENABLED(CONFIG_MMU)
+    th->msg.umsg = umsg;
+#endif
 }
 static inline void *thread_get_msg_buf(thread_t *th)
+{
+#if IS_ENABLED(CONFIG_MMU)
+    return th->msg.umsg;
+#else
+    return th->msg.msg;
+#endif
+}
+static inline void *thread_get_kmsg_buf(thread_t *th)
 {
     return th->msg.msg;
 }
@@ -180,7 +174,7 @@ void thread_bind(thread_t *th, kobject_t *tk);
 void thread_unbind(thread_t *th);
 
 void thread_send_wait(thread_t *th);
-void thread_sched(void);
+bool_t thread_sched(bool_t is_sche);
 void thread_suspend(thread_t *th);
 void thread_dead(thread_t *th);
 void thread_todead(thread_t *th, bool_t is_sche);

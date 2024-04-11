@@ -11,7 +11,6 @@
 #include "u_ipc.h"
 #include "u_sys.h"
 #include "u_futex.h"
-#include <futex.h>
 #include <assert.h>
 #include <limits.h>
 #include <pthread.h>
@@ -19,7 +18,13 @@
 #include <unistd.h>
 #include <assert.h>
 #include <errno.h>
+#include <syscall_backend.h>
+#undef hidden
+#undef weak
+#define hidden
+#include <features.h>
 #include <pthread_impl.h>
+#include <futex.h>
 #include <atomic.h>
 #define FUTEX_WAKE_CLEAR 10
 

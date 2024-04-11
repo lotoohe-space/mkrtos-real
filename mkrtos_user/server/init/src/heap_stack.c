@@ -1,3 +1,5 @@
+#include <u_util.h>
+#if !IS_ENABLED(CONFIG_MMU)
 /**
  * @file heap_stack.c
  * @author ATShining (1358745329@qq.com)
@@ -24,3 +26,4 @@
 
 __attribute__((used)) HEAP_ATTR static char _____heap_____[HEAP_SIZE];
 __attribute__((used)) STACK_ATTR static char _____stack_____[STACK_SIZE];
+#endif

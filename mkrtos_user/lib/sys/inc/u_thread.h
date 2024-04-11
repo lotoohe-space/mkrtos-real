@@ -3,12 +3,12 @@
 #include "u_types.h"
 #include "u_prot.h"
 
-#define MSG_BUG_LEN 128
+#define MSG_BUG_LEN CONFIG_THREAD_MSG_BUG_LEN
 #define MSG_BUF_RECV_R_FLAGS 0x02U //!< 接收上次发送数据的接收者
 #define MSG_BUF_REPLY_FLAGS 0x04U  //!<
 
-#define IPC_MSG_SIZE 96  //!< IPC消息大小
-#define MAP_BUF_SIZE 16  //!< 映射消息大小
+#define IPC_MSG_SIZE CONFIG_THREAD_IPC_MSG_LEN  //!< IPC消息大小
+#define MAP_BUF_SIZE CONFIG_THREAD_MAP_BUF_LEN  //!< 映射消息大小
 #define IPC_USER_SIZE 12 //!< 用户态消息大小
 
 typedef struct ipc_msg

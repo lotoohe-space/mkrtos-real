@@ -1,0 +1,3 @@
+[submodule "mkrtos_user/lib/mkrtos-musl"]
+	path = mkrtos_user/lib/mkrtos-musl
+	url = https://gitee.com/IsYourGod/mkrtos-musl.git

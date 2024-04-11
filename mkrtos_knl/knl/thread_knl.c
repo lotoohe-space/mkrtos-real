@@ -20,8 +20,19 @@
 #include "map.h"
 #include "app.h"
 #include "mm_wrap.h"
-#include "thread_armv7m.h"
+#include "thread_task_arch.h"
 #include "knl_misc.h"
+#include <assert.h>
+#if IS_ENABLED(CONFIG_KNL_TEST)
+#include <knl_test.h>
+#endif
+#if ARCH_WORD_SIZE == 64
+#include <elf64.h>
+#endif
+#if IS_ENABLED(CONFIG_MMU)
+#include <vma.h>
+#endif
+#include <cpio.h>
 
 static uint8_t knl_msg_buf[THREAD_MSG_BUG_LEN];
 static thread_t *knl_thread;
@@ -36,7 +47,7 @@ static void knl_main(void)
 {
     umword_t status;
     umword_t status2;
-    // printk("knl main run..\n");
+    printk("knl main run..\n");
     while (1)
     {
         task_t *pos;
@@ -87,10 +98,10 @@ static void knl_init_1(void)
 
     thread_init(knl_thread, &root_factory_get()->limit);
     task_init(&knl_task, &root_factory_get()->limit, TRUE);
-
+    task_knl_init(&knl_task);
     thread_knl_pf_set(knl_thread, knl_main);
     thread_bind(knl_thread, &knl_task.kobj);
-    thread_set_msg_bug(knl_thread, knl_msg_buf);
+    thread_set_msg_buf(knl_thread, knl_msg_buf, knl_msg_buf);
     thread_ready(knl_thread, FALSE);
 
     slist_init(&del_task_head);
@@ -107,22 +118,48 @@ static void knl_init_2(void)
 {
     mm_trace();
 
+#if IS_ENABLED(CONFIG_KNL_TEST)
+    knl_test();
+#else
+
+    umword_t ret_addr;
+    size_t size;
 
     init_thread = thread_create(&root_factory_get()->limit);
     assert(init_thread);
-    init_task = task_create(&root_factory_get()->limit, FALSE);
+     init_task = task_create(&root_factory_get()->limit, FALSE);
     assert(init_task);
 
+#if IS_ENABLED(CONFIG_ELF_LAUNCH)
+    addr_t entry;
+
+    ret_addr = cpio_find_file(cpio_images, (umword_t)(-1), "init", &size);
+    assert(ret_addr);
+    elf_load(init_task, ret_addr, size, &entry);
+    void *init_msg_buf = mm_buddy_alloc_one_page();
+    assert(init_msg_buf);
+    assert(task_vma_alloc(&init_task->mm_space.mem_vma,
+                          vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, CONFIG_MSG_BUF_VADDR),
+                          PAGE_SIZE, (paddr_t)init_msg_buf, 0) >= 0);
+    assert(task_vma_alloc(&init_task->mm_space.mem_vma,
+                          vma_addr_create(VPAGE_PROT_RO, VMA_ADDR_RESV, CONFIG_BOOT_FS_VADDR),
+                          cpio_get_size(cpio_images), (paddr_t)cpio_images, 0) >= 0);
+    thread_set_msg_buf(init_thread, (void *)init_msg_buf, (void *)CONFIG_MSG_BUF_VADDR);
+    thread_user_pf_set(init_thread, (void *)(entry), (void *)0xdeaddead,
+                       NULL, 0);
+#else
     app_info_t *app = app_info_get((void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET));
+    assert(app);
     // 申请init的ram内存
     assert(task_alloc_base_ram(init_task, &root_factory_get()->limit, app->i.ram_size + THREAD_MSG_BUG_LEN) >= 0);
     void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 
-    thread_set_msg_bug(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
-    thread_bind(init_thread, &init_task->kobj);
+    thread_set_msg_buf(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
     thread_user_pf_set(init_thread, (void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET), (void *)((umword_t)sp_addr_top - 8),
                        init_task->mm_space.mm_block, 0);
+#endif
+    thread_bind(init_thread, &init_task->kobj);
     assert(obj_map_root(&init_thread->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, THREAD_PROT)));
     assert(obj_map_root(&init_task->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, TASK_PROT)));
     for (int i = FACTORY_PORT_START; i < FACTORY_PORT_END; i++)
@@ -136,6 +173,7 @@ static void knl_init_2(void)
     init_thread->sche.prio = 2;
     init_task->pid = 0;
     thread_ready(init_thread, FALSE);
+#endif
 }
 INIT_STAGE2(knl_init_2);
 
@@ -144,7 +182,7 @@ void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
     task_t *task = container_of(kill_thread->task, task_t, kobj);
     if (!is_knl)
     {
-        printk("kill task:0x%x.\n", kill_thread->task);
+        printk("kill task:0x%x, pid:%d\n", task, task->pid);
         umword_t status2;
 
         thread_suspend(kill_thread);
@@ -161,7 +199,7 @@ void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
 
 static void print_mkrtos_info(void)
 {
-    const char *start_info[] = {
+    static const char *start_info[] = {
         " _____ ______   ___  __    ________  _________  ________  ________      \r\n",
         "|\\   _ \\  _   \\|\\  \\|\\  \\ |\\   __  \\|\\___   ___\\\\   __  \\|\\   ____\\     \r\n",
         "\\ \\  \\\\\\__\\ \\  \\ \\  \\/  /|\\ \\  \\|\\  \\|___ \\  \\_\\ \\  \\|\\  \\ \\  \\___|_    \r\n",
@@ -187,12 +225,14 @@ void start_kernel(void)
     printk("mkrtos running..\n");
     printk("sys freq:%d\n", arch_get_sys_clk());
     print_mkrtos_info();
-    sti();
-    sys_startup(); //!< 开始调度
-    thread_sched();
     cli();
+    sys_startup(); //!< 开始调度
+    thread_sched(TRUE);
+    // to_sche();
+    sti();
 
     while (1)
-        ;
-    // printk(".");
+    {
+        // knl_main();
+    }
 }

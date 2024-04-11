@@ -2,11 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 project(LetterShell VERSION 0.1.0)
 
 add_definitions(-DSHELL_CFG_USER="shell_cfg_user.h")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w \
--fPIC -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
- -D__dietlibc__ -D__arm__ -D__WORDSIZE=32 -D__ARM_ARCH_7M__ \
-" )
-set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w" )
 add_library(LetterShell
                # main.c
                shell_port.c
@@ -39,19 +35,12 @@ target_include_directories(LetterShell PUBLIC
                         #    ../../extensions/telnet
 
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
+                           ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc/${ARCH_NAME}
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util/inc
                            ${CMAKE_SOURCE_DIR}/mkrtos_user/server/app/drv
                            
-                           ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
-                           ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
-                           ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/src/internal
-                           ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/include
-                           ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
-                           ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
-                           ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
-                       
                            ) 
 
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME})

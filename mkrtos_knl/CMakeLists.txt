@@ -8,13 +8,17 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Wno-unused-variable \
 -Wno-builtin-declaration-mismatch \
 ")
-set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
 
 message(编译参数：${CMAKE_C_FLAGS})
+
+include_directories(
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/knl/mm
+)
 add_subdirectory(arch)
 add_subdirectory(drivers)
 add_subdirectory(knl)
 add_subdirectory(lib)
+add_subdirectory(test)
 
 add_executable(mkrtos.elf
    ${deps}
@@ -29,15 +33,17 @@ target_link_libraries(
     arch
     lib
     drv
+    test
     --no-whole-archive
 )
 add_dependencies(mkrtos.elf arch)
 add_dependencies(mkrtos.elf drv)
 add_dependencies(mkrtos.elf knl)
 add_dependencies(mkrtos.elf lib)
+add_dependencies(mkrtos.elf test)
 
 set_target_properties(mkrtos.elf PROPERTIES 
-LINK_FLAGS "-T ${CMAKE_CURRENT_LIST_DIR}/link.lds -z max-page-size=0x1000 --gc-section ")
+LINK_FLAGS "-T ${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds -z max-page-size=0x1000 --gc-section ")
 
 add_custom_target(
     link_file_dump ALL
@@ -48,8 +54,8 @@ add_custom_target(
     -DKNL_OFFSET=${CONFIG_KNL_OFFSET}
     # -DKNL_DATA_SIZE=$ENV{KNL_DATA_SIZE}
     -include ${CMAKE_SOURCE_DIR}/build/autoconf.h
-    -E -P -<${CMAKE_CURRENT_LIST_DIR}/link.lds.S> 
-    ${CMAKE_CURRENT_LIST_DIR}/link.lds
+    -E -P -<${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds.S> 
+    ${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds
 )
 
 add_custom_target(
@@ -59,6 +65,8 @@ add_custom_target(
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output
     COMMAND
+    mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
+    COMMAND
     cp mkrtos.bin ${CMAKE_SOURCE_DIR}/build/output/mkrtos
     COMMAND
     cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/mkrtos.elf
@@ -67,6 +75,14 @@ add_custom_target(
     COMMAND
     ${CMAKE_SIZE} mkrtos.elf
 )
+if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
+    add_custom_target(
+        mkrtos_dump_elf ALL
+        COMMAND
+        cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/mkrtos.elf
+    )
+    add_dependencies(mkrtos_dump_elf mkrtos_dump)
+endif()
 add_dependencies(mkrtos.elf link_file_dump)
 add_dependencies(mkrtos_dump mkrtos.elf)
 add_dependencies(mkrtos_dump knl)

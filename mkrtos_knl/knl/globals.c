@@ -52,6 +52,10 @@ mem_t *mm_get_global(void)
 {
     return &global_mem;
 }
+#if CONFIG_BUDDY_SLAB
+#include <buddy.h>
+#include <arch.h>
+#endif
 /**
  * @brief 系统内存初始化
  *
@@ -60,10 +64,21 @@ static void mem_sys_init(void)
 {
     void *mem_block_data;
     mem_init(&global_mem);
+#if CONFIG_BUDDY_SLAB
+    extern char _buddy_data_start[];
+    // extern char _buddy_data_end[];
+    int ret;
+    size_t buddy_size = (size_t)CONFIG_KNL_DATA_SIZE - ((addr_t)_buddy_data_start - CONFIG_KNL_DATA_ADDR - CONFIG_KNL_OFFSET);
 
+    ret = buddy_init(buddy_get_alloter(), (addr_t)_buddy_data_start,
+                     buddy_size);
+    assert(ret >= 0);
+    mmu_page_alloc_set(mm_buddy_alloc_one_page);
+#else
 #if CONFIG_KNL_EXRAM
     mem_heap_add(mm_get_global(), (void *)CONFIG_EX_RAM_ADDR, CONFIG_EX_RAM_SIZE);
 #endif
     mem_heap_add(mm_get_global(), (void *)_ebss, CONFIG_KNL_DATA_SIZE - ((umword_t)_ebss - (umword_t)_sdata));
+#endif
 }
 INIT_MEM(mem_sys_init);

@@ -53,8 +53,13 @@ long syscall_backend(long sys_inx, ...);
 void fs_backend_init(void);
 
 long be_lseek(long fd, long offset, long whence);
+long sys_be_lseek(va_list ap);
 int be_open(const char *path, int flags, mode_t mode);
+long sys_be_open(va_list ap);
+long sys_be_open_at(va_list ap);
 int be_close(int fd);
+long sys_be_close(va_list ap);
+long sys_be_getdents(va_list ap);
 long be_read(long fd, char *buf, long size);
 long be_write(long fd, char *buf, long size);
 long be_readv(long fd, const struct iovec *iov, long iovcnt);
@@ -63,7 +68,7 @@ long be_ioctl(long fd, long req, void *args);
 long be_set_tid_address(int *val);
 long be_set_thread_area(void *p);
 umword_t be_munmap(void *start, size_t len);
-umword_t be_mmap2(void *start,
+umword_t be_mmap(void *start,
                   size_t len,
                   long prot,
                   long flags,
@@ -71,14 +76,13 @@ umword_t be_mmap2(void *start,
                   long _offset);
 long be_clock_gettime(clockid_t clk_id, struct timespec *tp);
 
-umword_t sys_mmap2(va_list ap);
+long sys_mmap(va_list ap);
 long sys_set_tid_address(va_list ap);
 long sys_set_thread_area(va_list ap);
 void sys_exit(va_list ap);
-umword_t sys_munmap(va_list ap);
+long sys_munmap(va_list ap);
 int be_futex(uint32_t *uaddr, int futex_op, uint32_t val,
              const struct timespec *timeout, uint32_t uaddr2, uint32_t val3);
-
 void pthread_cnt_inc(void);
 int pthread_cnt_dec(void);
 int pthread_get(void);

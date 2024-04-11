@@ -1,24 +1,40 @@
 cmake_minimum_required(VERSION 3.13)
 
-# -n -pie -fpie -fpic 
-# -msingle-pic-base -mno-pic-data-is-text-relative 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
--fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
- -D__dietlibc__ -D__arm__ -D__WORDSIZE=32 -D__ARM_ARCH_7M__ \
-")
-set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
-
 include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/libc_backend/inc
 )
+if (${ARCH_NAME} STREQUAL "armv7_8m")
+    set(START_LIB start)
+    set(START_INIT_LIB start_init)
 
+    # add_subdirectory(app)
+    add_subdirectory(hello)
+    add_subdirectory(drv)
+    add_subdirectory(test)
+    # add_subdirectory(net)
+    # add_subdirectory(tcc-0.9.27)
+elseif(${CONFIG_ARCH} STREQUAL "aarch64" )
+    set(
+        START_LIB
+        ""
+    )
+    set(START_INIT_LIB "")
+
+    set(
+        START_SRC
+        ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crt1.o 
+        ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crti.o 
+        ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crtn.o
+    )
+    set(
+        START_SRC_INIT
+        ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crt1_init.o 
+        ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crti.o 
+        ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crtn.o
+    )
+endif()
 add_subdirectory(init)
 add_subdirectory(shell)
-# add_subdirectory(app)
-add_subdirectory(fs)
-add_subdirectory(hello)
-add_subdirectory(drv)
-add_subdirectory(test)
-# add_subdirectory(net)
-# add_subdirectory(tcc-0.9.27)
 add_subdirectory(tinycc-arm-thumb)
+add_subdirectory(fs)
+

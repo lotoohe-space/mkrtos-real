@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.13)
 
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
--fPIC -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
- -D__dietlibc__ -D__arm__ -D__WORDSIZE=32 -D__ARM_ARCH_7M__ \
-" )
-set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
-
-
 file(GLOB_RECURSE deps  *.c *.S)
+if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
+    list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/src/u_app_loader.c)
+else()
+    list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/src/u_elf_loader.c)
+    list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/src/u_elf64.c)
+endif()
+
 add_library(
     sys_util
     STATIC
@@ -21,26 +21,19 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/cpio
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util/inc
-
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
 )
 target_link_libraries(
     sys_util
     PUBLIC
     sys
-    muslc
+    ${LIBC_NAME}
     cpio
     util
 )
-set_target_properties(sys_util PROPERTIES LINK_FLAGS "-pie ")
+set_target_properties(sys_util PROPERTIES LINK_FLAGS ${CORTEX_M_LINK_FLAGS})
 add_dependencies(sys_util sys)
-add_dependencies(sys_util muslc)
+# add_dependencies(sys_util ${LIBC_NAME})
 add_dependencies(sys_util util)
 
 

@@ -7,9 +7,6 @@
 #include <fd_map.h>
 #include <string.h>
 
-// #define CONFIG_FD_MAP_ROW_CN 16
-// #define CONFIG_FD_MAP_ROW_NR 16
-
 #define FD_MAP_TOTAL (CONFIG_FD_MAP_ROW_CN * CONFIG_FD_MAP_ROW_NR)
 
 typedef struct fd_map_row
@@ -88,6 +85,11 @@ int fd_map_get(int fd, fd_map_entry_t *new_entry)
     }
     int row_inx = fd / CONFIG_FD_MAP_ROW_CN;
     int inx = fd % CONFIG_FD_MAP_ROW_CN;
+
+    if (fd_map.row[row_inx] == NULL)
+    {
+        return -1;
+    }
 
     *new_entry = fd_map.row[row_inx]->entry[inx];
     return 0;

@@ -37,14 +37,20 @@ static factory_t root_factory;
  *
  */
 static factory_func factory_func_list[FACTORY_FUNC_MAX];
-
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+#include <slab.h>
+static slab_t *factory_slab;
+#endif
 /**
  * @brief 在系统初始化时调用，初始化factoyr的内存
  *
  */
 static void factory_mem_init(void)
 {
-    // Nothing.
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    factory_slab = slab_create(sizeof(factory_t), "factory");
+    assert(factory_slab);
+#endif
 }
 INIT_KOBJ_MEM(factory_mem_init);
 /**
@@ -73,13 +79,13 @@ static kobject_t *factory_manu_kobj(kobject_t *kobj, ram_limit_t *lim, entry_fra
 {
     kobject_t *new_kobj = NULL;
 
-    if (f->r[1] < 0 || f->r[1] >= FACTORY_FUNC_MAX)
+    if (f->regs[1] < 0 || f->regs[1] >= FACTORY_FUNC_MAX)
     {
         return NULL;
     }
-    if (factory_func_list[f->r[1]])
+    if (factory_func_list[f->regs[1]])
     {
-        new_kobj = factory_func_list[f->r[1]](lim, f->r[3], f->r[4], f->r[5], f->r[6]);
+        new_kobj = factory_func_list[f->regs[1]](lim, f->regs[3], f->regs[4], f->regs[5], f->regs[6]);
     }
     return new_kobj;
 }
@@ -93,7 +99,7 @@ static kobject_t *factory_manu_kobj(kobject_t *kobj, ram_limit_t *lim, entry_fra
  */
 static msg_tag_t factory_create_map(kobject_t *kobj, task_t *tk, entry_frame_t *f)
 {
-    vpage_t page = vpage_create_raw(f->r[2]);
+    vpage_t page = vpage_create_raw(f->regs[2]);
     mword_t status = spinlock_lock(&tk->kobj.lock);
 
     if (status < 0)
@@ -141,7 +147,7 @@ factory_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_f
 
     if (sys_p.prot != FACTORY_PROT)
     {
-        f->r[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
+        f->regs[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
     switch (sys_p.op)
@@ -153,7 +159,7 @@ factory_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_f
     break;
     }
 
-    f->r[0] = tag.raw;
+    f->regs[0] = tag.raw;
 }
 /**
  * @brief factory对象的初始化函数
@@ -176,8 +182,13 @@ static void factory_init(factory_t *fac, umword_t max)
  */
 static factory_t *fatory_create(ram_limit_t *lim, umword_t max)
 {
-    factory_t *kobj = mm_limit_alloc(lim, sizeof(factory_t));
+    factory_t *kobj = NULL;
 
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    kobj = mm_limit_alloc_slab(factory_slab, lim);
+#else
+    kobj = mm_limit_alloc(lim, sizeof(factory_t));
+#endif
     if (!kobj)
     {
         return NULL;
