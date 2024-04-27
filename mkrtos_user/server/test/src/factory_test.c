@@ -15,4 +15,5 @@ static void factory_test(void)
     msg_tag_t tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd));
     assert(msg_tag_get_prot(tag) >= 0);
     handler_free_umap(hd);
+    printf("%s test ok.\n", __func__);
 }

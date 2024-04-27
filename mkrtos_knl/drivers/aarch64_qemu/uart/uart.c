@@ -131,6 +131,7 @@ static uint8_t queue_data[QUEUE_LEN];
 void uart_tigger(irq_entry_t *irq)
 {
     int ch;
+    mword_t status = cpulock_lock();
 
     ch = read_reg32(UART011_BASE_ADDR + UART01x_DR);
     if (ch & 0x0f00)
@@ -140,15 +141,15 @@ void uart_tigger(irq_entry_t *irq)
     }
     ch &= 0xff;
     q_enqueue(&queue, ch);
-    mword_t status = cpulock_lock();
 
     if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
     {
-        thread_ready(irq->irq->wait_thread, TRUE);
+        thread_ready_remote(irq->irq->wait_thread, FALSE);
     }
     cpulock_set(status);
 end:
     gic2_eoi_irq(arm_gicv2_get_global(), LOG_INTR_NO);
+    cpulock_set(status);
 }
 
 void uart_init(void)
@@ -180,6 +181,7 @@ void uart_init(void)
 
     gic2_set_unmask(arm_gicv2_get_global(), LOG_INTR_NO);
     gic2_set_target_cpu(arm_gicv2_get_global(), LOG_INTR_NO, 1 << arch_get_current_cpu_id());
+    gic2_set_prio(arm_gicv2_get_global(), LOG_INTR_NO, 0);
 }
 INIT_HIGH_HAD(uart_init);
 

@@ -87,10 +87,7 @@
    处理无效的异常向量
  */
 	.macro inv_entry el, reason
-	//kernel_entry el
-	mov x0, sp
-	mov x1, #\reason
-	mrs x2, esr_el2
+	kernel_entry el
 	b bad_mode
 	.endm
 
@@ -157,13 +154,13 @@ el1_sync:
 	b ret_to_user
 
 el2_sync_invalid:
-	inv_entry 1, BAD_SYNC
+	inv_entry 2, BAD_SYNC
 el2_irq_invalid:
-	inv_entry 1, BAD_IRQ
+	inv_entry 2, BAD_IRQ
 el2_fiq_invalid:
-	inv_entry 1, BAD_FIQ
+	inv_entry 2, BAD_FIQ
 el2_error_invalid:
-	inv_entry 1, BAD_ERROR
+	inv_entry 2, BAD_ERROR
 el1_irq_invalid:
 	inv_entry 1, BAD_IRQ
 el1_fiq_invalid:
@@ -192,12 +189,6 @@ el2_irq:
 	bl entry_handler
 	kernel_exit 2
 
-
-.global trigger_alignment
-trigger_alignment:
-	ldr x0, =0x80002
-	str wzr, [x0]
-
 /*
    对于用户进程，暂时还没实现
  */
@@ -205,7 +196,6 @@ trigger_alignment:
 .global ret_to_user
 ret_to_user:
 	kernel_exit 2
-	//inv_entry 0, BAD_ERROR
 /*
 	对于内核线程：
 		x19保存了进程回调函数的入口

@@ -89,6 +89,11 @@ SECTIONS
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
 
+    . = ALIGN(0x4);
+		_pre_cpu_data_start = .;
+		KEEP (*(.data.per_cpu))
+		_pre_cpu_data_end = .;
+
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
   } >RAM AT> FLASH

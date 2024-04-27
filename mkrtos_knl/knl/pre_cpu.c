@@ -5,8 +5,8 @@
 #include <string.h>
 #include <assert.h>
 #include <arch.h>
-#if IS_ENABLED(CONFIG_SMP)
 #include <init.h>
+#if IS_ENABLED(CONFIG_SMP)
 extern char _pre_cpu_data_start[];
 extern char _pre_cpu_data_end[];
 
@@ -35,6 +35,7 @@ INIT_KOBJ_MEM(pre_cpu_init);
 void pre_cpu_init(void)
 {
 }
+INIT_KOBJ_MEM(pre_cpu_init);
 #endif
 
 void *pre_cpu_get_var_cpu(uint32_t cpu_inx, void *mem_addr)

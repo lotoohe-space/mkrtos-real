@@ -339,9 +339,9 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     task->kobj.stage_2_func = task_release_stage2;
 
 #if IS_ENABLED(CONFIG_MMU)
-    knl_pdir_init(&task->mm_space.mem_dir, task->mm_space.mem_dir.dir, 3);
+    knl_pdir_init(&task->mm_space.mem_dir, task->mm_space.mem_dir.dir, 3/*TODO:*/);
 #else
-    mm_space_add(&task->mm_space, CONFIG_KNL_TEXT_ADDR, CONFIG_KNL_TEXT_SIZE, REGION_RO); // TODO:这里应该用config.配置
+    mm_space_add(&task->mm_space, CONFIG_KNL_TEXT_ADDR, CONFIG_KNL_TEXT_SIZE, REGION_RO);
 #endif
 }
 
@@ -387,7 +387,7 @@ static void task_release_stage2(kobject_t *kobj)
     // if (cur_tk == tk)
     // {
     thread_sched(TRUE);
-    to_sche();
+    // arch_to_sche();
     // }
     // mm_trace();
     printk("release tk %x\n", tk);
@@ -399,7 +399,7 @@ void task_kill(task_t *tk)
     obj_unmap(&tk->obj_space, vpage_create3(KOBJ_DELETE_RIGHT, 0, TASK_PROT), &kobj_list);
     kobj_del_list_to_do(&kobj_list);
     thread_sched(TRUE);
-    to_sche();
+    // arch_to_sche();
 }
 task_t *task_create(ram_limit_t *lim, int is_knl)
 {

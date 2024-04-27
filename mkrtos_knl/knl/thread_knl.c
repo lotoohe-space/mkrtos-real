@@ -9,19 +9,19 @@
  *
  */
 
-#include "types.h"
+#include "app.h"
+#include "arch.h"
+#include "factory.h"
+#include "globals.h"
 #include "init.h"
+#include "knl_misc.h"
+#include "map.h"
+#include "mm_wrap.h"
 #include "printk.h"
 #include "task.h"
 #include "thread.h"
-#include "factory.h"
-#include "globals.h"
-#include "arch.h"
-#include "map.h"
-#include "app.h"
-#include "mm_wrap.h"
 #include "thread_task_arch.h"
-#include "knl_misc.h"
+#include "types.h"
 #include <assert.h>
 #if IS_ENABLED(CONFIG_KNL_TEST)
 #include <knl_test.h>
@@ -34,8 +34,7 @@
 #endif
 #include <cpio.h>
 
-static uint8_t knl_msg_buf[THREAD_MSG_BUG_LEN];
-static thread_t *knl_thread;
+static uint8_t knl_msg_buf[CONFIG_CPU][THREAD_MSG_BUG_LEN];
 static task_t knl_task;
 static thread_t *init_thread;
 static task_t *init_task;
@@ -94,6 +93,8 @@ static void knl_main(void)
  */
 void knl_init_1(void)
 {
+    thread_t *knl_thread;
+
     knl_thread = thread_get_current();
 
     thread_init(knl_thread, &root_factory_get()->limit);
@@ -101,9 +102,10 @@ void knl_init_1(void)
     task_knl_init(&knl_task);
     thread_knl_pf_set(knl_thread, knl_main);
     thread_bind(knl_thread, &knl_task.kobj);
-    thread_set_msg_buf(knl_thread, knl_msg_buf, knl_msg_buf);
+    thread_set_msg_buf(knl_thread, knl_msg_buf[arch_get_current_cpu_id()],
+                       knl_msg_buf[arch_get_current_cpu_id()]);
+    knl_thread->cpu = arch_get_current_cpu_id();
     thread_ready(knl_thread, FALSE);
-
 }
 INIT_STAGE1(knl_init_1);
 
@@ -126,7 +128,7 @@ static void knl_init_2(void)
 
     init_thread = thread_create(&root_factory_get()->limit);
     assert(init_thread);
-     init_task = task_create(&root_factory_get()->limit, FALSE);
+    init_task = task_create(&root_factory_get()->limit, FALSE);
     assert(init_task);
 
 #if IS_ENABLED(CONFIG_ELF_LAUNCH)
@@ -226,12 +228,12 @@ void start_kernel(void)
     print_mkrtos_info();
     cli();
     sys_startup(); //!< 开始调度
-    thread_sched(TRUE);
-    // to_sche();
+    thread_sched(FALSE);
+    arch_to_sche();
     sti();
 
     while (1)
     {
-        // knl_main();
+        knl_main();
     }
 }

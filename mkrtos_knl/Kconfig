@@ -23,14 +23,15 @@ endif
     config PAGE_SHIFT
         int "page shift"
         default 9
+    config PSCI
+        bool "support psci"
+        default n
     config SMP
         bool "support smp."
         default n
-if SMP
     config CPU
         int "CPU Core number."
         default 1
-endif
     config THREAD_MSG_BUG_LEN
         int "thread msg buf size"
         default 128

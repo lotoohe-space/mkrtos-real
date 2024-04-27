@@ -11,18 +11,8 @@
 extern mword_t cpu_jump_addr[SYS_CPU_NUM];
 extern mword_t per_cpu_stack_addr[SYS_CPU_NUM];
 
-// 每个cpu的栈指针
-SECTION(DATA_BOOT_SECTION)
-__ALIGN__(PAGE_SIZE)
-mword_t per_cpu_stack[SYS_CPU_NUM][THREAD_BLOCK_SIZE / MWORD_BYTES];
-
-void *get_cpu_stack(int cpu_inx)
-{
-    return (void *)per_cpu_stack[cpu_inx];
-}
-
 void SECTION(TEXT_BOOT_SECTION) cpu_start_to(int cpu_id, void *stack, void *(fn)(void))
 {
-    per_cpu_stack_addr[cpu_id] = ((addr_t)stack) + THREAD_BLOCK_SIZE - MWORD_BYTES - PT_REGS_SIZE;
+    per_cpu_stack_addr[cpu_id] = ((addr_t)stack);
     cpu_jump_addr[cpu_id] = (mword_t)fn;
 }

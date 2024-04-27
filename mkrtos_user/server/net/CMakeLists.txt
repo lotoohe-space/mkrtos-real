@@ -2,26 +2,21 @@ cmake_minimum_required(VERSION 3.13)
 
 file(GLOB_RECURSE deps *.c *.S)
 
-# file(GLOB bsp_src 
-# ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/STM32F10x_StdPeriph_Driver/src/*.c
-# )
-# list(APPEND deps ${bsp_src})
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_STDPERIPH_DRIVER=1 -DSTM32F10X_HD\
-")
-
-
 add_executable(net.elf
     ${deps}
+    ${START_SRC}
 )
 target_link_libraries(net.elf
     PUBLIC
-    start
-    muslc
+    ${START_LIB}
+    ${LIBC_NAME}
     lwip
+    --whole-archive
+    libc_be
     sys
     sys_util
     sys_svr
+    --no-whole-archive
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -34,29 +29,9 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/lwip/src/include
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/lwip/src/include/lwip/apps
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/net/inc
-
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
-
-    # ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/STM32F10x_StdPeriph_Driver/inc
-    # ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/CMSIS/Include
-    # ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x
-    # ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/CMSIS/CM3/CoreSupport
-
-)
-add_dependencies(net.elf
-muslc
-lwip
-start
 )
 set_target_properties(net.elf PROPERTIES LINK_FLAGS
-"-T ${CMAKE_CURRENT_LIST_DIR}/link.lds -pie --gc-section -no-dynamic-linker "
-#--no-warn-rwx-segments
+"-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "
 )
 add_custom_target(
     net_dump ALL
@@ -71,13 +46,17 @@ add_custom_target(
     COMMAND
     cp net.elf ${CMAKE_SOURCE_DIR}/build/output/net.elf
 )
-
+if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
+    add_custom_target(
+        net_dump_elf ALL
+        COMMAND
+        cp net.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/net
+    )
+    add_dependencies(net_dump_elf shell_dump)
+endif()
 add_dependencies(net_dump net.elf)
-add_dependencies(net_dump sys)
-add_dependencies(net_dump sys_util)
-add_dependencies(net_dump mr)
-add_dependencies(net_dump sys_svr)
-add_dependencies(net_dump start)
-add_dependencies(net_dump muslc)
-add_dependencies(net_dump lwip)
+add_dependencies(net.elf sys)
+add_dependencies(net.elf sys_util)
+add_dependencies(net.elf sys_svr)
+add_dependencies(net.elf lwip)
  

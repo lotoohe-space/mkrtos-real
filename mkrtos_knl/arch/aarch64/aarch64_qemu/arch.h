@@ -11,14 +11,23 @@
 #pragma once
 
 #include "types.h"
-#include <aarch64_ptregs.h>
 #include <asm/mm.h>
 #include <mmu.h>
 #include <thread_arch.h>
+#include <ipi.h>
 
 #define ARCH_WORD_SIZE 64
 #define SYSTICK_INTR_NO 30
-#define LOG_INTR_NO    33
+#define LOG_INTR_NO 33
+
+#define CPU0_MASK (1 << 0)
+#define CPU1_MASK (1 << 1)
+#define CPU2_MASK (1 << 2)
+#define CPU3_MASK (1 << 3)
+#define CPU4_MASK (1 << 4)
+#define CPU5_MASK (1 << 5)
+#define CPU6_MASK (1 << 6)
+#define CPU7_MASK (1 << 7)
 
 /// @brief 线程信息
 typedef struct
@@ -28,7 +37,8 @@ typedef struct
     umword_t lr;
     umword_t pc;
 } pf_s_t;
-typedef struct pf {
+typedef struct pf
+{
     struct
     {
         umword_t regs[31]; //!< 基础寄存器
@@ -46,7 +56,8 @@ typedef struct pf {
     umword_t stackframe[2];
 } pf_t;
 
-typedef struct sp_info {
+typedef struct sp_info
+{
     umword_t x19;
     umword_t x20;
     umword_t x21;
@@ -71,26 +82,42 @@ typedef struct sp_info {
 #define _dsb(ins) \
     asm volatile("dsb " #ins : : : "memory")
 
-#define __arch_getl(a)    (*(volatile unsigned int *)(a))
+#define __arch_getl(a) (*(volatile unsigned int *)(a))
 #define __arch_putl(v, a) (*(volatile unsigned int *)(a) = (v))
 
 #define __iormb() _barrier()
 #define __iowmb() _barrier()
 
-#define readl(c)     ({ unsigned int  __v = __arch_getl(c); __iormb(); __v; })
+#define readl(c) ({ unsigned int  __v = __arch_getl(c); __iormb(); __v; })
 #define writel(v, c) ({ unsigned int  __v = v; __iowmb(); __arch_putl(__v,c); })
 
-#define read_reg(addr) (*((volatile umword_t *)(addr)))
+#define read_reg(addr)                           \
+    ({                                           \
+        unsigned long _val;                      \
+                                                 \
+        _barrier();                              \
+        _val = (*((volatile umword_t *)(addr))); \
+        _val;                                    \
+    })
 #define write_reg(addr, data)                    \
-    do {                                         \
+    do                                           \
+    {                                            \
         _barrier();                              \
         (*((volatile umword_t *)(addr))) = data; \
         _barrier();                              \
     } while (0)
 
-#define read_reg32(addr) (*((volatile uint32_t *)(addr)))
+#define read_reg32(addr)                         \
+    ({                                           \
+        unsigned long _val;                      \
+                                                 \
+        _barrier();                              \
+        _val = (*((volatile umword_t *)(addr))); \
+        _val;                                    \
+    })
 #define write_reg32(addr, data)                            \
-    do {                                                   \
+    do                                                     \
+    {                                                      \
         _barrier();                                        \
         (*((volatile uint32_t *)(addr))) = (uint32_t)data; \
         _barrier();                                        \
@@ -126,19 +153,21 @@ static inline int arch_get_current_cpu_id(void)
     ({/*TODO:*/      \
       0})
 
-void to_sche(void);
+void arch_to_sche(void);
 
 #define get_sp() (                                 \
     {                                              \
         mword_t sp;                                \
-        do {                                       \
+        do                                         \
+        {                                          \
             asm volatile("mov %0, sp" : "=r"(sp)); \
         } while (0);                               \
         sp;                                        \
     })
 #define set_sp(sp) (                                \
     {                                               \
-        do {                                        \
+        do                                          \
+        {                                           \
             asm volatile("mov sp, %0" : : "r"(sp)); \
         } while (0);                                \
     })
@@ -171,7 +200,8 @@ void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
  * 开中断
  */
 #define sti()                 \
-    do {                      \
+    do                        \
+    {                         \
         asm volatile(         \
             "msr daifclr, #3" \
             :                 \
@@ -183,7 +213,8 @@ void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
  * 关中断
  */
 #define cli()                 \
-    do {                      \
+    do                        \
+    {                         \
         asm volatile(         \
             "msr daifset, #3" \
             :                 \
@@ -212,3 +243,5 @@ void sys_reset(void);
 umword_t sys_tick_cnt_get(void);
 
 uint32_t arch_get_sys_clk(void);
+
+#include <sche_arch.h>

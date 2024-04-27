@@ -11,7 +11,8 @@
 #include "slist.h"
 
 #define PRIO_MAX WORD_BITS
-extern umword_t sched_reset;
+// extern umword_t sched_reset;
+
 typedef struct sched
 {
     int prio;
@@ -26,6 +27,7 @@ static void sched_init(sched_t *sche)
 
 typedef struct scheduler
 {
+    umword_t sched_reset; // 放到第一个方便汇编操作
     slist_head_t prio_list[PRIO_MAX];
     umword_t bitmap[PRIO_MAX / WORD_BITS];
     sched_t *cur_sche;
@@ -35,8 +37,8 @@ typedef struct scheduler
 scheduler_t *scheduler_get_current(void);
 void scheduler_init(void);
 sched_t *scheduler_next(void);
-void scheduler_add(sched_t *node);
-void scheduler_add_to_cpu(sched_t *node, int cpu);
+bool_t scheduler_add(sched_t *node);
+bool_t scheduler_add_to_cpu(sched_t *node, int cpu);
 sched_t *scheduler_next_cpu(int cpu);
 void scheduler_del(sched_t *node);
 void scheduler_reset(void);

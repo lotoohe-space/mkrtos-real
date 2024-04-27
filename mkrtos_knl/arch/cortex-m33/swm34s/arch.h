@@ -69,7 +69,7 @@ typedef struct sp_info
         ((ret & 0x4) ? 0 : 1); \
     })
 
-void to_sche(void);
+void arch_to_sche(void);
 
 static inline umword_t arch_get_sp(void)
 {
@@ -110,7 +110,10 @@ static inline umword_t arch_get_user_sp(void)
 void arch_disable_irq(int inx);
 void arch_enable_irq(int inx);
 void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
-
+static inline int arch_get_current_cpu_id(void)
+{
+    return 0;
+}
 #define sti()                     \
     do                            \
     {                             \

@@ -37,12 +37,11 @@ target_include_directories(
 target_link_libraries(
   lwip
   PUBLIC
-  muslc
+  ${LIBC_NAME}
   sys
   util
 )
 add_dependencies(lwip
-  muslc
   util
   sys
 )

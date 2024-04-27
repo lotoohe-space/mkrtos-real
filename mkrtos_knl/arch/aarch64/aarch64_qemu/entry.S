@@ -13,7 +13,8 @@ string1:
 .globl sp_addr
 .section ".data.boot"
 sp_addr:
-	.quad per_cpu_stack + THREAD_BLOCK_SIZE - 8 - PT_REGS_SIZE //pt regs is 320 bytes.
+	.quad thread_knl_stack + THREAD_BLOCK_SIZE - 8//pt regs is 320 bytes.
+
 .align 3
 .globl cpio_images
 .section ".data.boot"
@@ -24,13 +25,13 @@ cpio_images:
 .global cpu_jump_addr
 .section ".data.boot"
 cpu_jump_addr:
-	.zero (32) //TODO: cpu_num*MWORD_BYTES
+	.zero (CONFIG_CPU * 8)
 
 .align 3
 .global per_cpu_stack_addr
 .section ".data.boot"
 per_cpu_stack_addr:
-	.zero (32) //TODO: cpu_num*MWORD_BYTES
+	.zero (CONFIG_CPU * 8)
 
 .section ".text.boot"
 .globl _start

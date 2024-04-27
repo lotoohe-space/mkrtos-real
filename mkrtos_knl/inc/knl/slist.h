@@ -47,6 +47,19 @@ static inline bool_t slist_in_list(slist_head_t *item)
 	}
 	return TRUE;
 }
+static inline bool_t slist_in_list_check(slist_head_t *head, slist_head_t *item)
+{
+	slist_head_t *_head = head;
+
+	head = head->next;
+
+	while (head != _head) {
+		if (item == head) {
+			return TRUE;
+		}
+		head = head->next;
+	}
+}
 /**
  * @brief 在头部添加一个节点
  *
@@ -85,6 +98,8 @@ static inline void slist_del(slist_head_t *item)
 {
 	item->prev->next = item->next;
 	item->next->prev = item->prev;
+
+	// slist_init(item);
 }
 
 /**

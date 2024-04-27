@@ -9,20 +9,19 @@
  *
  */
 #include "scheduler.h"
-#include "util.h"
 #include "assert.h"
-#include "thread.h"
 #include "init.h"
+#include "thread.h"
+#include "util.h"
 #include <arch.h>
 #include <pre_cpu.h>
-static PER_CPU(scheduler_t, scheduler);
-umword_t sched_reset = 0;
+PER_CPU(scheduler_t, scheduler);
 
 void scheduler_reset(void)
 {
     scheduler_t *sched = scheduler_get_current();
 
-    sched_reset = 0;
+    sched->sched_reset = 0;
     sched->cur_sche = NULL;
 }
 
@@ -36,18 +35,20 @@ scheduler_t *scheduler_get_cpu(int inx)
 }
 void scheduler_init(void)
 {
-    for (int i = 0; i < PRIO_MAX; i++)
-    {
-        slist_init(&(scheduler_get_current()->prio_list[i]));
+    for (int j = 0; j < CONFIG_CPU; j++) {
+        for (int i = 0; i < PRIO_MAX; i++) {
+            slist_init(&(scheduler_get_cpu(j)->prio_list[i]));
+        }
     }
 }
 INIT_KOBJ(scheduler_init);
-void scheduler_add(sched_t *node)
+bool_t scheduler_add(sched_t *node)
 {
-    scheduler_add_to_cpu(node, arch_get_current_cpu_id());
+    return scheduler_add_to_cpu(node, arch_get_current_cpu_id());
 }
-void scheduler_add_to_cpu(sched_t *node, int cpu)
+bool_t scheduler_add_to_cpu(sched_t *node, int cpu)
 {
+    int ret = 0;
     thread_t *node_th = container_of(node, thread_t, sche);
 
     assert(node_th->magic == THREAD_MAGIC);
@@ -56,15 +57,16 @@ void scheduler_add_to_cpu(sched_t *node, int cpu)
     assert(node->prio >= 0);
     assert(node->prio < PRIO_MAX);
 
-    if (node->prio > sched->max_prio)
-    {
+    if (node->prio > sched->max_prio) {
         sched->max_prio = node->prio;
         sched->cur_sche = NULL;
+        ret = 1;
     }
 
     MK_SET_BIT(sched->bitmap[node->prio / PRIO_MAX], node->prio % PRIO_MAX);
 
     slist_add(&(sched->prio_list[node->prio]), &node->node);
+    return 0;
 }
 void scheduler_del(sched_t *node)
 {
@@ -74,19 +76,12 @@ void scheduler_del(sched_t *node)
     assert(node->prio >= 0);
     assert(node->prio < PRIO_MAX);
     slist_del(&node->node);
-    // slist_init(&node->node);
-    // if (node == &cur_th->sche)
-    // { // 删除的是当前的，重新调度
-    //     sched->cur_sche = NULL;
-    // }
-    if (slist_is_empty(&sched->prio_list[node->prio]))
-    {
+
+    if (slist_is_empty(&sched->prio_list[node->prio])) {
         MK_CLR_BIT(sched->bitmap[node->prio / PRIO_MAX], node->prio % PRIO_MAX);
-        for (mword_t i = (PRIO_MAX / WORD_BITS - 1); i >= 0; i--)
-        {
+        for (mword_t i = (PRIO_MAX / WORD_BITS - 1); i >= 0; i--) {
             int ret = clz(sched->bitmap[i]);
-            if (ret != WORD_BITS)
-            {
+            if (ret != WORD_BITS) {
                 int max_prio = (i + 1) * WORD_BITS - ret - 1;
                 assert(!slist_is_empty(&sched->prio_list[max_prio]));
                 sched->max_prio = max_prio;
@@ -102,15 +97,11 @@ sched_t *scheduler_next_cpu(int cpu)
     sched_t *next_sch = NULL;
     slist_head_t *next = NULL;
 
-    if (sche->cur_sche == NULL)
-    {
+    if (sche->cur_sche == NULL || slist_is_empty(&sche->cur_sche->node)) {
         next = slist_first(&sche->prio_list[sche->max_prio]);
-    }
-    else
-    {
+    } else {
         next = sche->cur_sche->node.next;
-        if (next == &(sche->prio_list[sche->max_prio]))
-        {
+        if (next == &(sche->prio_list[sche->max_prio])) {
             next = slist_first(&sche->prio_list[sche->max_prio]);
         }
     }

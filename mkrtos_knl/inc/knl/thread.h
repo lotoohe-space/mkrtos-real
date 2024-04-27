@@ -16,6 +16,7 @@
 #include "arch.h"
 #include "ref.h"
 #include <thread_arch.h>
+#include <atomics.h>
 struct task;
 typedef struct task task_t;
 struct thread;
@@ -98,7 +99,6 @@ typedef struct msg_buf
 #endif
     msg_tag_t tag; //!< 存放发送的临时标识
 } msg_buf_t;
-
 #define THREAD_MAGIC 0xdeadead //!< 用于栈溢出检测
 typedef struct thread
 {
@@ -111,11 +111,23 @@ typedef struct thread
 
     slist_head_t futex_node; //!< futex使用
 
-    msg_buf_t msg;               //!< 每个线程独有的消息缓存区
-    slist_head_t wait_send_head; //!< 等待头，那些节点等待给当前线程发送数据
-    thread_t *last_send_th;      //!< 当前线程上次接收到谁的数据
-    kobject_t *ipc_kobj;         //!< 发送者放到一个ipc对象中
-    umword_t user_id;            //!< 接收到的user_id
+#if IS_ENABLED(CONFIG_SMP)
+    ipi_msg_t ipi_msg_node;
+#endif
+    int cpu;
+    atomic_t time_count;
+    umword_t time_count_last;
+
+    spinlock_t ipc_lock;
+
+    msg_buf_t msg; //!< 每个线程独有的消息缓存区
+
+    slist_head_t wait_send_head;    //!< 等待头，那些节点等待给当前线程发送数据
+    spinlock_t wait_send_head_lock; //!< 等待锁
+
+    thread_t *last_send_th; //!< 当前线程上次接收到谁的数据
+    kobject_t *ipc_kobj;    //!< 发送者放到一个ipc对象中
+    umword_t user_id;       //!< 接收到的user_id
 
     enum thread_state status;         //!< 线程状态
     enum thread_ipc_state ipc_status; //!< ipc状态
@@ -161,6 +173,7 @@ static inline thread_t *thread_get_current(void)
     return th;
 }
 task_t *thread_get_current_task(void);
+task_t *thread_get_task(thread_t *th);
 task_t *thread_get_bind_task(thread_t *th);
 
 static inline pf_t *thread_get_current_pf(void)
@@ -179,6 +192,8 @@ void thread_suspend(thread_t *th);
 void thread_dead(thread_t *th);
 void thread_todead(thread_t *th, bool_t is_sche);
 void thread_ready(thread_t *th, bool_t is_sche);
+void thread_ready_remote(thread_t *th, bool_t is_sche);
+void thread_suspend_sw(thread_t *th, bool_t is_sche);
 
 void thread_timeout_check(ssize_t tick);
 msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id);
