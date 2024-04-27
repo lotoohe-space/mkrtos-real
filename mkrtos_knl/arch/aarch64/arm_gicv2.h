@@ -5,6 +5,7 @@
 #include <printk.h>
 #include <types.h>
 #include <util.h>
+#include <spinlock.h>
 // #include <timer.h>
 /*
  * ID0-ID15，分配给SGI (一般会将0-7给REE,8-15给TEE)
@@ -20,8 +21,11 @@ typedef struct gic
 
     addr_t disp_base_addr;  //!< 分发器起始地址
     addr_t inter_base_addr; //!< 接口起始地址
+    spinlock_t lock;
 } gic_t;
 
+#define GIC2_GICD_REG_BASE 0x08000000
+#define GIC2_GICC_REG_BASE 0x08010000
 // #define GIC2_BASE (0xFF840000)
 // #define GIC2_GICD_BASE (GIC2_BASE + 0x1000)
 
@@ -55,17 +59,11 @@ typedef struct gic
 
 #define MAX_INTR_NO 1020
 
-static inline void gic2_set_disp_cpu(gic_t *irq, uint64_t cpu_mask)
+static inline void gic2_set_sgir(gic_t *irq, uint64_t cpu_mask)
 {
     write_reg32(GICD_SGIR(irq->disp_base_addr),
                 read_reg32(GICD_SGIR(irq->disp_base_addr)) |
                     ((cpu_mask & 0xff) << 16UL));
-}
-static inline void gic2_clear_disp_cpu(gic_t *irq, uint8_t cpu_mask)
-{
-    write_reg32(GICD_SGIR(irq->disp_base_addr),
-                read_reg32(GICD_SGIR(irq->disp_base_addr)) &
-                    ((~(cpu_mask & 0xff)) << 16UL));
 }
 static inline void gic2_set_unmask(gic_t *irq, uint64_t inx)
 {
@@ -119,6 +117,17 @@ static inline void gic2_clear_active(gic_t *irq, uint64_t inx)
 
     MK_CLR_BIT(tmp, bit_inx);
     tmp |= (1) << bit_inx;
+    write_reg32((uint32_t *)addr, tmp);
+}
+static inline void gic2_sgi_set_pending(gic_t *irq, uint64_t inx, uint8_t cpu_mask)
+{
+    assert(inx < 16);
+    void *addr = (void *)(GICD_SPENDSGIRn(irq->disp_base_addr) + (inx >> 2));
+    uint32_t tmp = read_reg32(addr);
+    uint32_t bit_inx = (inx % 4) << 3;
+
+    tmp &= (~0xff) << bit_inx;
+    tmp |= cpu_mask << bit_inx;
     write_reg32((uint32_t *)addr, tmp);
 }
 static inline void gic2_set_pending(gic_t *irq, uint64_t inx)
@@ -227,11 +236,14 @@ static inline void gic_dist_init(gic_t *irq)
 {
     gic_disable(irq);
 
-    for (int i = 32; i < irq->irqs_number; i++)
+    if (arch_get_current_cpu_id() == 0)
     {
-        gic2_set_unmask(irq, i);
-        gic2_set_edge_mode(irq, i, 0);
-        gic2_clear_active(irq, i);
+        for (int i = 32; i < irq->irqs_number; i++)
+        {
+            gic2_set_unmask(irq, i);
+            gic2_set_edge_mode(irq, i, 0);
+            gic2_clear_active(irq, i);
+        }
     }
     for (int i = 0; i < 16; i++)
     {
@@ -242,13 +254,15 @@ static inline void gic_dist_init(gic_t *irq)
 }
 static inline void gic_inter_init(gic_t *irq)
 {
-
-    for (int i = 0; i < 32; i++)
+    // if (arch_get_current_cpu_id() == 0)
     {
-        gic2_set_prio(irq, i, 0xa0);
+        for (int i = 0; i < 32; i++)
+        {
+            gic2_set_prio(irq, i, 0);
+        }
     }
-
     write_reg32(GICC_PMR(irq->inter_base_addr), 0xf0UL);
+
     gic2_cpu_enable(irq);
 }
 static inline void gic2_eoi_irq(gic_t *irq, int inx)
@@ -279,20 +293,3 @@ static inline uint32_t gicv2_get_irqnr(gic_t *m_gic)
 
     return irqnr;
 }
-// static inline void gic_handle_irq(void)
-// {
-//     extern gic_t m_irq;
-
-//     do
-//     {
-//         uint32_t irqstat =
-//             read_reg32(GICC_IAR(m_irq.inter_base_addr));
-//         uint32_t irqnr = irqstat & 0x3ff;
-
-//         if (irqnr == 30)
-//             handle_timer_irq();
-
-//         gic2_eoi_irq(&m_irq, irqnr);
-
-//     } while (0);
-// }

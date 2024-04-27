@@ -13,13 +13,13 @@ sp_info_t *schde_to(void *usp, void *ksp, umword_t sp_type)
 
     assert(next_th->magic == THREAD_MAGIC);
 
-    if (sched_reset)
+    if (sche->sched_reset)
     {
         thread_t *cur_th = thread_get_current();
         cur_th->sp.knl_sp = ksp;
         cur_th->sp.user_sp = usp;
         cur_th->sp.sp_type = sp_type;
     }
-    sched_reset = 1;
+    sche->sched_reset = 1;
     return &next_th->sp;
 }

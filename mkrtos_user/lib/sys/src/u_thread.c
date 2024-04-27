@@ -172,14 +172,14 @@ msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t
 
     return tag;
 }
-msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
+msg_tag_t thread_run_cpu(obj_handler_t obj, uint8_t prio, umword_t cpu)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create4(RUN_THREAD, THREAD_PROT, obj, TRUE).raw,
                0,
                prio,
-               0,
+               cpu,
                0,
                0,
                0);

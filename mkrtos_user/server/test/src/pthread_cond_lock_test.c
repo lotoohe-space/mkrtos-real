@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <u_util.h>
 static pthread_cond_t cond;
 static pthread_mutex_t mutex;
 static int cond_value;

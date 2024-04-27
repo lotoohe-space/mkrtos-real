@@ -35,6 +35,7 @@
 
 static void test(void)
 {
+    // thread_cpu_test();
 #if 0
     malloc_test();
     printf_test();

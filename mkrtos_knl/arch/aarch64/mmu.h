@@ -15,10 +15,6 @@ static inline umword_t vpage_attrs_to_page_attrs(enum vpage_prot_attrs attrs)
 
     to_attrs = PTE_SHARED | PTE_TYPE_PAGE | PTE_ATTRINDX(MT_NORMAL) | PTE_AF;
 
-    if (attrs & VPAGE_PROT_UNCACHE)
-    {
-        /*TODO:设置无缓存属性*/
-    }
     if (!(attrs & VPAGE_PROT_IN_KNL))
     {
         to_attrs |= PTE_NG;

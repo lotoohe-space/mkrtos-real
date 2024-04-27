@@ -47,7 +47,8 @@ void kthread_test_init(void)
     assert(thread2);
     thread_bind(thread2, &cur_tk->kobj);
     thread_knl_pf_set(thread2, th_test);
-    thread_ready(thread2, FALSE);
+    thread2->sche.prio=2;
+    thread_ready(thread2, TRUE);
 
     thread_t *thread3;
 
@@ -55,5 +56,6 @@ void kthread_test_init(void)
     assert(thread3);
     thread_bind(thread3, &cur_tk->kobj);
     thread_knl_pf_set(thread3, th_test2);
-    thread_ready(thread3, FALSE);
+    thread3->sche.prio=2;
+    thread_ready(thread3, TRUE);
 }

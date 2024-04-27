@@ -371,6 +371,8 @@ RPC_ARRAY_DEF(uint32_t, uint8_t, 32)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 32)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 48)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 64)
+RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 128)
+RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 256)
 
 /**
  * @brief Construct a new rpc type def object

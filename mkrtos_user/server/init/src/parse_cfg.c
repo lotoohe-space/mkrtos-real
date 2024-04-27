@@ -74,7 +74,7 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
                 }
                 pid_t pid;
                 char *args[] = {
-                    name,
+                    "xx",/**FIXME: */
                     "-t"
                 };
                 int ret = app_load(name, env, &pid, args, 2, NULL, 0);

@@ -9,41 +9,60 @@
  *
  */
 #include "arch.h"
+#include "config.h"
+#include "init.h"
+#include "mk_sys.h"
+#include "thread.h"
 #include "types.h"
 #include "util.h"
-#include "init.h"
-#include "config.h"
-#include "thread.h"
-#include "mk_sys.h"
-#include <psci.h>
 #include <arm_gicv2.h>
-#include <timer.h>
 #include <hyp.h>
+#include <psci.h>
 #include <sche_arch.h>
-__ALIGN__(THREAD_BLOCK_SIZE)
-static uint8_t thread_knl_stack[THREAD_BLOCK_SIZE] = {0};
-void *_estack = thread_knl_stack + THREAD_BLOCK_SIZE;
+#include <spin_table.h>
+#include <thread_knl.h>
+#include <timer.h>
+#include <ipi.h>
 
+__ALIGN__(THREAD_BLOCK_SIZE)
+uint8_t thread_knl_stack[CONFIG_CPU][THREAD_BLOCK_SIZE] = {0};
+// void *_estack = &thread_knl_stack[0] + THREAD_BLOCK_SIZE;
+static umword_t cpu_boot_cn = 0;
+static void other_cpu_boot(void);
+extern void _start(void);
 /**
  * 进行调度
  */
-void to_sche(void)
+void arch_to_sche(void)
 {
+    umword_t status;
+
+    status = spinlock_lock(&arm_gicv2_get_global()->lock);
     gic2_set_pending(arm_gicv2_get_global(), SYSTICK_INTR_NO);
-    // sche_arch_sw_context();
+    spinlock_set(&arm_gicv2_get_global()->lock, status);
 }
 /**
  * 进行一些系统的初始化
  */
 void sys_startup(void)
 {
-    /*TODO:*/
-    init_arm_hyp();
+    cpu_boot_cn = 1;
+    cpu_ipi_init();
+    for (int i = 1; i < CONFIG_CPU; i++)
+    {
+        printk("sp:%lx.\n", &thread_knl_stack[i][0]);
+        cpu_start_to(i, &thread_knl_stack[i][0] + THREAD_BLOCK_SIZE - MWORD_BYTES, other_cpu_boot);
+#if IS_ENABLED(CONFIG_PSCI)
+        psci_cpu_on(i, (umword_t)_start);
+#endif
+    }
+    while (cpu_boot_cn < CONFIG_CPU)
+        ;
     timer_init(arch_get_current_cpu_id());
 }
 void sys_reset(void)
 {
-    /*TODO:*/
+    psci_system_reset();
 }
 umword_t arch_get_isr_no(void)
 {
@@ -51,12 +70,10 @@ umword_t arch_get_isr_no(void)
 }
 void arch_disable_irq(int inx)
 {
-    /*TODO:*/
     gic2_set_mask(arm_gicv2_get_global(), inx);
 }
 void arch_enable_irq(int inx)
 {
-    /*TODO:*/
     gic2_set_unmask(arm_gicv2_get_global(), inx);
 }
 uint32_t arch_get_sys_clk(void)
@@ -66,7 +83,6 @@ uint32_t arch_get_sys_clk(void)
 }
 void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio)
 {
-    /*TODO:*/
     gic2_set_prio(arm_gicv2_get_global(), inx, pre_prio);
 }
 extern char _data_boot[], _edata_boot[];
@@ -105,10 +121,34 @@ static void print_mem(void)
 
 void arch_init(void)
 {
-    printk("MKRTOS running on EL:%d\n", arch_get_currentel() >> 2);
+    printk("MKRTOS running on EL:%d\n", arch_get_currentel());
     print_mem();
+    init_arm_hyp();
     psci_init();
     gic_init(arm_gicv2_get_global(),
-             0x08000000, 0x8010000); /*TODO:*/
+             GIC2_GICD_REG_BASE, GIC2_GICC_REG_BASE);
 }
 INIT_LOW_HARD(arch_init);
+static void arch_cpu_knl_init(void)
+{
+    cli();
+    init_arm_hyp();
+    knl_init_1();
+    gic_init(arm_gicv2_get_global(), GIC2_GICD_REG_BASE, GIC2_GICC_REG_BASE);
+    cpu_ipi_init();
+    timer_init(arch_get_current_cpu_id());
+    cpu_boot_cn++;
+    thread_sched(TRUE);
+    sti();
+}
+static void other_cpu_boot(void)
+{
+    per_cpu_boot_mapping(FALSE);
+    mword_t elx = arch_get_currentel();
+
+    printk("cpuid %d run el%d.\n", arch_get_current_cpu_id(), elx);
+    arch_cpu_knl_init();
+    while (1)
+    {
+    }
+}

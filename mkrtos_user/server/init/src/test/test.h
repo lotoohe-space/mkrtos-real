@@ -19,3 +19,4 @@ int pthread_cond_lock_test(void);
 void sharea_mem_test(void);
 void ns_test(void);
 void malloc_test(void);
+void thread_cpu_test(void);

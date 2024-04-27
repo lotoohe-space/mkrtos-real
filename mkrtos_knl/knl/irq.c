@@ -18,7 +18,9 @@
 #include <factory.h>
 #include <irq.h>
 #include <printk.h>
-/*TODO:换成更节省内存的方式*/
+#include <spinlock.h>
+
+static spinlock_t lock;
 static irq_entry_t irqs[CONFIG_IRQ_REG_TAB_SIZE] = {0};
 static void irq_tigger(irq_entry_t *irq);
 
@@ -44,14 +46,19 @@ bool_t irq_check_usability(int inx)
  * @param irq_tigger_func
  * @return bool_t
  */
-bool_t irq_alloc(int inx, irq_sender_t *irq, void (*irq_tigger_func)(irq_entry_t *irq))
+bool_t irq_alloc(int inx, void *irq, void (*irq_tigger_func)(irq_entry_t *irq))
 {
+    umword_t status = spinlock_lock(&lock);
+
     if (irqs[inx].irq_tigger_func != NULL)
     {
+        spinlock_set(&lock, status);
         return FALSE;
     }
     irqs[inx].irq = irq;
+    irqs[inx].inx = inx;
     irqs[inx].irq_tigger_func = irq_tigger_func;
+    spinlock_set(&lock, status);
     return TRUE;
 }
 /**
@@ -83,17 +90,17 @@ void entry_handler(void)
 {
     umword_t isr_no = arch_get_isr_no();
 
-    if (isr_no <= 0)
+    if (isr_no < 0)
     {
         return;
     }
     isr_no -= CONFIG_USER_ISR_START_NO; //!< 系统用的irq偏移
 
-    assert(isr_no < CONFIG_IRQ_REG_TAB_SIZE);
-    // if (isr_no != 30)
-    // {
-    //     printk("%d.\n", isr_no);
-    // }
+    if (isr_no >= CONFIG_IRQ_REG_TAB_SIZE)
+    {
+        assert(isr_no < CONFIG_IRQ_REG_TAB_SIZE);
+    }
+  
     if (!irq_check_usability(isr_no))
     {
         if (irqs[isr_no].irq_tigger_func)

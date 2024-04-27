@@ -389,7 +389,7 @@ mword_t task_vma_lock_two(task_vma_t *task_vma_0, task_vma_t *task_vma_1, mword_
 void task_vma_unlock_two(task_vma_t *task_vma_0, task_vma_t *task_vma_1, mword_t status0, mword_t status1)
 {
     task_vma_unlock(task_vma_1, status1);
-    task_vma_unlock(task_vma_0, status1);
+    task_vma_unlock(task_vma_0, status0);
 }
 /**
  * 分配步骤

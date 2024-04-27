@@ -55,7 +55,11 @@ msg_tag_t thread_yield(obj_handler_t obj);
 msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg);
 msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len);
 msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t ram, umword_t cp_stack);
-msg_tag_t thread_run(obj_handler_t obj, uint8_t prio);
+msg_tag_t thread_run_cpu(obj_handler_t obj, uint8_t prio, umword_t cpu);
+static inline msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
+{
+    return thread_run_cpu(obj, prio, -1);
+}
 msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj);
 
 msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj, obj_handler_t ipc_obj);

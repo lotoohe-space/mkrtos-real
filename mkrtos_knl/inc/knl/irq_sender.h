@@ -4,16 +4,6 @@
 #include <kobject.h>
 #include <ref.h>
 #include <thread.h>
-struct irq_sender;
-typedef struct irq_sender irq_sender_t;
-struct irq_entry;
-typedef struct irq_entry irq_entry_t;
-
-typedef struct irq_entry
-{
-    irq_sender_t *irq;
-    void (*irq_tigger_func)(irq_entry_t *irq);
-} irq_entry_t;
 
 typedef struct irq_sender
 {

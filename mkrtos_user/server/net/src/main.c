@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "u_sleep.h"
-#include "libc.h"
+// #include "libc.h"
 #include "lwiperf.h"
 #include "u_prot.h"
 #include "u_mm.h"
@@ -20,12 +20,11 @@ umword_t addr;
 umword_t size;
 obj_handler_t net_drv_hd;
 
-extern void EXTI15_10_IRQHandler(void);
 int main(int args, char *argv[])
 {
     int ret;
     msg_tag_t tag;
-
+    printf("net startup..\n");
     ret = ns_query("/dm9000", &net_drv_hd);
     assert(ret >= 0);
 

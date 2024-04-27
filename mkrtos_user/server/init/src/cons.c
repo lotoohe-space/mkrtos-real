@@ -15,8 +15,14 @@
 #include <stdio.h>
 #include <u_thread_util.h>
 #include <u_thread.h>
+#include <string.h>
 
-static ATTR_ALIGN(8) uint8_t cons_stack[1024];
+#if IS_ENABLED(CONFIG_MMU)
+#define CONS_STACK_SIZE 1024
+#else
+#define CONS_STACK_SIZE 512
+#endif
+static ATTR_ALIGN(8) uint8_t cons_stack[CONS_STACK_SIZE];
 // static uint8_t cons_msg_buf[MSG_BUG_LEN];
 static cons_t cons_obj;
 static obj_handler_t cons_th;
@@ -49,7 +55,7 @@ void console_init(void)
     cons_svr_obj_init(&cons_obj);
     meta_reg_svr_obj(&cons_obj.svr, CONS_PROT);
     u_thread_create(&cons_th, (char *)cons_stack + sizeof(cons_stack) - 8, NULL, console_read_func);
-    u_thread_run(cons_th, 2);
+    u_thread_run(cons_th, 16);
     ulog_write_str(LOG_PROT, "cons svr init...\n");
 }
 /**
@@ -96,6 +102,7 @@ int console_read(uint8_t *data, size_t len)
     }
     else
     {
+        memcpy(data, "1234\r\n", 6);
         pthread_spin_lock(&cons_obj.r_lock);
         if (q_queue_len(&cons_obj.r_queue) == 0)
         {

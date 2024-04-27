@@ -15,7 +15,7 @@
 #define TEXT_BOOT_SECTION ".text.boot"
 
 #define TCR_DEFAULT (((1UL) << 31) | (1UL << 23) | \
-                     (3UL << 12) | (1UL << 10) | (1UL << 8) | ((64UL - CONFIG_ARM64_VA_BITS)))
+                     (3UL << 12) | (1UL << 10) | (1UL << 8) | ((64UL - CONFIG_ARM64_VA_BITS)) | (1UL << 36))
 
 extern char _text_boot[];
 extern char _etext_boot[];
