@@ -47,7 +47,7 @@ static void irq_tigger(irq_entry_t *irq)
     if (irq->irq->wait_thread &&
         thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND) //!< 线程在休眠时才能唤醒
     {
-        thread_ready(irq->irq->wait_thread, TRUE);
+        thread_ready_remote(irq->irq->wait_thread, TRUE);
     }
 }
 /**

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 
 file(GLOB_RECURSE deps *.c *.S)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror" )
+
 add_executable(hello.elf
     ${deps}
     ${START_SRC}
@@ -10,11 +12,15 @@ target_link_libraries(hello.elf
     PUBLIC
     -Bstatic
     ${LIBC_NAME}
+    --whole-archive
     ${START_LIB}
+    libc_be
+    --no-whole-archive
     printf
     sys
     sys_util
     sys_svr
+    cjson
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -23,15 +29,14 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/hello/src/test
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/hello/src
 
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/hello/bsp/core_inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/hello/bsp/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/cJSON
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/printf/src/printf
 )
-set_target_properties(sh.elf PROPERTIES LINK_FLAGS
-"-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "
+set_target_properties(hello.elf PROPERTIES LINK_FLAGS
+"-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker  "
 )
 add_custom_target(
     hello_dump ALL
@@ -58,6 +63,7 @@ if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
     )
     add_dependencies(hello_dump_elf hello_dump)
 endif()
+
 add_dependencies(hello_dump hello.elf)
 add_dependencies(hello_dump sys)
 add_dependencies(hello_dump sys_util)

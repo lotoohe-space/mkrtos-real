@@ -35,8 +35,29 @@ umword_t be_mmap(void *start,
         return -ENOSYS;
     }
     msg_tag_t tag;
+    uint8_t addr_prot = 0;
 
-    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(0xf /*TODO:*/, 0, 0),
+    if (prot & PROT_READ)
+    {
+        addr_prot |= VPAGE_PROT_RO;
+    }
+    if (prot & PROT_WRITE)
+    {
+        addr_prot |= VPAGE_PROT_WO;
+    }
+    if (prot & PROT_EXEC)
+    {
+        addr_prot |= VPAGE_PROT_X;
+    }
+    if (prot & PROT_NACC)
+    {
+        addr_prot |= VPAGE_PROT_N_ACCESS_FLAG;
+    }
+    if (prot & PROT_UNCACHE)
+    {
+        addr_prot |= VPAGE_PROT_UNCACHE;
+    }
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX/*TODO:暂时不支持属性修改接口*/, 0, 0),
                        len, 0, &addr);
     if (msg_tag_get_val(tag) < 0)
     {

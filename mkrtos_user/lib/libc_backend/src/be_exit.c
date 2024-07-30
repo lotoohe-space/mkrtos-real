@@ -63,11 +63,12 @@ void be_exit(long exit_code)
     }
 }
 
-void sys_exit(va_list ap)
+long sys_exit(va_list ap)
 {
     long exit_code;
 
     ARG_1_BE(ap, exit_code, long);
     be_exit(exit_code);
+    return 0;
 }
 

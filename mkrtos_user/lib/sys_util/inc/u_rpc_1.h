@@ -17,7 +17,7 @@
         void *buf;                                                                                                                 \
         ipc_msg_t *msg_ipc;                                                                                                        \
                                                                                                                                    \
-        thread_msg_buf_get(THREAD_MAIN, (umword_t *)(&buf), NULL);                                                                 \
+        thread_msg_buf_get(-1, (umword_t *)(&buf), NULL);                                                                 \
         msg_ipc = (ipc_msg_t *)buf;                                                                                                \
                                                                                                                                    \
         int off = 0;                                                                                                               \

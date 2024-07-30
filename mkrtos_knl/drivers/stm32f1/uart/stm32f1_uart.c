@@ -143,7 +143,7 @@ void uart_tigger(irq_entry_t *irq)
 
         if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
         {
-            thread_ready(irq->irq->wait_thread, TRUE);
+            thread_ready_remote(irq->irq->wait_thread, TRUE);
         }
         // 清除中断标志位
         USART_ClearITPendingBit(USART2, USART_IT_RXNE);

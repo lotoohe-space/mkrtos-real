@@ -23,10 +23,10 @@
 #include <thread_knl.h>
 #include <timer.h>
 #include <ipi.h>
-
-__ALIGN__(THREAD_BLOCK_SIZE)
-uint8_t thread_knl_stack[CONFIG_CPU][THREAD_BLOCK_SIZE] = {0};
-// void *_estack = &thread_knl_stack[0] + THREAD_BLOCK_SIZE;
+#include <mm_space.h>
+__ALIGN__(CONFIG_THREAD_BLOCK_SIZE)
+uint8_t thread_knl_stack[CONFIG_CPU][CONFIG_THREAD_BLOCK_SIZE] = {0};
+// void *_estack = &thread_knl_stack[0] + CONFIG_THREAD_BLOCK_SIZE;
 static umword_t cpu_boot_cn = 0;
 static void other_cpu_boot(void);
 extern void _start(void);
@@ -51,7 +51,7 @@ void sys_startup(void)
     for (int i = 1; i < CONFIG_CPU; i++)
     {
         printk("sp:%lx.\n", &thread_knl_stack[i][0]);
-        cpu_start_to(i, &thread_knl_stack[i][0] + THREAD_BLOCK_SIZE - MWORD_BYTES, other_cpu_boot);
+        cpu_start_to(i, &thread_knl_stack[i][0] + CONFIG_THREAD_BLOCK_SIZE - MWORD_BYTES, other_cpu_boot);
 #if IS_ENABLED(CONFIG_PSCI)
         psci_cpu_on(i, (umword_t)_start);
 #endif
@@ -78,12 +78,25 @@ void arch_enable_irq(int inx)
 }
 uint32_t arch_get_sys_clk(void)
 {
-    /*TODO:*/
-    return 0;
+    return sys_tick_cnt_get();
 }
 void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio)
 {
     gic2_set_prio(arm_gicv2_get_global(), inx, pre_prio);
+}
+umword_t arch_get_paddr(vaddr_t vaddr)
+{
+    umword_t paddr;
+    page_entry_t *pdir = mm_space_get_pdir(&(thread_get_current_task()->mm_space));
+    umword_t vaddr_align = ALIGN_DOWN(vaddr, PAGE_SIZE);
+
+    paddr = mm_get_paddr(pdir, vaddr_align, PAGE_SHIFT);
+    if (paddr == 0)
+    {
+        return paddr;
+    }
+    paddr += vaddr - vaddr_align;
+    return paddr;
 }
 extern char _data_boot[], _edata_boot[];
 extern char _text_boot[], _etext_boot[];

@@ -4,6 +4,14 @@
 #include <types.h>
 #include <thread.h>
 #include <util.h>
+/**
+ * @brief 调度函数
+ * 
+ * @param usp 
+ * @param ksp 
+ * @param sp_type 
+ * @return sp_info_t* 
+ */
 sp_info_t *schde_to(void *usp, void *ksp, umword_t sp_type)
 {
     scheduler_t *sche = scheduler_get_current();

@@ -13,7 +13,8 @@ static inline umword_t vpage_attrs_to_page_attrs(enum vpage_prot_attrs attrs)
 {
     umword_t to_attrs = 0;
 
-    to_attrs = PTE_SHARED | PTE_TYPE_PAGE | PTE_ATTRINDX(MT_NORMAL) | PTE_AF;
+    to_attrs = PTE_SHARED | PTE_TYPE_PAGE | PTE_ATTRINDX(MT_NORMAL) |
+               ((attrs & VPAGE_PROT_N_ACCESS_FLAG) ? 0 : PTE_AF);
 
     if (!(attrs & VPAGE_PROT_IN_KNL))
     {

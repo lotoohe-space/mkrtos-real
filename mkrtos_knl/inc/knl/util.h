@@ -31,7 +31,9 @@
 #define container_of(ptr, type, member) \
     ((type *)(((umword_t)(ptr)) - ((umword_t)(&(((type *)0)->member)))))
 
+
 #define USED __attribute__((used))
+#define UNUSED __attribute__((unused))
 
 #define __ARG_PLACEHOLDER_1 0,
 #define __take_second_arg(__ignored, val, ...) val

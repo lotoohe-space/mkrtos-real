@@ -1,11 +1,11 @@
 
+#include "cons_svr.h"
+#include "ns_cli.h"
 #include "rpc_prot.h"
+#include "u_env.h"
+#include "u_hd_man.h"
 #include "u_rpc.h"
 #include "u_rpc_svr.h"
-#include "u_hd_man.h"
-#include "u_env.h"
-#include "ns_cli.h"
-#include "cons_svr.h"
 #include <u_env.h>
 
 RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_WRITE, write,

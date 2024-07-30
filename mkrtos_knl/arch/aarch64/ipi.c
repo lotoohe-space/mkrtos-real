@@ -8,6 +8,10 @@
 #include <spinlock.h>
 #include <assert.h>
 #include <atomics.h>
+#include <timer.h>
+// ipi call流程
+// 当前线程发送ipi call后，进入挂起状态
+// 收到消息的核处理完成消息后，给发送的核发送指定线程唤醒的消息（send）方式发送。
 
 struct ipi_msg_head;
 typedef struct ipi_msg_head ipi_msg_head_t;
@@ -29,12 +33,12 @@ void cpu_ipi_to(uint8_t cpu_mask)
 }
 void cpu_ipi_to_msg(uint8_t cpu_mask, ipi_msg_t *msg, ipi_action_t act)
 {
+    thread_t *cur_th = thread_get_current();
     assert(msg);
     assert(msg->cb);
     assert(cpulock_get_status());
     assert(!(cpu_mask & (1 << arch_get_current_cpu_id()))); //!< 不能给自己发ipi，否则可能死锁
     assert(!slist_in_list(&msg->node));
-    atomic_set(&msg->flags, 0);
 
     for (int i = 0; i < CONFIG_CPU; i++)
     {
@@ -43,27 +47,35 @@ void cpu_ipi_to_msg(uint8_t cpu_mask, ipi_msg_t *msg, ipi_action_t act)
             continue;
         }
         ipi_msg_head_t *head = pre_cpu_get_var_cpu(i, &ipi_msg_head);
+        umword_t cpu_lock_status = cpulock_lock();
         umword_t status = spinlock_lock(&head->lock);
 
         slist_add_append(&head->msg_queue, &msg->node);
 
-        gic2_set_sgir(arm_gicv2_get_global(), (1 << i)); //!< 发送软中断
+        msg->call_th = cur_th;
+        msg->act = act;
         spinlock_set(&head->lock, status);
-        // preemption();
-        // thread_sched(TRUE);
+        gic2_set_sgir(arm_gicv2_get_global(), (1 << i)); //!< 发送软中断
         if (act == IPI_CALL)
         {
-            do
-            {
-                // if (&thread_get_current()->ipi_msg_node != msg)
-                {
-                    thread_sched(TRUE);
-                    // arch_to_sche();
-                    // preemption();
-                }
-            } while (atomic_read(&msg->flags) == 0);
+            msg->th_time_cn = atomic_read(&cur_th->time_count);
+            thread_suspend_sw(cur_th, FALSE); //!< 这里必须等待切换后才能发送中断，不然切回来的时候会挂TODO:
+            preemption();
         }
+        cpulock_set(cpu_lock_status);
     }
+}
+static int thread_ipi_call_reply(ipi_msg_t *msg, bool_t *is_sched)
+{
+    thread_t *send_th = container_of(msg, thread_t, ipi_msg_node);
+
+    thread_ready(send_th, TRUE);
+    return 0;
+}
+static void hard_delay(void)
+{
+    volatile int i = 5000000;
+    while (i--);
 }
 /**
  * 两个核相互发送消息可能会死锁
@@ -80,12 +92,30 @@ void cpu_ipi_handler(irq_entry_t *entry)
 
     slist_foreach_not_next(pos, &head->msg_queue, node)
     {
+        bool_t is_sched = TRUE;
         ipi_msg_t *next = slist_next_entry(pos, &head->msg_queue, node);
+        thread_t *call_th = (thread_t *)(pos->call_th);
         slist_del(&pos->node);
 
         assert(pos->cb);
-        pos->ret = pos->cb(pos);
-        atomic_set(&pos->flags, 1);
+        // while (atomic_read(&call_th->time_count) == pos->th_time_cn) {
+        //     preemption();
+        // }
+        // 等待切换完成TODO:
+        if (pos->msg == (umword_t)call_th) {
+            hard_delay();
+        }
+        pos->ret = pos->cb(pos, &is_sched);
+        if (pos->act == IPI_CALL)
+        {
+            if (is_sched)
+            {
+                // CALL需要回复消息
+                call_th->ipi_msg_node.cb = thread_ipi_call_reply;
+                cpu_ipi_to_msg((1 << call_th->cpu),
+                               &call_th->ipi_msg_node, IPI_SEND);
+            }
+        }
         pos = next;
     }
 

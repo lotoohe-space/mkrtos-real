@@ -43,7 +43,7 @@ void kthread_test_init(void)
     thread_t *thread2;
     task_t *cur_tk = thread_get_current_task();
 
-    thread2 = thread_create(&root_factory_get()->limit);
+    thread2 = thread_create(&root_factory_get()->limit, 0);
     assert(thread2);
     thread_bind(thread2, &cur_tk->kobj);
     thread_knl_pf_set(thread2, th_test);
@@ -52,7 +52,7 @@ void kthread_test_init(void)
 
     thread_t *thread3;
 
-    thread3 = thread_create(&root_factory_get()->limit);
+    thread3 = thread_create(&root_factory_get()->limit, 0);
     assert(thread3);
     thread_bind(thread3, &cur_tk->kobj);
     thread_knl_pf_set(thread3, th_test2);

@@ -1,33 +1,4 @@
-/**
- ******************************************************************************
- * @file    Project/STM32F2xx_StdPeriph_Template/stm32f2xx_it.c
- * @author  MCD Application Team
- * @version V1.1.0
- * @date    13-April-2012
- * @brief   Main Interrupt Service Routines.
- *          This file provides template for all exceptions handler and
- *          peripherals interrupt service routine.
- ******************************************************************************
- * @attention
- *
- * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
- *
- * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
- * You may not use this file except in compliance with the License.
- * You may obtain a copy of the License at:
- *
- *        http://www.st.com/software_license_agreement_liberty_v2
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- ******************************************************************************
- */
 
-/* Includes ------------------------------------------------------------------*/
 #include "mk_sys.h"
 #include "printk.h"
 #include "mm_man.h"
@@ -35,20 +6,6 @@
 #include "thread.h"
 #include "map.h"
 #include "thread_knl.h"
-/** @addtogroup Template_Project
- * @{
- */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
-
-/******************************************************************************/
-/*            Cortex-M3 Processor Exceptions Handlers                         */
-/******************************************************************************/
 
 /**
  * @brief   This function handles NMI exception.
@@ -97,35 +54,19 @@ void MemManage_Handler(void)
   if (SCB->CFSR & 128)
   {
     fault_addr = (addr_t)(SCB->MMFAR);
-    // if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
-    // {
-    //   goto end;
-    // }
-    // return;
+
     goto end;
   }
   if ((SCB->CFSR & 8))
   {
     printk("出栈错误\n");
-    // fault_addr = arch_get_user_sp();
 
-    // if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
-    // {
-    //   goto end;
-    // }
-    // return;
     goto end;
   }
   if (SCB->CFSR & 16)
   {
     printk("压栈错误\n");
-    // fault_addr = arch_get_user_sp();
 
-    // if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
-    // {
-    //   goto end;
-    // }
-    // return;
     goto end;
   }
   if (SCB->CFSR & 32)
@@ -197,24 +138,3 @@ void DebugMon_Handler(void)
   printk("%s\n", __FUNCTION__);
 }
 
-/******************************************************************************/
-/*                 STM32F2xx Peripherals Interrupt Handlers                   */
-/*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
-/*  available peripheral interrupt handler's name please refer to the startup */
-/*  file (startup_stm32f2xx.s).                                               */
-/******************************************************************************/
-
-/**
- * @brief  This function handles PPP interrupt request.
- * @param  None
- * @retval None
- */
-/*void PPP_IRQHandler(void)
-{
-}*/
-
-/**
- * @}
- */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

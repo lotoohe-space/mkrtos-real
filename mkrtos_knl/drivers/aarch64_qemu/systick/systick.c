@@ -13,12 +13,15 @@ umword_t sys_tick_cnt_get(void)
 {
     return (*((umword_t *)pre_cpu_get_var_cpu(0, &sys_tick_cnt)));
 }
+umword_t sys_tick_cnt_get_current(void)
+{
 
+    return (*((umword_t *)pre_cpu_get_current_cpu_var(&sys_tick_cnt)));
+}
 void systick_handler(irq_entry_t *irq)
 {
     mword_t status = cpulock_lock();
     (*((umword_t *)pre_cpu_get_current_cpu_var(&sys_tick_cnt)))++;
-    // 进行上下文切换，超时默认0核处理
     thread_timeout_check(1);
     futex_timeout_times_tick();
     gic2_eoi_irq(arm_gicv2_get_global(), SYSTICK_INTR_NO);

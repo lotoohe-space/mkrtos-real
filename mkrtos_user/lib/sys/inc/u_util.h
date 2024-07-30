@@ -12,6 +12,14 @@
 #define ROUND_UP(a, b) ROUND(a, b)                                 //!< a除b向上取整数
 #define ROUND_DOWN(a, b) ((a) / (b))                               //!< a/b向下取整
 
+#define USED __attribute__((used))
+#define UNUSED __attribute__((unused))
+#define PACKED __attribute__((packed))
+#define SECTION(section) __attribute__((__section__(section)))
+#define __ALIGN__(size) __attribute__((aligned(size)))
+
+#define __WEAK__ __attribute__((weak))
+
 #define container_of(ptr, type, member) \
     ((type *)(((umword_t)(ptr)) - ((umword_t)(&(((type *)0)->member)))))
 

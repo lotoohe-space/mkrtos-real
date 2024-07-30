@@ -41,6 +41,9 @@ endif
     config THREAD_MAP_BUF_LEN
         int "thread ipc map buf max size."
         default 16
+    config THREAD_USER_BUF_LEN
+        int "thread user buf max size(words)."
+        default 4
     config BUDDY_SLAB
         bool "use BUDDY & SLAB"
         default n
@@ -95,6 +98,11 @@ if MK_MPU_CFG
 endif
 endif
 
+config VCPU
+    bool "enable vcpu support"
+    default n
+    help 
+        enable thread vcpu support.
 
 config FT_ADDR_NR
     int "The number of addresses supported by futex."

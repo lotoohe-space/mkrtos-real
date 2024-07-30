@@ -7,6 +7,7 @@ enum obj_attrs
     KOBJ_DELETE_RIGHT = 1,
     KOBJ_ALL_RIGHTS = 3,
 };
+msg_tag_t task_set_obj_name(obj_handler_t dst_task, obj_handler_t obj, const char *name);
 msg_tag_t task_set_pid(obj_handler_t dst_task, umword_t pid);
 msg_tag_t task_get_pid(obj_handler_t dst_task, umword_t *data);
 msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx, int *obj_type);

@@ -102,7 +102,7 @@ int console_read(uint8_t *data, size_t len)
     }
     else
     {
-        memcpy(data, "1234\r\n", 6);
+
         pthread_spin_lock(&cons_obj.r_lock);
         if (q_queue_len(&cons_obj.r_queue) == 0)
         {

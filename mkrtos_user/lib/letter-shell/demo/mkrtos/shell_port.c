@@ -96,6 +96,8 @@ size_t userShellListDir(char *path, char *buffer, size_t maxLen)
  */
 void userShellInit(void)
 {
+    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_shell");
+    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_shell");
     // shellFs.getcwd = getcwd;
     // shellFs.chdir = chdir;
     // shellFs.listdir = userShellListDir;

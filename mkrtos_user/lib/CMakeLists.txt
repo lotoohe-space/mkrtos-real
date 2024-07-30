@@ -20,4 +20,6 @@ add_subdirectory(cpio)
 add_subdirectory(letter-shell/demo/mkrtos)
 add_subdirectory(printf)
 add_subdirectory(lwip)
+add_subdirectory(cJSON)
+add_subdirectory(cutest)
 
