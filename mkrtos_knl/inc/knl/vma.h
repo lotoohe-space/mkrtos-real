@@ -11,13 +11,14 @@ enum vpage_prot_attrs
     VPAGE_PROT_RW = VPAGE_PROT_RO | VPAGE_PROT_WO, //!< 读写
     VPAGE_PROT_X = 0x4,
     VPAGE_PROT_RWX = (VPAGE_PROT_RO | VPAGE_PROT_RW | VPAGE_PROT_X), //!< 读写执行
+    VPAGE_PROT_N_ACCESS_FLAG = 0x08,                                 //!< 访问是否缺页，设置代表缺页
 
     VPAGE_PROT_UNCACHE = 0x10, //!< 不使用缓存
     VPAGE_PROT_IN_KNL = 0x20,  //!< 内核中使用
 };
 
 #define VMA_ADDR_RESV 0x1    //!< 保留内存
-#define VMA_ADDR_UNCACHE 0x2 //!< uncache内存
+// #define VMA_ADDR_UNCACHE 0x2 //!< uncache内存
 
 #define VMA_USED_NODE 0x1 //!< 该vma节点被使用，非空闲
 
@@ -26,9 +27,9 @@ typedef union vma_addr
     umword_t raw;
     struct
     {
-        umword_t prot : 6;
+        umword_t prot : 8;
         umword_t flags : 4;
-        umword_t resv : 2;
+        // umword_t resv : 2;
         umword_t addr : (sizeof(void *) * 8 - PAGE_SHIFT);
     };
 } vma_addr_t;
@@ -43,7 +44,7 @@ static inline vma_addr_t vma_addr_create(uint8_t prot, uint8_t flags, umword_t a
     return (vma_addr_t){
         .prot = prot,
         .flags = flags,
-        .resv = 0,
+        // .resv = 0,
         .addr = addr >> PAGE_SHIFT,
     };
 }
@@ -137,7 +138,7 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
  * @return int
  */
 int task_vma_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma,
-        vaddr_t src_addr, vaddr_t dst_addr, size_t size);
+                   vaddr_t src_addr, vaddr_t dst_addr, size_t size);
 /**
  * @brief 释放申请的虚拟内存，并释放已经申请的物理内存
  * 1.从分配树中找到需要的节点

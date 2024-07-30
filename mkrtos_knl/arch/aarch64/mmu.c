@@ -175,7 +175,7 @@ int unmap_mm(page_entry_t *pdir, addr_t virt_addr, mword_t page_order, mword_t p
 SECTION(TEXT_BOOT_SECTION)
 umword_t mm_get_paddr(page_entry_t *pdir, addr_t virt_addr, mword_t page_order)
 {
-    pte_t *pte = pages_walk(pdir, virt_addr + (0 << page_order), page_order, NULL);
+    pte_t *pte = pages_walk(pdir, virt_addr, page_order, NULL);
 
     if (pte != NULL)
     {

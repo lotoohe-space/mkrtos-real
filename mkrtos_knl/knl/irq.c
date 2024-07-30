@@ -100,7 +100,6 @@ void entry_handler(void)
     {
         assert(isr_no < CONFIG_IRQ_REG_TAB_SIZE);
     }
-  
     if (!irq_check_usability(isr_no))
     {
         if (irqs[isr_no].irq_tigger_func)

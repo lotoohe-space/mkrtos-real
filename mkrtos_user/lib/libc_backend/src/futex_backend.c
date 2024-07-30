@@ -66,3 +66,18 @@ _try_again:
     }
     return msg_tag_get_val(tag);
 }
+
+long sys_futex(va_list ap)
+{
+    uint32_t *uaddr;
+    long futex_op; 
+    long val;
+    const struct timespec *timeout;
+    long uaddr2;
+    long val3;
+
+    ARG_6_BE(ap, uaddr, typeof(uaddr), futex_op, typeof(futex_op), val, typeof(val),
+             timeout, typeof(struct timespec *), uaddr2, typeof(uaddr2), val3, typeof(val3));
+
+    return be_futex(uaddr, futex_op, val, timeout, uaddr2, val3);
+}

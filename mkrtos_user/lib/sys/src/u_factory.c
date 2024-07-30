@@ -37,6 +37,21 @@ msg_tag_t factory_create_thread(obj_handler_t obj, vpage_t vpage)
 
     return tag;
 }
+msg_tag_t factory_create_thread_vcpu(obj_handler_t obj, vpage_t vpage)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+
+    mk_syscall(syscall_prot_create(FACTORY_CREATE_KOBJ, FACTORY_PROT, obj).raw,
+               0,
+               THREAD_PROT,
+               vpage.raw,
+               THREAD_CREATE_VM,
+               0,
+               0);
+    msg_tag_t tag = msg_tag_init(r0);
+
+    return tag;
+}
 msg_tag_t factory_create_task(obj_handler_t obj, vpage_t vpage)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);

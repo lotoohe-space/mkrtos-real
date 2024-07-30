@@ -52,7 +52,7 @@ if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
         COMMAND
         cp net.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/net
     )
-    add_dependencies(net_dump_elf shell_dump)
+    add_dependencies(net_dump_elf net_dump)
 endif()
 add_dependencies(net_dump net.elf)
 add_dependencies(net.elf sys)

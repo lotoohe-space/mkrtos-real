@@ -71,8 +71,9 @@ bool_t scheduler_add_to_cpu(sched_t *node, int cpu)
 void scheduler_del(sched_t *node)
 {
     scheduler_t *sched = scheduler_get_current();
-    thread_t *cur_th = thread_get_current();
+    thread_t *th = container_of(node, thread_t, sche);
 
+    assert(thread_get_status(th) == THREAD_SUSPEND);
     assert(node->prio >= 0);
     assert(node->prio < PRIO_MAX);
     slist_del(&node->node);

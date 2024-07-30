@@ -1,0 +1,10 @@
+{
+    "guest_os_name": "benos",
+    "simul_dev": [
+        {
+            "compatible": "primecell,arm,pl011",
+            "reg_addr": "0x3f201000",
+            "reg_size": "0x1000"
+        }
+    ]
+}

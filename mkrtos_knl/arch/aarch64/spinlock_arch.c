@@ -2,6 +2,29 @@
 #include <spinlock.h>
 #include <types.h>
 
+mword_t spinlock_try_lock_arch(spinlock_t *lock)
+{
+    mword_t dummy = 0;
+    mword_t tmp;
+
+    asm volatile(
+        "sevl\n"
+        "prfm pstl1keep, [%[lock]]\n"
+        // "1: wfe\n"
+        "ldaxr %x[d],[%[lock]]\n"
+        "tst %x[d],#2\n"
+        "bne next\n"
+        "orr %x[tmp],%x[d],#2\n"
+        "stxr %w[d], %x[tmp], [%[lock]]\n"
+        // "cbnz %w[d],next\n"
+        "eor %w[d],%w[d],0x1\n"
+        "next: nop\n"
+        : [d] "=&r"(dummy), [tmp] "=&r"(tmp), "+m"(lock->val)
+        : [lock] "r"(&lock->val)
+        : "cc");
+
+    return dummy;
+}
 void spinlock_lock_arch(spinlock_t *lock)
 {
     mword_t dummy;

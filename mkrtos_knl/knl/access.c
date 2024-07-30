@@ -24,11 +24,11 @@
  */
 bool_t is_rw_access(task_t *tg_task, void *addr, size_t size, bool_t ignore_null)
 {
-#if !IS_ENABLED(CONFIG_MMU)
     if (tg_task == NULL)
     {
         return FALSE;
     }
+#if !IS_ENABLED(CONFIG_MMU)
     if (addr == NULL && ignore_null)
     {
         return TRUE;

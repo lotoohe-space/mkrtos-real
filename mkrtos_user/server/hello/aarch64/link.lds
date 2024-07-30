@@ -11,7 +11,7 @@ SEARCH_DIR("//aarch64-none-elf/lib");
 SECTIONS
 {
   /* Read-only sections, merged into text segment: */
-  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x01400000)); . = SEGMENT_START("text-segment", 0x01400000);
+  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x02400000)); . = SEGMENT_START("text-segment", 0x02400000);
   .interp         : { *(.interp) }
   .note.gnu.build-id  : { *(.note.gnu.build-id) }
   .hash           : { *(.hash) }
@@ -58,10 +58,6 @@ SECTIONS
     *(.text .stub .text.* .gnu.linkonce.t.*)
     /* .gnu.warning sections are handled specially by elf.em.  */
     *(.gnu.warning)
-    . = ALIGN(4);
-    _shell_command_start = .;
-    KEEP(*(shellCommand))
-    _shell_command_end = .;
   } =0x1f2003d5
   .fini           :
   {
@@ -93,6 +89,13 @@ SECTIONS
      *(.tdata .tdata.* .gnu.linkonce.td.*)
    }
   .tbss           : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }
+  .dev_simul_array :
+  {
+    . = ALIGN(4);
+    PROVIDE_HIDDEN(_dev_simul_start = .);
+    KEEP (*(SORT(.dev_simul_section.*)))
+    PROVIDE_HIDDEN(_dev_simul_end = .);
+  }
   .preinit_array    :
   {
     PROVIDE_HIDDEN (__preinit_array_start = .);

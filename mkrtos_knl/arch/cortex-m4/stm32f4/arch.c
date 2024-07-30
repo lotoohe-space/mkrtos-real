@@ -16,9 +16,9 @@
 #include "thread.h"
 #include "mk_sys.h"
 #include "mpu.h"
-__ALIGN__(THREAD_BLOCK_SIZE)
-static uint8_t thread_knl_stack[THREAD_BLOCK_SIZE] = {0};
-void *_estack = thread_knl_stack + THREAD_BLOCK_SIZE;
+__ALIGN__(CONFIG_THREAD_BLOCK_SIZE)
+static uint8_t thread_knl_stack[CONFIG_THREAD_BLOCK_SIZE] = {0};
+void *_estack = thread_knl_stack + CONFIG_THREAD_BLOCK_SIZE;
 
 #define REG0_ADDR 0xE000ED22
 #define REG1_ADDR 0xE000ED04

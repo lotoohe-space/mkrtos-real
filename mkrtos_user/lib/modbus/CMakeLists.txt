@@ -41,9 +41,9 @@ target_link_libraries(
     PUBLIC
     sys
     sys_util
-    muslc
+    ${LIBC_NAME}
 )
 add_dependencies(xtinymodbus sys)
-add_dependencies(xtinymodbus muslc)
+#add_dependencies(xtinymodbus muslc)
 
 
