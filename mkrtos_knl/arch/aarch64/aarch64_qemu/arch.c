@@ -84,20 +84,7 @@ void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio)
 {
     gic2_set_prio(arm_gicv2_get_global(), inx, pre_prio);
 }
-umword_t arch_get_paddr(vaddr_t vaddr)
-{
-    umword_t paddr;
-    page_entry_t *pdir = mm_space_get_pdir(&(thread_get_current_task()->mm_space));
-    umword_t vaddr_align = ALIGN_DOWN(vaddr, PAGE_SIZE);
 
-    paddr = mm_get_paddr(pdir, vaddr_align, PAGE_SHIFT);
-    if (paddr == 0)
-    {
-        return paddr;
-    }
-    paddr += vaddr - vaddr_align;
-    return paddr;
-}
 extern char _data_boot[], _edata_boot[];
 extern char _text_boot[], _etext_boot[];
 extern char _text[], _etext[];
@@ -164,4 +151,18 @@ static void other_cpu_boot(void)
     while (1)
     {
     }
+}
+void dumpstack(void)
+{
+    uint64_t result[5];
+    umword_t x29;
+    umword_t status = cpulock_lock();
+
+    x29 = read_nmreg(x29);
+    for (size_t i = 0; i < sizeof(result) / sizeof(umword_t); i++) {
+        result[i] = (*(umword_t *)(x29 + 8)) - 4;
+        x29 = *(umword_t *)(x29);
+    }
+    printk("[knl dump stack]: 0x%lx,0x%lx,0x%lx,0x%lx,0x%lx\n", result[0], result[1], result[2], result[3], result[4]);
+    cpulock_set(status);
 }

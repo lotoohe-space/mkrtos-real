@@ -263,7 +263,6 @@ static inline umword_t arch_get_user_sp(void)
 {
     return 0;
 }
-umword_t arch_get_paddr(vaddr_t vaddr);
 void arch_disable_irq(int inx);
 void arch_enable_irq(int inx);
 void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);

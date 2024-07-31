@@ -538,12 +538,14 @@ static void thread_timeout_del_form_send_queue(thread_t *th)
         pos2 = next;
     }
 }
+#if IS_ENABLED(CONFIG_SMP)
 static int thread_timeout_del_form_send_queue_handler(ipi_msg_t *msg, bool_t *is_sched)
 {
     thread_timeout_del_form_send_queue((void *)(msg->msg));
     thread_ready((void *)(msg->msg), TRUE); //!< 直接唤醒接受者
     return 0;
 }
+#endif
 void thread_timeout_del_from_send_queue_remote(thread_t *th)
 {
 #if IS_ENABLED(CONFIG_SMP)
@@ -963,8 +965,7 @@ static int thread_wait_recv_thread(thread_t *recv_th, ipc_timeout_t timeout)
 
 again_check:
     lock_status = spinlock_lock(&recv_th->recv_lock);
-    if ((thread_get_status(recv_th) != THREAD_SUSPEND || thread_get_ipc_state(recv_th) != THREAD_RECV)
-    || recv_th->has_wait_send_th == FALSE /*如果已经在有人准备从这个线程获取数据，则当前call者需要挂起*/)
+    if ((thread_get_status(recv_th) != THREAD_SUSPEND || thread_get_ipc_state(recv_th) != THREAD_RECV) || recv_th->has_wait_send_th == FALSE /*如果已经在有人准备从这个线程获取数据，则当前call者需要挂起*/)
     {
         thread_wait_entry_t wait;
 
@@ -1245,8 +1246,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
         if (is_rw_access(tag_tk, (void *)(f->regs[1]), THREAD_MSG_BUG_LEN,
                          FALSE))
         {
-            void *kmsg = (void *)mm_get_paddr(mm_space_get_pdir(&tag_tk->mm_space),
-                                              f->regs[1], PAGE_SHIFT);
+            void *kmsg = (void *)task_get_paddr(tag_tk, f->regs[1]);
 
             if (kmsg)
             {

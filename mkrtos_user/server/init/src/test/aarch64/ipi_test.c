@@ -14,6 +14,8 @@
 #include <stdlib.h>
 
 #define DEBUG_IPC_CALL 1
+
+#if IS_ENABLED(CONFIG_MMU)
 //! 读取系统寄存器
 #define read_sysreg(reg) ({      \
     unsigned long _val;          \
@@ -25,7 +27,12 @@ static inline int get_cpu_id(void)
 {
     return read_sysreg(mpidr_el1) & 0xff;	// 读取该寄存器获取处理器id
 }
-
+#else
+static inline int get_cpu_id(void)
+{
+    return 0;
+}
+#endif
 static umword_t th1_hd = 0;
 static umword_t th2_hd = 0;
 static umword_t th3_hd = 0;

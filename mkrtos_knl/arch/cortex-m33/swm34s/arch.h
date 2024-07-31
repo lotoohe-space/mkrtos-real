@@ -13,6 +13,7 @@
 #include "types.h"
 #include "arch.h"
 
+#define PAGE_SIZE 512
 #define LOG_INTR_NO 0 // UART0_IRQn
 
 /// @brief 线程信息
@@ -26,7 +27,7 @@ typedef struct
 } pf_s_t;
 typedef struct pf
 {
-    umword_t rg1[8]; //!< r4-r11
+    umword_t regs[8]; //!< r4-r11
     pf_s_t pf_s;
 } pf_t;
 
@@ -36,6 +37,7 @@ typedef struct sp_info
     void *knl_sp;    //!< 内核sp
     mword_t sp_type; //!< 使用的栈类型
 } sp_info_t;
+#define _dmb(ins)
 
 #define read_reg(addr) (*((volatile umword_t *)(addr)))
 #define write_reg(addr, data)                    \
@@ -135,7 +137,9 @@ static inline umword_t intr_status(void)
 {
     return read_sysreg(PRIMASK);
 }
-
+static inline void dumpstack(void)
+{
+}
 void sys_startup(void);
 void sys_reset(void);
 

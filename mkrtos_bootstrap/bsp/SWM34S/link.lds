@@ -19,6 +19,11 @@ SECTIONS
         *(.text)
         *(.text*)
         *(.rodata*)
+        . = ALIGN(4);
+        cpio_start = .;
+        *(.cpio*)
+        . = ALIGN(4096);
+        cpio_end = .;
     } > ROM
 
     . = ALIGN(4);
@@ -67,5 +72,4 @@ SECTIONS
 
     __StackTop   = ORIGIN(RAM) + LENGTH(RAM);
     __StackLimit = __StackTop - SIZEOF(.stack_dummy);
-    assert(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")
 }

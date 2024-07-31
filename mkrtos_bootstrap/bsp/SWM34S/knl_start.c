@@ -109,7 +109,7 @@ int sram_test(void)
 
 //! 内核镜像的开始地址
 #define KERNEL_IMG_START_ADDR (CONFIG_KNL_TEXT_ADDR + CONFIG_KNL_OFFSET)
-void jump2kernel(void)
+void jump2kernel(addr_t cpio_start, addr_t cpio_end)
 {
     SystemInit();
     uart_init();

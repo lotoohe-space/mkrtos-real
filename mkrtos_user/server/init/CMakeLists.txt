@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.13)
 
-file(GLOB_RECURSE deps *.c *.S)
+file(GLOB deps src/*.c src/*.S)
+file(GLOB arch_src src/test/${ARCH_NAME}/*.c src/test/${ARCH_NAME}/*.S)
 
 add_executable(init.elf
     ${deps}
+    ${arch_src}
     ${START_SRC_INIT}
 )
 target_link_libraries(init.elf

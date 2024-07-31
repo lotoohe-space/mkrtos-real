@@ -12,7 +12,6 @@
 #include "types.h"
 #include "thread.h"
 #include "printk.h"
-#include "thread_armv7m.h"
 #include "app.h"
 #include "mm_wrap.h"
 #include "arch.h"
@@ -45,11 +44,14 @@ void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram, um
     cur_pf->pf_s.xpsr = 0x01000000L;
     cur_pf->pf_s.lr = (umword_t)NULL; //!< 线程退出时调用的函数
     cur_pf->pf_s.pc = (umword_t)pc | 0x1;
-    cur_pf->rg1[5] = (umword_t)ram;
+    cur_pf->regs[5] = (umword_t)ram;
 
     cur_th->sp.knl_sp = ((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE - 8);
     cur_th->sp.user_sp = cur_pf;
     cur_th->sp.sp_type = 0xfffffffd;
 
     // printk("exc_regs:%x %x %x\n", cur_pf->pf_s.pc, cur_th->sp.user_sp, ram);
+}
+void task_knl_init(task_t *knl_tk)
+{
 }

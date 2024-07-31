@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 file(GLOB deps *.c *.S)
+list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/link.lds.S)
 
 add_library(arch STATIC ${deps})
 
@@ -11,6 +12,7 @@ if (${CONFIG_CPU_TYPE} STREQUAL "swm34s" )
 
     include_directories(
         ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${ARCH}/${CONFIG_CPU_TYPE}
+        ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${ARCH}/
         ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/knl
 
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/CMSIS/DeviceSupport

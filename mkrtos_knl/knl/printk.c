@@ -60,17 +60,4 @@ void printk(const char *fmt, ...)
     spinlock_set(&lock, state);
 }
 
-void dumpstack(void)
-{
-    uint64_t result[5];
-    umword_t x29;
-    umword_t status = cpulock_lock();
 
-    x29 = read_nmreg(x29);
-    for (size_t i = 0; i < sizeof(result) / sizeof(umword_t); i++) {
-        result[i] = (*(umword_t *)(x29 + 8)) - 4;
-        x29 = *(umword_t *)(x29);
-    }
-    printk("[knl dump stack]: 0x%lx,0x%lx,0x%lx,0x%lx,0x%lx\n", result[0], result[1], result[2], result[3], result[4]);
-    cpulock_set(status);
-}

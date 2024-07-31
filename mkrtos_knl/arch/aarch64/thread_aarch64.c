@@ -102,3 +102,32 @@ void task_knl_init(task_t *knl_tk)
 {
     knl_tk->mm_space.mem_dir = *boot_get_pdir();
 }
+
+paddr_t task_get_currnt_paddr(vaddr_t vaddr)
+{
+    umword_t paddr;
+    page_entry_t *pdir = mm_space_get_pdir(&(thread_get_current_task()->mm_space));
+    umword_t vaddr_align = ALIGN_DOWN(vaddr, PAGE_SIZE);
+
+    paddr = mm_get_paddr(pdir, vaddr_align, PAGE_SHIFT);
+    if (paddr == 0)
+    {
+        return paddr;
+    }
+    paddr += vaddr - vaddr_align;
+    return paddr;
+}
+paddr_t task_get_paddr(task_t *task, vaddr_t vaddr)
+{
+    umword_t paddr;
+    page_entry_t *pdir = mm_space_get_pdir(&(task->mm_space));
+    umword_t vaddr_align = ALIGN_DOWN(vaddr, PAGE_SIZE);
+
+    paddr = mm_get_paddr(pdir, vaddr_align, PAGE_SHIFT);
+    if (paddr == 0)
+    {
+        return paddr;
+    }
+    paddr += vaddr - vaddr_align;
+    return paddr;
+}

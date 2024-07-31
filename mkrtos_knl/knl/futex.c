@@ -27,6 +27,7 @@
 #include "access.h"
 #include "limits.h"
 #include "futex.h"
+#include "thread_arch.h"
 #include <pre_cpu.h>
 /**
  * @brief 以下是futex的操作码
@@ -271,7 +272,7 @@ static int futex_wake(futex_t *fst, uint32_t *uaddr, int val)
     uint32_t *paddr;
 
     status = spinlock_lock(&fst->kobj.lock);
-    paddr = (uint32_t *)arch_get_paddr((vaddr_t)uaddr);
+    paddr = (uint32_t *)task_get_currnt_paddr((vaddr_t)uaddr);
     if (paddr == 0)
     {
         spinlock_set(&fst->kobj.lock, status);
@@ -314,7 +315,7 @@ static int futex_wait(thread_t *cur_th, futex_t *fst, uint32_t *uaddr, int val, 
         spinlock_set(&fst->kobj.lock, status);
         return -EACCES;
     }
-    p_addr = (uint32_t *)arch_get_paddr((vaddr_t)uaddr);
+    p_addr = (uint32_t *)task_get_currnt_paddr((vaddr_t)uaddr);
     if (p_addr == 0)
     {
         spinlock_set(&fst->kobj.lock, status);
@@ -384,7 +385,7 @@ static int futex_wake_clear(thread_t *cur_th, futex_t *fst, uint32_t *uaddr, int
     uint32_t *paddr;
     status = spinlock_lock(&fst->kobj.lock);
 
-    paddr = (uint32_t *)arch_get_paddr((vaddr_t)uaddr);
+    paddr = (uint32_t *)task_get_currnt_paddr((vaddr_t)uaddr);
     if (paddr == 0)
     {
         spinlock_set(&fst->kobj.lock, status);
@@ -434,13 +435,13 @@ static int futex_requeue(thread_t *cur_th, futex_t *fst,
         spinlock_set(&fst->kobj.lock, status);
         return -EACCES;
     }
-    paddr = (uint32_t *)arch_get_paddr((vaddr_t)uaddr);
+    paddr = (uint32_t *)task_get_currnt_paddr((vaddr_t)uaddr);
     if (paddr == 0)
     {
         spinlock_set(&fst->kobj.lock, status);
         return -EACCES;
     }
-    paddr2 = (uint32_t *)arch_get_paddr((vaddr_t)uaddr2);
+    paddr2 = (uint32_t *)task_get_currnt_paddr((vaddr_t)uaddr2);
     if (paddr2 == 0)
     {
         spinlock_set(&fst->kobj.lock, status);
@@ -511,7 +512,7 @@ static int futex_lock_pi(thread_t *cur_th, futex_t *fst, uint32_t *uaddr, uint32
         spinlock_set(&fst->kobj.lock, status);
         return -EACCES;
     }
-    paddr = (uint32_t *)arch_get_paddr((vaddr_t)uaddr);
+    paddr = (uint32_t *)task_get_currnt_paddr((vaddr_t)uaddr);
     if (paddr == 0)
     {
         spinlock_set(&fst->kobj.lock, status);

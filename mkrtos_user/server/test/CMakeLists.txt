@@ -33,7 +33,7 @@ target_include_directories(
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/printf/src/printf
 )
-set_target_properties(sh.elf PROPERTIES LINK_FLAGS
+set_target_properties(test.elf PROPERTIES LINK_FLAGS
 "-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "
 )
 add_custom_target(

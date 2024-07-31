@@ -38,6 +38,7 @@ typedef struct sp_info
     void *knl_sp;    //!< 内核sp
     mword_t sp_type; //!< 使用的栈类型
 } sp_info_t;
+#define _dmb(ins)
 
 #define read_reg(addr) (*((volatile umword_t *)(addr)))
 #define write_reg(addr, data)                    \
@@ -138,7 +139,9 @@ static inline umword_t intr_status(void)
 {
     return read_sysreg(PRIMASK);
 }
-
+static inline void dumpstack(void)
+{
+}
 void sys_startup(void);
 void sys_reset(void);
 

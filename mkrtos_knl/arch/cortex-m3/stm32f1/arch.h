@@ -38,6 +38,8 @@ typedef struct sp_info
     mword_t sp_type; //!< 使用的栈类型
 } sp_info_t;
 
+#define _dmb(ins)
+
 #define read_reg(addr) (*((volatile umword_t *)(addr)))
 #define write_reg(addr, data)                    \
     do                                           \
@@ -141,6 +143,9 @@ static inline umword_t intr_status(void)
 void sys_startup(void);
 void sys_reset(void);
 
+static inline void dumpstack(void)
+{
+}
 // systick.c
 umword_t sys_tick_cnt_get(void);
 
