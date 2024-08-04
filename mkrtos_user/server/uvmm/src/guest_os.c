@@ -72,7 +72,7 @@ int guest_os_create(guest_os_t *gos, char *cfg, addr_t st_addr, void *entry, voi
         goto end;
     }
 
-    ret = uvmm_devtree_scan(gos, cfg);
+    ret = uvmm_devtree_scan(gos, cfg); //扫描设备树，并进行初始化
     if (ret < 0)
     {
         goto end;

@@ -15,16 +15,18 @@ file(
 add_executable(
     fatfs.elf
     ${deps}
+    ${START_SRC}
 )
 target_link_libraries(
     fatfs.elf
     PUBLIC
-    start
-    muslc
+    -Bstatic
+    ${LIBC_NAME}
+    ${START_LIB}
     sys
     sys_util
     sys_svr
-    stm32f1_bsp
+    # stm32f1_bsp
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -32,14 +34,6 @@ target_include_directories(
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
-
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/fatfs/ff15/source
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/fatfs
@@ -50,15 +44,14 @@ target_include_directories(
 )
 add_dependencies(
     fatfs.elf
-    start
-    muslc
+    ${START_LIB}
     sys
     sys_util
-    stm32f1_bsp
+    # stm32f1_bsp
 )
 set_target_properties(
     fatfs.elf PROPERTIES LINK_FLAGS
-    "-T ${CMAKE_CURRENT_LIST_DIR}/link.lds -pie --gc-section  -no-dynamic-linker "
+    "-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "
     #--no-warn-rwx-segments
 )
 add_custom_target(
@@ -73,10 +66,10 @@ add_custom_target(
     ${CMAKE_SIZE} fatfs.elf
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
+    # COMMAND
+    # cp fatfs.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/fatfs
     COMMAND
-    cp fatfs.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/fatfs
-    COMMAND
-    cp fatfs.elf ${CMAKE_SOURCE_DIR}/build/output/fatfs.elf
+    cp fatfs.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/fatfs.elf
 )
 
 add_dependencies(fatfs_dump fatfs.elf)

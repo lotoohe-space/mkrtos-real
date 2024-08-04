@@ -6,13 +6,15 @@
 #include "u_prot.h"
 #include "u_hd_man.h"
 #include "ns_cli.h"
+#include "u_rpc.h"
+#include "fs_types.h"
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
 /*open*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_OPEN, open,
-                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
+                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mode)
 sd_t fs_open(const char *path, int flags, int mode)
@@ -25,7 +27,7 @@ sd_t fs_open(const char *path, int flags, int mode)
         return ret;
     }
 
-    rpc_ref_array_uint32_t_uint8_t_32_t rpc_path = {
+    rpc_ref_file_array_t rpc_path = {
         .data = (uint8_t *)(&path[ret]),
         .len = strlen(&path[ret]) + 1,
     };
@@ -47,7 +49,7 @@ sd_t fs_open(const char *path, int flags, int mode)
 /*read*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_READ, read,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
+                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 
 int fs_read(sd_t _fd, void *buf, size_t len)
@@ -65,7 +67,7 @@ int fs_read(sd_t _fd, void *buf, size_t len)
         int r_once_len = 0;
 
         r_once_len = MIN(32, len - rlen);
-        rpc_ref_array_uint32_t_uint8_t_32_t rpc_buf = {
+        rpc_ref_file_array_t rpc_buf = {
             .data = buf + rlen,
             .len = r_once_len,
         };
@@ -90,7 +92,7 @@ int fs_read(sd_t _fd, void *buf, size_t len)
 /*write*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_WRITE, write,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, buf,
+                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, buf,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 
 int fs_write(sd_t _fd, void *buf, size_t len)
@@ -107,7 +109,7 @@ int fs_write(sd_t _fd, void *buf, size_t len)
         int w_once_len = 0;
 
         w_once_len = MIN(32, len - wlen);
-        rpc_ref_array_uint32_t_uint8_t_32_t rpc_buf = {
+        rpc_ref_file_array_t rpc_buf = {
             .data = buf + wlen,
             .len = w_once_len,
         };
@@ -207,16 +209,16 @@ int fs_readdir(sd_t _fd, dirent_t *dirent)
     return msg_tag_get_val(tag);
 }
 RPC_GENERATION_CALL2(fs_t, FS_PROT, FS_SYMLINK, symlink,
-                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, src,
-                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, dst)
+                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, src,
+                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, dst)
 
 int fs_symlink(const char *src, const char *dst)
 {
-    rpc_ref_array_uint32_t_uint8_t_32_t rpc_src = {
+    rpc_ref_file_array_t rpc_src = {
         .data = (uint8_t *)src,
         .len = strlen(src) + 1,
     };
-    rpc_ref_array_uint32_t_uint8_t_32_t rpc_dst = {
+    rpc_ref_file_array_t rpc_dst = {
         .data = (uint8_t *)dst,
         .len = strlen(dst) + 1,
     };

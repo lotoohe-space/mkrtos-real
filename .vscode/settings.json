@@ -95,7 +95,8 @@
         "uvmm_devtree.h": "c",
         "vgic.h": "c",
         "aarch64_emul.h": "c",
-        "uvmm_host_irqs.h": "c"
+        "uvmm_host_irqs.h": "c",
+        "stdio.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

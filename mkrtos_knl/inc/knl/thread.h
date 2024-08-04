@@ -30,9 +30,9 @@ typedef struct thread thread_t;
 #define MSG_BUF_RECV_R_FLAGS 0x02U                   //!< 接收来自recv_th的消息
 #define MSG_BUF_REPLY_FLAGS 0x04U                    //!< 回复消息给send_th
 
-#define IPC_MSG_SIZE CONFIG_THREAD_IPC_MSG_LEN
-#define MAP_BUF_SIZE CONFIG_THREAD_MAP_BUF_LEN
-#define IPC_USER_SIZE CONFIG_THREAD_USER_BUF_LEN
+#define IPC_MSG_SIZE (CONFIG_THREAD_IPC_MSG_LEN * sizeof(void*))
+#define MAP_BUF_SIZE (CONFIG_THREAD_MAP_BUF_LEN * sizeof(void*))
+#define IPC_USER_SIZE (CONFIG_THREAD_USER_BUF_LEN * sizeof(void*))
 
 #if IS_ENABLED(CONFIG_VCPU)
 #define IPC_VPUC_MSG_OFFSET (3 * 1024) //!< vcpu 传递消息的偏移量
@@ -48,9 +48,9 @@ typedef struct ipc_msg
     {
         struct
         {
-            umword_t msg_buf[IPC_MSG_SIZE];
-            umword_t map_buf[MAP_BUF_SIZE];
-            umword_t user[IPC_USER_SIZE]; //!< 0:pthread使用 1:存放私有信息 2:源端的PID号 3:存放私有信息
+            umword_t msg_buf[CONFIG_THREAD_IPC_MSG_LEN];
+            umword_t map_buf[CONFIG_THREAD_MAP_BUF_LEN];
+            umword_t user[CONFIG_THREAD_USER_BUF_LEN]; //!< 0:pthread使用 1:存放私有信息 2:源端的PID号 3:存放私有信息
         };
         uint8_t data[THREAD_MSG_BUG_LEN];
     };

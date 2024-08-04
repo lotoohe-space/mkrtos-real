@@ -28,7 +28,7 @@ elseif(${CONFIG_ARCH} STREQUAL "aarch64" )
         ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crtn.o
     )
 
-    add_subdirectory(hello)
+    add_subdirectory(uvmm)
     add_subdirectory(test)
 endif()
 add_subdirectory(init)

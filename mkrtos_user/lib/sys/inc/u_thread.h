@@ -7,9 +7,9 @@
 #define MSG_BUF_RECV_R_FLAGS 0x02U //!< 接收上次发送数据的接收者
 #define MSG_BUF_REPLY_FLAGS 0x04U  //!<
 
-#define IPC_MSG_SIZE CONFIG_THREAD_IPC_MSG_LEN   //!< IPC消息大小
-#define MAP_BUF_SIZE CONFIG_THREAD_MAP_BUF_LEN   //!< 映射消息大小
-#define IPC_USER_SIZE CONFIG_THREAD_USER_BUF_LEN //!< 用户态消息大小
+#define IPC_MSG_SIZE (CONFIG_THREAD_IPC_MSG_LEN * sizeof(void*))
+#define MAP_BUF_SIZE (CONFIG_THREAD_MAP_BUF_LEN * sizeof(void*))
+#define IPC_USER_SIZE (CONFIG_THREAD_USER_BUF_LEN * sizeof(void*))
 
 #if IS_ENABLED(CONFIG_VCPU)
 #define IPC_VPUC_MSG_OFFSET (3 * 1024) //!< vcpu 传递消息的偏移量
@@ -21,9 +21,9 @@ typedef struct ipc_msg
     {
         struct
         {
-            umword_t msg_buf[IPC_MSG_SIZE];
-            umword_t map_buf[MAP_BUF_SIZE];
-            umword_t user[IPC_USER_SIZE]; // 0 pthread使用 1驱动使用 2 ipc通信时存储目标的pid
+            umword_t msg_buf[CONFIG_THREAD_IPC_MSG_LEN];
+            umword_t map_buf[CONFIG_THREAD_MAP_BUF_LEN];
+            umword_t user[CONFIG_THREAD_USER_BUF_LEN]; // 0 pthread使用 1驱动使用 2 ipc通信时存储目标的pid
         };
         uint8_t data[MSG_BUG_LEN];
     };

@@ -125,7 +125,7 @@ if ((DEFINED CONFIG_MMU) AND (CONFIG_MMU STREQUAL "y"))
         sh_dump_elf
         cpiofs_dump_elf
         net_dump_elf
-        hello_dump_elf
+        uvmm_dump_elf
     )
     set_source_files_properties(${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio.elf PROPERTIES EXTERNAL_OBJECT true)
     add_executable(bootstrap.elf

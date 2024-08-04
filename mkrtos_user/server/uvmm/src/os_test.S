@@ -8,6 +8,6 @@ os_bin:
 os_bin_end:
 .quad 0
 uvmm_dev_json:
-.incbin "/home/mkrtos-real/mkrtos_user/server/hello/src/vm_benos.json"
+.incbin "/home/mkrtos-real/mkrtos_user/server/uvmm/src/vm_benos.json"
 uvmm_dev_json_end:
 .quad 0
