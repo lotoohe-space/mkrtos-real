@@ -51,6 +51,7 @@ static void knl_main(void)
         task_t *pos;
 
         if (slist_is_empty(&del_task_head)) {
+            cpu_sleep();
             continue;
         }
 

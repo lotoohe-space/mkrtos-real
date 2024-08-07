@@ -139,6 +139,7 @@ typedef struct sp_info
 #endif
 } sp_info_t;
 
+#define cpu_sleep() asm volatile("wfi" : : : "memory")
 #define _barrier() __asm__ __volatile__("" : : : "memory")
 #define _dmb(ins) \
     asm volatile("dmb " #ins : : : "memory")

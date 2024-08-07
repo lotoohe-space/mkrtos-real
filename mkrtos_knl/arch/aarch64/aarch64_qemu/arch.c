@@ -150,6 +150,7 @@ static void other_cpu_boot(void)
     arch_cpu_knl_init();
     while (1)
     {
+         cpu_sleep();
     }
 }
 void dumpstack(void)

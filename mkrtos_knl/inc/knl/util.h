@@ -29,7 +29,7 @@
 #define __WEAK__ __attribute__((weak))
 
 #define container_of(ptr, type, member) \
-    ((type *)(((umword_t)(ptr)) - ((umword_t)(&(((type *)0)->member)))))
+    ((type *)(((unsigned long)(ptr)) - ((unsigned long)(&(((type *)0)->member)))))
 
 
 #define USED __attribute__((used))
