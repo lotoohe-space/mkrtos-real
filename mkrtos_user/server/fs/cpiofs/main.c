@@ -22,7 +22,6 @@ int main(int argv, char *args[])
     fs_svr_init();
     ns_register("/bin", hd, MOUNT_NODE);
     cons_write_str("cpiofs mount success\n");
-    // *((char *)0) = 0;
 
     fs_svr_loop();
     return 0;

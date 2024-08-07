@@ -38,6 +38,7 @@ enum knl_obj_type {
     FUTEX_TYPE,
     SHARE_MEM_TYPE,
     VMAM_TYPE,
+    SEMA_TYPE,
 };
 /**
  * @brief 以下信息用于调试

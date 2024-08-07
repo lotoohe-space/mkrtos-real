@@ -23,3 +23,5 @@ void malloc_test(void);
 void thread_cpu_test(void);
 int thread_vcpu_test(void);
 void ipi_test(void);
+int u_sema_test(void);
+int u_sema_test2(void);

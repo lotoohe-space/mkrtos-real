@@ -301,6 +301,11 @@ RPC_TYPE_DEF_ALL(stat_t)
  *
  */
 RPC_ARRAY_DEF(uint32_t, uint8_t, 32)
+RPC_ARRAY_DEF(uint32_t, uint8_t, 64)
+RPC_ARRAY_DEF(uint32_t, uint8_t, 128)
+RPC_ARRAY_DEF(uint32_t, uint8_t, 256)
+RPC_ARRAY_DEF(uint32_t, uint8_t, 400)
+RPC_ARRAY_DEF(uint32_t, uint8_t, 512)
 
 /**
  * @brief 引用类型的数组定义，数组的数据来自其它地方
@@ -373,6 +378,8 @@ RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 48)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 64)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 128)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 256)
+RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 400)
+RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 512)
 
 /**
  * @brief Construct a new rpc type def object

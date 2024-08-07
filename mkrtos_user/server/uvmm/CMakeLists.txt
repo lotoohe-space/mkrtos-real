@@ -4,11 +4,11 @@ file(GLOB_RECURSE deps *.c *.S)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror" )
 
-add_executable(hello.elf
+add_executable(uvmm.elf
     ${deps}
     ${START_SRC}
 )
-target_link_libraries(hello.elf
+target_link_libraries(uvmm.elf
     PUBLIC
     -Bstatic
     ${LIBC_NAME}
@@ -24,48 +24,48 @@ target_link_libraries(hello.elf
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
-    hello.elf
+    uvmm.elf
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/hello/src
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/uvmm/src
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/cJSON
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/printf/src/printf
 )
-set_target_properties(hello.elf PROPERTIES LINK_FLAGS
+set_target_properties(uvmm.elf PROPERTIES LINK_FLAGS
 "-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker  "
 )
 add_custom_target(
-    hello_dump ALL
+    uvmm_dump ALL
     COMMAND
-    ${CMAKE_OBJDUMP} -s -S hello.elf > ${CMAKE_SOURCE_DIR}/build/output/hello.S
+    ${CMAKE_OBJDUMP} -s -S uvmm.elf > ${CMAKE_SOURCE_DIR}/build/output/uvmm.S
     COMMAND
-    ${CMAKE_READELF} -a hello.elf > ${CMAKE_SOURCE_DIR}/build/output/hello.txt
+    ${CMAKE_READELF} -a uvmm.elf > ${CMAKE_SOURCE_DIR}/build/output/uvmm.txt
     COMMAND
-    ${CMAKE_OBJCOPY} -O binary -S hello.elf hello.bin
+    ${CMAKE_OBJCOPY} -O binary -S uvmm.elf uvmm.bin
     COMMAND
-    ${CMAKE_SIZE} hello.elf
+    ${CMAKE_SIZE} uvmm.elf
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
     COMMAND
-    cp hello.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/hello
+    cp uvmm.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/uvmm
     COMMAND
-    cp hello.elf ${CMAKE_SOURCE_DIR}/build/output/hello.elf
+    cp uvmm.elf ${CMAKE_SOURCE_DIR}/build/output/uvmm.elf
 )
 if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
     add_custom_target(
-        hello_dump_elf ALL
+        uvmm_dump_elf ALL
         COMMAND
-        cp hello.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/hello.elf
+        cp uvmm.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/uvmm.elf
     )
-    add_dependencies(hello_dump_elf hello_dump)
+    add_dependencies(uvmm_dump_elf uvmm_dump)
 endif()
 
-add_dependencies(hello_dump hello.elf)
-add_dependencies(hello_dump sys)
-add_dependencies(hello_dump sys_util)
-add_dependencies(hello_dump sys_svr)
+add_dependencies(uvmm_dump uvmm.elf)
+add_dependencies(uvmm_dump sys)
+add_dependencies(uvmm_dump sys_util)
+add_dependencies(uvmm_dump sys_svr)
  

@@ -105,3 +105,22 @@ msg_tag_t facotry_create_share_mem(obj_handler_t obj, vpage_t vpage, umword_t si
 
     return tag;
 }
+msg_tag_t facotry_create_sema(obj_handler_t obj, vpage_t vpage, int cnt, int max)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+
+    mk_syscall(syscall_prot_create(FACTORY_CREATE_KOBJ, FACTORY_PROT, obj).raw,
+               0,
+               SEMA_PROT,
+               vpage.raw,
+               cnt,
+               max,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0);
+    msg_tag_t tag = msg_tag_init(r0);
+
+    return tag;
+}
