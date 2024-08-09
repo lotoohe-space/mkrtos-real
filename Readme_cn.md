@@ -2,13 +2,16 @@
 
 - MKRTOS 是第三代微内核操作系统，支持Cortex-A&Cortex-M核，支持动态加载app执行（MPU保护），支持ELF支持（MMU保护），多线程，进程隔离等功能。提供标准化的posix接口支持，用户态驱动，未来还将在支持虚拟化。MKRTOS适用于对安全与稳定性要求较高的场合。MKRTOS架构图如下：
  ![image](./mkrtos_doc/架构图.png) 
+### 设计原则
+- 1.服务间数据交互不经过第三方组件。
+- 2.服务间最简接口原则。
+- 3.内核最小功能原则。
+- 4.微内核设计。
 ### MKRTOS 的目标
-- 1. Real microkernel design, with high stability, high anti-failure design, suitable for industrial control, Internet of things and other fields.
-- 2. Out of the box, supports multiple platforms.
-- 3. Porting is convenient and fast, the kernel only needs 2 driver support (serial port and systick).
-- 4. Simple design, support for multi-process (MPU process protection), multi-threading, support for MCU.
-- 5. RTOS design, high real-time performance.
-- 6. User mode drivers, which are also applications.
+- 1.微内核设计的RTOS，用户态驱动、文件系统、网络协议栈。
+- 2.移植方便快捷，内核只需要2个驱动程序支持（串口和systick）。
+- 3.MCU&MPU处理器进程保护支持。
+- 4.面向对象的系统设计。
 ### MKRTOS支持的处理器架构
 | 处理器架构     | 支持的板子     | 进度     |
 | -------- | -------- | -------- |
@@ -17,38 +20,17 @@
 | Cortex-m33|swm34s|done|
 | ARMv8 | Qemu | done |
 | risc-v | Qemu | X |
+### MKRTOS特性支持
+- 多ARCH支持（Cortex-M & Cortex-A)
+- 多核支持
+- 多核多进程支持，IPC支持
+- 虚拟化支持
+- musl lib（posix支持）
+- path manager、process manager、init、fat server、shell
+- MPU & MMU内存保护支持
+- 可执行文件支持（bin&ELF）
 
-### 设计原则
-- 1.服务间数据交互不经过第三方组件。
-- 2.服务间最简接口原则。
-- 3.内核最小功能原则。
-- 4.微内核设计。
-### MKRTOS 模块支持
-#### 已完成
-- 1.处理器：默认支持 Cortex-M3 处理器、未来会支持更多
-- 2.进程间通信，采用同步通信机制，内核不缓存任何数据。
-- 3.内核只需要支持systick以及串口即可启动系统。
-- 4.内核采用C语言编写，并使用面向对象的编程方式，功能均被抽象为内核对象。
-- 5.内核支持对象：线程对象、进程对象、工厂对象、内存管理对象、Log对象，IPC对象，Futex对象。
-- 4.多线程：支持多线程管理，线程与task分离，设计跟合理。
-- 5.多进程（MPU实现进程隔离）：支持内存空间与对象空间，进程只管理资源。
-- 6.irq对象支持，用于内核中断转发到用户态。
-- 7.可执行文件：支持bin可执行文件。
-- 8.musl libc库支持。
-- 9.init进程、process manager支持、path manager支持
-- 10.shell服务
-- 11.kconfig支持。
-- 12.文件系统服务支持（暂时支持fatfs文件系统）。
-- 13.Cortex-m4支持，硬件浮点支持。
-- 14.AARCH64支持，MMU支持。
-#### 正在做
-- 1.完善内核.
-- 2.drv manager服务
-- 3.Ext、LittleFs系列文件系统支持
-#### 未来支持
-- 1.Cortex-M其它系列处理器、RISC-V，龙芯支持。
-- 2.多核MCU支持
-- 3.虚拟化支持
+
 ### MKRTOS 用户态生态正在做
 - 1.toybox常用命令支持
 - 2.ota支持
