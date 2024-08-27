@@ -20,6 +20,7 @@ target_link_libraries(init.elf
     sys_svr
     cpio
     util
+    cutest
     --no-whole-archive
     ${GCC_LIB_PATH}/libgcc.a
 )
@@ -30,6 +31,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/cpio
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/cutest
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/init/src
 )

@@ -20,7 +20,6 @@ static void sw_mmu(thread_t *next_thread)
     {
 
         assert(get_sp());
-        // _dsb(sy);
         write_sysreg(p_next_dir | (next_task->mm_space.asid << 48) /*TODO:*/, vttbr_el2); // 切换用户态页表
         _isb();
         // asm volatile("ic iallu");

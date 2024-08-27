@@ -1,7 +1,7 @@
 /**
  * @file futex_backend.c
  * @author ATShining (1358745329@qq.com)
- * @brief 该文件用ipc模拟一个futex锁
+ * @brief futex锁
  * @version 0.1
  * @date 2023-09-09
  *
@@ -70,7 +70,7 @@ _try_again:
 long sys_futex(va_list ap)
 {
     uint32_t *uaddr;
-    long futex_op; 
+    long futex_op;
     long val;
     const struct timespec *timeout;
     long uaddr2;

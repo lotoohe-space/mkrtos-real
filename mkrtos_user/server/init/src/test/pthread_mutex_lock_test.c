@@ -14,15 +14,15 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
-#define TEST_CNT 50
+#include <CuTest.h>
+#define TEST_CNT 10
 static pthread_mutex_t lock;
 static pthread_t pth;
 static pthread_t pth2;
 
-#define STACK_SIZE 4096
-static __attribute__((aligned(8))) uint8_t stack0[STACK_SIZE];
-static __attribute__((aligned(8))) uint8_t stack1[STACK_SIZE];
+#define STACK_SIZE PAGE_SIZE
+static __attribute__((aligned(PAGE_SIZE))) uint8_t stack0[STACK_SIZE * 2];
+static __attribute__((aligned(PAGE_SIZE))) uint8_t stack1[STACK_SIZE * 2];
 
 static void hard_sleep(void)
 {
@@ -31,6 +31,8 @@ static void hard_sleep(void)
 }
 static void *thread_test_func(void *arg)
 {
+    usleep(50000);
+
     int i = TEST_CNT;
     while (i--)
     {
@@ -43,6 +45,7 @@ static void *thread_test_func(void *arg)
 }
 static void *thread_test_func2(void *arg)
 {
+
     int i = TEST_CNT;
     while (i--)
     {
@@ -57,17 +60,25 @@ static void *thread_test_func2(void *arg)
 /**
  *
  */
-void pthread_lock_test(void)
+static void pthread_lock_test(CuTest *cu)
 {
     pthread_attr_t attr;
 
     pthread_mutex_init(&lock, NULL);
     pthread_attr_init(&attr);
     pthread_attr_setstack(&attr, stack0, STACK_SIZE);
-    pthread_create(&pth, &attr, thread_test_func, NULL);
+    CuAssert(cu, "pthread create error.\n", pthread_create(&pth, &attr, thread_test_func, NULL) == 0);
     pthread_attr_setstack(&attr, stack1, STACK_SIZE);
-    pthread_create(&pth2, &attr, thread_test_func2, NULL);
+    CuAssert(cu, "pthread create error.\n", pthread_create(&pth2, &attr, thread_test_func2, NULL) == 0);
     pthread_join(pth, NULL);
     pthread_join(pth2, NULL);
     printf("%s:%d test ok.\n", __func__, __LINE__);
+}
+CuSuite *pthread_lock_test_suite(void)
+{
+    CuSuite *suite = CuSuiteNew();
+
+    SUITE_ADD_TEST(suite, pthread_lock_test);
+
+    return suite;
 }

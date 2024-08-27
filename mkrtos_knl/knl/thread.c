@@ -137,29 +137,13 @@ static bool_t thread_put(kobject_t *kobj)
 
     return ref_counter_dec(&th->ref) == 1;
 }
-static void thread_release_stage1(kobject_t *kobj)
+static void thread_release_stage1_impl(thread_t *th)
 {
-    thread_t *th = container_of(kobj, thread_t, kobj);
-    thread_t *cur = thread_get_current();
-    kobject_invalidate(kobj);
-
-    if (cur != th)
+    if (th->status == THREAD_READY)
     {
-        //! 线程在运行中，则挂起线程
-        if (th->status == THREAD_READY)
-        {
-            thread_suspend(th);
-        }
-        th->ipc_status = THREAD_IPC_ABORT;
+        thread_suspend(th);
     }
-    else
-    {
-        if (cur->status == THREAD_READY)
-        {
-            thread_suspend(th);
-        }
-        cur->ipc_status = THREAD_IPC_ABORT;
-    }
+    th->ipc_status = THREAD_IPC_ABORT;
     thread_wait_entry_t *pos;
 
     slist_foreach_not_next(
@@ -174,7 +158,7 @@ static void thread_release_stage1(kobject_t *kobj)
         if (pos->th != th)
         {
             pos->th->ipc_status = THREAD_IPC_ABORT;
-            thread_ready_remote(pos->th, TRUE);
+            thread_ready(pos->th, FALSE);
         }
 
         slist_del(&pos->node_timeout);
@@ -199,11 +183,112 @@ static void thread_release_stage1(kobject_t *kobj)
         if (pos2->th != th)
         {
             pos2->th->ipc_status = THREAD_IPC_ABORT;
-            thread_ready_remote(pos2->th, TRUE);
+            thread_ready(pos2->th, FALSE);
         }
         pos2 = next;
     }
     thread_unbind(th);
+}
+#if IS_ENABLED(CONFIG_SMP)
+static int thread_remote_release_stage1_handler(ipi_msg_t *msg, bool_t *is_sched)
+{
+    thread_t *th = (thread_t *)msg->msg;
+    assert(th);
+    thread_release_stage1_impl(th);
+    return 0;
+}
+#endif
+int thread_release_stage1_remote(thread_t *th)
+{
+#if IS_ENABLED(CONFIG_SMP)
+    if (th->cpu != arch_get_current_cpu_id())
+    {
+        th->ipi_msg_node.msg = (umword_t)th;
+        th->ipi_msg_node.cb = thread_remote_release_stage1_handler;
+        cpu_ipi_to_msg(1 << th->cpu, &th->ipi_msg_node, IPI_CALL);
+    }
+    else
+    {
+        thread_release_stage1_impl(th);
+    }
+#else
+    thread_release_stage1_impl(th);
+#endif
+    return 0;
+}
+static void thread_release_stage1(kobject_t *kobj)
+{
+    thread_t *th = container_of(kobj, thread_t, kobj);
+    thread_t *cur = thread_get_current();
+    kobject_invalidate(kobj);
+
+    if (cur != th)
+    {
+        thread_release_stage1_remote(th);
+    } else {
+        thread_release_stage1_remote(cur);
+    }
+    // if (cur != th)
+    // {
+    //     //! 线程在运行中，则挂起线程
+    //     if (th->status == THREAD_READY)
+    //     {
+    //         thread_suspend_remote(th, FALSE);
+    //     }
+    //     th->ipc_status = THREAD_IPC_ABORT;
+    // }
+    // else
+    // {
+    //     if (cur->status == THREAD_READY)
+    //     {
+    //         thread_suspend_remote(th, FALSE);
+    //     }
+    //     cur->ipc_status = THREAD_IPC_ABORT;
+    // }
+    // thread_wait_entry_t *pos;
+
+    // slist_foreach_not_next(
+    //     pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
+    //     node_timeout)
+    // {
+    //     assert(pos->th->status == THREAD_SUSPEND);
+    //     thread_wait_entry_t *next = slist_next_entry(
+    //         pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
+    //         node_timeout);
+
+    //     if (pos->th != th)
+    //     {
+    //         pos->th->ipc_status = THREAD_IPC_ABORT;
+    //         thread_ready_remote(pos->th, FALSE);
+    //     }
+
+    //     slist_del(&pos->node_timeout);
+    //     if (slist_in_list(&pos->node))
+    //     {
+    //         slist_del(&pos->node);
+    //     }
+    //     pos = next;
+    // }
+    // thread_wait_entry_t *pos2;
+
+    // slist_foreach_not_next(
+    //     pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
+    //     node)
+    // {
+    //     assert(pos2->th->status == THREAD_SUSPEND);
+    //     thread_wait_entry_t *next = slist_next_entry(
+    //         pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
+    //         node);
+
+    //     slist_del(&pos2->node);
+    //     if (pos2->th != th)
+    //     {
+    //         pos2->th->ipc_status = THREAD_IPC_ABORT;
+    //         thread_ready_remote(pos2->th, FALSE);
+    //     }
+    //     pos2 = next;
+    // }
+    // thread_unbind(th);
 }
 static void thread_release_stage2(kobject_t *kobj)
 {
@@ -930,7 +1015,7 @@ static int thread_remote_suspend_handler(ipi_msg_t *msg, bool_t *is_sched)
     return 0;
 }
 #endif
-int thread_suspend_remote(thread_t *th)
+int thread_suspend_remote(thread_t *th, bool_t is_sche)
 {
 #if IS_ENABLED(CONFIG_SMP)
     if (th->cpu != arch_get_current_cpu_id())
@@ -941,10 +1026,10 @@ int thread_suspend_remote(thread_t *th)
     }
     else
     {
-        thread_suspend(th);
+        thread_suspend_sw(th, is_sche);
     }
 #else
-    thread_suspend(th);
+    thread_suspend_sw(th);
 #endif
     return 0;
 }
@@ -1338,7 +1423,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
         }
         if (tag_th != cur_th)
         {
-            thread_suspend_remote(tag_th);
+            thread_suspend_remote(tag_th, TRUE);
         }
         tag_th->sche.prio = (tge_prio >= PRIO_MAX ? PRIO_MAX - 1 : tge_prio);
         tag_th->ipi_msg_node.msg = (umword_t)tag_th;

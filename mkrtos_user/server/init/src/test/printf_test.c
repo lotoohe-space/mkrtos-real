@@ -1,6 +1,8 @@
 #include "u_types.h"
 #include <stdio.h>
-void printf_test(void)
+
+#include <CuTest.h>
+static void printf_test(CuTest *tc)
 {
     printf("print test0.\n");
     printf("print test1.\n");
@@ -16,4 +18,13 @@ void printf_test(void)
         c = c;
         printf("%c %d %lf\n", 'a', 1234, 1.1);
     }
+}
+
+CuSuite *printf_test_suite(void)
+{
+    CuSuite *suite = CuSuiteNew();
+
+    SUITE_ADD_TEST(suite, printf_test);
+
+    return suite;
 }

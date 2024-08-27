@@ -86,7 +86,7 @@ RPC_GENERATION_DISPATCH3(fs_t, FS_PROT, FS_LSEEK, lseek,
 /*ftruncate*/
 RPC_GENERATION_OP2(fs_t, FS_PROT, FS_FTRUNCATE, ftruncate,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, offs)
+                   rpc_int64_t_t, rpc_int64_t_t, RPC_DIR_IN, RPC_TYPE_DATA, offs)
 {
     int ret = fs_svr_ftruncate(fd->data, offs->data);
     return ret;
@@ -94,7 +94,7 @@ RPC_GENERATION_OP2(fs_t, FS_PROT, FS_FTRUNCATE, ftruncate,
 
 RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_FTRUNCATE, ftruncate,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, offs)
+                         rpc_int64_t_t, rpc_int64_t_t, RPC_DIR_IN, RPC_TYPE_DATA, offs)
 
 /*fsync*/
 RPC_GENERATION_OP1(fs_t, FS_PROT, FS_SYNC, fsync,

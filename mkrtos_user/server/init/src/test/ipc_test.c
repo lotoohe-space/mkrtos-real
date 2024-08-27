@@ -11,7 +11,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <u_sleep.h>
-
+#include <u_thread_util.h>
+#include <CuTest.h>
 #define DEBUG_IPC_CALL 1
 
 static umword_t th1_hd = 0;
@@ -52,8 +53,16 @@ static void thread_test_func(void)
         // buf[0] = ',';
         test_cn++;
         thread_ipc_reply(msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0), ipc_timeout_create2(0, 0));
+        if (test_cn >= 1000)
+        {
+            break;
+        }
     }
     printf("thread_test_func.\n");
+    while (1)
+    {
+        u_sleep_ms(100000);
+    }
     task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th1_hd));
     printf("Error\n");
 }
@@ -69,8 +78,16 @@ static void thread_test_func2(void)
         strcpy(buf, "I am th2.\n");
         thread_ipc_call(msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0), th1_hd, ipc_timeout_create2(0, 0));
         printf("th2:%s", buf);
+        if (test_cn >= 1000)
+        {
+            break;
+        }
     }
     printf("thread_test_func2.\n");
+    while (1)
+    {
+        u_sleep_ms(100000);
+    }
     task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
     printf("Error\n");
 }
@@ -88,8 +105,16 @@ static void thread_test_func3(void)
         strcpy(buf, "I am th3.\n");
         thread_ipc_call(msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0), th1_hd, ipc_timeout_create2(0, 0));
         printf("th3:%s", buf);
+        if (test_cn >= 1000)
+        {
+            break;
+        }
     }
     printf("thread_test_func3.\n");
+    while (1)
+    {
+        u_sleep_ms(100000);
+    }
     task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th3_hd));
     printf("Error\n");
 }
@@ -106,8 +131,16 @@ static void thread_test_func4(void)
         strcpy(buf, "I am th4.\n");
         thread_ipc_call(msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0), th1_hd, ipc_timeout_create2(0, 0));
         printf("th4:%s", buf);
+        if (test_cn >= 1000)
+        {
+            break;
+        }
     }
     printf("thread_test_func4.\n");
+    while (1)
+    {
+        u_sleep_ms(100000);
+    }
     task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th3_hd));
     printf("Error\n");
 }
@@ -115,7 +148,7 @@ static void thread_test_func4(void)
  * @brief 启动两个线程并进行ipc测试
  *
  */
-void ipc_test(void)
+static void ipc_test(CuTest *cu)
 {
     msg_tag_t tag;
     th1_hd = handler_alloc();
@@ -179,6 +212,22 @@ void ipc_test(void)
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_run_cpu(th4_hd, 2, 0);
 
-    while (test_cn++ < 1000)
+    while (test_cn < 1000)
         ;
+    /*
+    TODO:存在bug
+    u_thread_del(th1_hd);
+    u_thread_del(th2_hd);
+    u_thread_del(th3_hd);
+    u_thread_del(th4_hd);
+    */
+}
+
+CuSuite *ipc_test_suite(void)
+{
+    CuSuite *suite = CuSuiteNew();
+
+    SUITE_ADD_TEST(suite, ipc_test);
+
+    return suite;
 }

@@ -61,6 +61,9 @@ void be_exit(long exit_code)
         task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); //!< 删除当前task，以及申请得所有对象
         a_crash();                                                                 //!< 强制退出
     }
+    while (1) {
+        thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
+    }
 }
 
 long sys_exit(va_list ap)

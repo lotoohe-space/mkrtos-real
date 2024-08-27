@@ -1,4 +1,13 @@
-
+/**
+ * @file fd_map.c
+ * @author your name (1358745329@qq.com)
+ * @brief fd映射层
+ * @version 0.1
+ * @date 2024-08-08
+ *
+ * @copyright Copyright (c) ATShining 2024
+ *
+ */
 #include <u_types.h>
 #include <assert.h>
 #include <malloc.h>
@@ -22,7 +31,14 @@ typedef struct fd_map
 } fd_map_t;
 
 static fd_map_t fd_map;
-
+/**
+ * @brief 分配一个可用的fd
+ *
+ * @param svr_fd
+ * @param priv_fd
+ * @param type
+ * @return int
+ */
 int fd_map_alloc(uint32_t svr_fd, uint32_t priv_fd, enum fd_type type)
 {
     int alloc_fd = 0;
@@ -76,6 +92,13 @@ next:;
 
     return alloc_fd;
 }
+/**
+ * @brief 获取fd
+ *
+ * @param fd
+ * @param new_entry
+ * @return int
+ */
 int fd_map_get(int fd, fd_map_entry_t *new_entry)
 {
     assert(new_entry);
@@ -94,6 +117,13 @@ int fd_map_get(int fd, fd_map_entry_t *new_entry)
     *new_entry = fd_map.row[row_inx]->entry[inx];
     return 0;
 }
+/**
+ * @brief 更新fd
+ *
+ * @param fd
+ * @param new_entry
+ * @return int
+ */
 int fd_map_update(int fd, fd_map_entry_t *new_entry)
 {
     if (fd >= FD_MAP_TOTAL)
@@ -110,7 +140,13 @@ int fd_map_update(int fd, fd_map_entry_t *new_entry)
     fd_map.row[row_inx]->entry[inx].flags = flags;
     pthread_spin_unlock(&fd_map.lock);
 }
-
+/**
+ * @brief 释放fd
+ *
+ * @param fd
+ * @param ret_entry
+ * @return int
+ */
 int fd_map_free(int fd, fd_map_entry_t *ret_entry)
 {
     if (fd >= FD_MAP_TOTAL)

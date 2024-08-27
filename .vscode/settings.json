@@ -96,7 +96,10 @@
         "vgic.h": "c",
         "aarch64_emul.h": "c",
         "uvmm_host_irqs.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "u_thread_util.h": "c",
+        "u_hd_man.h": "c",
+        "u_mm.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

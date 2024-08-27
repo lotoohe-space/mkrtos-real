@@ -219,6 +219,7 @@ void thread_unbind(thread_t *th);
 
 void thread_send_wait(thread_t *th);
 bool_t thread_sched(bool_t is_sche);
+int thread_suspend_remote(thread_t *th, bool_t is_sche);
 void thread_suspend(thread_t *th);
 void thread_dead(thread_t *th);
 void thread_todead(thread_t *th, bool_t is_sche);

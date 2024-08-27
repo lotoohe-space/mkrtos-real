@@ -62,12 +62,18 @@ int elf_load(umword_t elf_data, size_t size, addr_t *entry_addr, obj_handler_t d
     void *mem;
     msg_tag_t tag;
     
+    printf("%s:%d.\n", __func__, __LINE__);
+
     tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, 0), mem_size, 0, (addr_t *)(&mem));
     if (msg_tag_get_val(tag) < 0)
     {
         return msg_tag_get_val(tag);
     }
+    printf("%s:%d mem:0x%p size:0x%x.\n", __func__, __LINE__, mem, mem_size);
+
     memset(mem, 0, mem_size);
+    printf("%s:%d.\n", __func__, __LINE__);
+
     mword_t offset = 0;
 
     elf_phdr = (Elf64_Phdr *)(elf_header->e_phoff + elf_data);

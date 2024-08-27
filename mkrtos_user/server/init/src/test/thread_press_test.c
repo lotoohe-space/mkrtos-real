@@ -10,35 +10,36 @@
 #include <stdio.h>
 #include "test.h"
 #include "u_sleep.h"
-static umword_t th1_hd = 0;
-static int i = 100;
+#include <pthread.h>
+#include <CuTest.h>
+#define TEST_THREAD_NUM 50
 
-#define STACK_SIZE 1024
-static __attribute__((aligned(8))) uint8_t stack0[STACK_SIZE];
+static pthread_t th_array[TEST_THREAD_NUM];
 
-static void thread_test_func(void)
+static void *thread_test_func(void *arg)
 {
-    ulog_write_str(LOG_PROT, ".");
-    handler_free_umap(th1_hd);
-    printf("Error\n");
+    printf(".\n");
+    return NULL;
 }
 
-void thread_press_test(void)
+static void thread_press_test(CuTest *cu)
 {
-    while (i--)
+    for (int i = 0; i < TEST_THREAD_NUM; i++)
     {
-        th1_hd = handler_alloc();
-        assert(th1_hd != HANDLER_INVALID);
-        msg_tag_t tag;
-
-        tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
-        assert(msg_tag_get_prot(tag) >= 0);
-        tag = thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, TASK_RAM_BASE(), 0);
-        assert(msg_tag_get_prot(tag) >= 0);
-        tag = thread_bind_task(th1_hd, TASK_THIS);
-        assert(msg_tag_get_prot(tag) >= 0);
-        tag = thread_run(th1_hd, 2);
-        ulog_write_str(LOG_PROT, "\n");
-        u_sleep_ms(10);
+        CuAssert(cu, "pthread create error \n",
+                 pthread_create(&th_array[i], NULL, thread_test_func, NULL) == 0);
     }
+    for (int i = 0; i < TEST_THREAD_NUM; i++)
+    {
+        CuAssert(cu, "pthread join error\n",
+        pthread_join(th_array[i], NULL) == 0);
+    }
+}
+CuSuite *pthread_press_test_suite(void)
+{
+    CuSuite *suite = CuSuiteNew();
+
+    SUITE_ADD_TEST(suite, thread_press_test);
+
+    return suite;
 }

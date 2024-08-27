@@ -139,6 +139,11 @@ typedef struct sp_info
 #endif
 } sp_info_t;
 
+#define flush_all_tlb()  \
+    do { \
+        /*asm volatile("tlbi alle2");*/\
+        asm volatile("tlbi alle1");\
+    } while (0)
 #define cpu_sleep() asm volatile("wfi" : : : "memory")
 #define _barrier() __asm__ __volatile__("" : : : "memory")
 #define _dmb(ins) \

@@ -362,19 +362,33 @@ int fs_svr_readdir(int fd, dirent_t *dir)
 }
 int fs_svr_mkdir(char *path)
 {
-    return -ENOSYS;
+    FRESULT ret = f_mkdir(path);
+
+    return fatfs_err_conv(ret);
 }
 int fs_svr_unlink(char *path)
 {
-    return -ENOSYS;
+    FRESULT ret = f_unlink(path);
+
+    return fatfs_err_conv(ret);
 }
 int fs_svr_renmae(char *oldname, char *newname)
 {
-    return -ENOSYS;
+    return fatfs_err_conv(f_rename(oldname, newname));
 }
 int fs_svr_fstat(int fd, stat_t *stat)
 {
-    return -ENOSYS;
+    file_desc_t *file = file_get(fd);
+
+    if (!file)
+    {
+        return -ENOENT;
+    }
+    memset(stat, 0, sizeof(*stat));
+    stat->st_size = file->type == 1 ? 0 : f_size(&file->fp);
+    stat->st_mode = file->type == 1 ? S_IFDIR : S_IFREG;
+    stat->st_blksize = 0;
+    return 0;
 }
 int fs_svr_symlink(const char *src, const char *dst)
 {
