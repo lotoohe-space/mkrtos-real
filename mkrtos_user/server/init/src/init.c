@@ -35,6 +35,7 @@
 
 static void test(void)
 {
+    test_main();
 #if 0
     u_sema_test();
     u_sema_test2();

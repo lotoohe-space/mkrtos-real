@@ -101,7 +101,7 @@ pte_t *pages_walk(page_entry_t *pdir, addr_t virt_addr, mword_t order, void *(*f
     int i;
     pte_t *next = &pdir->dir[(virt_addr >> pdir->lv_shift_sizes[(PAGE_DEEP - pdir->depth)]) & 0x1ffUL];
 
-    // 找到所在深度
+// 找到所在深度
     for (i = (PAGE_DEEP - pdir->depth); i < PAGE_DEEP; i++)
     {
         if (pdir->lv_shift_sizes[i] == order)
@@ -162,7 +162,7 @@ int unmap_mm(page_entry_t *pdir, addr_t virt_addr, mword_t page_order, mword_t p
 {
     for (mword_t i = 0; i < pfn_cn; i++)
     {
-        pte_t *pte = pages_walk(pdir, virt_addr + (i << page_order), page_order, NULL);
+        pte_t *pte = pages_walk(pdir, virt_addr + (i << page_order), page_order, page_alloc_cb);
 
         if (pte != NULL)
         {

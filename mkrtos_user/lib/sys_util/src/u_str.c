@@ -1,4 +1,13 @@
-
+/**
+ * @file u_str.c
+ * @author ATShining (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-08-27
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "u_types.h"
 #include "u_queue.h"
 #include <stdio.h>

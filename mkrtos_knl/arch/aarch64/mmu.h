@@ -49,3 +49,5 @@ umword_t mm_get_paddr(page_entry_t *pdir, addr_t virt_addr, mword_t page_order);
 void per_cpu_boot_mapping(bool_t init_pages);
 page_entry_t *boot_get_pdir(void);
 void knl_pdir_init(page_entry_t *pdir, pte_t *dir, int page_deep);
+
+void flush_cache_range(void *start, void *end);

@@ -74,10 +74,10 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
                 }
                 pid_t pid;
                 char *args[] = {
-                    "xx",/**FIXME: */
-                    "-t"
+                    name,
+                    NULL
                 };
-                int ret = app_load(name, env, &pid, args, 2, NULL, 0);
+                int ret = app_load(name, env, &pid, args, 1, NULL, 0);
                 if (ret < 0)
                 {
                     printf("%s load fail, 0x%x\n", name, ret);

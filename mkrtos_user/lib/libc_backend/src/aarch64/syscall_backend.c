@@ -17,6 +17,7 @@ static const sys_call_func sys_call_list[] = {
     [SYS_writev] = sys_be_writev,
     [SYS_ioctl] = sys_be_ioctl,
     [SYS_lseek] = sys_be_lseek,
+    [SYS_ftruncate] = sys_be_ftruncate,
     [SYS_getdents64] = sys_be_getdents,
     [SYS_set_tid_address] = sys_set_tid_address,
     [SYS_clock_nanosleep] = sys_clock_nanosleep,

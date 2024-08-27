@@ -76,8 +76,6 @@ static int thread_exec_to_vcpu(thread_t *th, entry_frame_t *regs, umword_t esr, 
     if (ret >= 0)
     {
         *regs = *dst_pf;
-        // regs->pc = dst_pf->pc; /*TODO:可能还有其他信息*/
-        // regs->pstate = dst_pf->pstate;
     }
     else
     {
@@ -114,6 +112,7 @@ void thread_sync_entry(entry_frame_t *regs)
             if (ret < 0)
             {
                 printk("[knl] inst abort 0x20 pfa:0x%lx\n", addr);
+                dump_stack(regs->pc, regs->regs[29]);
                 task_knl_kill(th, FALSE);
             }
             break;
@@ -132,6 +131,7 @@ void thread_sync_entry(entry_frame_t *regs)
             ret = task_vma_page_fault(&tk->mm_space.mem_vma, ALIGN_DOWN(addr, PAGE_SIZE));
             if (ret < 0)
             {
+                dump_stack(regs->pc, regs->regs[29]);
                 task_knl_kill(th, FALSE);
             }
             break;
@@ -144,10 +144,12 @@ void thread_sync_entry(entry_frame_t *regs)
             ret = thread_exec_to_vcpu(th, regs, esr, addr);
             if (ret < 0)
             {
+                dump_stack(regs->pc, regs->regs[29]);
                 task_knl_kill(th, FALSE);
             }
             // printk("%s:%d ret:%d\n", __func__, __LINE__, ret);
 #else
+            dump_stack(regs->pc, regs->regs[29]);
             task_knl_kill(th, FALSE);
 #endif
             break;

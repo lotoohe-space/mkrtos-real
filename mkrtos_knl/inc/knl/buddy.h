@@ -25,11 +25,11 @@ typedef struct buddy_head
     mword_t nr_free;      //!< 多少个可用的块
 } buddy_head_t;
 
-#define BUDDY_MAX_ORDER 12
+#define BUDDY_MAX_ORDER 10
 
 typedef struct buddy_order
 {
-    buddy_head_t order_tab[BUDDY_MAX_ORDER]; // max 16MB
+    buddy_head_t order_tab[BUDDY_MAX_ORDER]; // max 4MB
     addr_t heap_addr;
     spinlock_t lock;
     size_t heap_size;

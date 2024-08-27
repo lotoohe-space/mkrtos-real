@@ -37,13 +37,15 @@ slab_t *slab_create(size_t align_size, const char *name)
     tmp_slab->align_size = align_size;
     tmp_slab->total_nr = 0;
 
-    for (size_t i = 0; i < alloc_size / (align_size + sizeof(slab_block_head_t)); i++)
+    for (size_t i = 0; i < (alloc_size - sizeof(slab_head_t)) / (align_size + sizeof(slab_block_head_t)) - 1; i++)
     {
-        if ((i + 1) * (align_size + sizeof(slab_block_head_t)) + (align_size + sizeof(slab_block_head_t)) > alloc_size)
-        {
-            break;
-        }
-        slab_block_head_t *slab_block = (slab_block_head_t *)((mem + sizeof(slab_t)) +
+        // if ((i + 2) * (align_size + sizeof(slab_block_head_t)) +
+        //         sizeof(slab_head_t) >
+        //     alloc_size)
+        // {
+        //     break;
+        // }
+        slab_block_head_t *slab_block = (slab_block_head_t *)(((addr_t)mem + sizeof(slab_t)) +
                                                               (i * (align_size + sizeof(slab_block_head_t))));
 
         slab_block->used = 0;
@@ -110,13 +112,15 @@ again:
         slist_init(&slab_head->next);
         slist_add(&slab->head, &slab_head->next);
 
-        for (size_t i = 0; i < alloc_size / (slab->align_size + sizeof(slab_block_head_t)); i++)
+        for (size_t i = 0; i < (alloc_size - sizeof(slab_head_t)) / (slab->align_size + sizeof(slab_block_head_t)) - 1; i++)
         {
-            if ((i + 1) * (slab->align_size + sizeof(slab_block_head_t)) + (slab->align_size + sizeof(slab_block_head_t)) > alloc_size)
-            {
-                break;
-            }
-            slab_block_head_t *slab_block = (slab_block_head_t *)((mem + sizeof(slab_head_t)) +
+            // if ((i + 2) * (slab->align_size + sizeof(slab_block_head_t)) +
+            //         sizeof(slab_head_t) >
+            //     alloc_size)
+            // {
+            //     break;
+            // }
+            slab_block_head_t *slab_block = (slab_block_head_t *)(((addr_t)mem + sizeof(slab_head_t)) +
                                                                   (i * (slab->align_size + sizeof(slab_block_head_t))));
 
             slab_block->used = 0;

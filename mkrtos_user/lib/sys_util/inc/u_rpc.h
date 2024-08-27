@@ -182,6 +182,8 @@ static inline void rpc_memcpy(void *dst, void *src, size_t size)
 
 RPC_TYPE_DEF_ALL(int)      //!< 定义所有的
 RPC_TYPE_DEF_ALL(uint32_t) //!< 定义所有的
+RPC_TYPE_DEF_ALL(int64_t)      //!< 定义所有的
+RPC_TYPE_DEF_ALL(uint64_t) //!< 定义所有的
 RPC_TYPE_DEF_ALL(size_t)   //!< 定义所有的
 RPC_TYPE_DEF_ALL(umword_t) //!< 定义所有的
 RPC_TYPE_DEF_ALL(mword_t)  //!< 定义所有的

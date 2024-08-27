@@ -1,4 +1,13 @@
-
+/**
+ * @file u_rpc_svr.c
+ * @author ATShining (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-08-27
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "u_ipc.h"
 #include "u_factory.h"
 #include "u_hd_man.h"

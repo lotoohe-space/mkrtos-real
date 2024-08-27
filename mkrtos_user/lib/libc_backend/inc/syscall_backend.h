@@ -75,13 +75,8 @@ long syscall_backend(long sys_inx, ...);
 
 void fs_backend_init(void);
 long be_lseek(long fd, long offset, long whence);
-long sys_be_lseek(va_list ap);
 int be_open(const char *path, int flags, mode_t mode);
-long sys_be_open(va_list ap);
-long sys_be_open_at(va_list ap);
 int be_close(int fd);
-long sys_be_close(va_list ap);
-long sys_be_getdents(va_list ap);
 long be_read(long fd, char *buf, long size);
 long be_write(long fd, char *buf, long size);
 long be_readv(long fd, const struct iovec *iov, long iovcnt);

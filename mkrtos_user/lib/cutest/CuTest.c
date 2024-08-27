@@ -287,8 +287,14 @@ void CuSuiteRun(CuSuite* testSuite)
 	for (i = 0 ; i < testSuite->count ; ++i)
 	{
 		CuTest* testCase = testSuite->list[i];
+		printf("=======TEST [%s] start=======\n", testCase->name);
 		CuTestRun(testCase);
-		if (testCase->failed) { testSuite->failCount += 1; }
+		if (testCase->failed) {
+			 testSuite->failCount += 1; 
+			printf("=======TEST [%s] failed=======\n", testCase->name);
+		} else {
+			printf("=======TEST [%s] sucess=======\n", testCase->name);
+		}
 	}
 }
 
