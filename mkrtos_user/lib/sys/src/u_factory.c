@@ -86,7 +86,7 @@ msg_tag_t factory_create_ipc(obj_handler_t obj, vpage_t vpage)
 
     return tag;
 }
-msg_tag_t facotry_create_share_mem(obj_handler_t obj, vpage_t vpage, umword_t size)
+msg_tag_t facotry_create_share_mem(obj_handler_t obj, vpage_t vpage, share_mem_type_t mem_type, umword_t size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 
@@ -94,8 +94,8 @@ msg_tag_t facotry_create_share_mem(obj_handler_t obj, vpage_t vpage, umword_t si
                0,
                SHARE_MEM_PROT,
                vpage.raw,
+               mem_type,
                size,
-               0,
                0);
     asm __volatile__(""
                      :

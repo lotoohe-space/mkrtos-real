@@ -99,7 +99,9 @@
         "stdio.h": "c",
         "u_thread_util.h": "c",
         "u_hd_man.h": "c",
-        "u_mm.h": "c"
+        "u_mm.h": "c",
+        "sema.h": "c",
+        "ref.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

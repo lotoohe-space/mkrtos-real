@@ -839,6 +839,7 @@ typedef struct vma_idl_tree_iter_del_params
     size_t size;
     mln_rbtree_t *r_tree;
     mm_space_t *mm_space;
+    bool_t is_free_mem;
 } vma_idl_tree_iter_del_params_t;
 /**
  * @brief 迭代删除
@@ -858,7 +859,10 @@ static int rbtree_iterate_alloc_tree_del(mln_rbtree_node_t *node, void *udata)
         // 解除映射
         unmap_mm(mm_space_get_pdir(param->mm_space),
                  vma_addr_get_addr(node_data->vaddr), PAGE_SHIFT, 1);
-        buddy_free(buddy_get_alloter(), (void *)vma_node_get_paddr(node_data));
+        if (param->is_free_mem)
+        {
+            buddy_free(buddy_get_alloter(), (void *)vma_node_get_paddr(node_data));
+        }
 #if VMA_DEBUG2
         printk("free page: vaddr:0x%lx pmem:0x%lx\n", vma_addr_get_addr(node_data->vaddr), vma_node_get_paddr(node_data));
 #endif
@@ -866,6 +870,28 @@ static int rbtree_iterate_alloc_tree_del(mln_rbtree_node_t *node, void *udata)
         mln_rbtree_delete(param->r_tree, node);
         vma_node_free(param->r_tree, node);
     }
+    return 0;
+}
+/**
+ * @brief 释放掉已经申请的物理内存，但是不释放虚拟内存
+ *
+ * @param task_vma
+ * @param addr
+ * @param size 释放的大小
+ * @param is_free_mem 是否释放内存
+ * @return int
+ */
+int task_vma_free_pmem(task_vma_t *task_vma, vaddr_t addr, size_t size, bool_t is_free_mem)
+{
+    /*释放已经分配的物理内存，并解除mmu的映射*/
+    vma_idl_tree_iter_del_params_t param = {
+        .r_tree = &task_vma->alloc_tree,
+        .mm_space = container_of(task_vma, mm_space_t, mem_vma),
+        .addr = addr,
+        .size = size,
+        .is_free_mem = is_free_mem,
+    };
+    mln_rbtree_iterate(&task_vma->alloc_tree, rbtree_iterate_alloc_tree_del, &param);
     return 0;
 }
 /**
@@ -918,13 +944,7 @@ int task_vma_free(task_vma_t *task_vma, vaddr_t addr, size_t size)
         goto end;
     }
     /*释放已经分配的物理内存，并解除mmu的映射*/
-    vma_idl_tree_iter_del_params_t param = {
-        .r_tree = &task_vma->alloc_tree,
-        .mm_space = container_of(task_vma, mm_space_t, mem_vma),
-        .addr = addr,
-        .size = size,
-    };
-    mln_rbtree_iterate(&task_vma->alloc_tree, rbtree_iterate_alloc_tree_del, &param);
+    task_vma_free_pmem(task_vma, addr, size, TRUE);
     vma_node_set_unused(node_data); // 设置未使用
 #if VMA_DEBUG
     printk("free pre:\n");
@@ -950,11 +970,12 @@ end:
  * 1.查找已经分配的表中是否存在
  * 2.分配物理内存
  * 3.插入到已分配树中去
- * @param task_vma
- * @param addr
- * @return int
+ * @param task_vma 缺页的进程vma
+ * @param addr 缺页的虚拟地址
+ * @param paddr 如果该值不为NULL，则page_fault的物理地址才用该地址
+ * @return int <0 failed, >=0 success
  */
-int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr)
+int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr, void *paddr)
 {
     mln_rbtree_node_t *find_node = NULL;
     vma_t *node_data = NULL;
@@ -964,6 +985,9 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr)
     int ret;
 
     assert(task_vma);
+    assert((((vaddr_t)addr) & (PAGE_SIZE - 1)) == 0);
+    assert((((paddr_t)paddr) & (PAGE_SIZE - 1)) == 0);
+
     lock_status = task_vma_lock(task_vma);
     if (lock_status < 0)
     {
@@ -990,34 +1014,41 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr)
         ret = -ENOENT;
         goto end;
     }
-    // 2.申请物理内存
-    if (vma_addr_get_flags(node_data->vaddr) & VMA_ADDR_RESV)
+    if (!paddr)
     {
-        if (!vma_node_get_paddr(node_data))
+        // 2.申请物理内存
+        if (vma_addr_get_flags(node_data->vaddr) & VMA_ADDR_RESV)
         {
-            mem = NULL;
+            if (!vma_node_get_paddr(node_data))
+            {
+                mem = NULL;
+            }
+            else
+            {
+                mem = (void *)(addr - vma_addr_get_addr(node_data->vaddr) +
+                               vma_node_get_paddr(node_data));
+            }
         }
         else
         {
-            mem = (void *)(addr - vma_addr_get_addr(node_data->vaddr) +
-                           vma_node_get_paddr(node_data));
+            mem = buddy_alloc(buddy_get_alloter(), PAGE_SIZE);
+            if (mem)
+            {
+                memset(mem, 0, PAGE_SIZE);
+#if VMA_DEBUG2
+                printk("alloc pmem:0x%lx\n", mem);
+#endif
+            }
+            else
+            {
+                printk("alloc pmem failed.\n");
+                // mem = buddy_alloc(buddy_get_alloter(), PAGE_SIZE);
+            }
         }
     }
     else
     {
-        mem = buddy_alloc(buddy_get_alloter(), PAGE_SIZE);
-        if (mem)
-        {
-            memset(mem, 0, PAGE_SIZE);
-#if VMA_DEBUG2
-            printk("alloc pmem:0x%lx\n", mem);
-#endif
-        }
-        else
-        {
-            printk("alloc pmem failed.\n");
-            // mem = buddy_alloc(buddy_get_alloter(), PAGE_SIZE);
-        }
+        mem = paddr;
     }
     if (!mem)
     {
@@ -1033,10 +1064,7 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr)
                                  PAGE_SIZE, (paddr_t)mem);
     if (alloc_node == NULL)
     {
-        if (!(vma_addr_get_flags(node_data->vaddr) & VMA_ADDR_RESV))
-        {
-            buddy_free(buddy_get_alloter(), mem);
-        }
+
         ret = -ENOMEM;
         goto end;
     }
@@ -1046,18 +1074,28 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr)
                  vpage_attrs_to_page_attrs(vma_addr_get_prot(node_data->vaddr)));
     if (ret < 0)
     {
-        vma_node_free(&task_vma->alloc_tree, alloc_node);
         ret = -ENOMEM;
-        goto end;
+        goto end2;
     }
 #if VMA_DEBUG2
     printk("page falut: vaddr:0x%lx alloc mem:0x%lx\n", addr, mem);
 #endif
     task_vma->alloc_tree.cmp = vma_idl_tree_insert_cmp_handler;
     mln_rbtree_insert(&task_vma->alloc_tree, alloc_node);
-    flush_all_tlb();
+    flush_all_tlb(); // TODO:
     ret = 0;
+    goto _ok;
+end2:
+    vma_node_free(&task_vma->alloc_tree, alloc_node);
 end:
+    if (!paddr)
+    {
+        if (!(vma_addr_get_flags(node_data->vaddr) & VMA_ADDR_RESV))
+        {
+            buddy_free(buddy_get_alloter(), mem);
+        }
+    }
+_ok:
     task_vma_unlock(task_vma, lock_status);
     return ret;
 }

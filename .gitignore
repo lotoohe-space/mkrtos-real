@@ -3,3 +3,4 @@ build/*
 .config.old
 mkrtos_knl/stm32_link.lds
 benos
+.vscode
