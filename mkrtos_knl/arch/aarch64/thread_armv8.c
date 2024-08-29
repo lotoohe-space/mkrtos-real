@@ -108,7 +108,7 @@ void thread_sync_entry(entry_frame_t *regs)
         case FSC_TRANS_FAULT_LEVEL1:
         case FSC_TRANS_FAULT_LEVEL2:
         case FSC_TRANS_FAULT_LEVEL3:
-            ret = task_vma_page_fault(&tk->mm_space.mem_vma, ALIGN_DOWN(addr, PAGE_SIZE));
+            ret = task_vma_page_fault(&tk->mm_space.mem_vma, ALIGN_DOWN(addr, PAGE_SIZE), NULL);
             if (ret < 0)
             {
                 printk("[knl] inst abort 0x20 pfa:0x%lx\n", addr);
@@ -128,7 +128,7 @@ void thread_sync_entry(entry_frame_t *regs)
         case FSC_TRANS_FAULT_LEVEL1:
         case FSC_TRANS_FAULT_LEVEL2:
         case FSC_TRANS_FAULT_LEVEL3:
-            ret = task_vma_page_fault(&tk->mm_space.mem_vma, ALIGN_DOWN(addr, PAGE_SIZE));
+            ret = task_vma_page_fault(&tk->mm_space.mem_vma, ALIGN_DOWN(addr, PAGE_SIZE), NULL);
             if (ret < 0)
             {
                 dump_stack(regs->pc, regs->regs[29]);

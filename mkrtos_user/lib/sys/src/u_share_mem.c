@@ -2,19 +2,20 @@
 #include "u_prot.h"
 #include "u_types.h"
 #include "u_ipc.h"
+#include "u_vmam.h"
 enum share_mem_op
 {
     SHARE_MEM_MAP,
     SHARE_MEM_UNMAP,
 };
 
-msg_tag_t share_mem_map(obj_handler_t obj, uint8_t attrs, umword_t *addr, umword_t *size)
+msg_tag_t share_mem_map(obj_handler_t obj, vma_addr_t vaddr, umword_t *addr, umword_t *size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     register volatile umword_t r1 asm(ARCH_REG_1);
     register volatile umword_t r2 asm(ARCH_REG_2);
     mk_syscall(syscall_prot_create4(SHARE_MEM_MAP, SHARE_MEM_PROT, obj, FALSE).raw,
-               attrs,
+               vaddr.raw,
                0,
                0,
                0,

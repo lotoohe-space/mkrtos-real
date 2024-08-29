@@ -30,7 +30,7 @@ typedef union vma_addr
     };
 } vma_addr_t;
 
-static inline vma_addr_t vam_addr_create_raw(umword_t raw)
+static inline vma_addr_t vma_addr_create_raw(umword_t raw)
 {
     return (vma_addr_t){
         .raw = raw,

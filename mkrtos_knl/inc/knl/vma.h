@@ -17,7 +17,7 @@ enum vpage_prot_attrs
     VPAGE_PROT_IN_KNL = 0x20,  //!< 内核中使用
 };
 
-#define VMA_ADDR_RESV 0x1    //!< 保留内存
+#define VMA_ADDR_RESV 0x1 //!< 保留内存
 // #define VMA_ADDR_UNCACHE 0x2 //!< uncache内存
 
 #define VMA_USED_NODE 0x1 //!< 该vma节点被使用，非空闲
@@ -33,7 +33,7 @@ typedef union vma_addr
         umword_t addr : (sizeof(void *) * 8 - PAGE_SHIFT);
     };
 } vma_addr_t;
-static inline vma_addr_t vam_addr_create_raw(umword_t raw)
+static inline vma_addr_t vma_addr_create_raw(umword_t raw)
 {
     return (vma_addr_t){
         .raw = raw,
@@ -152,6 +152,17 @@ int task_vma_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma,
 int task_vma_free(task_vma_t *task_vma, vaddr_t addr, size_t size);
 
 /**
+ * @brief 释放掉已经申请的物理内存，但是不释放虚拟内存
+ *
+ * @param task_vma
+ * @param addr
+ * @param size 释放的大小
+ * @param is_free_mem 是否释放内存
+ * @return int
+ */
+int task_vma_free_pmem(task_vma_t *task_vma, vaddr_t addr, size_t size, bool_t is_free_mem);
+
+/**
  * @brief 缺页的处理流程
  * 1.查找已经分配的表中是否存在
  * 2.分配物理内存
@@ -160,7 +171,7 @@ int task_vma_free(task_vma_t *task_vma, vaddr_t addr, size_t size);
  * @param addr
  * @return int
  */
-int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr);
+int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr, void *paddr);
 
 /**
  * @brief 释放task_vma

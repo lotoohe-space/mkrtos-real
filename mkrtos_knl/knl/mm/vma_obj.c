@@ -57,7 +57,7 @@ static void vma_obj_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_
         vaddr_t ret_vaddr = 0;
 
         ret = task_vma_alloc(&tk->mm_space.mem_vma,
-                             vam_addr_create_raw(f->regs[0]), f->regs[1],
+                             vma_addr_create_raw(f->regs[0]), f->regs[1],
                              f->regs[2], &ret_vaddr);
         f->regs[0] = msg_tag_init4(0, 0, 0, ret).raw;
         f->regs[1] = ret_vaddr;
