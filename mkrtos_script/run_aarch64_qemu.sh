@@ -1,9 +1,13 @@
 #!/bin/bash
 
 # -machine virt,virtualization=on,gic-version=2,highmem=off,secure=off,dumpdtb=virt.dtb
+# -display gtk,gl=on
+# -drive file=$XXX,if=none,format=raw,id=hd0 -device virtio-blk-device,drive=hd0
+# -device virtio-net-device,netdev=net0 -netdev user,id=net0,hostfwd=tcp::$2-:6666 -object filter-dump,id=f1, netdev=net0,file=dump.dat
+	# -device virtio-gpu-pci \
 qemu-system-aarch64 \
-	-machine virt,virtualization=on,gic-version=2,highmem=off,secure=off\
- 	-cpu cortex-a53 \
+	-machine virt,virtualization=on,gic-version=2,highmem=off,secure=off \
+ 	-cpu cortex-a57 \
   	-nographic \
 	-m size=512 \
 	-smp 4\

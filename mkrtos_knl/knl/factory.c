@@ -119,7 +119,7 @@ static msg_tag_t factory_create_map(kobject_t *kobj, task_t *tk, entry_frame_t *
     {
         if (new_kobj->kobj_type == THREAD_TYPE)
         {
-            mm_limit_free_align(tk->lim, new_kobj, THREAD_BLOCK_SIZE);
+            mm_limit_free_align(tk->lim, new_kobj, CONFIG_THREAD_BLOCK_SIZE);
         }
         else
         {

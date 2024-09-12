@@ -5,8 +5,8 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b)) //!< 最小值
 #define MAX(a, b) ((a) > (b) ? (a) : (b)) //!< 最大值
 
-#define MK_SET_BIT(a, b) ((a) |= 1 << (b))    //!< 设置BIT
-#define MK_CLR_BIT(a, b) ((a) &= ~(1 << (b))) //!< 清除BIT
+#define MK_SET_BIT(a, b) ((a) |= 1UL << (b))    //!< 设置BIT
+#define MK_CLR_BIT(a, b) ((a) &= ~(1UL << (b))) //!< 清除BIT
 #define MK_GET_BIT(a, b) (((a) >> (b)) & 0x1) //!< 获取某位的bit
 #define ABS(a) ((a) < 0 ? -(a) : (a))         //!< 取绝对值
 
@@ -29,9 +29,11 @@
 #define __WEAK__ __attribute__((weak))
 
 #define container_of(ptr, type, member) \
-    ((type *)(((umword_t)(ptr)) - ((umword_t)(&(((type *)0)->member)))))
+    ((type *)(((unsigned long)(ptr)) - ((unsigned long)(&(((type *)0)->member)))))
+
 
 #define USED __attribute__((used))
+#define UNUSED __attribute__((unused))
 
 #define __ARG_PLACEHOLDER_1 0,
 #define __take_second_arg(__ignored, val, ...) val

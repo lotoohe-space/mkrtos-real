@@ -15,6 +15,7 @@ typedef struct task
     obj_space_t obj_space;
     mm_space_t mm_space;
     ram_limit_t *lim;
+    kobject_t *exec_th;
     ref_counter_t ref_cn;
     slist_head_t del_node;
     pid_t pid;

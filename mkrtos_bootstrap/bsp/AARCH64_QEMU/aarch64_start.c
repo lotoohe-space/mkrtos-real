@@ -21,9 +21,12 @@ void jump2kernel(addr_t cpio_start, addr_t cpio_end)
         while (1)
             ;
     }
-    Elf64_Addr entry;
+    Elf64_Addr entry = 0;
 
     elf_load_knl(knl_st_addr, &entry);
+    if (entry == 0) {
+        uart_write_str("not find knl image...\n");
+    }
     main_func entry_fun = (main_func)entry;
     knl_entry = entry;
     entry_fun((mword_t)cpio_start);

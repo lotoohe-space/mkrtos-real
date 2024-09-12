@@ -67,6 +67,10 @@ SECTIONS
     _sdata = .;
     *(.data)
     *(.data*)
+    . = ALIGN(0x4);
+  _pre_cpu_data_start = .;
+  KEEP (*(.data.per_cpu))
+  _pre_cpu_data_end = .;
     . = ALIGN(4);
     _edata = .;
   } >RAM AT> FLASH

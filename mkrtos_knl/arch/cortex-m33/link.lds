@@ -1,8 +1,8 @@
 ENTRY(Reset_Handler)
 MEMORY
 {
-  RAM (arw) : ORIGIN = 0x20000000, LENGTH = 0x800000
-  FLASH (arx) : ORIGIN = 0x8000000 + 0x2000, LENGTH = 0x10000 - 0x2000
+  RAM (arw) : ORIGIN = 0x20000000, LENGTH = 0x10000
+  FLASH (arx) : ORIGIN = 0x00000000 + 0x2000, LENGTH = 0x10000 - 0x2000
 }
 SECTIONS
 {
@@ -67,6 +67,10 @@ SECTIONS
     _sdata = .;
     *(.data)
     *(.data*)
+    . = ALIGN(0x4);
+  _pre_cpu_data_start = .;
+  KEEP (*(.data.per_cpu))
+  _pre_cpu_data_end = .;
     . = ALIGN(4);
     _edata = .;
   } >RAM AT> FLASH

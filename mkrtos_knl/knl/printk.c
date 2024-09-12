@@ -9,10 +9,10 @@
  *
  */
 #include "printk.h"
-#include "stdarg.h"
-#include "xprintf.h"
 #include "spinlock.h"
+#include "stdarg.h"
 #include "uart/uart.h"
+#include "xprintf.h"
 
 static spinlock_t lock;
 static char print_cache[CONFIG_PRINTK_CACHE_SIZE];
@@ -24,8 +24,7 @@ static char print_cache[CONFIG_PRINTK_CACHE_SIZE];
  */
 static void print_raw(const char *str)
 {
-    for (int i = 0; str[i]; i++)
-    {
+    for (int i = 0; str[i]; i++) {
         uart_putc(uart_get_global(), str[i]);
     }
 }
@@ -60,3 +59,5 @@ void printk(const char *fmt, ...)
     print_raw(print_cache);
     spinlock_set(&lock, state);
 }
+
+

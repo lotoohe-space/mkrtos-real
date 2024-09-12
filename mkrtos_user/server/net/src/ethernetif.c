@@ -44,9 +44,12 @@ static err_t low_level_init(struct netif *netif)
 	msg_tag_t tag;
 	send_shm_hd = handler_alloc();
 	assert(send_shm_hd != HANDLER_INVALID);
-	tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, send_shm_hd), 2048);
+	tag = facotry_create_share_mem(FACTORY_PROT,
+								   vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, send_shm_hd), SHARE_MEM_CNT_BUDDY_CNT,
+								   2048);
 	assert(msg_tag_get_prot(tag) >= 0);
-	tag = share_mem_map(send_shm_hd, 3, &send_shm_addr, &send_shm_size);
+	tag = share_mem_map(send_shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0),
+						&send_shm_addr, &send_shm_size);
 	assert(msg_tag_get_prot(tag) >= 0);
 
 	return ERR_OK;

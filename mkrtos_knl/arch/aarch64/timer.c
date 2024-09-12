@@ -65,7 +65,7 @@ static void enable_timer_interrupt(int inx)
 }
 void timer_init(int cpu)
 {
-	assert(irq_alloc(GENERIC_TIMER_IRQ, NULL, systick_handler));
+	irq_alloc(GENERIC_TIMER_IRQ, NULL, systick_handler);
 
 	arch_timer_rate = generic_timer_get_freq();
 	arch_timer_rate /= CONFIG_SYS_SCHE_HZ;
@@ -75,7 +75,7 @@ void timer_init(int cpu)
 
 	gic2_set_unmask(arm_gicv2_get_global(), GENERIC_TIMER_IRQ);
 	gic2_set_target_cpu(arm_gicv2_get_global(), GENERIC_TIMER_IRQ, 1 << cpu);
-	printk("cpu:%d timer dis:0x%x\n", arch_get_current_cpu_id(),
+	printk("cpu:%d timer dis:0x%x\n", cpu,
 		   gic2_get_target_cpu(arm_gicv2_get_global(), GENERIC_TIMER_IRQ));
 }
 void handle_timer_irq(void)

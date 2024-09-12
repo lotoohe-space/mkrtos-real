@@ -98,7 +98,7 @@ long be_clock_nanosleep(clockid_t clock_id,
     {
         return -EINVAL;
     }
-    ms = (req->tv_sec * 1000000) + (req->tv_nsec / 1000);
+    ms = (req->tv_sec * 1000) + (req->tv_nsec / 1000000);
     u_sleep_ms(ms);
     return 0;
 }
@@ -113,9 +113,18 @@ long sys_clock_nanosleep(va_list ap)
 
     return be_clock_nanosleep(clock_id, flags, req, rem);
 }
+long sys_nanosleep(va_list ap)
+{
+    const struct timespec *req;
+    struct timespec *rem;
+
+    ARG_2_BE(ap, req, typeof(req), rem, typeof(rem));
+
+    return be_clock_nanosleep(0, 0, req, rem);
+}
 long be_clock_gettime(clockid_t clk_id, struct timespec *tp)
 {
-    #define NCLOCKS 4
+#define NCLOCKS 4
     if (clk_id >= NCLOCKS)
     {
         return -ENODEV;

@@ -3,7 +3,7 @@
 .thumb
 
 .global mpu_switch_to
-.global sched_reset
+.global scheduler
 
 .global PendSV_Handler
 .type PendSV_Handler, %function
@@ -22,7 +22,7 @@ PendSV_Handler:
 	mov r2, lr
 
 	push {r4}
-	ldr r4, =sched_reset
+	ldr r4, =scheduler
 	ldr r4, [r4]
 	//! psp为零时，立刻调度一次
 	CBZ r4, thread_sche

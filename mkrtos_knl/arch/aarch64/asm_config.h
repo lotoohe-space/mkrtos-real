@@ -2,7 +2,6 @@
 #define __ASM_CONFIG_H__
 
 #include "asm/mm.h"
-#include "thread_arch.h"
 #define SUPPORT_SMP CONFIG_SMP
 #define SYS_CPU_NUM CONFIG_CPU //!< 系统cpu数量
 

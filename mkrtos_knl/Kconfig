@@ -23,14 +23,15 @@ endif
     config PAGE_SHIFT
         int "page shift"
         default 9
+    config PSCI
+        bool "support psci"
+        default n
     config SMP
         bool "support smp."
         default n
-if SMP
     config CPU
         int "CPU Core number."
         default 1
-endif
     config THREAD_MSG_BUG_LEN
         int "thread msg buf size"
         default 128
@@ -40,6 +41,9 @@ endif
     config THREAD_MAP_BUF_LEN
         int "thread ipc map buf max size."
         default 16
+    config THREAD_USER_BUF_LEN
+        int "thread user buf max size(words)."
+        default 4
     config BUDDY_SLAB
         bool "use BUDDY & SLAB"
         default n
@@ -94,6 +98,11 @@ if MK_MPU_CFG
 endif
 endif
 
+config VCPU
+    bool "enable vcpu support"
+    default n
+    help 
+        enable thread vcpu support.
 
 config FT_ADDR_NR
     int "The number of addresses supported by futex."

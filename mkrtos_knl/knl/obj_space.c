@@ -72,7 +72,7 @@ obj_map_entry_t *obj_space_insert(obj_space_t *obj_space, ram_limit_t *ram, kobj
         {
             return NULL;
         }
-        // memset(obj_space->tab.tabs[tab_inx], 0, sizeof(obj_map_item_t));
+        memset(obj_space->tab.tabs[tab_inx], 0, sizeof(obj_map_item_t));
     }
     obj_map_entry_t *entry = &obj_space->tab.tabs[tab_inx]->items[entry_inx];
 

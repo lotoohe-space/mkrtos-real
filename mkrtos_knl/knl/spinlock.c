@@ -14,24 +14,40 @@
 #include <arch.h>
 #include <util.h>
 #if IS_ENABLED(CONFIG_SMP)
-#include <atomics.h>
 #include <spinlock_arch.h>
 #endif
+#include <atomics.h>
 void spinlock_init(spinlock_t *lock)
 {
     lock->val &= ~3UL;
 }
 void spinlock_invalidate(spinlock_t *lock)
 {
-    // TODO:原子操作
-    umword_t status = 0;
-    status = cpulock_lock();
-    lock->val |= 1UL;
-    cpulock_set(status);
+    atomic_or(&lock->val, 1UL);
 }
 bool_t spinlock_is_invalidation(spinlock_t *lock)
 {
     return lock->val & 1UL;
+}
+mword_t spinlock_status(spinlock_t *lock)
+{
+    return !!(lock->val & 0x2UL);
+}
+mword_t spinlock_try_lock(spinlock_t *lock)
+{
+    umword_t status = 0;
+
+    status = cpulock_lock();
+    if (spinlock_is_invalidation(lock))
+    {
+        cpulock_set(status);
+        return -1;
+    }
+#if IS_ENABLED(CONFIG_SMP)
+    status = spinlock_try_lock_arch(lock);
+    _dmb(ish);
+#endif
+    return status;
 }
 mword_t spinlock_lock(spinlock_t *lock)
 {

@@ -8,7 +8,7 @@
 #include <printk.h>
 #include <assert.h>
 #include <spinlock.h>
-
+#include <string.h>
 static buddy_entry_t *buddy_entry_simp_slab;
 static size_t buddy_entry_cn = 0;
 static buddy_order_t buddy_kmem;
@@ -19,6 +19,10 @@ static inline void buddy_entry_set_use_state(buddy_entry_t *be, bool_t state)
 {
     be->addr &= ~0x2ULL;
     be->addr |= (!!state) << 1;
+}
+static inline int buddy_entry_get_use_state(buddy_entry_t *be)
+{
+    return !!(be->addr & 0x2ULL);
 }
 static inline void buddy_entry_set_valid_state(buddy_entry_t *be, bool_t state)
 {
@@ -57,6 +61,7 @@ static buddy_entry_t *buddy_entry_alloc(void)
             return &buddy_entry_simp_slab[i];
         }
     }
+    assert(0);
     return NULL;
 }
 static void buddy_entry_free(buddy_entry_t *be)
@@ -68,12 +73,16 @@ buddy_order_t *buddy_get_alloter(void)
 {
     return &buddy_kmem;
 }
-
+#define BUDDY_MAX_BYTES (1 << (CONFIG_PAGE_SHIFT + BUDDY_MAX_ORDER))
 int buddy_init(buddy_order_t *buddy, addr_t start_addr, size_t size)
 {
     assert(buddy);
 
-    if ((start_addr & (PAGE_SIZE - 1)) != 0)
+    if (start_addr % BUDDY_MAX_BYTES)
+    {
+        return -1;
+    }
+    if (size % BUDDY_MAX_BYTES)
     {
         return -1;
     }
@@ -82,26 +91,17 @@ int buddy_init(buddy_order_t *buddy, addr_t start_addr, size_t size)
     {
         slist_init(&buddy->order_tab[i].b_order);
     }
-    size_t entry_cn = 0;
+    size_t entry_cn = (size / BUDDY_MAX_BYTES) << (BUDDY_MAX_ORDER - 1);
 
-    int iffs = ffs(size);
-    if (!is_power_of_2(iffs))
-    {
-        iffs++;
-    }
-    while (iffs >= PAGE_SHIFT)
-    {
-        entry_cn += ((1UL << iffs) >> PAGE_SHIFT);
-        iffs--;
-    }
     buddy_entry_simp_slab = (void *)start_addr;
-    size_t entrys_size = ALIGN(entry_cn * (sizeof(buddy_entry_t)), PAGE_SIZE);
+    size_t entrys_size = ALIGN(entry_cn * (sizeof(buddy_entry_t)), BUDDY_MAX_BYTES);
     start_addr += entrys_size;
     size -= entrys_size;
     buddy->heap_addr = start_addr;
     buddy_entry_cn = entry_cn;
 
-    printk("buddy mem size:%dMB\n", size / 1024 / 1024);
+    printk("buddy start addr:[0x%lx - 0x%lx], buddy mem size:%dMB\n", start_addr,
+           start_addr + size - 1, size / 1024 / 1024);
 
     size_t remain_size = size;
     addr_t add_addr = buddy->heap_addr;
@@ -109,24 +109,17 @@ int buddy_init(buddy_order_t *buddy, addr_t start_addr, size_t size)
     // 内存分布到不同地order中=
     while (remain_size)
     {
-        int i_ffs = ffs(remain_size);
-        i_ffs -= PAGE_SHIFT;
-        if (i_ffs >= BUDDY_MAX_ORDER)
-        {
-            i_ffs = BUDDY_MAX_ORDER;
-        }
-
         buddy_entry_t *new_be = buddy_entry_alloc();
         if (!new_be)
         {
             return -1;
         }
         buddy_entry_init(new_be, add_addr);
-        slist_add(&buddy->order_tab[i_ffs == 0 ? 1 : i_ffs - 1].b_order, &new_be->next);
-        buddy->order_tab[i_ffs - 1].nr_free++;
+        slist_add(&buddy->order_tab[BUDDY_MAX_ORDER - 1].b_order, &new_be->next);
+        buddy->order_tab[BUDDY_MAX_ORDER - 1].nr_free++;
 
-        remain_size -= to_size(i_ffs);
-        add_addr += to_size(i_ffs);
+        remain_size -= BUDDY_MAX_BYTES;
+        add_addr += BUDDY_MAX_BYTES;
     }
     buddy->heap_size = size;
     return 0;
@@ -158,13 +151,16 @@ static buddy_entry_t *buddy_order_div(buddy_order_t *buddy, mword_t st_order)
     assert(st_order < BUDDY_MAX_ORDER);
     assert(st_order > 0);
 
+    // 找到一个空的
     buddy_entry_t *free_b = buddy_order_find_free(&buddy->order_tab[st_order]);
 
     if (!free_b)
     {
         return NULL;
     }
+    // 设置被使用
     buddy_entry_set_use_state(free_b, TRUE);
+    // 可用数量-1
     buddy->order_tab[st_order].nr_free--;
 
     buddy_entry_t *new_l = buddy_entry_alloc();
@@ -176,6 +172,12 @@ static buddy_entry_t *buddy_order_div(buddy_order_t *buddy, mword_t st_order)
         {
             buddy_entry_free(new_l);
         }
+        if (new_l)
+        {
+            buddy_entry_free(new_r);
+        }
+        buddy_entry_set_use_state(free_b, FALSE);
+        buddy->order_tab[st_order].nr_free++;
         return NULL;
     }
 
@@ -185,8 +187,8 @@ static buddy_entry_t *buddy_order_div(buddy_order_t *buddy, mword_t st_order)
     new_r->parent = free_b;
     buddy_entry_init(new_l, div_addr);
     buddy_entry_init(new_r, div_addr + to_size(st_order - 1));
-    buddy_entry_set_lr(new_l, TRUE);
-    buddy_entry_set_lr(new_r, FALSE);
+    buddy_entry_set_lr(new_l, TRUE);  // 设置为左边
+    buddy_entry_set_lr(new_r, FALSE); // 设置为右边
     slist_add(&buddy->order_tab[st_order - 1].b_order, &new_l->next);
     slist_add(&buddy->order_tab[st_order - 1].b_order, &new_r->next);
 
@@ -232,6 +234,7 @@ void *buddy_alloc(buddy_order_t *buddy, size_t size)
         // 有空闲的直接分配
         buddy_entry_t *free_b = buddy_order_find_free(&buddy->order_tab[need_ffs]);
 
+        assert(free_b);
         buddy->order_tab[need_ffs].nr_free--;
         buddy_entry_set_use_state(free_b, TRUE);
         ret_mem = (void *)BUDDY_ENTRY_ADDR(free_b);
@@ -272,7 +275,7 @@ void *buddy_alloc(buddy_order_t *buddy, size_t size)
     }
 end:
     spinlock_set(&buddy->lock, l_state);
-    //printk("alloc addr 0x%x.\n", ret_mem);
+    // printk("alloc addr 0x%x.\n", ret_mem);
     return ret_mem;
 }
 static inline addr_t get_buddy_addr(buddy_entry_t *merge_be, size_t size)
@@ -315,6 +318,10 @@ static buddy_entry_t *buddy_merge(buddy_order_t *buddy, buddy_entry_t *merge_be,
     {
         return NULL;
     }
+    if (buddy_entry_get_use_state(merge_be))
+    {
+        return NULL;
+    }
     addr_t buddy_addr = get_buddy_addr(merge_be, to_size(st_ffs));
     buddy_entry_t *tmp = NULL;
 
@@ -326,8 +333,9 @@ static buddy_entry_t *buddy_merge(buddy_order_t *buddy, buddy_entry_t *merge_be,
             {
                 return NULL;
             }
-            // assert(!BUDDY_ENTRY_USED(tmp));
             assert(BUDDY_ENTRY_VALID(tmp));
+
+            buddy_entry_t *merge_node;
             addr_t buddy_st_addr = get_buddy_start(tmp, to_size(st_ffs));
 
             slist_del(&merge_be->next);
@@ -337,9 +345,19 @@ static buddy_entry_t *buddy_merge(buddy_order_t *buddy, buddy_entry_t *merge_be,
             assert(tmp->parent);
             buddy_entry_set_use_state(tmp, FALSE);
 
-            buddy_entry_free(merge_be);
-            buddy_entry_free(tmp);
+            if (BUDDY_ENTRY_IS_L(merge_be))
+            {
+                merge_node = merge_be;
+                buddy_entry_free(tmp);
+            }
+            else
+            {
+                merge_node = tmp;
+                buddy_entry_free(merge_be);
+            }
+            buddy_entry_init(merge_node, buddy_st_addr);
             buddy->order_tab[st_ffs + 1].nr_free++;
+            slist_add(&buddy->order_tab[st_ffs + 1].b_order, &merge_node->next);
             return tmp->parent;
         }
     }

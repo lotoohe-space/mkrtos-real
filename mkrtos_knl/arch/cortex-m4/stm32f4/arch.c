@@ -16,14 +16,14 @@
 #include "thread.h"
 #include "mk_sys.h"
 #include "mpu.h"
-__ALIGN__(THREAD_BLOCK_SIZE)
-static uint8_t thread_knl_stack[THREAD_BLOCK_SIZE] = {0};
-void *_estack = thread_knl_stack + THREAD_BLOCK_SIZE;
+__ALIGN__(CONFIG_THREAD_BLOCK_SIZE)
+static uint8_t thread_knl_stack[CONFIG_THREAD_BLOCK_SIZE] = {0};
+void *_estack = thread_knl_stack + CONFIG_THREAD_BLOCK_SIZE;
 
 #define REG0_ADDR 0xE000ED22
 #define REG1_ADDR 0xE000ED04
 
-void to_sche(void)
+void arch_to_sche(void)
 {
     // 开启pensv中断
     write_reg(REG1_ADDR, 0x10000000);

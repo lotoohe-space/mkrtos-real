@@ -1,3 +1,13 @@
+/**
+ * @file u_thread_util.c
+ * @author ATShining (1358745329@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-08-27
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include <assert.h>
 #include <errno.h>
 #include <u_factory.h>
@@ -58,4 +68,8 @@ int u_thread_create(obj_handler_t *th_hd, void *stack, void *msg_buf, void (*thr
 int u_thread_run(obj_handler_t th_hd, int prio)
 {
     return msg_tag_get_val(thread_run(th_hd, prio));
+}
+int u_thread_run_cpu(obj_handler_t th_hd, int prio, int cpu)
+{
+    return msg_tag_get_val(thread_run_cpu(th_hd, prio, cpu));
 }

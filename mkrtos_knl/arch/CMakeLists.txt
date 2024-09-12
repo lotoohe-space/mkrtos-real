@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-add_subdirectory(${ARCH})
+add_subdirectory(${CONFIG_ARCH})
 
 

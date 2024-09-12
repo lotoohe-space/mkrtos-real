@@ -8,14 +8,13 @@
  */
 #pragma once
 
-#include "printk.h"
 #include "mm_wrap.h"
+#include "printk.h"
 #define assert(cond)                                       \
-    do                                                     \
-    {                                                      \
-        if (!(cond))                                       \
-        {                                                  \
-            printk("%s:%d %s", __FILE__, __LINE__, #cond); \
+    do {                                                   \
+        if (!(cond)) {                                     \
+            printk("\n%s:%d %s\n", __FILE__, __LINE__, #cond); \
+            dumpstack();                                   \
             mm_trace();                                    \
             while (1)                                      \
                 ;                                          \

@@ -19,15 +19,15 @@ int main(int argc, char *args[])
 {
     printf("argc:%d args[0]:%s\n", argc, args[0]);
 
-#if 0
-    malloc_test();
-    rpc_test();
-    ns_test();
-    irq_test();
-    printf("%s: please input str.\n", args[0]);
-    scanf("%s", data);
-    printf("%s\n", data);
-    fs_test();
+#if 1
+    // malloc_test();
+    // rpc_test();
+    // ns_test();
+    // irq_test();
+    // printf("%s: please input str.\n", args[0]);
+    // scanf("%s", data);
+    // printf("%s\n", data);
+    // fs_test();
 #endif
     return 0;
 }

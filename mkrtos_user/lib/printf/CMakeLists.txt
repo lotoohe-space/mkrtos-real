@@ -75,13 +75,8 @@ src/printf/printf.h)
 target_compile_definitions(printf PRIVATE PRINTF_INCLUDE_CONFIG_H)
 target_include_directories(printf PRIVATE 
 "$<BUILD_INTERFACE:${GENERATED_INCLUDE_DIR}>"
-${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/arm/
-${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/arch/generic
-${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/src/internal
-${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/include
-${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/src/internal
-${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/obj/include
-${CMAKE_SOURCE_DIR}/mkrtos_user/lib/mlibc/include
+${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
+${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc/
 )
 
 # set_property(TARGET printf PROPERTY C_STANDARD 99)
@@ -143,7 +138,8 @@ if (UNIX)
 endif()
 target_link_libraries(
 	printf
-	muslc
+	${LIBC_NAME}
+	sys
 )
 
 # -------------------------

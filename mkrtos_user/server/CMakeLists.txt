@@ -8,11 +8,6 @@ if (${ARCH_NAME} STREQUAL "armv7_8m")
     set(START_INIT_LIB start_init)
 
     # add_subdirectory(app)
-    add_subdirectory(hello)
-    add_subdirectory(drv)
-    add_subdirectory(test)
-    # add_subdirectory(net)
-    # add_subdirectory(tcc-0.9.27)
 elseif(${CONFIG_ARCH} STREQUAL "aarch64" )
     set(
         START_LIB
@@ -32,9 +27,14 @@ elseif(${CONFIG_ARCH} STREQUAL "aarch64" )
         ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crti.o 
         ${CMAKE_SOURCE_DIR}/build/libc/output/lib/crtn.o
     )
+
+    add_subdirectory(uvmm)
+    add_subdirectory(test)
 endif()
 add_subdirectory(init)
 add_subdirectory(shell)
 add_subdirectory(tinycc-arm-thumb)
 add_subdirectory(fs)
+add_subdirectory(drv)
+add_subdirectory(net)
 

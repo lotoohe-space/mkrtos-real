@@ -9,19 +9,19 @@
  *
  */
 
-#include "types.h"
+#include "app.h"
+#include "arch.h"
+#include "factory.h"
+#include "globals.h"
 #include "init.h"
+#include "knl_misc.h"
+#include "map.h"
+#include "mm_wrap.h"
 #include "printk.h"
 #include "task.h"
 #include "thread.h"
-#include "factory.h"
-#include "globals.h"
-#include "arch.h"
-#include "map.h"
-#include "app.h"
-#include "mm_wrap.h"
 #include "thread_task_arch.h"
-#include "knl_misc.h"
+#include "types.h"
 #include <assert.h>
 #if IS_ENABLED(CONFIG_KNL_TEST)
 #include <knl_test.h>
@@ -34,8 +34,7 @@
 #endif
 #include <cpio.h>
 
-static uint8_t knl_msg_buf[THREAD_MSG_BUG_LEN];
-static thread_t *knl_thread;
+static uint8_t knl_msg_buf[CONFIG_CPU][THREAD_MSG_BUG_LEN];
 static task_t knl_task;
 static thread_t *init_thread;
 static task_t *init_task;
@@ -48,18 +47,16 @@ static void knl_main(void)
     umword_t status;
     umword_t status2;
     printk("knl main run..\n");
-    while (1)
-    {
+    while (1) {
         task_t *pos;
 
-        if (slist_is_empty(&del_task_head))
-        {
+        if (slist_is_empty(&del_task_head)) {
+            cpu_sleep();
             continue;
         }
 
         status2 = spinlock_lock(&del_lock);
-        if (slist_is_empty(&del_task_head))
-        {
+        if (slist_is_empty(&del_task_head)) {
             spinlock_set(&del_lock, status2);
             continue;
         }
@@ -77,8 +74,7 @@ static void knl_main(void)
                 int ret = thread_ipc_call(init_thread, msg_tag_init4(0, 3, 0, 0x0005 /*PM_PROT*/),
                                           &tag, ipc_timeout_create2(3000, 3000), &user_id, TRUE);
 
-                if (ret < 0)
-                {
+                if (ret < 0) {
                     printk("%s:%d ret:%d\n", __func__, __LINE__, ret);
                 }
             }
@@ -92,19 +88,23 @@ static void knl_main(void)
  * 初始化内核线程
  * 初始化内核任务
  */
-static void knl_init_1(void)
+void knl_init_1(void)
 {
+    thread_t *knl_thread;
+
     knl_thread = thread_get_current();
 
-    thread_init(knl_thread, &root_factory_get()->limit);
+    thread_init(knl_thread, &root_factory_get()->limit, FALSE);
     task_init(&knl_task, &root_factory_get()->limit, TRUE);
     task_knl_init(&knl_task);
+    kobject_set_name(&knl_task.kobj, "tk_knl");
     thread_knl_pf_set(knl_thread, knl_main);
     thread_bind(knl_thread, &knl_task.kobj);
-    thread_set_msg_buf(knl_thread, knl_msg_buf, knl_msg_buf);
+    kobject_set_name(&knl_thread->kobj, "th_knl");
+    thread_set_msg_buf(knl_thread, knl_msg_buf[arch_get_current_cpu_id()],
+                       knl_msg_buf[arch_get_current_cpu_id()]);
+    knl_thread->cpu = arch_get_current_cpu_id();
     thread_ready(knl_thread, FALSE);
-
-    slist_init(&del_task_head);
 }
 INIT_STAGE1(knl_init_1);
 
@@ -117,7 +117,7 @@ INIT_STAGE1(knl_init_1);
 static void knl_init_2(void)
 {
     mm_trace();
-
+    slist_init(&del_task_head);
 #if IS_ENABLED(CONFIG_KNL_TEST)
     knl_test();
 #else
@@ -125,9 +125,9 @@ static void knl_init_2(void)
     umword_t ret_addr;
     size_t size;
 
-    init_thread = thread_create(&root_factory_get()->limit);
+    init_thread = thread_create(&root_factory_get()->limit, FALSE);
     assert(init_thread);
-     init_task = task_create(&root_factory_get()->limit, FALSE);
+    init_task = task_create(&root_factory_get()->limit, FALSE);
     assert(init_task);
 
 #if IS_ENABLED(CONFIG_ELF_LAUNCH)
@@ -162,11 +162,9 @@ static void knl_init_2(void)
     thread_bind(init_thread, &init_task->kobj);
     assert(obj_map_root(&init_thread->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, THREAD_PROT)));
     assert(obj_map_root(&init_task->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, TASK_PROT)));
-    for (int i = FACTORY_PORT_START; i < FACTORY_PORT_END; i++)
-    {
+    for (int i = FACTORY_PORT_START; i < FACTORY_PORT_END; i++) {
         kobject_t *kobj = global_get_kobj(i);
-        if (kobj)
-        {
+        if (kobj) {
             assert(obj_map_root(kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, i)));
         }
     }
@@ -180,8 +178,7 @@ INIT_STAGE2(knl_init_2);
 void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
 {
     task_t *task = container_of(kill_thread->task, task_t, kobj);
-    if (!is_knl)
-    {
+    if (!is_knl) {
         printk("kill task:0x%x, pid:%d\n", task, task->pid);
         umword_t status2;
 
@@ -189,9 +186,7 @@ void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
         status2 = spinlock_lock(&del_lock);
         slist_add_append(&del_task_head, &task->del_node);
         spinlock_set(&del_lock, status2);
-    }
-    else
-    {
+    } else {
         printk("[knl]: knl panic.\n");
         assert(0);
     }
@@ -210,8 +205,7 @@ static void print_mkrtos_info(void)
         "                                                            \\|_________|\r\n",
         "Complie Time:" __DATE__ " " __TIME__ "\r\n",
     };
-    for (umword_t i = 0; i < sizeof(start_info) / sizeof(void *); i++)
-    {
+    for (umword_t i = 0; i < sizeof(start_info) / sizeof(void *); i++) {
         printk(start_info[i]);
     }
 }
@@ -227,12 +221,11 @@ void start_kernel(void)
     print_mkrtos_info();
     cli();
     sys_startup(); //!< 开始调度
-    thread_sched(TRUE);
-    // to_sche();
+    thread_sched(FALSE);
+    arch_to_sche();
     sti();
 
-    while (1)
-    {
-        // knl_main();
+    while (1) {
+        knl_main();
     }
 }

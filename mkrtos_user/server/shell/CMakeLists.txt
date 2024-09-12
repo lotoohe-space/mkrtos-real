@@ -10,8 +10,8 @@ target_link_libraries(sh.elf
     PUBLIC
     -Bstatic
     ${LIBC_NAME}
-    ${START_LIB}
     --whole-archive
+    ${START_LIB}
     libc_be
     sys
     sys_util

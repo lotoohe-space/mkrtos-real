@@ -1,4 +1,5 @@
 #include "file_desc.h"
+static file_desc_t fd_list[FILE_DESC_NR];
 
 file_desc_t *fd_alloc(ns_node_t *node)
 {

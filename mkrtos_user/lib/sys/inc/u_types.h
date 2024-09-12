@@ -14,6 +14,7 @@ typedef char bool_t;
 typedef unsigned long obj_addr_t;
 typedef long obj_handler_t;
 typedef umword_t addr_t;
+typedef umword_t paddr_t;
 
 /**
  * @brief 资源描述符定义

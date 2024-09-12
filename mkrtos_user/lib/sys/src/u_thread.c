@@ -11,6 +11,7 @@ enum thread_op
     MSG_BUG_SET,
     YIELD,
     DO_IPC,
+    SET_EXEC,
 };
 enum IPC_TYPE
 {
@@ -172,14 +173,14 @@ msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t
 
     return tag;
 }
-msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
+msg_tag_t thread_run_cpu(obj_handler_t obj, uint8_t prio, umword_t cpu)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create4(RUN_THREAD, THREAD_PROT, obj, TRUE).raw,
                0,
                prio,
-               0,
+               cpu,
                0,
                0,
                0);
@@ -198,6 +199,24 @@ msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj)
     mk_syscall(syscall_prot_create(BIND_TASK, THREAD_PROT, obj).raw,
                0,
                tk_obj,
+               0,
+               0,
+               0, 0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0);
+    msg_tag_t tag = msg_tag_init(r0);
+
+    return tag;
+}
+msg_tag_t thread_set_exec(obj_handler_t obj, obj_handler_t exec_th)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+
+    mk_syscall(syscall_prot_create(SET_EXEC, THREAD_PROT, obj).raw,
+               exec_th,
+               0,
                0,
                0,
                0, 0);

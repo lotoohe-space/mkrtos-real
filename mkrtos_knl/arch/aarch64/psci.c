@@ -45,7 +45,7 @@ static umword_t psci_func(umword_t func_id)
     }
 }
 
-static inline void psci_call(
+ __attribute__((optimize(0))) static inline void psci_call(
     umword_t func_id,
     umword_t res[4],
     umword_t arg0,

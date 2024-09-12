@@ -5,12 +5,14 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <CuTest.h>
+
 static pthread_cond_t cond;
 static pthread_mutex_t mutex;
 static int cond_value;
 static int quit;
 
-void *thread_signal(void *arg)
+static void *thread_signal(void *arg)
 {
     while (!quit)
     {
@@ -23,7 +25,7 @@ void *thread_signal(void *arg)
     }
 }
 
-void *thread_wait(void *arg)
+static void *thread_wait(void *arg)
 {
     while (!quit)
     {
@@ -41,9 +43,9 @@ void *thread_wait(void *arg)
     }
 }
 
-pthread_t tid1;
-pthread_t tid2;
-int pthread_cond_lock_test(void)
+static pthread_t tid1;
+static pthread_t tid2;
+static void pthread_cond_lock_test(CuTest *cu)
 {
 
     pthread_cond_init(&cond, NULL);
@@ -61,5 +63,12 @@ int pthread_cond_lock_test(void)
     pthread_cond_destroy(&cond);
     pthread_mutex_destroy(&mutex);
 
-    return 0;
+}
+CuSuite *pthread_cond_lock_test_suite(void)
+{
+    CuSuite *suite = CuSuiteNew();
+
+    SUITE_ADD_TEST(suite, pthread_cond_lock_test);
+
+    return suite;
 }

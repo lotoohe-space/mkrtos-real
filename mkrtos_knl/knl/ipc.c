@@ -92,7 +92,7 @@ int ipc_bind(ipc_t *ipc, obj_handler_t th_hd, umword_t user_id, thread_t *th_kob
             ipc_wait_bind_entry_t *next = slist_next_entry(pos, &ipc->wait_bind, node);
             assert(pos->th->status == THREAD_SUSPEND);
             slist_del(&next->node);
-            thread_ready(pos->th, TRUE);
+            thread_ready_remote(pos->th, TRUE);
             pos = next;
         }
         ret = 0;
@@ -196,7 +196,7 @@ static void ipc_release_stage1(kobject_t *kobj)
     {
         assert(pos->th->status == THREAD_SUSPEND);
         pos->th->ipc_status == THREAD_IPC_ABORT;
-        thread_ready(pos->th, TRUE);
+        thread_ready_remote(pos->th, TRUE);
     }
     if (ipc->svr_th)
     {

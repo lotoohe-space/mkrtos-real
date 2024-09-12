@@ -70,8 +70,9 @@ static void mem_sys_init(void)
     int ret;
     size_t buddy_size = (size_t)CONFIG_KNL_DATA_SIZE - ((addr_t)_buddy_data_start - CONFIG_KNL_DATA_ADDR - CONFIG_KNL_OFFSET);
 
-    ret = buddy_init(buddy_get_alloter(), (addr_t)_buddy_data_start,
-                     buddy_size);
+    ret = buddy_init(buddy_get_alloter(),
+                     ALIGN((addr_t)_buddy_data_start, (1 << (BUDDY_MAX_ORDER + CONFIG_PAGE_SHIFT))) /*FIXME:这里可能会浪费一点内存*/,
+                     ALIGN_DOWN(buddy_size - (1 << (BUDDY_MAX_ORDER + CONFIG_PAGE_SHIFT)), (1 << (BUDDY_MAX_ORDER + CONFIG_PAGE_SHIFT))));
     assert(ret >= 0);
     mmu_page_alloc_set(mm_buddy_alloc_one_page);
 #else

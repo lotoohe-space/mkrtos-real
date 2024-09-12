@@ -4,6 +4,7 @@
 #include <util.h>
 #include <init.h>
 #include <arch.h>
+#include <string.h>
 static slab_t *rbtree_node_slab;
 
 static void *mk_rbtree_pool_alloc_handler(void *pool, mln_size_t size)
@@ -20,6 +21,7 @@ static void *mk_rbtree_pool_alloc_handler(void *pool, mln_size_t size)
         {
             return NULL;
         }
+        memset(mem, 0, sizeof(mln_rbtree_node_t) + sizeof(void *));
         *((size_t *)mem) = size;
         mem = (char *)mem + sizeof(void *);
         break;

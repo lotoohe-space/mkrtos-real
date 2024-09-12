@@ -38,12 +38,8 @@ static inline void mpu_region_set(int inx, umword_t rbar, umword_t rasr)
 static inline void mpu_region_clr(int inx)
 {
 }
-static inline void mpu_switch_to(void)
-{
-}
-static inline void mpu_switch_to_task(struct task *tk)
-{
-}
+void mpu_switch_to(void);
+void mpu_switch_to_task(struct task *tk);
 #else
 static inline void mpu_switch_to_task(struct task *tk)
 {

@@ -38,6 +38,8 @@ typedef struct sp_info
     mword_t sp_type; //!< 使用的栈类型
 } sp_info_t;
 
+#define _dmb(ins)
+
 #define read_reg(addr) (*((volatile umword_t *)(addr)))
 #define write_reg(addr, data)                    \
     do                                           \
@@ -70,7 +72,7 @@ typedef struct sp_info
         ((ret & 0x4) ? 0 : 1); \
     })
 
-void to_sche(void);
+void arch_to_sche(void);
 
 static inline umword_t arch_get_sp(void)
 {
@@ -111,7 +113,10 @@ static inline umword_t arch_get_user_sp(void)
 void arch_disable_irq(int inx);
 void arch_enable_irq(int inx);
 void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio);
-
+static inline int arch_get_current_cpu_id(void)
+{
+    return 0;
+}
 #define sti()                     \
     do                            \
     {                             \
@@ -138,6 +143,9 @@ static inline umword_t intr_status(void)
 void sys_startup(void);
 void sys_reset(void);
 
+static inline void dumpstack(void)
+{
+}
 // systick.c
 umword_t sys_tick_cnt_get(void);
 

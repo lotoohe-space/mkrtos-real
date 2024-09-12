@@ -25,12 +25,14 @@ int be_open(const char *path, int flags, mode_t mode)
 {
     int fd = fs_open(path, flags, mode);
 
-    if (fd < 0) {
+    if (fd < 0)
+    {
         return fd;
     }
     int user_fd = fd_map_alloc(0, fd, FD_FS);
 
-    if (user_fd < 0) {
+    if (user_fd < 0)
+    {
         be_close(user_fd);
     }
     return user_fd;
@@ -61,15 +63,21 @@ int be_close(int fd)
     fd_map_entry_t u_fd;
     int ret = fd_map_free(fd, &u_fd);
 
-    if (ret < 0) {
+    if (ret < 0)
+    {
         return -EBADF;
     }
-    switch (u_fd.type) {
-    case FD_TTY: {
-    } break;
-    case FD_FS: {
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {
+    }
+    break;
+    case FD_FS:
+    {
         return fs_close(u_fd.priv_fd);
-    } break;
+    }
+    break;
     default:
         return -ENOSYS;
     }
@@ -89,20 +97,28 @@ static int be_tty_read(char *buf, long size)
     int len;
     int r_len = 0;
 
-    if (size == 0) {
+    if (size == 0)
+    {
         return 0;
     }
     task_get_pid(TASK_THIS, (umword_t *)(&pid));
 
-    while (r_len < size) {
-        if (pid == 0) {
+    while (r_len < size)
+    {
+        if (pid == 0)
+        {
             len = ulog_read_bytes(u_get_global_env()->log_hd, buf + r_len, size - r_len);
-        } else {
+        }
+        else
+        {
             len = cons_read(buf + r_len, size - r_len);
         }
-        if (len < 0) {
+        if (len < 0)
+        {
             return len;
-        } else if (len == 0) {
+        }
+        else if (len == 0)
+        {
             u_sleep_ms(10);
             continue;
         }
@@ -116,16 +132,22 @@ long be_read(long fd, char *buf, long size)
     fd_map_entry_t u_fd;
     int ret = fd_map_get(fd, &u_fd);
 
-    if (ret < 0) {
+    if (ret < 0)
+    {
         return -EBADF;
     }
-    switch (u_fd.type) {
-    case FD_TTY: {
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {
         return be_tty_read(buf, size);
-    } break;
-    case FD_FS: {
+    }
+    break;
+    case FD_FS:
+    {
         return fs_read(u_fd.priv_fd, buf, size);
-    } break;
+    }
+    break;
     default:
         return -ENOSYS;
     }
@@ -137,24 +159,33 @@ long be_write(long fd, char *buf, long size)
     fd_map_entry_t u_fd;
     int ret = fd_map_get(fd, &u_fd);
 
-    if (ret < 0) {
+    if (ret < 0)
+    {
         return -EBADF;
     }
-    switch (u_fd.type) {
-    case FD_TTY: {
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {
         pid_t pid;
 
         task_get_pid(TASK_THIS, (umword_t *)(&pid));
-        if (pid == 0) {
+        if (pid == 0)
+        {
             ulog_write_bytes(u_get_global_env()->log_hd, buf, size);
-        } else {
+        }
+        else
+        {
             cons_write(buf, size);
         }
         return size;
-    } break;
-    case FD_FS: {
+    }
+    break;
+    case FD_FS:
+    {
         return fs_write(u_fd.priv_fd, buf, size);
-    } break;
+    }
+    break;
     default:
         return -ENOSYS;
     }
@@ -163,38 +194,51 @@ long be_write(long fd, char *buf, long size)
 long be_readv(long fd, const struct iovec *iov, long iovcnt)
 {
     long wlen = 0;
-    for (int i = 0; i < iovcnt; i++) {
+    for (int i = 0; i < iovcnt; i++)
+    {
         fd_map_entry_t u_fd;
         int ret = fd_map_get(fd, &u_fd);
 
-        if (ret < 0) {
+        if (ret < 0)
+        {
             return -EBADF;
         }
-        switch (u_fd.type) {
-        case FD_TTY: {
+        switch (u_fd.type)
+        {
+        case FD_TTY:
+        {
             pid_t pid;
             int read_cn;
 
             task_get_pid(TASK_THIS, (umword_t *)(&pid));
-            if (pid == 0) {
+            if (pid == 0)
+            {
                 read_cn = ulog_read_bytes(u_get_global_env()->log_hd, iov[i].iov_base, iov[i].iov_len);
-            } else {
+            }
+            else
+            {
             again_read:
                 read_cn = cons_read(iov[i].iov_base, iov[i].iov_len);
-                if (read_cn < 0) {
+                if (read_cn < 0)
+                {
                     return read_cn;
-                } else if (read_cn == 0) {
+                }
+                else if (read_cn == 0)
+                {
                     u_sleep_ms(10); // TODO:改成信号量
                     goto again_read;
                 }
             }
             wlen += read_cn;
-        } break;
-        case FD_FS: {
+        }
+        break;
+        case FD_FS:
+        {
             int rsize = fs_read(u_fd.priv_fd, iov[i].iov_base, iov[i].iov_len);
 
             wlen += rsize;
-        } break;
+        }
+        break;
         default:
             return -ENOSYS;
         }
@@ -204,30 +248,40 @@ long be_readv(long fd, const struct iovec *iov, long iovcnt)
 long be_writev(long fd, const struct iovec *iov, long iovcnt)
 {
     long wlen = 0;
-    for (int i = 0; i < iovcnt; i++) {
+    for (int i = 0; i < iovcnt; i++)
+    {
         fd_map_entry_t u_fd;
         int ret = fd_map_get(fd, &u_fd);
 
-        if (ret < 0) {
+        if (ret < 0)
+        {
             return -EBADF;
         }
-        switch (u_fd.type) {
-        case FD_TTY: {
+        switch (u_fd.type)
+        {
+        case FD_TTY:
+        {
             pid_t pid;
 
             task_get_pid(TASK_THIS, (umword_t *)(&pid));
-            if (pid == 0) {
+            if (pid == 0)
+            {
                 ulog_write_bytes(u_get_global_env()->log_hd, iov[i].iov_base, iov[i].iov_len);
-            } else {
+            }
+            else
+            {
                 cons_write(iov[i].iov_base, iov[i].iov_len);
             }
             wlen += iov[i].iov_len;
-        } break;
-        case FD_FS: {
+        }
+        break;
+        case FD_FS:
+        {
             int wsize = fs_write(u_fd.priv_fd, iov[i].iov_base, iov[i].iov_len);
 
             wlen += wsize;
-        } break;
+        }
+        break;
         default:
             return -ENOSYS;
         }
@@ -288,16 +342,22 @@ long be_lseek(long fd, long offset, long whence)
     fd_map_entry_t u_fd;
     int ret = fd_map_get(fd, &u_fd);
 
-    if (ret < 0) {
+    if (ret < 0)
+    {
         return -EBADF;
     }
-    switch (u_fd.type) {
-    case FD_TTY: {
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {
         return -ENOSYS;
-    } break;
-    case FD_FS: {
+    }
+    break;
+    case FD_FS:
+    {
         return fs_lseek(u_fd.priv_fd, offset, whence);
-    } break;
+    }
+    break;
     default:
         return -ENOSYS;
     }
@@ -321,16 +381,22 @@ long be_getdents(long fd, char *buf, size_t size)
     fd_map_entry_t u_fd;
     int ret = fd_map_get(fd, &u_fd);
 
-    if (ret < 0) {
+    if (ret < 0)
+    {
         return -EBADF;
     }
-    switch (u_fd.type) {
-    case FD_TTY: {
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {
         return -ENOSYS;
-    } break;
-    case FD_FS: {
+    }
+    break;
+    case FD_FS:
+    {
         ret = fs_readdir(u_fd.priv_fd, (struct dirent *)buf);
-    } break;
+    }
+    break;
     default:
         return -ENOSYS;
     }
@@ -344,4 +410,16 @@ long sys_be_getdents(va_list ap)
     ARG_3_BE(ap, fd, long, buf, char *, size, long);
 
     return be_getdents(fd, buf, size);
+}
+long sys_be_ftruncate(va_list ap)
+{
+    long fd;
+    off_t off;
+    int ret;
+
+    ARG_2_BE(ap, fd, long, off, off_t);
+
+    ret = fs_ftruncate(fd, off);
+
+    return ret;
 }
