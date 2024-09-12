@@ -6,6 +6,7 @@
 #include <shell_port.h>
 #include <pm_cli.h>
 #include <u_sleep.h>
+#include <u_task.h>
 int main(int argc, char *args[])
 {
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_sh");

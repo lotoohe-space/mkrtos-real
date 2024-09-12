@@ -101,7 +101,10 @@
         "u_hd_man.h": "c",
         "u_mm.h": "c",
         "sema.h": "c",
-        "ref.h": "c"
+        "ref.h": "c",
+        "fcntl.h": "c",
+        "syscall.h": "c",
+        "statvfs.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

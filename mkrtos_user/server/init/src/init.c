@@ -35,8 +35,8 @@
 
 static void test(void)
 {
-    test_main();
 #if 0
+    test_main();
     u_sema_test();
     u_sema_test2();
     ipi_test();

@@ -236,7 +236,7 @@ void fs_svr_sync(int fd)
 int fs_svr_readdir(int fd, dirent_t *dir)
 {
     int pid = thread_get_src_pid();
-    file_desc_t *file = fd_get(pid ,fd);
+    file_desc_t *file = fd_get(pid, fd);
     int new_offs = 0;
 
 #if FS_DEBUG
@@ -277,7 +277,7 @@ int fs_svr_mkdir(char *path)
 {
     return -ENOSYS;
 }
-int fs_svr_unlink(char *path)
+int fs_svr_unlink(const char *path)
 {
     return -ENOSYS;
 }
@@ -300,6 +300,35 @@ int fs_svr_symlink(const char *src, const char *dst)
 {
     return -ENOSYS;
 }
+int fs_svr_fsync(int fd)
+{
+    return -ENOSYS;
+}
+int fs_svr_rmdir(char *path)
+{
+    return -ENOSYS;
+}
+int fs_svr_rename(char *old, char *new)
+{
+    return -ENOSYS;
+}
+int fs_svr_stat(const char *path, struct stat *buf)
+{
+    if (path == NULL || buf == NULL)
+    {
+        return -EINVAL;
+    }
+    return -ENOSYS;
+}
+ssize_t fs_svr_readlink(const char *path, char *buf, size_t bufsize)
+{
+    return -ENOSYS;
+}
+int fs_svr_statfs(const char *path, struct statfs *buf)
+{
+    return -ENOSYS;
+}
+
 void fs_svr_loop(void)
 {
     rpc_loop();
