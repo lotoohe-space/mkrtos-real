@@ -23,6 +23,8 @@ target_link_libraries(uvmm.elf
     cjson
     ${GCC_LIB_PATH}/libgcc.a
 )
+# configure_file(src/benos.bin ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/uvmm.elf.dir/src/benos.bin COPYONLY)
+# configure_file(src/vm_benos.json ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/uvmm.elf.dir/src/vm_benos.json COPYONLY)
 target_include_directories(
     uvmm.elf
     PUBLIC

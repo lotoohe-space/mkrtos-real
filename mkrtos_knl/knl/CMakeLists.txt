@@ -29,7 +29,8 @@ endif()
 if (DEFINED CONFIG_MMU)
     if (CONFIG_MMU STREQUAL "y")
         file(GLOB mm_src mm/*.c mm/*.S)
-        list(APPEND deps ${mm_src})
+        file(GLOB mm_mmu_src mm/mmu/*.c mm/mmu/*.S)
+        list(APPEND deps ${mm_src} ${mm_mmu_src})
     endif()
 endif()
 
@@ -47,4 +48,5 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/drv
 
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/knl/mm
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/knl/mm/mmu
 )

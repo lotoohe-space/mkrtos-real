@@ -1,13 +1,17 @@
 
-#include <printf.h>
-#include <unistd.h>
-#include <u_types.h>
 #include "guest_os.h"
 #include "u_task.h"
-#include <stdio.h>
 #include "uvmm_dev_man.h"
-extern umword_t os_bin;
-extern umword_t os_bin_end;
+#include <printf.h>
+#include <stdio.h>
+#include <u_types.h>
+#include <unistd.h>
+
+#include <u_util.h>
+
+extern const char benos_bin[], _sizeof_benos_bin[];
+extern const char benos_json[], _sizeof_benos_json[];
+
 extern umword_t uvmm_dev_json;
 static guest_os_t gos;
 int main(int argc, char *args[])
@@ -17,11 +21,10 @@ int main(int argc, char *args[])
 
     uvmm_dev_simul_init();
 
-    mk_printf("guest os entry addr:[0x%lx 0x%lx]\n", &os_bin, &os_bin_end);
-    guest_os_create(&gos, (char *)&uvmm_dev_json,
-                    0x20000000, &os_bin, &os_bin_end, 32 * 1024 * 1024);
-    while (1)
-    {
+    mk_printf("guest os entry addr:[0x%lx 0x%lx]\n", benos_bin, benos_bin + (umword_t)_sizeof_benos_bin);
+    guest_os_create(&gos, (char *)benos_json,
+                    0x20000000, (void*)benos_bin, (void*)(benos_bin + (umword_t)_sizeof_benos_bin), 32 * 1024 * 1024);
+    while (1) {
         sleep(1);
     }
     // mk_printf("print test0.\n");
@@ -42,3 +45,7 @@ int main(int argc, char *args[])
     // }
     return 0;
 }
+
+
+IMPORT_BIN(".rodata", "/home/mkrtos-real/mkrtos_user/server/uvmm/src/benos.bin", benos_bin);
+IMPORT_BIN(".rodata", "/home/mkrtos-real/mkrtos_user/server/uvmm/src/vm_benos.json", benos_json);

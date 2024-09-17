@@ -2,7 +2,7 @@
 #include <types.h>
 #include <util.h>
 #include <arch.h>
-#include <rbtree_mm.h>
+#include <mmu/rbtree_mm.h>
 
 enum vpage_prot_attrs
 {

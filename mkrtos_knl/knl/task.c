@@ -365,6 +365,7 @@ static void task_release_stage2(kobject_t *kobj)
 
     obj_space_release(&tk->obj_space, tk->lim);
 
+#if !IS_ENABLED(CONFIG_MMU)
     if (tk->mm_space.mm_block) {
 #if CONFIG_MK_MPU_CFG
         mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
@@ -372,6 +373,7 @@ static void task_release_stage2(kobject_t *kobj)
         mm_limit_free(tk->lim, tk->mm_space.mm_block);
 #endif
     }
+#endif
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
     mm_limit_free_slab(task_slab, tk->lim, tk);
 #else
