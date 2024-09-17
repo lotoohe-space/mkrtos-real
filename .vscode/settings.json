@@ -104,7 +104,11 @@
         "ref.h": "c",
         "fcntl.h": "c",
         "syscall.h": "c",
-        "statvfs.h": "c"
+        "statvfs.h": "c",
+        "cutest.h": "c",
+        "u_mutex.h": "c",
+        "stdint.h": "c",
+        "cons_cli.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

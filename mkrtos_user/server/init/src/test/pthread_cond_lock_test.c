@@ -50,25 +50,26 @@ static void pthread_cond_lock_test(CuTest *cu)
 
     pthread_cond_init(&cond, NULL);
     pthread_mutex_init(&mutex, NULL);
-
-    pthread_create(&tid1, NULL, thread_signal, NULL);
-    pthread_create(&tid2, NULL, thread_wait, NULL);
+    
+    CuAssert(cu, "pthread_create fail.\n", pthread_create(&tid1, NULL, thread_signal, NULL) == 0);
+    CuAssert(cu, "pthread_create fail.\n", pthread_create(&tid2, NULL, thread_wait, NULL) == 0);
 
     sleep(5);
     quit = 1;
 
-    pthread_join(tid1, NULL);
-    pthread_join(tid2, NULL);
+    CuAssert(cu, "pthread_join fail.\n", pthread_join(tid1, NULL) == 0);
+    CuAssert(cu, "pthread_join fail.\n", pthread_join(tid2, NULL) == 0);
 
     pthread_cond_destroy(&cond);
     pthread_mutex_destroy(&mutex);
 
 }
+static CuSuite suite;   
 CuSuite *pthread_cond_lock_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
 
-    SUITE_ADD_TEST(suite, pthread_cond_lock_test);
+    SUITE_ADD_TEST(&suite, pthread_cond_lock_test);
 
-    return suite;
+    return &suite;
 }

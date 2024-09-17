@@ -18,11 +18,13 @@ static void ulog_test(CuTest *tc)
     }
 #endif
 }
+static CuSuite suite;
+
 CuSuite *ulog_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
 
-    SUITE_ADD_TEST(suite, ulog_test);
+    SUITE_ADD_TEST(&suite, ulog_test);
 
-    return suite;
+    return &suite;
 }

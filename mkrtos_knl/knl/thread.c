@@ -225,7 +225,9 @@ static void thread_release_stage1(kobject_t *kobj)
     if (cur != th)
     {
         thread_release_stage1_remote(th);
-    } else {
+    }
+    else
+    {
         thread_release_stage1_remote(cur);
     }
     // if (cur != th)
@@ -294,7 +296,6 @@ static void thread_release_stage2(kobject_t *kobj)
 {
     thread_t *th = container_of(kobj, thread_t, kobj);
     thread_t *cur_th = thread_get_current();
-    // printk("release thread 0x%x\n", kobj);
 
     if (cur_th == th)
     {
@@ -307,6 +308,7 @@ static void thread_release_stage2(kobject_t *kobj)
 #else
     mm_limit_free_align(th->lim, kobj, CONFIG_THREAD_BLOCK_SIZE);
     // mm_trace();
+    // printk("release thread 0x%x\n", kobj);
 #endif
 }
 
@@ -352,6 +354,7 @@ void thread_unbind(thread_t *th)
 }
 void thread_suspend_sw(thread_t *th, bool_t is_sche)
 {
+    assert(cpulock_get_status());
     assert(slist_in_list(&th->sche.node));
     assert(th->cpu == arch_get_current_cpu_id());
     umword_t status = cpulock_lock();
@@ -366,9 +369,10 @@ void thread_suspend_sw(thread_t *th, bool_t is_sche)
     }
     else
     {
+        thread_sched(FALSE);
         arch_to_sche(); //!< 触发调度中断
     }
-    // printk("suspend: cpu:%d sp:0x%lx\n", arch_get_current_cpu_id(), th->sp.sp);
+    // printk("suspend: th:0x%lx\n", th);
     cpulock_set(status);
 }
 /**
@@ -408,6 +412,7 @@ bool_t thread_sched(bool_t is_sche)
     sched_t *next_sche = scheduler_next();
     thread_t *th = thread_get_current();
 
+    assert(next_sche);
     assert(th->magic == THREAD_MAGIC);
     if (next_sche == &th->sche)
     {
@@ -489,8 +494,10 @@ void thread_ready(thread_t *th, bool_t is_sche)
     }
     else
     {
+        thread_sched(FALSE);
         arch_to_sche();
     }
+    // printk("ready: th:0x%lx\n", th);
     cpulock_set(status);
 }
 void thread_todead(thread_t *th, bool_t is_sche)
@@ -771,9 +778,8 @@ static int thread_del_wait_send_handler(ipi_msg_t *msg, bool_t *is_sched)
 int thread_del_wait_send_remote(thread_wait_entry_t *wait)
 {
     assert(cpulock_get_status() == TRUE);
-#if IS_ENABLED(CONFIG_SMP)
     thread_t *th = wait->th;
-
+#if IS_ENABLED(CONFIG_SMP)
     if (th->cpu != arch_get_current_cpu_id())
     {
         th->ipi_msg_node.msg = (umword_t)wait;
@@ -781,6 +787,7 @@ int thread_del_wait_send_remote(thread_wait_entry_t *wait)
         cpu_ipi_to_msg(1 << th->cpu, &th->ipi_msg_node, IPI_CALL);
     }
     else
+#endif
     {
         if (slist_in_list(&wait->node_timeout))
         {
@@ -788,13 +795,6 @@ int thread_del_wait_send_remote(thread_wait_entry_t *wait)
         }
         thread_ready(th, FALSE);
     }
-#else
-    if (slist_in_list(&wait->node_timeout))
-    {
-        slist_del(&wait->node_timeout);
-    }
-    thread_ready(wait->th, TRUE);
-#endif
     return 0;
 }
 /**
@@ -876,11 +876,11 @@ static int thread_ipc_recv(msg_tag_t *ret_msg, ipc_timeout_t timeout,
     thread_set_ipc_state(cur_th, THREAD_RECV);
     thread_suspend_sw(cur_th, FALSE);
     spinlock_set(&cur_th->recv_lock, lock_status2);
+    preemption(); //!< 进行调度
 #if THREAD_IS_DEBUG
     dbg_printk(TAG "%s:%d ipc recv wait: %s[0x%x] status:%d ipc_status:%d recv_obj:0x%x\n", __func__, __LINE__,
                kobject_get_name(&cur_th->kobj), cur_th, cur_th->status, cur_th->ipc_status, recv_obj);
 #endif
-    preemption(); //!< 进行调度
     assert(cur_th->status == THREAD_READY);
     // cur_th->has_wait_send_th = FALSE;
 #if THREAD_IS_DEBUG
@@ -1017,6 +1017,7 @@ static int thread_remote_suspend_handler(ipi_msg_t *msg, bool_t *is_sched)
 #endif
 int thread_suspend_remote(thread_t *th, bool_t is_sche)
 {
+    assert(cpulock_get_status());
 #if IS_ENABLED(CONFIG_SMP)
     if (th->cpu != arch_get_current_cpu_id())
     {
@@ -1029,7 +1030,7 @@ int thread_suspend_remote(thread_t *th, bool_t is_sche)
         thread_suspend_sw(th, is_sche);
     }
 #else
-    thread_suspend_sw(th);
+    thread_suspend_sw(th, is_sche);
 #endif
     return 0;
 }
@@ -1050,7 +1051,9 @@ static int thread_wait_recv_thread(thread_t *recv_th, ipc_timeout_t timeout)
 
 again_check:
     lock_status = spinlock_lock(&recv_th->recv_lock);
-    if ((thread_get_status(recv_th) != THREAD_SUSPEND || thread_get_ipc_state(recv_th) != THREAD_RECV) || recv_th->has_wait_send_th == FALSE /*如果已经在有人准备从这个线程获取数据，则当前call者需要挂起*/)
+    if ((thread_get_status(recv_th) != THREAD_SUSPEND ||
+         thread_get_ipc_state(recv_th) != THREAD_RECV) ||
+        recv_th->has_wait_send_th == FALSE /*如果已经在有人准备从这个线程获取数据，则当前call者需要挂起*/)
     {
         thread_wait_entry_t wait;
 
@@ -1110,7 +1113,6 @@ __attribute__((optimize(0))) int thread_ipc_call(
     }
     thread_t *cur_th = thread_get_current();
     thread_t *recv_kobj = to_th;
-    mword_t lock_stats;
     mword_t lock_stats2;
 
 #if THREAD_IS_DEBUG
@@ -1167,7 +1169,6 @@ again:
         }
         else
         {
-
             thread_timeout_del_recv_remote(recv_kobj, TRUE);
 #if THREAD_IS_DEBUG
             dbg_printk(TAG "%s:%d ipc call wake: %s[0x%x]\n", __func__, __LINE__,
@@ -1436,10 +1437,12 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
         if (!slist_in_list(&tag_th->sche.node))
         {
             thread_ready(tag_th, TRUE);
+
         }
         else
         {
             thread_suspend(tag_th);
+            preemption();
             tag_th->sche.prio =
                 (tge_prio >= PRIO_MAX ? PRIO_MAX - 1 : tge_prio);
             thread_ready(tag_th, TRUE);

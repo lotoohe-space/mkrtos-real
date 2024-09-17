@@ -21,6 +21,9 @@ static int __pthread_timedjoin_np(pthread_t t, void **res, const struct timespec
 	if (r == ETIMEDOUT || r == EINVAL) return r;
 	__tl_sync(t);
 	if (res) *res = t->result;
+	// TODO:和be_exit有一个原子性的错误
+	extern int usleep(unsigned useconds);
+	usleep(10000);
 	if (t->map_base) __munmap(t->map_base, t->map_size);
 	return 0;
 }

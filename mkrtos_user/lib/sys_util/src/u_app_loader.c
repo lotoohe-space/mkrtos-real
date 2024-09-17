@@ -243,13 +243,26 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     for (int i = 0; i < arg_cn; i++)
     {
         cp_args = app_stack_push_str(hd_task, &usp_top, argv[i]);
+        if ((ALIGN(strlen(argv[i]) + 1, sizeof(void *)) / sizeof(void *)) % 2)
+        {
+            app_stack_push_umword(hd_task, &usp_top, 0);
+        }
+        printf("app_load 1 cp_args:%p\n", cp_args);
     }
     for (int i = 0; i < envp_cn; i++)
     {
         cp_envp = app_stack_push_str(hd_task, &usp_top, envp[i]);
+        if ((ALIGN(strlen(argv[i]) + 1, sizeof(void *)) / sizeof(void *)) % 2)
+        {
+            app_stack_push_umword(hd_task, &usp_top, 0);
+        }
     }
 
     app_stack_push_umword(hd_task, &usp_top, 0);
+    if ((arg_cn + envp_cn) & 0x1) // 参数是奇数是，多添加一个
+    {
+        app_stack_push_umword(hd_task, &usp_top, 0);
+    }
 
     app_stack_push_umword(hd_task, &usp_top, (umword_t)app_env);
     app_stack_push_umword(hd_task, &usp_top, 0xfe);
@@ -262,12 +275,24 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_envp);
         cp_envp += ALIGN(strlen(envp[i]), sizeof(void *));
+        if ((ALIGN(strlen(envp[i]) + 1, sizeof(void *)) / sizeof(void *)) % 2)
+        {
+            cp_envp += sizeof(void *);
+        }
     }
     if (arg_cn)
     {
         app_stack_push_umword(hd_task, &usp_top, 0);
         for (int i = 0; i < arg_cn; i++)
         {
+            if (i != 0)
+            {
+                if ((ALIGN(strlen(argv[i]) + 1, sizeof(void *)) / sizeof(void *)) % 2)
+                {
+                    cp_args += sizeof(void *);
+                }
+            }
+            printf("app_load 2 cp_args:%p\n", cp_args);
             app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_args);
             cp_args += ALIGN(strlen(argv[i]) + 1, sizeof(void *));
         }

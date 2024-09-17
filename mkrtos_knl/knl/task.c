@@ -58,6 +58,8 @@ static void task_mem_init(void)
 #endif
 }
 INIT_KOBJ_MEM(task_mem_init);
+
+#if !IS_ENABLED(CONFIG_MMU)
 /**
  * @brief 为task分配其可以使用的内存空间
  *
@@ -82,6 +84,7 @@ int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size)
     printk("task alloc size is %d, base is 0x%x\n", size + THREAD_MSG_BUG_LEN, ram);
     return 0;
 }
+#endif
 /**
  * @brief 获取线程绑定的task
  *
@@ -259,6 +262,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         cpulock_set(status);
         tag = msg_tag_init4(0, 0, 0, 0);
     } break;
+#if !IS_ENABLED(CONFIG_MMU)
     case TASK_ALLOC_RAM_BASE: //!< 分配task所拥有的内存空间
     {
         mword_t status = spinlock_lock(&tag_task->kobj.lock);
@@ -271,6 +275,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         f->regs[1] = (umword_t)(tag_task->mm_space.mm_block);
         spinlock_set(&tag_task->kobj.lock, status);
     } break;
+#endif
     case TASK_COPY_DATA: //!< 拷贝数据到task的内存区域
     {
         void *mem;

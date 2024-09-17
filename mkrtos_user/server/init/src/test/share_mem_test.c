@@ -46,12 +46,12 @@ static void sharea_mem_test(CuTest *cu)
     share_mem_unmap(hd);
     handler_free_umap(hd);
 }
-
+static CuSuite suite;
 CuSuite *sharem_mem_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
 
-    SUITE_ADD_TEST(suite, sharea_mem_test);
+    SUITE_ADD_TEST(&suite, sharea_mem_test);
 
-    return suite;
+    return &suite;
 }

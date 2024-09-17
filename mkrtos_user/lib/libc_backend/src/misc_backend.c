@@ -7,6 +7,7 @@
 #include "u_log.h"
 #include "u_thread.h"
 #include "u_sys.h"
+#include "cons_cli.h"
 #include <errno.h>
 #include <u_sleep.h>
 #undef hidden
@@ -62,6 +63,10 @@ unsigned long get_thread_area(void)
 
     thread_msg_buf_get(-1, &msg, &len);
     i_msg = (ipc_msg_t *)msg;
+    if (i_msg->user[0] == 0)
+    {
+        cons_write_str("get_thread_area failed\n");
+    }
 
     return i_msg->user[0];
 }

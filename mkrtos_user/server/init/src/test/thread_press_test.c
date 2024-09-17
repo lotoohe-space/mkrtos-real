@@ -35,11 +35,12 @@ static void thread_press_test(CuTest *cu)
         pthread_join(th_array[i], NULL) == 0);
     }
 }
+static CuSuite suite;
 CuSuite *pthread_press_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
 
-    SUITE_ADD_TEST(suite, thread_press_test);
+    SUITE_ADD_TEST(&suite, thread_press_test);
 
-    return suite;
+    return &suite;
 }

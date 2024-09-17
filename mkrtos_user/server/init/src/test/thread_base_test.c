@@ -62,11 +62,12 @@ static void thread_base_test(CuTest *cu)
         u_thread_del(th_hd);
     }
 }
+static CuSuite suite;
 CuSuite *thread_base_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
 
-    SUITE_ADD_TEST(suite, thread_base_test);
+    SUITE_ADD_TEST(&suite, thread_base_test);
 
-    return suite;
+    return &suite;
 }

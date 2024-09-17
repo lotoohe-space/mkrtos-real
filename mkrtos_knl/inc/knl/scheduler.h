@@ -11,7 +11,8 @@
 #include "slist.h"
 
 #define PRIO_MAX WORD_BITS
-// extern umword_t sched_reset;
+
+#define SCHEDULER_DEBUG 0
 
 typedef struct sched
 {

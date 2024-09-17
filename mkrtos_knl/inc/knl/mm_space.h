@@ -25,16 +25,17 @@ typedef struct region_info
 #endif
 typedef struct mm_space
 {
-#if IS_ENABLED(CONFIG_MK_MPU_CFG)
-    region_info_t pt_regions[CONFIG_REGION_NUM]; //!< mpu内存保护块
-#endif
 #if IS_ENABLED(CONFIG_MMU)
     page_entry_t mem_dir; //!< MMU根映射表，存放映射信息
     task_vma_t mem_vma;
     umword_t asid;
-#endif
+#else
     void *mm_block;       //!< task 的私有内存块
     size_t mm_block_size; //!< 私有内存块的大小
+#if IS_ENABLED(CONFIG_MK_MPU_CFG)
+    region_info_t pt_regions[CONFIG_REGION_NUM]; //!< mpu内存保护块
+#endif
+#endif
 } mm_space_t;
 
 enum region_rights
@@ -86,12 +87,5 @@ static inline void mm_space_get_ram_block(mm_space_t *mm_space, void **mem, size
     assert(size);
     *mem = mm_space->mm_block;
     *size = mm_space->mm_block_size;
-}
-#else
-static inline void mm_space_set_ram_block(mm_space_t *mm_space, void *mem, size_t size)
-{
-}
-static inline void mm_space_get_ram_block(mm_space_t *mm_space, void **mem, size_t *size)
-{
 }
 #endif

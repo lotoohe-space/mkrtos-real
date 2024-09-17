@@ -70,13 +70,14 @@ static void vmm_press_block_test(CuTest *cu)
 #undef TEST_MM_SIZE
 #undef TEST_MEM_CN
 }
+static CuSuite suite;
 CuSuite *vmm_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
 
-    SUITE_ADD_TEST(suite, vmm_large_block_test);
-    SUITE_ADD_TEST(suite, vmm_small_block_test);
-    SUITE_ADD_TEST(suite, vmm_press_block_test);
+    SUITE_ADD_TEST(&suite, vmm_large_block_test);
+    SUITE_ADD_TEST(&suite, vmm_small_block_test);
+    SUITE_ADD_TEST(&suite, vmm_press_block_test);
 
-    return suite;
+    return &suite;
 }

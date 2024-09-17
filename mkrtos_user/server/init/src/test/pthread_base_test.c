@@ -29,11 +29,12 @@ static void thread_base_test(CuTest *cu)
     CuAssert(cu, "pthread join error\n",
              pthread_join(th_test, NULL) == 0);
 }
+static CuSuite suite;
 CuSuite *pthread_base_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
 
-    SUITE_ADD_TEST(suite, thread_base_test);
+    SUITE_ADD_TEST(&suite, thread_base_test);
 
-    return suite;
+    return &suite;
 }

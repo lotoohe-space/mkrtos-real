@@ -21,7 +21,7 @@ int net_drv_write(obj_handler_t obj, int len)
     int ret = -1;
     addr_t addr = 0;
     umword_t size = 0;
-    msg_tag_t tag = share_mem_map(obj, 3, &addr, &size);
+    msg_tag_t tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
 
     if (msg_tag_get_val(tag) < 0)
     {
@@ -39,7 +39,7 @@ int net_drv_read(obj_handler_t obj, int len)
     int ret = -1;
     addr_t addr = 0;
     umword_t size = 0;
-    msg_tag_t tag = share_mem_map(obj, 3, &addr, &size);
+    msg_tag_t tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
     uint32_t _err;
 
     // _err = sem_wait(&dm9000input); // 请求信号量
