@@ -47,5 +47,5 @@ int main(int argc, char *args[])
 }
 
 
-IMPORT_BIN(".rodata", "/home/mkrtos-real/mkrtos_user/server/uvmm/src/benos.bin", benos_bin);
-IMPORT_BIN(".rodata", "/home/mkrtos-real/mkrtos_user/server/uvmm/src/vm_benos.json", benos_json);
+IMPORT_BIN(".rodata", "/Users/zhangzheng/mkrtos-real/mkrtos_user/server/uvmm/src/benos.bin", benos_bin);
+IMPORT_BIN(".rodata", "/Users/zhangzheng/mkrtos-real/mkrtos_user/server/uvmm/src/vm_benos.json", benos_json);

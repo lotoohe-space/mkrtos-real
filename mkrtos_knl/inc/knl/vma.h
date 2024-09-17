@@ -109,12 +109,38 @@ static inline void vma_node_set_unused(vma_t *data)
     data->flags &= ~(VMA_USED_NODE);
 }
 
+#if IS_ENABLED(CONFIG_MMU)
 typedef struct task_vma
 {
     mln_rbtree_t idle_tree;
     mln_rbtree_t alloc_tree;
 } task_vma_t;
+#else
+typedef struct region_info
+{
+    umword_t start_addr;       //!< 内存申请的开始地址
+    umword_t block_start_addr; //!< 块申请的开始地址
+    umword_t block_size;       //!< 保护的块大小
+    umword_t size;             //!< 实际申请的内存大小
+    umword_t rbar;             //!< mpu保护寄存器信息
+    umword_t rasr;             //!< mpu保护寄存器信息
+    int16_t region_inx;        //!< 区域索引
+    uint8_t region;            //!< 区域禁止信息
+} region_info_t;
+typedef struct task_vma
+{
+#if IS_ENABLED(CONFIG_MK_MPU_CFG)
+    region_info_t pt_regions[CONFIG_REGION_NUM]; //!< mpu内存保护块
+#endif
+} task_vma_t;
+#endif
 
+/**
+ * @brief 初始化task_vma
+ *
+ * @param vma
+ * @return int
+ */
 int task_vma_init(task_vma_t *vma);
 
 /**
