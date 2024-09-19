@@ -4,7 +4,7 @@
 #include "u_factory.h"
 #include "u_hd_man.h"
 #include "u_irq_sender.h"
-#include "u_mm.h"
+
 #include "u_log.h"
 #include "u_local_thread.h"
 #include <assert.h>

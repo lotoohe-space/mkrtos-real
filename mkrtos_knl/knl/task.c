@@ -28,7 +28,8 @@
  * @brief 任务的操作码
  *
  */
-enum task_op_code {
+enum task_op_code
+{
     TASK_OBJ_MAP,        //!< 进行映射操作
     TASK_OBJ_UNMAP,      //!< 进行解除映射操作
     TASK_ALLOC_RAM_BASE, //!< 分配task的基础内存
@@ -70,12 +71,14 @@ INIT_KOBJ_MEM(task_mem_init);
  */
 int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size)
 {
-    if (tk->mm_space.mm_block) {
+    if (tk->mm_space.mm_block)
+    {
         return -EACCES;
     }
     // 申请init的ram内存
     void *ram = mpu_ram_alloc(&tk->mm_space, lim, size + THREAD_MSG_BUG_LEN);
-    if (!ram) {
+    if (!ram)
+    {
         printk("Failed to request process memory.\n");
         return -ENOMEM;
     }
@@ -105,10 +108,13 @@ task_t *thread_get_bind_task(thread_t *th)
  */
 static void task_unlock_2(spinlock_t *sp0, spinlock_t *sp1, int status0, int status1)
 {
-    if (sp0 < sp1) {
+    if (sp0 < sp1)
+    {
         spinlock_set(sp1, status1);
         spinlock_set(sp0, status0);
-    } else {
+    }
+    else
+    {
         spinlock_set(sp0, status0);
         spinlock_set(sp1, status1);
     }
@@ -126,25 +132,32 @@ static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
 {
     int status0;
     int status1;
-    if (sp0 < sp1) {
+    if (sp0 < sp1)
+    {
         status0 = spinlock_lock(sp0);
-        if (status0 < 0) {
+        if (status0 < 0)
+        {
             return FALSE;
         }
         status1 = spinlock_lock(sp1);
-        if (status1 < 0) {
+        if (status1 < 0)
+        {
             spinlock_set(sp0, status0);
             return FALSE;
         }
         *st0 = status0;
         *st1 = status1;
-    } else {
+    }
+    else
+    {
         status0 = spinlock_lock(sp1);
-        if (status0 < 0) {
+        if (status0 < 0)
+        {
             return FALSE;
         }
         status1 = spinlock_lock(sp0);
-        if (status1 < 0) {
+        if (status1 < 0)
+        {
             spinlock_set(sp1, status0);
             return FALSE;
         }
@@ -164,10 +177,13 @@ int task_set_pid(task_t *task, pid_t pid)
 {
     task_t *cur_task = thread_get_current_task();
 
-    if (cur_task->pid == 0) {
+    if (cur_task->pid == 0)
+    {
         task->pid = pid;
         return 0;
-    } else {
+    }
+    else
+    {
         return -EACCES;
     }
 }
@@ -185,21 +201,26 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     task_t *tag_task = container_of(kobj, task_t, kobj);
     msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
 
-    if (sys_p.prot != TASK_PROT) {
+    if (sys_p.prot != TASK_PROT)
+    {
         f->regs[0] = msg_tag_init4(0, 0, 0, -EINVAL).raw;
         return;
     }
 
-    switch (sys_p.op) {
-    case TASK_SET_OBJ_NAME: {
+    switch (sys_p.op)
+    {
+    case TASK_SET_OBJ_NAME:
+    {
         mword_t status = spinlock_lock(&tag_task->kobj.lock);
-        if (status < 0) {
+        if (status < 0)
+        {
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
         kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->regs[0]);
 
-        if (!source_kobj) {
+        if (!source_kobj)
+        {
             spinlock_set(&tag_task->kobj.lock, status);
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
@@ -207,17 +228,20 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         kobject_set_name(source_kobj, (char *)(&f->regs[1]));
         spinlock_set(&tag_task->kobj.lock, status);
         tag = msg_tag_init4(0, 0, 0, 1);
-    } break;
+    }
+    break;
     case TASK_OBJ_VALID: //!< 查看某个obj在task中是否存在
     {
         mword_t status = spinlock_lock(&tag_task->kobj.lock);
-        if (status < 0) {
+        if (status < 0)
+        {
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
         kobject_t *source_kobj = obj_space_lookup_kobj(&cur_task->obj_space, f->regs[1]);
 
-        if (!source_kobj) {
+        if (!source_kobj)
+        {
             spinlock_set(&tag_task->kobj.lock, status);
             tag = msg_tag_init4(0, 0, 0, 0);
             break;
@@ -225,7 +249,8 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         f->regs[1] = source_kobj->kobj_type;
         spinlock_set(&tag_task->kobj.lock, status);
         tag = msg_tag_init4(0, 0, 0, 1);
-    } break;
+    }
+    break;
     case TASK_OBJ_MAP: //!< 从一个task中映射一个对象到目标进程
     {
         kobj_del_list_t del;
@@ -233,7 +258,8 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
 
         kobj_del_list_init(&del);
         int suc = task_lock_2(&tag_task->kobj.lock, &cur_task->kobj.lock, &st0, &st1);
-        if (!suc) {
+        if (!suc)
+        {
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
@@ -243,14 +269,16 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         kobj_del_list_to_do(&del);
         task_unlock_2(&tag_task->kobj.lock, &cur_task->kobj.lock, st0, st1);
         tag = msg_tag_init4(0, 0, 0, ret);
-    } break;
+    }
+    break;
     case TASK_OBJ_UNMAP: //!< 解除task中一个进程的创建
     {
         kobject_t *del_kobj;
         kobj_del_list_t kobj_list;
 
         mword_t status = spinlock_lock(&tag_task->kobj.lock);
-        if (status < 0) {
+        if (status < 0)
+        {
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
@@ -261,12 +289,14 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         kobj_del_list_to_do(&kobj_list);
         cpulock_set(status);
         tag = msg_tag_init4(0, 0, 0, 0);
-    } break;
+    }
+    break;
 #if !IS_ENABLED(CONFIG_MMU)
     case TASK_ALLOC_RAM_BASE: //!< 分配task所拥有的内存空间
     {
         mword_t status = spinlock_lock(&tag_task->kobj.lock);
-        if (status < 0) {
+        if (status < 0)
+        {
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
@@ -274,7 +304,8 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         tag = msg_tag_init4(0, 0, 0, ret);
         f->regs[1] = (umword_t)(tag_task->mm_space.mm_block);
         spinlock_set(&tag_task->kobj.lock, status);
-    } break;
+    }
+    break;
 #endif
     case TASK_COPY_DATA: //!< 拷贝数据到task的内存区域
     {
@@ -284,11 +315,13 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         umword_t st_addr = f->regs[0];
         size_t cp_size = f->regs[1];
 
-        if (cp_size > THREAD_MSG_BUG_LEN) {
+        if (cp_size > THREAD_MSG_BUG_LEN)
+        {
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        if (!is_rw_access(tag_task, (void *)st_addr, cp_size, FALSE)) {
+        if (!is_rw_access(tag_task, (void *)st_addr, cp_size, FALSE))
+        {
             tag = msg_tag_init4(0, 0, 0, -EPERM);
             break;
         }
@@ -302,12 +335,14 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     case TASK_SET_PID: //!< 设置pid
     {
         tag = msg_tag_init4(0, 0, 0, task_set_pid(tag_task, f->regs[0]));
-    } break;
+    }
+    break;
     case TASK_GET_PID: //!< 获取pid
     {
         f->regs[1] = tag_task->pid;
         tag = msg_tag_init4(0, 0, 0, 0);
-    } break;
+    }
+    break;
     default:
         break;
     }
@@ -335,7 +370,8 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
 #if IS_ENABLED(CONFIG_MMU)
     knl_pdir_init(&task->mm_space.mem_dir, task->mm_space.mem_dir.dir, 3 /*TODO:*/);
 #else
-    mm_space_add(&task->mm_space, CONFIG_KNL_TEXT_ADDR, CONFIG_KNL_TEXT_SIZE, REGION_RO);
+    task_vma_alloc(&task->mm_space.mem_vma, vma_addr_create(VPAGE_PROT_RO, 0, 0),
+                   CONFIG_KNL_TEXT_SIZE, CONFIG_KNL_TEXT_ADDR, NULL);
 #endif
 }
 
@@ -366,7 +402,8 @@ static void task_release_stage2(kobject_t *kobj)
     obj_space_release(&tk->obj_space, tk->lim);
 
 #if !IS_ENABLED(CONFIG_MMU)
-    if (tk->mm_space.mm_block) {
+    if (tk->mm_space.mm_block)
+    {
 #if CONFIG_MK_MPU_CFG
         mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
 #else
@@ -405,7 +442,8 @@ task_t *task_create(ram_limit_t *lim, int is_knl)
     tk = mm_limit_alloc(lim, sizeof(task_t));
 #endif
 
-    if (!tk) {
+    if (!tk)
+    {
         return NULL;
     }
     task_init(tk, lim, is_knl);

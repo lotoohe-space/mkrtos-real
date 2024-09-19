@@ -2,7 +2,7 @@
 #include "syscall_backend.h"
 #include "u_prot.h"
 #include "u_ipc.h"
-#include "u_mm.h"
+
 #include "u_app.h"
 #include "cons_cli.h"
 #include "u_arch.h"

@@ -48,3 +48,4 @@ static inline page_entry_t *mm_space_get_pdir(mm_space_t *sp)
     return &sp->mem_dir;
 }
 #endif
+int mm_space_init(mm_space_t *mm_space, int is_knl);

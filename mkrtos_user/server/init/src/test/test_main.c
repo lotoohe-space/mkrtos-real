@@ -19,10 +19,8 @@ static void RunAllTests(void)
 	CuSuiteAddSuite(&suite, ipc_test_suite());
 	CuSuiteAddSuite(&suite, ulog_test_suite());
 	CuSuiteAddSuite(&suite, printf_test_suite());
-#if IS_ENABLED(CONFIG_MMU)
 	CuSuiteAddSuite(&suite, vmm_test_suite());
 	CuSuiteAddSuite(&suite, sharem_mem_test_suite());
-#endif
 	CuSuiteAddSuite(&suite, map_test_suite());
 	CuSuiteAddSuite(&suite, thread_base_test_suite());
 	CuSuiteAddSuite(&suite, sema_test_suite());

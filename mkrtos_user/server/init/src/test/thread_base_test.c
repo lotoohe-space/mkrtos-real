@@ -5,7 +5,6 @@
 #include "u_hd_man.h"
 #include "u_ipc.h"
 #include "u_log.h"
-#include "u_mm.h"
 #include "u_prot.h"
 #include "u_sleep.h"
 #include "u_task.h"

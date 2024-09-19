@@ -29,7 +29,7 @@ elseif(${CONFIG_ARCH} STREQUAL "aarch64" )
     )
 
     add_subdirectory(uvmm)
-    add_subdirectory(test)
+    # add_subdirectory(test)
 endif()
 add_subdirectory(init)
 add_subdirectory(shell)

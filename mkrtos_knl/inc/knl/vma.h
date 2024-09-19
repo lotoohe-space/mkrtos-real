@@ -27,8 +27,13 @@ typedef union vma_addr
     umword_t raw;
     struct
     {
+#if IS_ENABLED(CONFIG_MMU)
         umword_t prot : 8;
         umword_t flags : 4;
+#else
+        umword_t prot : 6;
+        umword_t flags : 3;
+#endif
         // umword_t resv : 2;
         umword_t addr : (sizeof(void *) * 8 - PAGE_SHIFT);
     };
@@ -119,9 +124,9 @@ typedef struct task_vma
 typedef struct region_info
 {
     umword_t start_addr;       //!< 内存申请的开始地址
+    umword_t size;             //!< 实际申请的内存大小
     umword_t block_start_addr; //!< 块申请的开始地址
     umword_t block_size;       //!< 保护的块大小
-    umword_t size;             //!< 实际申请的内存大小
     umword_t rbar;             //!< mpu保护寄存器信息
     umword_t rasr;             //!< mpu保护寄存器信息
     int16_t region_inx;        //!< 区域索引

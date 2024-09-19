@@ -22,9 +22,13 @@ static inline umword_t vpage_attrs_to_page_attrs(enum vpage_prot_attrs attrs)
 
     if (attrs & VPAGE_PROT_RO)
     {
-        to_attrs == REGION_RO;
+        to_attrs = REGION_RO;
     }
-    else if ((attrs & VPAGE_PROT_RWX) == VPAGE_PROT_RWX)
+    if ((attrs & VPAGE_PROT_RW) == VPAGE_PROT_RW)
+    {
+        to_attrs = REGION_RWX;
+    }
+    if ((attrs & VPAGE_PROT_RWX) == VPAGE_PROT_RWX)
     {
         to_attrs = REGION_RWX;
     }

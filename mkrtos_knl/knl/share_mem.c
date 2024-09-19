@@ -356,14 +356,13 @@ static ssize_t share_mem_map(share_mem_t *obj, vma_addr_t addr, vaddr_t *ret_vad
         return ret;
     }
 #else
-    bool_t _ret = mm_space_add(&task->mm_space, (umword_t)(obj->mem), obj->size, REGION_RWX /*TODO:这里写死了*/);
-
-    if (_ret)
+    ret = task_vma_alloc(&task->mm_space.mem_vma, addr, obj->size, (vaddr_t)(obj->mem), ret_vaddr);
+    if (ret < 0)
     {
-        mpu_switch_to_task(task);
+        return ret;
     }
-    map_size = _ret == TRUE ? 0 : -ENOMEM;
-    *ret_vaddr = (vaddr_t)(obj->mem);
+    map_size = obj->size;
+    // *ret_vaddr = (vaddr_t)(obj->mem);
 #endif
     return map_size;
 }
@@ -371,13 +370,7 @@ static int share_mem_unmap(share_mem_t *obj, vaddr_t vaddr)
 {
     task_t *task = thread_get_current_task();
 
-#if IS_ENABLED(CONFIG_MMU)
     task_vma_free_pmem(&task->mm_space.mem_vma, vaddr, obj->size, FALSE);
-#else
-    // 共享内存解除映射
-    mm_space_del(&task->mm_space, (umword_t)obj->mem);
-    mpu_switch_to_task(task);
-#endif
     return 0;
 }
 static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)

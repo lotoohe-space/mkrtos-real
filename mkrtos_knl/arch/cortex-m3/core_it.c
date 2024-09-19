@@ -68,6 +68,9 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   bool_t is_knl = is_run_knl();
+  addr_t fault_addr = (addr_t)(SCB->MMFAR);
+
+  printk("data 0x%x access is error.\n", fault_addr);
 
   printk("%s\n", __FUNCTION__);
   task_knl_kill(thread_get_current(), is_knl);

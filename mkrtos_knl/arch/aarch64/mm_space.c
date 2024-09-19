@@ -25,14 +25,3 @@ int mm_space_init(mm_space_t *mm_space, int is_knl)
 
     return ret;
 }
-bool_t mm_space_add(mm_space_t *m_space,
-                    umword_t addr,
-                    umword_t size,
-                    uint8_t attrs)
-{
-    return 0;
-}
-void mm_space_del(mm_space_t *m_space, umword_t addr)
-{
-    /*TODO:*/
-}
