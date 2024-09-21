@@ -12,4 +12,5 @@
 
 #include <u_env.h>
 
+void parse_cfg_init(void);
 int parse_cfg(const char *parse_cfg_file_name, uenv_t *env);

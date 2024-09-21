@@ -3,7 +3,6 @@
 #include <pthread.h>
 #include "u_log.h"
 #include "u_prot.h"
-#include "u_mm.h"
 #include "u_factory.h"
 #include "u_thread.h"
 #include "u_task.h"
@@ -74,11 +73,12 @@ static void pthread_lock_test(CuTest *cu)
     pthread_join(pth2, NULL);
     printf("%s:%d test ok.\n", __func__, __LINE__);
 }
+static CuSuite suite;
 CuSuite *pthread_lock_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
 
-    SUITE_ADD_TEST(suite, pthread_lock_test);
+    SUITE_ADD_TEST(&suite, pthread_lock_test);
 
-    return suite;
+    return &suite;
 }

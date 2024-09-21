@@ -46,3 +46,5 @@ typedef union mk_sd
 #ifndef TRUE
 #define TRUE (!(FALSE))
 #endif
+
+#define HANDLER_INVALID ((umword_t)(-1))

@@ -28,6 +28,10 @@ void pre_cpu_init(void)
         memset(pre_cpu_data, 0, pre_cpu_data_size * CONFIG_CPU);
     }
 }
+bool_t pre_cpu_is_init(void)
+{
+    return !!pre_cpu_data;
+}
 
 INIT_KOBJ_MEM(pre_cpu_init);
 
@@ -36,8 +40,11 @@ void pre_cpu_init(void)
 {
 }
 INIT_KOBJ_MEM(pre_cpu_init);
+bool_t pre_cpu_is_init(void)
+{
+    return TRUE;
+}
 #endif
-
 void *pre_cpu_get_var_cpu(uint32_t cpu_inx, void *mem_addr)
 {
 #if IS_ENABLED(CONFIG_SMP)
@@ -46,6 +53,7 @@ void *pre_cpu_get_var_cpu(uint32_t cpu_inx, void *mem_addr)
     return (void *)((addr_t)pre_cpu_data +
                     offset + cpu_inx * pre_cpu_data_size);
 #else
+    assert(cpu_inx == 0);
     return mem_addr;
 #endif
 }

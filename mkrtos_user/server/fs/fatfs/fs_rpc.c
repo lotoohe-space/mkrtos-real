@@ -257,6 +257,35 @@ void fs_svr_close(int fd)
     }
     file->fp.obj.fs = NULL;
 }
+int fs_svr_readdir(int fd, dirent_t *dir)
+{
+    file_desc_t *file = file_get(fd);
+
+    if (!file)
+    {
+        return -ENOENT;
+    }
+    FILINFO info;
+    FRESULT ret = f_readdir(&file->dir, &info);
+
+    if (ret != FR_OK || info.fname[0] == 0)
+    {
+        return -ENOENT;
+    }
+    strncpy(dir->d_name, info.fname, sizeof(dir->d_name));
+    dir->d_name[sizeof(dir->d_name) - 1] = 0;
+    dir->d_reclen = sizeof(*dir);
+    dir->d_off = 0;
+    if (info.fattrib & AM_DIR)
+    { /* Directory */
+        dir->d_type = DT_DIR;
+    }
+    else
+    { /* File */
+        dir->d_type = DT_CHR;
+    }
+    return sizeof(*dir);
+}
 int fs_svr_lseek(int fd, int offs, int whence)
 {
     UINT bw;
@@ -317,65 +346,6 @@ int fs_svr_ftruncate(int fd, off_t off)
 
     return fatfs_err_conv(ret);
 }
-void fs_svr_sync(int fd)
-{
-    file_desc_t *file = file_get(fd);
-
-    if (!file)
-    {
-        return;
-    }
-    if (file->type != 0)
-    {
-        return;
-    }
-    f_sync(&file->fp);
-}
-int fs_svr_readdir(int fd, dirent_t *dir)
-{
-    file_desc_t *file = file_get(fd);
-
-    if (!file)
-    {
-        return -ENOENT;
-    }
-    FILINFO info;
-    FRESULT ret = f_readdir(&file->dir, &info);
-
-    if (ret != FR_OK || info.fname[0] == 0)
-    {
-        return -ENOENT;
-    }
-    strncpy(dir->d_name, info.fname, sizeof(dir->d_name));
-    dir->d_name[sizeof(dir->d_name) - 1] = 0;
-    dir->d_reclen = sizeof(*dir);
-    dir->d_off = 0;
-    if (info.fattrib & AM_DIR)
-    { /* Directory */
-        dir->d_type = DT_DIR;
-    }
-    else
-    { /* File */
-        dir->d_type = DT_CHR;
-    }
-    return sizeof(*dir);
-}
-int fs_svr_mkdir(char *path)
-{
-    FRESULT ret = f_mkdir(path);
-
-    return fatfs_err_conv(ret);
-}
-int fs_svr_unlink(char *path)
-{
-    FRESULT ret = f_unlink(path);
-
-    return fatfs_err_conv(ret);
-}
-int fs_svr_renmae(char *oldname, char *newname)
-{
-    return fatfs_err_conv(f_rename(oldname, newname));
-}
 int fs_svr_fstat(int fd, stat_t *stat)
 {
     file_desc_t *file = file_get(fd);
@@ -390,7 +360,59 @@ int fs_svr_fstat(int fd, stat_t *stat)
     stat->st_blksize = 0;
     return 0;
 }
-int fs_svr_symlink(const char *src, const char *dst)
+int fs_svr_ioctl(int fd, int req, void *arg)
+{
+    return -ENOSYS;
+}
+int fs_svr_fsync(int fd)
+{
+    file_desc_t *file = file_get(fd);
+
+    if (!file)
+    {
+        return -EBADFD;
+    }
+    if (file->type != 0)
+    {
+        return -EBADFD;
+    }
+    f_sync(&file->fp);
+    return 0;
+}
+int fs_svr_unlink(const char *path)
+{
+    FRESULT ret = f_unlink(path);
+
+    return fatfs_err_conv(ret);
+}
+int fs_svr_symlink(const char *existing, const char *new)
+{
+    return -ENOSYS;
+}
+int fs_svr_mkdir(char *path)
+{
+    FRESULT ret = f_mkdir(path);
+
+    return fatfs_err_conv(ret);
+}
+int fs_svr_rmdir(char *path)
+{
+    return -ENOSYS;
+}
+int fs_svr_rename(char *oldname, char *newname)
+{
+    return fatfs_err_conv(f_rename(oldname, newname));
+}
+int fs_svr_stat(const char *path, struct stat *buf)
+{
+    return -ENOSYS;
+}
+ssize_t fs_svr_readlink(const char *path, char *buf, size_t bufsize)
+{
+    return -ENOSYS;
+}
+
+int fs_svr_statfs(const char *path, struct statfs *buf)
 {
     return -ENOSYS;
 }

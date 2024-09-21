@@ -94,18 +94,28 @@ static void u_sema_test2(CuTest *tc)
     tag = facotry_create_sema(FACTORY_PROT,
                               vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sema_hd2), 0, 1);
     CuAssert(tc, "hd alloc fail.\n", msg_tag_get_val(tag) >= 0);
-    pthread_create(&pth1, NULL, thread_th1, NULL);
-    pthread_create(&pth2, NULL, thread_th2, NULL);
-    pthread_create(&pth3, NULL, thread_th3, NULL);
-    pthread_join(pth1, NULL);
-    pthread_join(pth2, NULL);
-    pthread_join(pth3, NULL);
+    CuAssert(tc, "pthread_create fail.\n", pthread_create(&pth1, NULL, thread_th1, NULL) == 0);
+    CuAssert(tc, "pthread_create fail.\n", pthread_create(&pth2, NULL, thread_th2, NULL) == 0);
+    CuAssert(tc, "pthread_create fail.\n", pthread_create(&pth3, NULL, thread_th3, NULL) == 0);
+    if (pth1 != PTHREAD_NULL)
+    {
+        CuAssert(tc, "pthread_join fail.\n", pthread_join(pth1, NULL) == 0);
+    }
+    if (pth2 != PTHREAD_NULL)
+    {
+        CuAssert(tc, "pthread_join fail.\n", pthread_join(pth2, NULL) == 0);
+    }
+    if (pth3 != PTHREAD_NULL)
+    {
+        CuAssert(tc, "pthread_join fail.\n", pthread_join(pth3, NULL) == 0);
+    }
 }
+static CuSuite suite;
 CuSuite *sema_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
 
-    SUITE_ADD_TEST(suite, u_sema_test2);
+    SUITE_ADD_TEST(&suite, u_sema_test2);
 
-    return suite;
+    return &suite;
 }

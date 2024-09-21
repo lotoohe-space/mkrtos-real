@@ -6,17 +6,19 @@
 #include <util.h>
 /**
  * @brief 调度函数
- * 
- * @param usp 
- * @param ksp 
- * @param sp_type 
- * @return sp_info_t* 
+ *
+ * @param usp
+ * @param ksp
+ * @param sp_type
+ * @return sp_info_t*
  */
 sp_info_t *schde_to(void *usp, void *ksp, umword_t sp_type)
 {
+    // printk("cur_th:0x%lx\n", thread_get_current());
     scheduler_t *sche = scheduler_get_current();
 
     sched_t *next = sche->cur_sche;
+    assert(next);
     thread_t *next_th = container_of(next, thread_t, sche);
 
     assert(next_th->magic == THREAD_MAGIC);

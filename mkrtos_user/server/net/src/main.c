@@ -9,7 +9,7 @@
 // #include "libc.h"
 #include "lwiperf.h"
 #include "u_prot.h"
-#include "u_mm.h"
+
 #include <u_hd_man.h>
 #include <u_task.h>
 #include <u_factory.h>

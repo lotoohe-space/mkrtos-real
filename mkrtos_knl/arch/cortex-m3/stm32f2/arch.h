@@ -38,8 +38,10 @@ typedef struct sp_info
     void *knl_sp;    //!< 内核sp
     mword_t sp_type; //!< 使用的栈类型
 } sp_info_t;
-#define _dmb(ins)
-
+#define _dmb(ins) asm volatile("dmb" : : : "memory")
+#define _dsb(ins) asm volatile("dsb" : : : "memory")
+#define PAGE_SHIFT CONFIG_PAGE_SHIFT
+#define cpu_sleep() asm volatile("wfi" : : : "memory")
 #define read_reg(addr) (*((volatile umword_t *)(addr)))
 #define write_reg(addr, data)                    \
     do                                           \
@@ -122,11 +124,10 @@ static inline int arch_get_current_cpu_id(void)
     {                             \
         write_sysreg(0, PRIMASK); \
     } while (0)
-#define cli()                                 \
-    do                                        \
-    {                                         \
-        __asm__ __volatile__("CPSID   I\n" :: \
-                                 :);          \
+#define cli()                     \
+    do                            \
+    {                             \
+        write_sysreg(1, PRIMASK); \
     } while (0)
 
 static inline __attribute__((optimize(0))) void preemption(void)

@@ -10,7 +10,6 @@
  */
 #include "u_log.h"
 #include "u_prot.h"
-#include "u_mm.h"
 #include "u_factory.h"
 #include "u_thread.h"
 #include "u_task.h"
@@ -33,37 +32,6 @@
 
 #define DEFAULT_INIT_CFG "init.cfg"
 
-static void test(void)
-{
-    test_main();
-#if 0
-    u_sema_test();
-    u_sema_test2();
-    ipi_test();
-    ipc_test();
-    ipc_test2();
-    thread_vcpu_test();
-    pthread_lock_test();
-    pthread_cond_lock_test();
-    thread_cpu_test();
-    malloc_test();
-    printf_test();
-    mpu_test();
-    sharea_mem_test();
-    ulog_test();
-    factory_test();
-    thread_exit_test();
-    map_test();
-
-    mm_test();
-    app_test();
-    thread_press_test();
-    kobj_create_press_test();
-    u_sleep_ms(1000);
-    ipc_obj_test();
-    ns_test();
-#endif
-}
 int main(int argc, char *args[])
 {
     int ret;
@@ -79,8 +47,12 @@ int main(int argc, char *args[])
     namespace_init(env->ns_hd);
     pm_init();
     console_init();
+    parse_cfg_init();
 
-    test();
+#if defined(MKRTOS_TEST_MODE)
+    printf("test_main..\n");
+    test_main();
+#endif
 
     ret = parse_cfg(DEFAULT_INIT_CFG, env);
     printf("run app num is %d.\n", ret);

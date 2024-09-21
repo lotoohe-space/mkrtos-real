@@ -182,8 +182,8 @@ void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
         printk("kill task:0x%x, pid:%d\n", task, task->pid);
         umword_t status2;
 
-        thread_suspend(kill_thread);
         status2 = spinlock_lock(&del_lock);
+        thread_suspend(kill_thread);
         slist_add_append(&del_task_head, &task->del_node);
         spinlock_set(&del_lock, status2);
     } else {

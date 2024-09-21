@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.13)
 file(GLOB deps src/*.c src/*.S src/test/*.c)
 file(GLOB arch_src src/test/${ARCH_NAME}/*.c src/test/${ARCH_NAME}/*.S)
 
+if (NOT $ENV{MKRTOS_TEST_MODE} STREQUAL "normal")
+    message(STATUS "MKRTOS_TEST_MODE is $ENV{MKRTOS_TEST_MODE}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMKRTOS_TEST_MODE" )
+endif()
+
 add_executable(init.elf
     ${deps}
     ${arch_src}

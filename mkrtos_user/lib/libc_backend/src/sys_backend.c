@@ -42,8 +42,6 @@
 static int pthread_cnt = 1;
 #define PTHREAD_DONT_RUN 0x1
 
-#define THREAD_USED_NEW_BUF 0x1
-
 void pthread_cnt_inc(void)
 {
     a_inc(&pthread_cnt);
@@ -94,7 +92,7 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
     }
     umword_t msg_buf_addr;
 
-#if THREAD_USED_NEW_BUF
+#if IS_ENABLED(CONFIG_MMU)
     tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RW, 0, 0),
                        PAGE_SIZE, 0, (addr_t *)(&msg_buf_addr));
     if (msg_tag_get_val(tag) < 0)
@@ -143,7 +141,7 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
     ret = 0;
     goto end_ok;
 end_free_mm:
-#if THREAD_USED_NEW_BUF
+#if IS_ENABLED(CONFIG_MMU)
     u_vmam_free(VMA_PROT, msg_buf_addr, PAGE_SIZE);
 #endif
 end:

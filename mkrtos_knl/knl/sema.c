@@ -132,7 +132,7 @@ static sema_t *sema_create(ram_limit_t *lim, umword_t cnt, umword_t max)
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
     kobj = mm_limit_alloc_slab(sema_slab, lim);
 #else
-    kobj = mm_limit_alloc(lim, sizeof(factory_t));
+    kobj = mm_limit_alloc(lim, sizeof(sema_t));
 #endif
     if (!kobj)
     {
@@ -155,7 +155,7 @@ static void sema_release_stage1(kobject_t *kobj)
 static void sema_release_stage2(kobject_t *kobj)
 {
     /*TODO:*/
-    printk("sema 0x%x free.\n", kobj);
+    printk("TODO:sema 0x%x free.\n", kobj);
 }
 
 void sema_init(sema_t *obj, int cnt, int max)

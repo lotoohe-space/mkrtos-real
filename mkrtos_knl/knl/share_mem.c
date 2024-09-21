@@ -15,6 +15,7 @@
 #include <factory.h>
 #include <string.h>
 #include <slab.h>
+#include <vma.h>
 #include "mm_wrap.h"
 #include "mpu.h"
 #include "init.h"
@@ -186,6 +187,7 @@ static int share_mem_free_pmem(share_mem_t *obj)
         return -ENOSYS;
     case SHARE_MEM_CNT_DPD:
     {
+#if IS_ENABLED(CONFIG_MMU)
         for (ssize_t st = 0; st < obj->size; st += PAGE_SIZE)
         {
             mm_limit_free_buddy(obj->lim, obj->mem_array[st / PAGE_SIZE], PAGE_SIZE);
@@ -194,6 +196,9 @@ static int share_mem_free_pmem(share_mem_t *obj)
         size_t mem_array_size = ALIGN(mem_cnt * sizeof(void *), PAGE_SIZE);
 
         mm_limit_free_buddy(obj->lim, obj->mem_array, mem_array_size);
+#else
+        return -ENOSYS;
+#endif
     }
     break;
     }
@@ -207,6 +212,8 @@ static int share_mem_free_pmem(share_mem_t *obj)
  */
 static int share_mem_alloc_pmem(share_mem_t *obj)
 {
+    int align_size = 0;
+
     assert(obj);
     if (obj->mem)
     {
@@ -218,7 +225,7 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
 #if IS_ENABLED(CONFIG_MMU)
         obj->mem = mm_limit_alloc_buddy(obj->lim, obj->size);
 #else
-        int align_size = obj->size;
+        align_size = obj->size;
 
 #if CONFIG_MK_MPU_CFG
 #if CONFIG_MPU_VERSION == 1
@@ -241,7 +248,7 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
         align_size = sizeof(void *);
 #endif
 
-        obj->mem = mm_limit_alloc_align(lim, obj->size, align_size);
+        obj->mem = mm_limit_alloc_align(obj->lim, obj->size, align_size);
 #endif
         if (obj->mem == NULL)
         {
@@ -254,6 +261,7 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
         return -ENOSYS;
     case SHARE_MEM_CNT_DPD:
     {
+#if IS_ENABLED(CONFIG_MMU)
         /** 非连续内存，按页申请 */
         int mem_cnt = ROUND_UP(obj->size, PAGE_SIZE);
         size_t mem_array_size = ALIGN(mem_cnt * sizeof(void *), PAGE_SIZE);
@@ -280,6 +288,9 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
             }
             memset(obj->mem_array[i], 0, PAGE_SIZE);
         }
+#else
+        return -ENOSYS;
+#endif
     }
     break;
     }
@@ -345,14 +356,13 @@ static ssize_t share_mem_map(share_mem_t *obj, vma_addr_t addr, vaddr_t *ret_vad
         return ret;
     }
 #else
-    bool_t _ret = mm_space_add(&task->mm_space, (umword_t)(sm->mem), sm->size, attr);
-
-    if (_ret)
+    ret = task_vma_alloc(&task->mm_space.mem_vma, addr, obj->size, (vaddr_t)(obj->mem), ret_vaddr);
+    if (ret < 0)
     {
-        mpu_switch_to_task(task);
+        return ret;
     }
-    map_size = _ret == TRUE ? 0 : -ENOMEM;
-    *ret_vaddr = sm->mem;
+    map_size = obj->size;
+    // *ret_vaddr = (vaddr_t)(obj->mem);
 #endif
     return map_size;
 }
@@ -360,13 +370,7 @@ static int share_mem_unmap(share_mem_t *obj, vaddr_t vaddr)
 {
     task_t *task = thread_get_current_task();
 
-#if IS_ENABLED(CONFIG_MMU)
     task_vma_free_pmem(&task->mm_space.mem_vma, vaddr, obj->size, FALSE);
-#else
-    // 共享内存解除映射
-    mm_space_del(&task->mm_space, (umword_t)obj->mem);
-    mpu_switch_to_task(task);
-#endif
     return 0;
 }
 static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)

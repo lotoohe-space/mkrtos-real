@@ -417,7 +417,7 @@ void fs_svr_close(int fd)
   ns_node_free(fdp->node);
   fd_free(fd);
 }
-int fs_svr_unlink(char *path)
+int fs_svr_unlink(const char *path)
 {
   ns_node_t *node;
   size_t ret_inx;
@@ -624,16 +624,57 @@ void namespace_loop(void)
   // rpc_mtd_loop();
 }
 
-int fs_svr_read(int fd, void *buf, size_t len) { return -ENOSYS; }
-int fs_svr_write(int fd, void *buf, size_t len) { return -ENOSYS; }
-int fs_svr_lseek(int fd, int offs, int whence) { return -ENOSYS; }
-int fs_svr_ftruncate(int fd, off_t off) { return -ENOSYS; }
-void fs_svr_sync(int fd) {}
+int fs_svr_read(int fd, void *buf, size_t len)
+{
+  return -ENOSYS;
+}
+int fs_svr_write(int fd, void *buf, size_t len)
+{
+  return -ENOSYS;
+}
+int fs_svr_lseek(int fd, int offs, int whence)
+{
+  return -ENOSYS;
+}
+int fs_svr_ftruncate(int fd, off_t off)
+{
+  return -ENOSYS;
+}
+int fs_svr_fsync(int fd)
+{
+  return -ENOSYS;
+}
 int fs_svr_mkdir(char *path)
 {
   int ret = ns_reg(path, 0, DIR_NODE);
 
   return ret;
 }
-int fs_svr_renmae(char *oldname, char *newname) { return -ENOSYS; }
-int fs_svr_fstat(int fd, stat_t *stat) { return -ENOSYS; }
+int fs_svr_renmae(char *oldname, char *newname)
+{
+  return -ENOSYS;
+}
+int fs_svr_fstat(int fd, stat_t *stat)
+{
+  return -ENOSYS;
+}
+int fs_svr_rmdir(char *path)
+{
+  return -ENOSYS;
+}
+int fs_svr_rename(char *old, char *new)
+{
+  return -ENOSYS;
+}
+int fs_svr_stat(const char *path, struct stat *buf)
+{
+  return -ENOSYS;
+}
+ssize_t fs_svr_readlink(const char *path, char *buf, size_t bufsize)
+{
+  return -ENOSYS;
+}
+int fs_svr_statfs(const char *path, struct statfs *buf)
+{
+  return -ENOSYS;
+}

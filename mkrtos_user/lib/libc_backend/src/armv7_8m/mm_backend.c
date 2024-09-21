@@ -2,18 +2,21 @@
 #include "syscall_backend.h"
 #include "u_prot.h"
 #include "u_ipc.h"
-#include "u_mm.h"
+
 #include "u_app.h"
 #include "cons_cli.h"
 #include "u_arch.h"
+#include "u_mutex.h"
+#include "u_hd_man.h"
 #include <pthread_impl.h>
 #include <assert.h>
-static pthread_spinlock_t lock;
+static int lock_is_init;
+static u_mutex_t lock;
 extern void *app_start_addr;
 #ifdef CONFIG_EX_RAM_SIZE
-static umword_t mm_bitemp[ROUND(CONFIG_EX_RAM_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
+static umword_t mm_bitmap[ROUND(CONFIG_EX_RAM_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
 #else
-static umword_t mm_bitemp[ROUND(CONFIG_KNL_DATA_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
+static umword_t mm_bitmap[ROUND(CONFIG_KNL_DATA_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
 #endif
 static void *mm_page_alloc(int page_nr)
 {
@@ -28,19 +31,32 @@ static void *mm_page_alloc(int page_nr)
     {
         return NULL;
     }
-    if (max_page_nr > sizeof(mm_bitemp) * WORD_BITS)
+    if (max_page_nr > sizeof(mm_bitmap) * WORD_BITS)
     {
         cons_write_str("mm bitmap is to small.\n");
     }
     // printf("heap is 0x%x, max page nr is %d.\n", heap_addr, max_page_nr);
-    pthread_spin_lock(&lock);
+    if (!lock_is_init)
+    {
+        obj_handler_t mutex_hd;
+
+        mutex_hd = handler_alloc();
+        if (mutex_hd == HANDLER_INVALID)
+        {
+            cons_write_str("mutex_hd alloc failed.\n");
+            assert(0);
+        }
+        u_mutex_init(&lock, handler_alloc());
+        lock_is_init = 1;
+    }
+    u_mutex_lock(&lock);
     for (umword_t i = 0; i < ROUND_UP(max_page_nr, WORD_BITS); i++)
     {
-        if (mm_bitemp[i] != (umword_t)(-1))
+        if (mm_bitmap[i] != (umword_t)(-1))
         {
             for (int j = 0; j < WORD_BITS; j++)
             {
-                if (MK_GET_BIT(mm_bitemp[i], j) == 0)
+                if (MK_GET_BIT(mm_bitmap[i], j) == 0)
                 {
                     // 找到空闲的
                     if (find_inx == -1)
@@ -50,7 +66,7 @@ static void *mm_page_alloc(int page_nr)
                     cnt++;
                     if (find_inx + cnt > max_page_nr)
                     {
-                        pthread_spin_unlock(&lock);
+                        u_mutex_unlock(&lock);
                         return NULL;
                     }
                     if (cnt >= page_nr)
@@ -58,9 +74,9 @@ static void *mm_page_alloc(int page_nr)
                         for (int m = find_inx; m < find_inx + cnt; m++)
                         {
 
-                            MK_SET_BIT(mm_bitemp[m / WORD_BITS], m % WORD_BITS);
+                            MK_SET_BIT(mm_bitmap[m / WORD_BITS], m % WORD_BITS);
                         }
-                        pthread_spin_unlock(&lock);
+                        u_mutex_unlock(&lock);
                         // printf("st_inx:%d, cnt:%d\n", find_inx, cnt);
                         return find_inx * PAGE_SIZE + (char *)heap_addr;
                     }
@@ -73,7 +89,7 @@ static void *mm_page_alloc(int page_nr)
             }
         }
     }
-    pthread_spin_unlock(&lock);
+    u_mutex_unlock(&lock);
 
     return NULL;
 }
@@ -85,12 +101,12 @@ static void mm_page_free(int st, int nr)
     void *heap_addr = (void *)((umword_t)TASK_RAM_BASE() + info->i.heap_offset - info->i.data_offset);
     size_t max_page_nr = (info->i.heap_size) / PAGE_SIZE;
 
-    pthread_spin_lock(&lock);
+    u_mutex_lock(&lock);
     for (int i = st; (i < st + nr) && (i < max_page_nr); i++)
     {
-        MK_CLR_BIT(mm_bitemp[i / WORD_BITS], i % WORD_BITS);
+        MK_CLR_BIT(mm_bitmap[i / WORD_BITS], i % WORD_BITS);
     }
-    pthread_spin_unlock(&lock);
+    u_mutex_unlock(&lock);
 }
 
 static int _sys_mmap2(void *start, size_t len, int prot, int flags, int fd, off_t _offset, umword_t *addr)
@@ -152,7 +168,7 @@ umword_t be_munmap(void *start, size_t len)
     // printf("munmap 0x%x, 0x%x.\n", start, len);
     mm_page_free(((umword_t)(start) - (umword_t)heap_addr) / PAGE_SIZE, len / PAGE_SIZE);
 }
-long  sys_munmap(va_list ap)
+long sys_munmap(va_list ap)
 {
     void *start;
     size_t len;

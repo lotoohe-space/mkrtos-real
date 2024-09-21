@@ -13,7 +13,7 @@
 #include "u_app.h"
 #include "u_arch.h"
 #include "u_factory.h"
-#include "u_mm.h"
+
 #include "u_task.h"
 #include "u_hd_man.h"
 #include "u_thread.h"
@@ -205,11 +205,6 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
         goto end_del_obj;
     }
     tag = task_map(hd_task, FACTORY_PROT, FACTORY_PROT, KOBJ_DELETE_RIGHT);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    tag = task_map(hd_task, MM_PROT, MM_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;

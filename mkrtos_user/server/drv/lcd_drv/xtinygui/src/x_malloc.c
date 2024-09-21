@@ -11,7 +11,7 @@
 #include "x_malloc.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "u_mm.h"
+
 void *XMalloc(uint32_t size)
 {
 	void *mem = mm_alloc_page(MM_PROT, size, 0);

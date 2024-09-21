@@ -5,7 +5,7 @@
 #include "u_factory.h"
 #include "u_hd_man.h"
 #include "u_irq_sender.h"
-#include "u_mm.h"
+
 #include "u_log.h"
 #include <assert.h>
 #include <stm32f2xx.h>

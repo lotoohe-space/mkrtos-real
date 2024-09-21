@@ -16,6 +16,24 @@ void mpu_calc_regs(region_info_t *region, umword_t addr, umword_t ffs_val,
                    uint8_t attrs, uint8_t regions_bits);
 void mpu_switch_to(void);
 void mpu_switch_to_task(struct task *tk);
+static inline umword_t vpage_attrs_to_page_attrs(enum vpage_prot_attrs attrs)
+{
+    umword_t to_attrs = 0;
+
+    if (attrs & VPAGE_PROT_RO)
+    {
+        to_attrs = REGION_RO;
+    }
+    if ((attrs & VPAGE_PROT_RW) == VPAGE_PROT_RW)
+    {
+        to_attrs = REGION_RWX;
+    }
+    if ((attrs & VPAGE_PROT_RWX) == VPAGE_PROT_RWX)
+    {
+        to_attrs = REGION_RWX;
+    }
+    return to_attrs;
+}
 #else
 #if !IS_ENABLED(CONFIG_MMU)
 static inline void mpu_init(void)

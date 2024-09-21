@@ -39,7 +39,8 @@ typedef struct sp_info
 } sp_info_t;
 
 #define _dmb(ins)
-
+#define PAGE_SHIFT CONFIG_PAGE_SHIFT
+#define cpu_sleep() asm volatile("wfi" : : : "memory")
 #define read_reg(addr) (*((volatile umword_t *)(addr)))
 #define write_reg(addr, data)                    \
     do                                           \
