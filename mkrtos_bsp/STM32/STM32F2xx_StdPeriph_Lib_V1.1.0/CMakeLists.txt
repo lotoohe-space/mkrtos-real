@@ -4,7 +4,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_STDPERIPH_DRIVER=1 ")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -fPIC -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
- -D__dietlibc__ -D__arm__ -D__WORDSIZE=32 -D__ARM_ARCH_7M__ \
+ -D__dietlibc__ -D__arm__ -D__WORDSIZE=32 \
 " )
 set(CMAKE_ASM_FLAGS ${CMAKE_ASM_FLAGS})
 

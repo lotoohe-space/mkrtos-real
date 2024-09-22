@@ -17,9 +17,20 @@
 #include "mm_wrap.h"
 #include "arch.h"
 #include "string.h"
+typedef struct entry_frame_tmp
+{
+    umword_t r[8];
+} entry_frame_tmp_t;
+
+static void syscall_entry_raw(entry_frame_tmp_t entry);
+
 syscall_entry_func syscall_handler_get(void)
 {
-    return syscall_entry;
+    return (void *)syscall_entry_raw;
+}
+static void syscall_entry_raw(entry_frame_tmp_t entry)
+{
+    syscall_entry((entry_frame_t *)&entry);
 }
 void thread_knl_pf_set(thread_t *cur_th, void *pc)
 {
@@ -38,7 +49,6 @@ void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram, um
 {
     // assert((((umword_t)user_sp) & 0x7UL) == 0);
     umword_t usp = ((umword_t)(user_sp) & ~0x7UL);
-
 
     pf_t *cur_pf = (pf_t *)(usp)-1; // thread_get_pf(cur_th);
 

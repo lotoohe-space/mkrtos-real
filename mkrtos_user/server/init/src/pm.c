@@ -210,10 +210,10 @@ int pm_rpc_run_app(const char *path, int flags)
     int ret;
     printf("pm run %s.\n", path);
     char *args[] = {
-        "xx",/*TODO:*修正参数传递*/
-        "-t",
+        (char *)path,
+        NULL, /*TODO:支持传递参数*/
     };
-    ret = app_load(path, u_get_global_env(), &pid, args, 2, NULL, 0);
+    ret = app_load(path, u_get_global_env(), &pid, args, 1, NULL, 0);
     if (ret > 0)
     {
         if (!(flags & PM_APP_BG_RUN))

@@ -11,6 +11,7 @@
 #include <task.h>
 #include <thread.h>
 #include <string.h>
+
 static region_info_t *vma_alloc_pt_region(task_vma_t *vma)
 {
     assert(vma != NULL);
@@ -46,7 +47,6 @@ static void vma_free_pt_region(task_vma_t *vma, region_info_t *ri)
     memset(ri, 0, sizeof(*ri));
     ri->region_inx = -1;
 }
-
 /**
  * @brief 初始化vma
  *
@@ -55,11 +55,13 @@ static void vma_free_pt_region(task_vma_t *vma, region_info_t *ri)
  */
 int task_vma_init(task_vma_t *vma)
 {
+#if IS_ENABLED(CONFIG_MK_MPU_CFG)
     assert(vma != NULL);
     for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         vma->pt_regions[i].region_inx = -1;
     }
+#endif
     return 0;
 }
 
@@ -86,6 +88,7 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
         mm_space);
 
     assert(task_vma != NULL);
+#if IS_ENABLED(CONFIG_MK_MPU_CFG)
 #if CONFIG_MPU_VERSION == 1
     if (!is_power_of_2(size))
     {
@@ -99,13 +102,14 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
         return -EINVAL;
     }
 #endif
+#endif
     vma_addr = vma_addr_get_addr(vaddr);
     if (vma_addr != 0)
     {
         // 必须让内核自己分配地址
         return -EINVAL;
     }
-
+#if IS_ENABLED(CONFIG_MK_MPU_CFG)
 #if CONFIG_MPU_VERSION == 1
     if (paddr == 0)
     {
@@ -128,12 +132,25 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
         goto err_end;
     }
 #elif CONFIG_MPU_VERSION == 2
-    vma_addr = (addr_t)mm_limit_alloc_align(pt_task, size, MPU_ALIGN_SIZE);
+    vma_addr = (addr_t)mm_limit_alloc_align(pt_task->lim, size, MPU_ALIGN_SIZE);
     if (vma_addr == 0)
     {
         return -ENOMEM;
     }
     if (vma_addr & (MPU_ALIGN_SIZE - 1))
+    {
+        // 不是对齐的
+        ret = -EINVAL;
+        goto err_end;
+    }
+#endif
+#else
+    vma_addr = (addr_t)mm_limit_alloc_align(pt_task->lim, size, sizeof(void *) * 2);
+    if (vma_addr == 0)
+    {
+        return -ENOMEM;
+    }
+    if (vma_addr & (sizeof(void *) * 2 - 1))
     {
         // 不是对齐的
         ret = -EINVAL;
@@ -174,10 +191,14 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
     }
     goto end;
 err_end:
+#if IS_ENABLED(CONFIG_MK_MPU_CFG)
 #if CONFIG_MPU_VERSION == 1
     mm_limit_free_align(pt_task->lim, (void *)vma_addr, size);
 #elif CONFIG_MPU_VERSION == 2
     mm_limit_free_align(pt_task->lim, (void *)vma_addr, MPU_ALIGN_SIZE);
+#endif
+#else
+    mm_limit_free_align(pt_task->lim, (void *)vma_addr, sizeof(void *) * 2);
 #endif
 end:
     return ret;
@@ -219,13 +240,18 @@ static int task_vma_free_inner(task_vma_t *task_vma, vaddr_t vaddr, size_t size,
     vma_free_pt_region(task_vma, ri);
     if (is_free_mem)
     {
+#if IS_ENABLED(CONFIG_MK_MPU_CFG)
 #if CONFIG_MPU_VERSION == 1
         mm_limit_free_align(pt_task->lim, (void *)vma_addr, size);
 #elif CONFIG_MPU_VERSION == 2
         mm_limit_free_align(pt_task->lim, (void *)vma_addr, MPU_ALIGN_SIZE);
 #endif
+#else
+        mm_limit_free_align(pt_task->lim, (void *)vma_addr, sizeof(void *) * 2);
+#endif
     }
-    if (pt_task==thread_get_current_task()){
+    if (pt_task == thread_get_current_task())
+    {
         mpu_switch_to_task(pt_task);
     }
     return 0;

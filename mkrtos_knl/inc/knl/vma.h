@@ -123,20 +123,20 @@ typedef struct task_vma
 #else
 typedef struct region_info
 {
-    umword_t start_addr;       //!< 内存申请的开始地址
-    umword_t size;             //!< 实际申请的内存大小
+    umword_t start_addr; //!< 内存申请的开始地址
+    umword_t size;       //!< 实际申请的内存大小
+#if IS_ENABLED(CONFIG_MK_MPU_CFG)
     umword_t block_start_addr; //!< 块申请的开始地址
     umword_t block_size;       //!< 保护的块大小
     umword_t rbar;             //!< mpu保护寄存器信息
     umword_t rasr;             //!< mpu保护寄存器信息
-    int16_t region_inx;        //!< 区域索引
     uint8_t region;            //!< 区域禁止信息
+#endif
+    int16_t region_inx; //!< 区域索引
 } region_info_t;
 typedef struct task_vma
 {
-#if IS_ENABLED(CONFIG_MK_MPU_CFG)
     region_info_t pt_regions[CONFIG_REGION_NUM]; //!< mpu内存保护块
-#endif
 } task_vma_t;
 #endif
 

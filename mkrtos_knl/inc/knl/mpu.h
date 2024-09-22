@@ -58,6 +58,10 @@ static inline void mpu_region_clr(int inx)
 }
 void mpu_switch_to(void);
 void mpu_switch_to_task(struct task *tk);
+static inline umword_t vpage_attrs_to_page_attrs(enum vpage_prot_attrs attrs)
+{
+    return 0xff;
+}
 #else
 static inline void mpu_switch_to_task(struct task *tk)
 {
