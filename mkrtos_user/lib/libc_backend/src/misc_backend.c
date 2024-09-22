@@ -42,8 +42,11 @@ long be_set_thread_area(void *p)
     ipc_msg_t *i_msg;
 
     thread_msg_buf_get(-1, &msg, &len);
-
     i_msg = (ipc_msg_t *)msg;
+    if (!i_msg)
+    {
+        return -1;
+    }
     i_msg->user[0] = (umword_t)p;
     return 0;
 }

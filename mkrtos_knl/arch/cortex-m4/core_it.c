@@ -134,8 +134,12 @@ void MemManage_Handler(void)
   }
 
 end:
-  printk("task:0x%x, semgement fault.\n", thread_get_current_task());
-  task_knl_kill(thread_get_current(), is_knl);
+  if (task_vma_page_fault(&(thread_get_current_task()->mm_space.mem_vma),
+                          ALIGN_DOWN(fault_addr, PAGE_SIZE), NULL) < 0)
+  {
+    printk("task:0x%x, semgement fault.\n", thread_get_current_task());
+    task_knl_kill(thread_get_current(), is_knl);
+  }
 }
 
 /**

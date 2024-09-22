@@ -15,8 +15,8 @@ enum vpage_prot_attrs
     VPAGE_PROT_IN_KNL = 0x20,  //!< 内核中使用
 };
 
-#define VMA_ADDR_RESV 0x1    //!< 保留内存
-// #define VMA_ADDR_UNCACHE 0x2 //!< uncache内存
+#define VMA_ADDR_RESV 0x1           //!< flags 保留内存
+#define VMA_ADDR_PAGE_FAULT_SIM 0x2 //!< page fault模拟
 
 typedef union vma_addr
 {

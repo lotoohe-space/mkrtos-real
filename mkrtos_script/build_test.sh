@@ -36,14 +36,18 @@ run_and_check() {
 # 清理
 ./mkrtos_script/clean.sh
 ./mkrtos_script/build_qemu_aarch64.sh test
-# 运行测试
-run_and_check "./mkrtos_script/run_aarch64_qemu.sh" "$TIMEOUT"
-./mkrtos_script/clean.sh
+run_and_check "./mkrtos_script/run_aarch64_qemu.sh" "$TIMEOUT"# 运行测试
 
+./mkrtos_script/clean.sh
 ./mkrtos_script/build_f2.sh test
 run_and_check "./mkrtos_script/run_m3.sh" "$TIMEOUT"
-# ./mkrtos_script/clean.sh
 
+./mkrtos_script/clean.sh
+./mkrtos_script/build_f4.sh test
+run_and_check "./mkrtos_script/run_m4.sh" "$TIMEOUT"
+
+./mkrtos_script/clean.sh
+./mkrtos_script/build_swm34s.sh test
 # run_and_check "./mkrtos_script/build_swm34s.sh test" "$TIMEOUT"
 
 echo "All tests completed."
