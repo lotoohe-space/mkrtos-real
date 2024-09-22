@@ -3,6 +3,7 @@
 #include <util.h>
 #include <arch.h>
 #include <mmu/rbtree_mm.h>
+#include <spinlock.h>
 
 enum vpage_prot_attrs
 {
@@ -17,10 +18,8 @@ enum vpage_prot_attrs
     VPAGE_PROT_IN_KNL = 0x20,  //!< 内核中使用
 };
 
-#define VMA_ADDR_RESV 0x1 //!< 保留内存
-// #define VMA_ADDR_UNCACHE 0x2 //!< uncache内存
-
-#define VMA_USED_NODE 0x1 //!< 该vma节点被使用，非空闲
+#define VMA_ADDR_RESV 0x1           //!< flags 保留内存
+#define VMA_ADDR_PAGE_FAULT_SIM 0x2 //!< page fault模拟
 
 typedef union vma_addr
 {
@@ -92,6 +91,7 @@ typedef struct vma
         };
     };
 } vma_t;
+#define VMA_USED_NODE 0x1 //!< 该vma节点被使用，非空闲
 
 static inline paddr_t vma_node_get_paddr(vma_t *data)
 {
@@ -134,9 +134,24 @@ typedef struct region_info
 #endif
     int16_t region_inx; //!< 区域索引
 } region_info_t;
+
+#define MPU_PAGE_FAULT_SUPPORT CONFIG_MPU_PAGE_FAULT_SUPPORT
+#define MPU_PAGE_NUM CONFIG_MPU_PAGE_NUM
+#define MPU_PAGE_FAULT_REGIONS_NUM CONFIG_MPU_PAGE_FAULT_REGIONS_NUM
+
 typedef struct task_vma
 {
     region_info_t pt_regions[CONFIG_REGION_NUM]; //!< mpu内存保护块
+
+#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT)
+    void *mem_pages[MPU_PAGE_NUM];                                   //!< 模拟内存缺页
+    size_t mem_pages_alloc_size[MPU_PAGE_NUM];                       //!< 红黑树优化支持
+    uint8_t mem_pages_attrs[MPU_PAGE_NUM];                           //!< 内存页的属性
+    region_info_t *mem_pages_pt_regions[MPU_PAGE_FAULT_REGIONS_NUM]; //!< 用多少个regions模拟缺页
+    int pt_regions_sel;                                              //!< 用于确定下次选用那个region进行映射
+#endif
+
+    spinlock_t lock;
 } task_vma_t;
 #endif
 

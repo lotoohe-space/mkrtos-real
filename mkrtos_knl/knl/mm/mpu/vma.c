@@ -11,24 +11,27 @@
 #include <task.h>
 #include <thread.h>
 #include <string.h>
-
+#include <spinlock.h>
 static region_info_t *vma_alloc_pt_region(task_vma_t *vma)
 {
     assert(vma != NULL);
-    /*TODO:加锁*/
+    mword_t status = spinlock_lock(&vma->lock);
     for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         if (vma->pt_regions[i].region_inx < 0)
         {
             vma->pt_regions[i].region_inx = (int16_t)i;
+            spinlock_set(&vma->lock, status);
             return &vma->pt_regions[i];
         }
     }
+    spinlock_set(&vma->lock, status);
     return NULL;
 }
 static region_info_t *vma_find_pt_region(task_vma_t *vma, addr_t addr, size_t size)
 {
     assert(vma);
+    mword_t status = spinlock_lock(&vma->lock);
     for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         if (vma->pt_regions[i].region_inx < 0)
@@ -37,15 +40,19 @@ static region_info_t *vma_find_pt_region(task_vma_t *vma, addr_t addr, size_t si
         }
         if (vma->pt_regions[i].start_addr == addr && vma->pt_regions[i].size == size)
         {
+            spinlock_set(&vma->lock, status);
             return vma->pt_regions + i;
         }
     }
+    spinlock_set(&vma->lock, status);
     return NULL;
 }
 static void vma_free_pt_region(task_vma_t *vma, region_info_t *ri)
 {
+    mword_t status = spinlock_lock(&vma->lock);
     memset(ri, 0, sizeof(*ri));
     ri->region_inx = -1;
+    spinlock_set(&vma->lock, status);
 }
 /**
  * @brief 初始化vma
@@ -57,14 +64,28 @@ int task_vma_init(task_vma_t *vma)
 {
 #if IS_ENABLED(CONFIG_MK_MPU_CFG)
     assert(vma != NULL);
+
+    spinlock_init(&vma->lock);
     for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         vma->pt_regions[i].region_inx = -1;
     }
+#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT)
+    for (int i = 0; i < MPU_PAGE_FAULT_REGIONS_NUM; i++)
+    {
+        vma->mem_pages_pt_regions[i] = vma_alloc_pt_region(vma);
+        if (vma->mem_pages_pt_regions[i] == NULL)
+        {
+            printk("pt regions alloc is failed.\n");
+            assert(vma->mem_pages_pt_regions[i]);
+        }
+    }
+    // vma->mem_pages_bitamp = 0;
+    memset(vma->mem_pages, 0, sizeof(vma->mem_pages));
+#endif
 #endif
     return 0;
 }
-
 /**
  * @brief 为task增加内存，需要用到mpu的region
  *
@@ -81,6 +102,8 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
     addr_t vma_addr;
     task_t *pt_task;
     int ret = 0;
+    size_t mem_align_size;
+    bool_t is_alloc_mem = FALSE;
 
     pt_task = container_of(
         container_of(task_vma, mm_space_t, mem_vma),
@@ -90,100 +113,127 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
     assert(task_vma != NULL);
 #if IS_ENABLED(CONFIG_MK_MPU_CFG)
 #if CONFIG_MPU_VERSION == 1
-    if (!is_power_of_2(size))
+#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
+    if (vma_addr_get_flags(vaddr) & VMA_ADDR_PAGE_FAULT_SIM)
     {
-        // 不是2的幂
-        return -EINVAL;
+        mem_align_size = PAGE_SIZE;
+    }
+    else
+#endif
+    {
+        mem_align_size = size;
     }
 #elif CONFIG_MPU_VERSION == 2
-    if (size & (MPU_ALIGN_SIZE - 1))
+#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
+    if (vma_addr_get_flags(vaddr) & VMA_ADDR_PAGE_FAULT_SIM)
+    {
+        mem_align_size = PAGE_SIZE;
+    }
+    else
+#endif
+    {
+        mem_align_size = MPU_ALIGN_SIZE;
+    }
+#endif
+#else
+    mem_align_size = sizeof(void *) * 2;
+#endif
+    if (size & (mem_align_size - 1))
     {
         // 不是MPU_ALIGN_SIZE字节对齐的
         return -EINVAL;
     }
-#endif
-#endif
     vma_addr = vma_addr_get_addr(vaddr);
     if (vma_addr != 0)
     {
         // 必须让内核自己分配地址
-        return -EINVAL;
+        ret = -EINVAL;
+        goto err_end;
     }
-#if IS_ENABLED(CONFIG_MK_MPU_CFG)
-#if CONFIG_MPU_VERSION == 1
+
     if (paddr == 0)
     {
         // 未设置物理内存，则自动申请一个
-        vma_addr = (addr_t)mm_limit_alloc_align(pt_task->lim, size, size);
+        vma_addr = (addr_t)mm_limit_alloc_align(pt_task->lim, size, mem_align_size);
+        assert(((vma_addr & (mem_align_size - 1))) == 0);
+        is_alloc_mem = TRUE;
     }
     else
     {
         // 设置了物理内存，就用设置的物理内存
         vma_addr = paddr;
+        if ((vma_addr & (mem_align_size - 1)) != 0)
+        {
+            // 不是对齐的
+            ret = -EINVAL;
+            goto err_end;
+        }
     }
     if (vma_addr == 0)
     {
-        return -ENOMEM;
-    }
-    if ((vma_addr & (size - 1)) != 0)
-    {
-        // 不是对齐的
-        ret = -EINVAL;
-        goto err_end;
-    }
-#elif CONFIG_MPU_VERSION == 2
-    vma_addr = (addr_t)mm_limit_alloc_align(pt_task->lim, size, MPU_ALIGN_SIZE);
-    if (vma_addr == 0)
-    {
-        return -ENOMEM;
-    }
-    if (vma_addr & (MPU_ALIGN_SIZE - 1))
-    {
-        // 不是对齐的
-        ret = -EINVAL;
-        goto err_end;
-    }
-#endif
-#else
-    vma_addr = (addr_t)mm_limit_alloc_align(pt_task->lim, size, sizeof(void *) * 2);
-    if (vma_addr == 0)
-    {
-        return -ENOMEM;
-    }
-    if (vma_addr & (sizeof(void *) * 2 - 1))
-    {
-        // 不是对齐的
-        ret = -EINVAL;
-        goto err_end;
-    }
-#endif
-    // 找到一个合适的区域
-    region_info_t *ri = NULL;
-
-    ri = vma_find_pt_region(task_vma, vma_addr, size);
-    if (ri)
-    {
-        // 已经存在
-        ret = -EEXIST;
-        goto err_end;
-    }
-
-    ri = vma_alloc_pt_region(task_vma);
-    if (!ri)
-    {
-        // 没有找到合适的区域
         ret = -ENOMEM;
         goto err_end;
     }
-    mpu_calc_regs(ri, vma_addr, size,
-                  vpage_attrs_to_page_attrs(vma_addr_get_prot(vaddr)),
-                  0 /*TODO:支持每一个region bit位*/);
-    ri->start_addr = vma_addr;
-    ri->size = size;
-    if (pt_task == thread_get_current_task())
+#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
+    if (vma_addr_get_flags(vaddr) & VMA_ADDR_PAGE_FAULT_SIM)
     {
-        // 只有是当前线程的时候发生切换
-        mpu_switch_to_task(pt_task);
+        size_t alloc_cn = 0;
+        int i;
+
+        for (i = 0; i < MPU_PAGE_NUM; i++)
+        {
+            if (task_vma->mem_pages[i] == NULL) //!< 放到内存页中保存
+            {
+                task_vma->mem_pages[i] = (void *)(vma_addr + alloc_cn * PAGE_SIZE);
+                task_vma->mem_pages_attrs[i] = vma_addr_get_prot(vaddr);
+                if (alloc_cn == 0)
+                {
+                    task_vma->mem_pages_alloc_size[i] = size;
+                }
+                alloc_cn++;
+                if (alloc_cn * PAGE_SIZE >= size)
+                {
+                    break;
+                }
+            }
+        }
+        if (i == MPU_PAGE_NUM)
+        {
+            ret = -ENOMEM;
+            goto err_end;
+        }
+    }
+    else
+#endif
+    {
+        // 找到一个合适的区域
+        region_info_t *ri = NULL;
+
+        ri = vma_find_pt_region(task_vma, vma_addr, size);
+        if (ri)
+        {
+            // 已经存在
+            ret = -EEXIST;
+            goto err_end;
+        }
+
+        ri = vma_alloc_pt_region(task_vma);
+        if (!ri)
+        {
+            // 没有找到合适的区域
+            ret = -ENOMEM;
+            goto err_end;
+        }
+        mpu_calc_regs(ri, vma_addr, size,
+                      vpage_attrs_to_page_attrs(vma_addr_get_prot(vaddr)),
+                      0 /*TODO:支持每一个region bit位*/);
+        ri->start_addr = vma_addr;
+        ri->size = size;
+        if (pt_task == thread_get_current_task())
+        {
+            // 只有是当前线程的时候发生切换
+            mpu_switch_to_task(pt_task);
+        }
     }
     if (ret_vaddr)
     {
@@ -191,15 +241,10 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
     }
     goto end;
 err_end:
-#if IS_ENABLED(CONFIG_MK_MPU_CFG)
-#if CONFIG_MPU_VERSION == 1
-    mm_limit_free_align(pt_task->lim, (void *)vma_addr, size);
-#elif CONFIG_MPU_VERSION == 2
-    mm_limit_free_align(pt_task->lim, (void *)vma_addr, MPU_ALIGN_SIZE);
-#endif
-#else
-    mm_limit_free_align(pt_task->lim, (void *)vma_addr, sizeof(void *) * 2);
-#endif
+    if (is_alloc_mem)
+    {
+        mm_limit_free_align(pt_task->lim, (void *)vma_addr, mem_align_size);
+    }
 end:
     return ret;
 }
@@ -225,16 +270,62 @@ static int task_vma_free_inner(task_vma_t *task_vma, vaddr_t vaddr, size_t size,
     region_info_t *ri = NULL;
     addr_t vma_addr;
     task_t *pt_task;
-
+    assert(task_vma);
+#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
+    if (vaddr & (PAGE_SIZE - 1))
+    {
+        return -EINVAL;
+    }
+    if ((size & (PAGE_SIZE - 1)))
+    {
+        return -EINVAL;
+    }
+#endif
     pt_task = container_of(
         container_of(task_vma, mm_space_t, mem_vma),
         task_t,
         mm_space);
-    assert(task_vma);
-    vma_addr = vaddr; // vma_addr_get_addr(vaddr);
+    vma_addr = vaddr;
     ri = vma_find_pt_region(task_vma, vma_addr, size);
+#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
+    for (int i = 0; i < MPU_PAGE_FAULT_REGIONS_NUM; i++)
+    {
+        if (ri == task_vma->mem_pages_pt_regions[i])
+        {
+            ri = NULL;
+            break;
+        }
+    }
+#endif
     if (!ri)
     {
+#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
+        size_t mem_cn = 0;
+        for (int i = 0; i < MPU_PAGE_NUM; i++)
+        {
+            if (task_vma->mem_pages[i] == (void *)(vaddr + mem_cn * PAGE_SIZE))
+            {
+                if (task_vma->mem_pages_alloc_size[i] != 0)
+                {
+                    // 是头部，则释放内存
+                    mm_limit_free_align(pt_task->lim, (void *)vma_addr, PAGE_SIZE);
+                    task_vma->mem_pages_alloc_size[i] = 0;
+                }
+                task_vma->mem_pages[i] = NULL;
+                ri = vma_find_pt_region(task_vma, (addr_t)(vaddr + mem_cn * PAGE_SIZE), PAGE_SIZE);
+                if (ri)
+                {
+                    ri->rbar = 0;
+                    ri->rasr = 0;
+                }
+            }
+            mem_cn++;
+            if (mem_cn * PAGE_SIZE >= size)
+            {
+                goto end;
+            }
+        }
+#endif
         return -ENOENT;
     }
     vma_free_pt_region(task_vma, ri);
@@ -250,6 +341,7 @@ static int task_vma_free_inner(task_vma_t *task_vma, vaddr_t vaddr, size_t size,
         mm_limit_free_align(pt_task->lim, (void *)vma_addr, sizeof(void *) * 2);
 #endif
     }
+end:
     if (pt_task == thread_get_current_task())
     {
         mpu_switch_to_task(pt_task);
@@ -295,7 +387,43 @@ int task_vma_free_pmem(task_vma_t *task_vma, vaddr_t addr, size_t size, bool_t i
  */
 int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr, void *paddr)
 {
+    assert(task_vma);
+    assert((addr & (PAGE_SIZE - 1)) == 0);
+    task_t *pt_task;
+    assert(task_vma);
+
+    pt_task = container_of(
+        container_of(task_vma, mm_space_t, mem_vma),
+        task_t,
+        mm_space);
+#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
+    for (int i = 0; i < MPU_PAGE_NUM; i++)
+    {
+        if (task_vma->mem_pages[i] == NULL)
+        {
+            continue;
+        }
+        if ((umword_t)(task_vma->mem_pages[i]) == addr)
+        {
+            int sel_region = task_vma->pt_regions_sel % MPU_PAGE_FAULT_REGIONS_NUM;
+
+            mpu_calc_regs(task_vma->mem_pages_pt_regions[sel_region], (umword_t)(task_vma->mem_pages[i]), PAGE_SIZE,
+                          vpage_attrs_to_page_attrs(task_vma->mem_pages_attrs[i]),
+                          0 /*TODO:支持每一个region bit位*/);
+            task_vma->mem_pages_pt_regions[sel_region]->start_addr = addr;
+            task_vma->mem_pages_pt_regions[sel_region]->size = PAGE_SIZE;
+            task_vma->pt_regions_sel++;
+            break;
+        }
+    }
+    if (pt_task == thread_get_current_task())
+    {
+        mpu_switch_to_task(pt_task);
+    }
+    return 0;
+#else
     return -ENOSYS;
+#endif
 }
 
 /**
