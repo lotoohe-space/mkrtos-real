@@ -49,7 +49,14 @@ void mpu_switch_to_task(struct task *tk)
         region_info_t *ri = &tk->mm_space.mem_vma.pt_regions[i];
         if (ri->region_inx >= 0)
         {
-            ARM_MPU_SetRegionEx(ri->region_inx, ri->rbar, ri->rasr);
+            if (ri->rbar == 0 && ri->rasr == 0)
+            {
+                ARM_MPU_ClrRegion(i);
+            }
+            else
+            {
+                ARM_MPU_SetRegionEx(ri->region_inx, ri->rbar, ri->rasr);
+            }
         }
         else
         {
