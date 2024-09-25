@@ -150,6 +150,7 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
         ret = -EINVAL;
         goto err_end;
     }
+    mword_t status = spinlock_lock(&task_vma->lock);
 
     if (paddr == 0)
     {
@@ -189,6 +190,8 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
                 if (alloc_cn == 0)
                 {
                     task_vma->mem_pages_alloc_size[i] = size;
+                } else {
+                    task_vma->mem_pages_alloc_size[i] = 0;
                 }
                 alloc_cn++;
                 if (alloc_cn * PAGE_SIZE >= size)
@@ -246,6 +249,7 @@ err_end:
         mm_limit_free_align(pt_task->lim, (void *)vma_addr, mem_align_size);
     }
 end:
+    spinlock_set(&task_vma->lock, status);
     return ret;
 }
 /**
@@ -281,6 +285,8 @@ static int task_vma_free_inner(task_vma_t *task_vma, vaddr_t vaddr, size_t size,
         return -EINVAL;
     }
 #endif
+    mword_t status = spinlock_lock(&task_vma->lock);
+
     pt_task = container_of(
         container_of(task_vma, mm_space_t, mem_vma),
         task_t,
@@ -346,6 +352,7 @@ end:
     {
         mpu_switch_to_task(pt_task);
     }
+    spinlock_set(&task_vma->lock, status);
     return 0;
 }
 /**
@@ -391,11 +398,14 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr, void *paddr)
     assert((addr & (PAGE_SIZE - 1)) == 0);
     task_t *pt_task;
     assert(task_vma);
+    int ret = -ENOENT;
 
     pt_task = container_of(
         container_of(task_vma, mm_space_t, mem_vma),
         task_t,
         mm_space);
+    mword_t status = spinlock_lock(&task_vma->lock);
+
 #if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
     for (int i = 0; i < MPU_PAGE_NUM; i++)
     {
@@ -413,6 +423,7 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr, void *paddr)
             task_vma->mem_pages_pt_regions[sel_region]->start_addr = addr;
             task_vma->mem_pages_pt_regions[sel_region]->size = PAGE_SIZE;
             task_vma->pt_regions_sel++;
+            ret = 0;
             break;
         }
     }
@@ -420,7 +431,8 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr, void *paddr)
     {
         mpu_switch_to_task(pt_task);
     }
-    return 0;
+    spinlock_set(&task_vma->lock, status);
+    return ret;
 #else
     return -ENOSYS;
 #endif

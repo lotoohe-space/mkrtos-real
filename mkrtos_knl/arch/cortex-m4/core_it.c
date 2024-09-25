@@ -82,64 +82,33 @@ void MemManage_Handler(void)
 {
   bool_t is_knl = is_run_knl();
   addr_t fault_addr = (addr_t)(SCB->MMFAR);
+  addr_t bus_addr = (addr_t)(SCB->BFAR);
   task_t *cur_task = thread_get_current_task();
-  umword_t status;
 
-  // printk("%s\n", __FUNCTION__);
-  if (SCB->CFSR & 0x1)
+  if ((SCB->CFSR & 0x1) || (SCB->CFSR & 0x2))
   {
-    printk("instr 0x%x access is error.\n", fault_addr);
-  }
-  if (SCB->CFSR & 2)
-  {
-    printk("data 0x%x access is error.\n", fault_addr);
-  }
-  if (SCB->CFSR & 128)
-  {
-    fault_addr = (addr_t)(SCB->MMFAR);
-    // if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
-    // {
-    //   goto end;
-    // }
-    // return;
-    goto end;
+    // printk("instr || data 0x%x access is error.\n", fault_addr);
+    if (task_vma_page_fault(&(thread_get_current_task()->mm_space.mem_vma),
+                            ALIGN_DOWN(fault_addr, PAGE_SIZE), NULL) < 0)
+    {
+      printk("task:0x%x, mem_addr:0x%lx bus_addr:0x%lx semgement fault.\n",
+             thread_get_current_task(), fault_addr, bus_addr);
+      task_knl_kill(thread_get_current(), is_knl);
+    }
   }
   if ((SCB->CFSR & 8))
   {
-    printk("出栈错误\n");
-    // fault_addr = arch_get_user_sp();
-
-    // if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
-    // {
-    //   goto end;
-    // }
-    // return;
-    goto end;
+    printk("push stack is error.\n");
   }
   if (SCB->CFSR & 16)
   {
-    printk("压栈错误\n");
-    // fault_addr = arch_get_user_sp();
-
-    // if (mm_page_alloc_fault(&cur_task->mm_space.mm_pages, fault_addr) == NULL)
-    // {
-    //   goto end;
-    // }
-    // return;
-    goto end;
+    printk("pop stack is error.\n");
   }
   if (SCB->CFSR & 32)
   {
-    printk("浮点惰性压栈错误\n");
+    printk("Floating point lazy stack error.\n");
   }
-
-end:
-  if (task_vma_page_fault(&(thread_get_current_task()->mm_space.mem_vma),
-                          ALIGN_DOWN(fault_addr, PAGE_SIZE), NULL) < 0)
-  {
-    printk("task:0x%x, semgement fault.\n", thread_get_current_task());
-    task_knl_kill(thread_get_current(), is_knl);
-  }
+  task_knl_kill(thread_get_current(), is_knl);
 }
 
 /**
