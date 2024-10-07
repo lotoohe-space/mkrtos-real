@@ -36,6 +36,13 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "swm34s" )
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/CMSIS/CoreSupport
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/SWM34/SWM341_StdPeriph_Driver/SWM341_StdPeriph_Driver
     )
+elseif(${CONFIG_CPU_TYPE} STREQUAL "at32f437" )
+    include_directories(
+
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/device_support
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/core_support
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/drivers/inc
+    )
 elseif(${CONFIG_CPU_TYPE} STREQUAL "aarch64_qemu" )
 
 endif()
