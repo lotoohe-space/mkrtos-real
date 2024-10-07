@@ -12,8 +12,9 @@
 
 #include "types.h"
 #include "arch.h"
-
+#include "boot_info.h"
 #define PAGE_SIZE 512
+
 #define LOG_INTR_NO 37 // USART1_IRQn
 
 /// @brief 线程信息
@@ -37,7 +38,8 @@ typedef struct sp_info
     void *knl_sp;    //!< 内核sp
     mword_t sp_type; //!< 使用的栈类型
 } sp_info_t;
-#define _dmb(ins)
+#define _dmb(ins) asm volatile("dmb" : : : "memory")
+#define _dsb(ins) asm volatile("dsb" : : : "memory")
 #define PAGE_SHIFT CONFIG_PAGE_SHIFT
 #define cpu_sleep() asm volatile("wfi" : : : "memory")
 #define read_reg(addr) (*((volatile umword_t *)(addr)))
@@ -122,14 +124,13 @@ static inline int arch_get_current_cpu_id(void)
     {                             \
         write_sysreg(0, PRIMASK); \
     } while (0)
-#define cli()                                 \
-    do                                        \
-    {                                         \
-        __asm__ __volatile__("CPSID   I\n" :: \
-                                 :);          \
+#define cli()                     \
+    do                            \
+    {                             \
+        write_sysreg(1, PRIMASK); \
     } while (0)
 
-static inline void preemption(void)
+static inline __attribute__((optimize(0))) void preemption(void)
 {
     sti();
     cli();
@@ -144,6 +145,8 @@ static inline void dumpstack(void)
 }
 void sys_startup(void);
 void sys_reset(void);
+void arch_set_boot_info(void *bi);
+boot_info_t *arch_get_boot_info(void);
 
 // systick.c
 umword_t sys_tick_cnt_get(void);

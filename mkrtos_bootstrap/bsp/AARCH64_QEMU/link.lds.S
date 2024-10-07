@@ -3,11 +3,11 @@ ENTRY(_start);
 SECTIONS
 {
 	/*
-	 * CONFIG_KNL_DATA_ADDR
+	 * CONFIG_SYS_DATA_ADDR
 	 *
 	 * 这里“.”表示location counter，当前位置
 	 */
-	. = CONFIG_KNL_DATA_ADDR + 0x1000;
+	. = CONFIG_SYS_DATA_ADDR + 0x1000;
 	/*
 	 * text代码段
 	 */

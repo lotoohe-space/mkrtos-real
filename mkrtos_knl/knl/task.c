@@ -371,7 +371,7 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     knl_pdir_init(&task->mm_space.mem_dir, task->mm_space.mem_dir.dir, 3 /*TODO:*/);
 #else
     task_vma_alloc(&task->mm_space.mem_vma, vma_addr_create(VPAGE_PROT_RO, 0, 0),
-                   CONFIG_KNL_TEXT_SIZE, CONFIG_KNL_TEXT_ADDR, NULL);
+                   CONFIG_SYS_TEXT_SIZE, CONFIG_SYS_TEXT_ADDR, NULL);
 #endif
 }
 

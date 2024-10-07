@@ -137,7 +137,7 @@ Reset_Handler:
  * of copy from/to are specified by symbols evaluated in linker script.  */
     @ ldr    sp, =__StackTop    		 /* set stack pointer */
 
-
+    mov     r7, r0
     ldr    r1, =_sidata
     ldr    r2, =_sdata
     ldr    r3, =_edata
@@ -163,6 +163,8 @@ Reset_Handler:
     ldr r0, = _estack
     ldr r0, [r0]
     mov sp, r0
+
+    mov r0, r7
 
     ldr    r0, =start_kernel
     bx     r0

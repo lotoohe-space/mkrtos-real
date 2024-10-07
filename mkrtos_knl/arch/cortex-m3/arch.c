@@ -16,11 +16,11 @@
 #include "thread.h"
 #include "mk_sys.h"
 #include "mpu.h"
-
+#include "boot_info.h"
 __ALIGN__(CONFIG_THREAD_BLOCK_SIZE)
 static uint8_t thread_knl_stack[CONFIG_THREAD_BLOCK_SIZE] = {0};
 void *_estack = thread_knl_stack + CONFIG_THREAD_BLOCK_SIZE;
-
+static boot_info_t boot_info; //!< 启动信息
 #define REG0_ADDR 0xE000ED22
 #define REG1_ADDR 0xE000ED04
 
@@ -67,6 +67,43 @@ void arch_set_enable_irq_prio(int inx, int sub_prio, int pre_prio)
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = sub_prio;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
+}
+void arch_set_boot_info(void *bi)
+{
+    boot_info = *((boot_info_t *)bi);
+
+    printk("==============================sys flash layer info============================\n");
+    for (int i = 0; i < boot_info.flash_layer.flash_layer_num; i++)
+    {
+        printk("[%d]\t[0x%x 0x%x]\t%s %dB\n", i,
+               boot_info.flash_layer.flash_layer_list[i].st_addr,
+               boot_info.flash_layer.flash_layer_list[i].st_addr + boot_info.flash_layer.flash_layer_list[i].size - 1,
+               boot_info.flash_layer.flash_layer_list[i].name,
+               boot_info.flash_layer.flash_layer_list[i].size);
+    }
+    printk("=======================================================================\n");
+    printk("==============================sys flash info============================\n");
+    for (int i = 0; i < boot_info.flash.flash_num; i++)
+    {
+        printk("[%d]\t[0x%x 0x%x] %dB\n", i,
+               boot_info.flash.flash_list[i].addr,
+               boot_info.flash.flash_list[i].addr + boot_info.flash.flash_list[i].size - 1,
+               boot_info.flash.flash_list[i].size);
+    }
+    printk("=======================================================================\n");
+    printk("==============================sys mem info============================\n");
+    for (int i = 0; i < boot_info.mem.mem_num; i++)
+    {
+        printk("[%d]\t[0x%x 0x%x] %dB\n", i,
+               boot_info.mem.mem_list[i].addr,
+               boot_info.mem.mem_list[i].addr + boot_info.mem.mem_list[i].size - 1,
+               boot_info.mem.mem_list[i].size);
+    }
+    printk("=======================================================================\n");
+}
+boot_info_t *arch_get_boot_info(void)
+{
+    return &boot_info;
 }
 void arch_init(void)
 {

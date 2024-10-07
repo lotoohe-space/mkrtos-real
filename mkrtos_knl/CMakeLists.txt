@@ -49,10 +49,6 @@ add_custom_target(
     link_file_dump ALL
     COMMAND
     ${CMAKE_C_COMPILER}
-    # -DKNL_TEXT=$ENV{KNL_TEXT}
-    -DKNL_DATA=$ENV{KNL_DATA}
-    -DKNL_OFFSET=${CONFIG_KNL_OFFSET}
-    # -DKNL_DATA_SIZE=$ENV{KNL_DATA_SIZE}
     -include ${CMAKE_SOURCE_DIR}/build/autoconf.h
     -E -P -<${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds.S> 
     ${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds

@@ -25,6 +25,7 @@ defined in linker script */
 .type  Reset_Handler, %function
 Reset_Handler:  
 
+  mov r7, r0
 /* Copy the data segment initializers from flash to SRAM */  
   movs  r1, #0
   b  LoopCopyDataInit
@@ -57,6 +58,9 @@ LoopFillZerobss:
   ldr r0, = _estack
   ldr r0, [r0]
   msr msp, r0
+
+/*set boot info. */
+  mov r0, r7
 /* Call the application's entry point.*/
   bl  start_kernel
   bx  lr    

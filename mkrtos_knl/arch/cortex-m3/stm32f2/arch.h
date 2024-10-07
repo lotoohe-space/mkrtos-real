@@ -12,7 +12,7 @@
 
 #include "types.h"
 #include "arch.h"
-
+#include "boot_info.h"
 #define PAGE_SIZE 512
 
 #define LOG_INTR_NO 37 // USART1_IRQn
@@ -145,7 +145,8 @@ static inline void dumpstack(void)
 }
 void sys_startup(void);
 void sys_reset(void);
-
+void arch_set_boot_info(void *bi);
+boot_info_t *arch_get_boot_info(void);
 // systick.c
 umword_t sys_tick_cnt_get(void);
 
