@@ -2,6 +2,9 @@
 
 #include "ram_limit.h"
 #include <util.h>
+#include <boot_info.h>
+
+void mm_init(boot_info_t *info);
 void *mm_limit_alloc(ram_limit_t *limit, size_t size);
 void mm_limit_free(ram_limit_t *limit, void *mem);
 struct mem_heap *mm_get_free(struct mem_heap *next,

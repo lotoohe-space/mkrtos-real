@@ -20,6 +20,11 @@ config FLOAT_TYPE
 config ELF_LAUNCH
     bool "elf app launch"
     default n
+
+config DTBO_OFFSET
+    hex "dtbo img offset."
+    default 0x1000
+
 config RTT_DIR
     string ""
     default "./"

@@ -108,7 +108,8 @@
         "cutest.h": "c",
         "u_mutex.h": "c",
         "stdint.h": "c",
-        "cons_cli.h": "c"
+        "cons_cli.h": "c",
+        "boot_info.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

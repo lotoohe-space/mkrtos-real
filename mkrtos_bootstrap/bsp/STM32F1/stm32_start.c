@@ -1,22 +1,82 @@
 
 #include <mk_sys.h>
 #include "sram.h"
+#include <boot_info.h>
 //! 内核镜像的开始地址
-#define KERNEL_IMG_START_ADDR (CONFIG_KNL_TEXT_ADDR + CONFIG_KNL_OFFSET)
-uint32_t jump_addr;
-void (*_main)(void);
+#define KERNEL_IMG_START_ADDR (CONFIG_SYS_TEXT_ADDR + CONFIG_BOOTSTRAP_TEXT_SIZE + CONFIG_DTBO_TEXT_SIZE)
+#define EX_RAM_ADDR 0x68000000
+#define EX_RAM_SIZE 0x100000
+static boot_info_t boot_info = {
+    .flash_layer = {
+        /*flash布局*/
+        .flash_layer_list = {
+            {
+                .st_addr = CONFIG_SYS_TEXT_ADDR, /*bootstrap*/
+                .size = CONFIG_BOOTSTRAP_TEXT_SIZE,
+                .name = "bootstrap",
+            },
+            {
+                .st_addr = CONFIG_SYS_TEXT_ADDR + CONFIG_BOOTSTRAP_TEXT_SIZE, /*dtbo*/
+                .size = CONFIG_DTBO_TEXT_SIZE,
+                .name = "dtbo",
+            },
+            {
+                .st_addr = KERNEL_IMG_START_ADDR, /*kernel*/
+                .size = CONFIG_KNL_TEXT_SIZE,
+                .name = "kernel",
+            },
+            {
+                .st_addr = CONFIG_SYS_TEXT_ADDR + CONFIG_BOOTSTRAP_TEXT_SIZE + CONFIG_KNL_TEXT_SIZE + CONFIG_DTBO_TEXT_SIZE, /*bootfs*/
+                .size = CONFIG_SYS_TEXT_SIZE - (CONFIG_BOOTSTRAP_TEXT_SIZE + CONFIG_KNL_TEXT_SIZE + CONFIG_DTBO_TEXT_SIZE),
+                .name = "bootfs",
+            },
+        },
+        .flash_layer_num = 4,
+    },
+    .flash = {
+        .flash_list = {
+            {
+                .addr = CONFIG_SYS_TEXT_ADDR,
+                .size = CONFIG_SYS_TEXT_SIZE,
+                .is_sys_mem = 1,
+                .speed = 0,
+            },
+        },
+        .flash_num = 1,
+    },
+    .mem = {
+        .mem_list = {
+            {
+                /*系统自带的sram*/
+                .addr = CONFIG_SYS_DATA_ADDR,
+                .size = CONFIG_SYS_DATA_SIZE,
+                .is_sys_mem = 1,
+                .speed = 0,
+            },
+            {
+                /*外部sram*/
+                .addr = EX_RAM_ADDR,
+                .size = EX_RAM_SIZE,
+                .speed = 1,
+            },
+        },
+        .mem_num = 2,
+    },
+};
 
-void sram_init(void)
+static void mem_init(void)
 {
     FSMC_SRAM_Init();
+#if 0
+ sram_test();
+#endif
 }
+
 void jump2kernel(addr_t cpio_start, addr_t cpio_end)
 {
-#if CONFIG_KNL_EXRAM
-    sram_init();
-    // sram_test();
-#endif
-    if (((*(__IO uint32_t *)KERNEL_IMG_START_ADDR) & 0x2FFE0000) == 0x20000000) // 检查栈顶地址是否合法,即检查此段Flash中是否已有APP程序
+    uint32_t jump_addr;
+
+    if (((*(__IO uint32_t *)KERNEL_IMG_START_ADDR) & 0x2FFE0000) == CONFIG_SYS_DATA_ADDR) // 检查栈顶地址是否合法,即检查此段Flash中是否已有APP程序
     {
         __set_PRIMASK(1);
 
@@ -60,6 +120,6 @@ void jump2kernel(addr_t cpio_start, addr_t cpio_end)
         jump_addr = *(__IO uint32_t *)(KERNEL_IMG_START_ADDR + 4);
         _main = (void *)jump_addr;
 
-        _main();
+        _main(&boot_info);
     }
 }

@@ -143,6 +143,16 @@ string(TOUPPER ${CONFIG_CPU_TYPE} cpu_type)
 set_target_properties(bootstrap.elf PROPERTIES LINK_FLAGS 
 "-T ${CMAKE_CURRENT_LIST_DIR}/bsp/${cpu_type}/link.lds ${LINKS_FLAGS} ")
 
+add_custom_target(
+    boot_link_file_dump ALL
+    COMMAND
+    ${CMAKE_C_COMPILER}
+    -include ${CMAKE_SOURCE_DIR}/build/autoconf.h
+    -E -P -<${CMAKE_CURRENT_LIST_DIR}/bsp/${cpu_type}/link.lds.asm> 
+    ${CMAKE_CURRENT_LIST_DIR}/bsp/${cpu_type}/link.lds
+)
+
+
 target_link_libraries(
     bootstrap.elf
     --whole-archive
@@ -168,3 +178,4 @@ add_custom_target(
 )
 add_dependencies(bootstrap_dump bootstrap.elf)
 add_dependencies(bootstrap.elf boot_bsp)
+add_dependencies(bootstrap.elf boot_link_file_dump)

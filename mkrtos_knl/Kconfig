@@ -50,61 +50,52 @@ endif
     config THREAD_BLOCK_SIZE
         hex  "kthread block size"
         default 0x400
-    config KNL_TEXT_ADDR
+    config SYS_TEXT_ADDR
         hex  "The first address of the kernel text section"
         default 0x8000000
 
-    config KNL_TEXT_SIZE
+    config SYS_TEXT_SIZE
         hex "Size of the kernel text segment."
         default 0x100000
     
-    config KNL_DATA_ADDR
+    config SYS_DATA_ADDR
         hex "knl data addr."
         default 0x20000000
     
-    config KNL_DATA_SIZE
+    config SYS_DATA_SIZE
         hex "knl data size."
         default 0x2000000
-    config KNL_OFFSET
-        hex "knl set"
+
+    config BOOTSTRAP_TEXT_SIZE
+        hex "bootstrap text size."
         default 0x2000
-    
-    config INIT_TASK_OFFSET
-        hex "init task offset"
+
+    config DTBO_TEXT_SIZE
+        hex "dtbo text size."
+        default 0x1000
+
+    config KNL_TEXT_SIZE
+        hex "knl text size."
         default 0x10000
-    
-    config BOOTFS_OFFSET
-        hex "bootfs offset"
-        default 0x20000
-menuconfig KNL_EXRAM
-    bool "knl sram support"
-    default n
-if KNL_EXRAM
-    config EX_RAM_ADDR
-        hex "sram start addr."
-        default 0x68000000
-    
-    config EX_RAM_SIZE
-        hex "sram size"
-        default 0x100000
-endif
+
+
 menuconfig MK_MPU_CFG
     bool "MKRTOS MPU config"
     default y
-if MK_MPU_CFG
-    config MPU_VERSION
-    int "mpu version"
-    default 1
-    config MPU_PAGE_FAULT_SUPPORT
-    bool "mpu page falut sim support."
-    default 0
-    config MPU_PAGE_NUM
-    int "mpu page num."
-    default 32
-    config MPU_PAGE_FAULT_REGIONS_NUM
-    int "mpu page fualt regions num."
-    default 2
-endif
+    if MK_MPU_CFG
+        config MPU_VERSION
+        int "mpu version"
+        default 1
+        config MPU_PAGE_FAULT_SUPPORT
+        bool "mpu page falut sim support."
+        default 0
+        config MPU_PAGE_NUM
+        int "mpu page num."
+        default 32
+        config MPU_PAGE_FAULT_REGIONS_NUM
+        int "mpu page fualt regions num."
+        default 2
+    endif
 endif
 
 config VCPU

@@ -18,7 +18,11 @@ extern char _sdata[];
 extern char _edata[];
 extern char _sbss[];
 extern char _ebss[];
-extern mword_t cpio_images;
+
+extern mem_node_t mem_nodes[]; //!< 支持的内存节点
+extern int mem_node_num;
+extern mem_node_t flash_nodes[]; //!< 支持的flash节点
+extern int flash_node_num;
 
 mem_t *mm_get_global(void);
 void global_reg_kobj(kobject_t *kobj, int inx);

@@ -192,7 +192,7 @@ static SECTION(TEXT_BOOT_SECTION) void boot_init_pageing(page_entry_t *kpdir, bo
     write_sysreg(0x00ff4400, mair_el2);
     if (init_pages)
     {
-        int i_ffs = ffs(CONFIG_KNL_DATA_SIZE) + (is_power_of_2(CONFIG_KNL_DATA_SIZE) ? 0 : 1);
+        int i_ffs = ffs(CONFIG_SYS_DATA_SIZE) + (is_power_of_2(CONFIG_SYS_DATA_SIZE) ? 0 : 1);
         int i_cn = 0;
 
         if (i_ffs < 30)
@@ -203,8 +203,8 @@ static SECTION(TEXT_BOOT_SECTION) void boot_init_pageing(page_entry_t *kpdir, bo
         // 进行1比1映射
         do
         {
-            map_mm(kpdir, CONFIG_KNL_DATA_ADDR + ((1U << 30) * i_cn),
-                   CONFIG_KNL_DATA_ADDR + ((1U << 30) * i_cn),
+            map_mm(kpdir, CONFIG_SYS_DATA_ADDR + ((1U << 30) * i_cn),
+                   CONFIG_SYS_DATA_ADDR + ((1U << 30) * i_cn),
                    i_ffs > 30 ? 30 : i_ffs, 1, 0x709);
             i_ffs--;
             i_cn++;

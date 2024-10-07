@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-file(GLOB_RECURSE deps *.c)
+file(GLOB deps *.c libfdt/lib/contrib/*.c)
 
 add_library(lib STATIC ${deps})
 target_include_directories(
@@ -8,7 +8,9 @@ target_include_directories(
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/${CONFIG_CPU_TYPE}
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/lib/libfdt/lib/contrib
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/lib
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/lib/libfdt/lib/contrib
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/knl
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/drv
 

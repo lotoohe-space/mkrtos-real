@@ -4,7 +4,7 @@ void mpu_test(void)
 {
     printf("start mpu test...\n");
     // mpu保护测试
-    int *test = ((int *)CONFIG_KNL_DATA_ADDR);
+    int *test = ((int *)CONFIG_SYS_DATA_ADDR);
     *test = 1;
     printf("cpu don't support mpu.\n");
 }

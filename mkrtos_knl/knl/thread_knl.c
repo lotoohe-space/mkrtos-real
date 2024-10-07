@@ -33,6 +33,7 @@
 #include <vma.h>
 #endif
 #include <cpio.h>
+#include <boot_info.h>
 
 static uint8_t knl_msg_buf[CONFIG_CPU][THREAD_MSG_BUG_LEN];
 static task_t knl_task;
@@ -47,16 +48,19 @@ static void knl_main(void)
     umword_t status;
     umword_t status2;
     printk("knl main run..\n");
-    while (1) {
+    while (1)
+    {
         task_t *pos;
 
-        if (slist_is_empty(&del_task_head)) {
+        if (slist_is_empty(&del_task_head))
+        {
             cpu_sleep();
             continue;
         }
 
         status2 = spinlock_lock(&del_lock);
-        if (slist_is_empty(&del_task_head)) {
+        if (slist_is_empty(&del_task_head))
+        {
             spinlock_set(&del_lock, status2);
             continue;
         }
@@ -74,7 +78,8 @@ static void knl_main(void)
                 int ret = thread_ipc_call(init_thread, msg_tag_init4(0, 3, 0, 0x0005 /*PM_PROT*/),
                                           &tag, ipc_timeout_create2(3000, 3000), &user_id, TRUE);
 
-                if (ret < 0) {
+                if (ret < 0)
+                {
                     printk("%s:%d ret:%d\n", __func__, __LINE__, ret);
                 }
             }
@@ -148,23 +153,30 @@ static void knl_init_2(void)
     thread_user_pf_set(init_thread, (void *)(entry), (void *)0xdeaddead,
                        NULL, 0);
 #else
-    app_info_t *app = app_info_get((void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET));
+    app_info_t *app;
+
+    ret_addr = cpio_find_file(arch_get_boot_info()->flash_layer.flash_layer_list[BOOTFS_LAYER_3].st_addr, (umword_t)(-1), "init", &size);
+    assert(ret_addr);
+    app = app_info_get((void *)(ret_addr));
     assert(app);
+    printk("init task text is 0x%x.\n", app);
     // 申请init的ram内存
     assert(task_alloc_base_ram(init_task, &root_factory_get()->limit, app->i.ram_size + THREAD_MSG_BUG_LEN) >= 0);
     void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 
     thread_set_msg_buf(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
-    thread_user_pf_set(init_thread, (void *)(CONFIG_KNL_TEXT_ADDR + CONFIG_INIT_TASK_OFFSET), (void *)((umword_t)sp_addr_top - 8),
+    thread_user_pf_set(init_thread, (void *)(app), (void *)((umword_t)sp_addr_top - 8),
                        init_task->mm_space.mm_block, 0);
 #endif
     thread_bind(init_thread, &init_task->kobj);
     assert(obj_map_root(&init_thread->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, THREAD_PROT)));
     assert(obj_map_root(&init_task->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, TASK_PROT)));
-    for (int i = FACTORY_PORT_START; i < FACTORY_PORT_END; i++) {
+    for (int i = FACTORY_PORT_START; i < FACTORY_PORT_END; i++)
+    {
         kobject_t *kobj = global_get_kobj(i);
-        if (kobj) {
+        if (kobj)
+        {
             assert(obj_map_root(kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, i)));
         }
     }
@@ -178,7 +190,8 @@ INIT_STAGE2(knl_init_2);
 void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
 {
     task_t *task = container_of(kill_thread->task, task_t, kobj);
-    if (!is_knl) {
+    if (!is_knl)
+    {
         printk("kill task:0x%x, pid:%d\n", task, task->pid);
         umword_t status2;
 
@@ -186,7 +199,9 @@ void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
         thread_suspend(kill_thread);
         slist_add_append(&del_task_head, &task->del_node);
         spinlock_set(&del_lock, status2);
-    } else {
+    }
+    else
+    {
         printk("[knl]: knl panic.\n");
         assert(0);
     }
@@ -205,15 +220,17 @@ static void print_mkrtos_info(void)
         "                                                            \\|_________|\r\n",
         "Complie Time:" __DATE__ " " __TIME__ "\r\n",
     };
-    for (umword_t i = 0; i < sizeof(start_info) / sizeof(void *); i++) {
+    for (umword_t i = 0; i < sizeof(start_info) / sizeof(void *); i++)
+    {
         printk(start_info[i]);
     }
 }
-void start_kernel(void)
+void start_kernel(void *boot_info)
 {
     // 初始化系统时钟
     // 初始化串口
     // 初始化定时器
+    arch_set_boot_info(boot_info);
     sys_call_init();
     printk("mkrtos init done..\n");
     printk("mkrtos running..\n");
@@ -225,7 +242,8 @@ void start_kernel(void)
     arch_to_sche();
     sti();
 
-    while (1) {
+    while (1)
+    {
         knl_main();
     }
 }

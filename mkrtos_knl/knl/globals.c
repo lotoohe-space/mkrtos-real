@@ -17,6 +17,7 @@
 #include "assert.h"
 #include "mm_man.h"
 #include "ipc.h"
+#include <libfdt.h>
 static mem_t global_mem;                     //!< 全局内存管理块
 static kobject_t *kobj_ls[FACTORY_FUNC_MAX]; //!< 全局静态内核对象
 /**
@@ -43,15 +44,7 @@ kobject_t *global_get_kobj(int inx)
     assert(inx < FACTORY_FUNC_MAX);
     return kobj_ls[inx - 1];
 }
-/**
- * @brief 获取内存分配对象
- *
- * @return mem_t*
- */
-mem_t *mm_get_global(void)
-{
-    return &global_mem;
-}
+
 #if CONFIG_BUDDY_SLAB
 #include <buddy.h>
 #include <arch.h>
@@ -62,13 +55,12 @@ mem_t *mm_get_global(void)
  */
 static void mem_sys_init(void)
 {
-    void *mem_block_data;
-    mem_init(&global_mem);
+
 #if CONFIG_BUDDY_SLAB
     extern char _buddy_data_start[];
     // extern char _buddy_data_end[];
     int ret;
-    size_t buddy_size = (size_t)CONFIG_KNL_DATA_SIZE - ((addr_t)_buddy_data_start - CONFIG_KNL_DATA_ADDR - CONFIG_KNL_OFFSET);
+    size_t buddy_size = (size_t)CONFIG_SYS_DATA_SIZE - ((addr_t)_buddy_data_start - CONFIG_SYS_DATA_ADDR - CONFIG_BOOTSTRAP_TEXT_SIZE);
 
     ret = buddy_init(buddy_get_alloter(),
                      ALIGN((addr_t)_buddy_data_start, (1 << (BUDDY_MAX_ORDER + CONFIG_PAGE_SHIFT))) /*FIXME:这里可能会浪费一点内存*/,
@@ -76,10 +68,31 @@ static void mem_sys_init(void)
     assert(ret >= 0);
     mmu_page_alloc_set(mm_buddy_alloc_one_page);
 #else
-#if CONFIG_KNL_EXRAM
-    mem_heap_add(mm_get_global(), (void *)CONFIG_EX_RAM_ADDR, CONFIG_EX_RAM_SIZE);
-#endif
-    mem_heap_add(mm_get_global(), (void *)_ebss, CONFIG_KNL_DATA_SIZE - ((umword_t)_ebss - (umword_t)_sdata));
+    mm_init(arch_get_boot_info());
 #endif
 }
 INIT_MEM(mem_sys_init);
+
+static void dts_parse(void)
+{
+    printk("init dts parsing.\n");
+    addr_t entry;
+    size_t size;
+    void *fdt;
+
+    fdt = (void *)arch_get_boot_info()->flash_layer.flash_layer_list[DTBO_LAYER_1].st_addr;
+    assert(fdt);
+
+    int fdt_size = fdt_totalsize(fdt);
+    printk("fdt_size:%d\n", fdt_size);
+
+    fdt32_t magic = fdt_get_header(fdt, magic);
+    assert(magic == 0xd00dfeed);
+    fdt32_t version = fdt_get_header(fdt, version);
+    printk("0x%x 0x%0x\n", magic, version);
+    // #if !IS_ENABLED(CONFIG_MMU)
+    //     dts_read_mem_node(fdt);
+    //     dts_read_flash_node(fdt);
+    // #endif
+}
+INIT_ONBOOT(dts_parse);

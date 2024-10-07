@@ -58,7 +58,7 @@ add_custom_target(
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output
     COMMAND
-    cp init.bin ${CMAKE_SOURCE_DIR}/build/output/init
+    cp init.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/init
     COMMAND
     cp ${CMAKE_CURRENT_LIST_DIR}/src/init.cfg ${CMAKE_SOURCE_DIR}/build/output/cpio/
     COMMAND
