@@ -31,8 +31,8 @@
 #define container_of(ptr, type, member) \
     ((type *)(((unsigned long)(ptr)) - ((unsigned long)(&(((type *)0)->member))))) //!< 获取结构体指针
 
-#define USED __attribute__((used))     //!< 使用
-#define UNUSED __attribute__((unused)) //!< 未使用
+#define __USED __attribute__((used))     //!< 使用
+#define __UNUSED __attribute__((unused)) //!< 未使用
 
 #define __ARG_PLACEHOLDER_1 0, 
 #define __take_second_arg(__ignored, val, ...) val

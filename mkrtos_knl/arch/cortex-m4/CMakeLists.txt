@@ -26,6 +26,19 @@ if (${CONFIG_CPU_TYPE} STREQUAL "stm32f4" )
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F4xx_DSP_StdPeriph_Lib_V1.9.0/Libraries/STM32F4xx_StdPeriph_Driver/inc
     )
     add_subdirectory(${CONFIG_CPU_TYPE})
+elseif(${CONFIG_CPU_TYPE} STREQUAL "at32f437" )
+    if(${BOARD} STREQUAL "ATSURFF437" )
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAT32F437ZMT7 -DUSE_STDPERIPH_DRIVER -DAT_SURF_F437_V1 ")
+    endif()
+    target_include_directories(
+        arch
+        PUBLIC
+        ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/${CONFIG_CPU_TYPE}
+        ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/knl
+
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/drivers/inc
+    )  
+    add_subdirectory(${CONFIG_CPU_TYPE})
 endif()
 
 target_link_libraries(

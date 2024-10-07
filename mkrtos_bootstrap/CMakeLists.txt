@@ -93,6 +93,25 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "swm34s" )
     )
     add_subdirectory(bsp/SWM34S)
     set(LINKS_FLAGS " --gc-section ")
+elseif(${CONFIG_CPU_TYPE} STREQUAL "at32f437" )
+    if(${CONFIG_BOARD_NAME} STREQUAL "ATSURFF437" )
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAT32F437ZMT7 -DUSE_STDPERIPH_DRIVER -DAT_SURF_F437_V1 ")
+    endif()
+    file(GLOB bsp_src 
+        # ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/device_support/system_at32f435_437.c
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/drivers/src/*.c
+    )
+    list(APPEND deps ${bsp_src})
+
+    include_directories(
+        ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/AT32F437
+
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/core_support
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/device_support
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/drivers/inc
+    )
+    add_subdirectory(bsp/AT32F437)
+    set(LINKS_FLAGS " --gc-section ")
 
 elseif(${CONFIG_CPU_TYPE} STREQUAL "aarch64_qemu" )
     include_directories(
