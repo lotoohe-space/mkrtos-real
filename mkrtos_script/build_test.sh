@@ -47,7 +47,10 @@ run_and_check "./mkrtos_script/run_m3.sh" "$TIMEOUT"
 run_and_check "./mkrtos_script/run_m4.sh" "$TIMEOUT"
 
 ./mkrtos_script/clean.sh
-./mkrtos_script/build_swm34s.sh test
+./mkrtos_script/build_at32f437.sh test "$TIMEOUT"
+
+./mkrtos_script/clean.sh
+./mkrtos_script/build_swm34s.sh test "$TIMEOUT"
 # run_and_check "./mkrtos_script/build_swm34s.sh test" "$TIMEOUT"
 
 echo "All tests completed."

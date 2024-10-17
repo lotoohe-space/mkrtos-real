@@ -73,6 +73,7 @@ static void mem_sys_init(void)
 }
 INIT_MEM(mem_sys_init);
 
+#if IS_ENABLED(CONFIG_DTBO_SUPPORT)
 static void dts_parse(void)
 {
     printk("init dts parsing.\n");
@@ -96,3 +97,4 @@ static void dts_parse(void)
     // #endif
 }
 INIT_ONBOOT(dts_parse);
+#endif

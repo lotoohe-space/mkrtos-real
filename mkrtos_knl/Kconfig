@@ -146,4 +146,11 @@ config PRINTK_CACHE_SIZE
     default 128
     help
         The printk cache size refers to the size of the data content output to the console in a single attempt, which usually does not need to be modified.
+
+config BOOT_INFO_SUPPORT
+    bool "boot info support"
+    default n
+    help
+        support boot info.
+
 endmenu

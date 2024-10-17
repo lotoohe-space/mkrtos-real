@@ -230,7 +230,9 @@ void start_kernel(void *boot_info)
     // 初始化系统时钟
     // 初始化串口
     // 初始化定时器
+#if IS_ENABLED(CONFIG_BOOT_INFO_SUPPORT)
     arch_set_boot_info(boot_info);
+#endif
     sys_call_init();
     printk("mkrtos init done..\n");
     printk("mkrtos running..\n");
