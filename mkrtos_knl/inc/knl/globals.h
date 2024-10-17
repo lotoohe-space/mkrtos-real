@@ -24,6 +24,8 @@ extern int mem_node_num;
 extern mem_node_t flash_nodes[]; //!< 支持的flash节点
 extern int flash_node_num;
 
+extern umword_t cpio_images;
+
 mem_t *mm_get_global(void);
 void global_reg_kobj(kobject_t *kobj, int inx);
 kobject_t *global_get_kobj(int inx);

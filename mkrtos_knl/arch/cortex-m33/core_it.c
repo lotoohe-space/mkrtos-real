@@ -52,6 +52,7 @@ void MemManage_Handler(void)
              thread_get_current_task(), fault_addr, bus_addr);
       task_knl_kill(thread_get_current(), is_knl);
     }
+    return;
   }
   if ((SCB->CFSR & 8))
   {

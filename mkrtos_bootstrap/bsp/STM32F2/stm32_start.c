@@ -47,15 +47,10 @@ static boot_info_t boot_info = {
         .mem_list = {
             {
                 .addr = CONFIG_SYS_DATA_ADDR,
-                .size = CONFIG_SYS_DATA_SIZE / 2,
+                .size = CONFIG_SYS_DATA_SIZE,
                 .is_sys_mem = 1,
                 .speed = 0,
-            },
-            {
-                .addr = CONFIG_SYS_DATA_ADDR + CONFIG_SYS_DATA_SIZE / 2,
-                .size = CONFIG_SYS_DATA_SIZE / 2,
-                .speed = 1,
-            },
+            }
         },
         .mem_num = 2,
     },
