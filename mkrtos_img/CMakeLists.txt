@@ -6,8 +6,6 @@ math(EXPR KNL_OFFSET "${CONFIG_BOOTSTRAP_TEXT_SIZE} + ${CONFIG_DTBO_TEXT_SIZE}")
 add_custom_target(
     mkrtos_img_dump ALL
     COMMAND
-    cd ${CMAKE_SOURCE_DIR}/build/output/cpio
-    COMMAND
     dtc -I dts -O dtb -o ${CMAKE_SOURCE_DIR}/build/output/dtbo ${CMAKE_SOURCE_DIR}/mkrtos_configs/${BOARD}.dts
     COMMAND
     ls | cpio -H newc -o > ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio
@@ -18,7 +16,7 @@ add_custom_target(
         ${CMAKE_SOURCE_DIR}/build/output/mkrtos -binary -offset ${KNL_OFFSET}
         ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio -binary -offset ${BOOTFS_OFFSET}
     COMMAND
-    cp ${CMAKE_SOURCE_DIR}/build/output/kernel.img ${CMAKE_SOURCE_DIR}/build/output/kernel.bin
+    ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/build/output/kernel.img ${CMAKE_SOURCE_DIR}/build/output/kernel.bin
     COMMAND
     ${CMAKE_OBJCOPY} -I binary -O elf32-littlearm -B arm ${CMAKE_SOURCE_DIR}/build/output/kernel.img 
     ${CMAKE_SOURCE_DIR}/build/output/kernel.img.out --rename-section .data=.text 

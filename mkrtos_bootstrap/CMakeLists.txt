@@ -179,22 +179,21 @@ target_link_libraries(
     --no-whole-archive
     ${GCC_LIB_PATH}/libgcc.a
 )
-
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/build/output)
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/build/output/cpio)
 add_custom_target(
     bootstrap_dump ALL
     COMMAND
     ${CMAKE_OBJCOPY} -O binary -S bootstrap.elf bootstrap.bin
     COMMAND
-    mkdir -p ${CMAKE_SOURCE_DIR}/build/output
+    ${CMAKE_COMMAND} -E copy bootstrap.bin ${CMAKE_SOURCE_DIR}/build/output/bootstrap
     COMMAND
-    mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
-    COMMAND
-    cp bootstrap.bin ${CMAKE_SOURCE_DIR}/build/output/bootstrap
-    COMMAND
-    cp bootstrap.elf ${CMAKE_SOURCE_DIR}/build/output/bootstrap.elf
+    ${CMAKE_COMMAND} -E copy bootstrap.elf ${CMAKE_SOURCE_DIR}/build/output/bootstrap.elf
     COMMAND
     ${CMAKE_SIZE} bootstrap.elf
 )
+execute_process( COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/build/include)
+
 add_dependencies(bootstrap_dump bootstrap.elf)
 add_dependencies(bootstrap.elf boot_bsp)
 add_dependencies(bootstrap.elf boot_link_file_dump)

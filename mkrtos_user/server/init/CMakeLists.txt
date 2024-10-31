@@ -56,13 +56,11 @@ add_custom_target(
     COMMAND
     ${CMAKE_SIZE} init.elf
     COMMAND
-    mkdir -p ${CMAKE_SOURCE_DIR}/build/output
+    ${CMAKE_COMMAND} -E copy init.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/init
     COMMAND
-    cp init.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/init
+    ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/src/init.cfg ${CMAKE_SOURCE_DIR}/build/output/cpio/
     COMMAND
-    cp ${CMAKE_CURRENT_LIST_DIR}/src/init.cfg ${CMAKE_SOURCE_DIR}/build/output/cpio/
-    COMMAND
-    cp init.elf ${CMAKE_SOURCE_DIR}/build/output/init.elf
+    ${CMAKE_COMMAND} -E copy init.elf ${CMAKE_SOURCE_DIR}/build/output/init.elf
 )
 if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
     add_custom_target(
