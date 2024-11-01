@@ -53,19 +53,16 @@ add_custom_target(
     -E -P -<${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds.S> 
     ${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds
 )
-
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/build/output)
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/build/output/cpio)
 add_custom_target(
     mkrtos_dump ALL
     COMMAND
     ${CMAKE_OBJCOPY} -O binary -S mkrtos.elf mkrtos.bin
     COMMAND
-    mkdir -p ${CMAKE_SOURCE_DIR}/build/output
+    ${CMAKE_COMMAND} -E copy  mkrtos.bin ${CMAKE_SOURCE_DIR}/build/output/mkrtos
     COMMAND
-    mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
-    COMMAND
-    cp mkrtos.bin ${CMAKE_SOURCE_DIR}/build/output/mkrtos
-    COMMAND
-    cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/mkrtos.elf
+    ${CMAKE_COMMAND} -E copy  mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/mkrtos.elf
     COMMAND
     ${CMAKE_OBJDUMP} -s -S mkrtos.elf > ${CMAKE_SOURCE_DIR}/build/output/mkrtos.S
     COMMAND
@@ -75,7 +72,7 @@ if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
     add_custom_target(
         mkrtos_dump_elf ALL
         COMMAND
-        cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/mkrtos.elf
+        ${CMAKE_COMMAND} -E copy  mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/mkrtos.elf
     )
     add_dependencies(mkrtos_dump_elf mkrtos_dump)
 endif()

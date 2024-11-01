@@ -86,7 +86,7 @@ irq_entry_t *irq_get(int inx)
  * @brief 中断的入口函数
  *
  */
-void entry_handler(void)
+__USED void entry_handler(void)
 {
     umword_t isr_no = arch_get_isr_no();
 

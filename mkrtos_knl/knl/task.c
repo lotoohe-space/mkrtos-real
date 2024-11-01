@@ -370,8 +370,8 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
 #if IS_ENABLED(CONFIG_MMU)
     knl_pdir_init(&task->mm_space.mem_dir, task->mm_space.mem_dir.dir, 3 /*TODO:*/);
 #else
-    task_vma_alloc(&task->mm_space.mem_vma, vma_addr_create(VPAGE_PROT_RO, 0, 0),
-                   CONFIG_SYS_TEXT_SIZE, CONFIG_SYS_TEXT_ADDR, NULL);
+    assert(task_vma_alloc(&task->mm_space.mem_vma, vma_addr_create(VPAGE_PROT_RO, 0, 0),
+                   align_power_of_2(CONFIG_SYS_TEXT_SIZE), CONFIG_SYS_TEXT_ADDR, NULL) >=0 );
 #endif
 }
 
