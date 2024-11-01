@@ -2,6 +2,7 @@
 #include <mk_sys.h>
 #include <util.h>
 #include <boot_info.h>
+#include "at32f435_437_clock.h"
 //! 内核镜像的开始地址
 #define KERNEL_IMG_START_ADDR (CONFIG_SYS_TEXT_ADDR + CONFIG_BOOTSTRAP_TEXT_SIZE + CONFIG_DTBO_TEXT_SIZE)
 
@@ -51,13 +52,8 @@ static boot_info_t boot_info = {
                 .is_sys_mem = 1,
                 .speed = 0,
             },
-            {
-                .addr = 0x10000000, /*ccm*/
-                .size = 0x10000,    /*64KB*/
-                .speed = 0,
-            },
         },
-        .mem_num = 2,
+        .mem_num = 1,
     },
 };
 
@@ -70,6 +66,7 @@ void jump2kernel(addr_t cpio_start, addr_t cpio_end)
 {
     uint32_t jump_addr;
 
+    system_clock_config();
     mem_init();
     //!< 检查栈顶地址是否合法,即检查此段Flash中是否已有APP程序
     if (((*(__IO uint32_t *)KERNEL_IMG_START_ADDR) & 0x2FFE0000) == CONFIG_SYS_DATA_ADDR)

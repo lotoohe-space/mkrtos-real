@@ -28,6 +28,7 @@ uart_t *uart_get_global(void)
 #define QUEUE_LEN 129
 static queue_t queue;
 static uint8_t queue_data[QUEUE_LEN];
+static bool_t uart_is_init;
 void uart_tigger(irq_entry_t *irq)
 {
     if (usart_interrupt_flag_get(PRINT_USARTx, USART_RDBF_FLAG) != RESET)
@@ -63,12 +64,17 @@ void uart_init(void)
     gpio_pin_mux_config(PRINT_USART_TX_GPIO_PORT, PRINT_USART_TX_GPIO_PINS_SOURCE, PRINT_USART_TX_GPIO_MUX);
     gpio_pin_mux_config(PRINT_USART_RX_GPIO_PORT, PRINT_USART_RX_GPIO_PINS_SOURCE, PRINT_USART_RX_GPIO_MUX);
 
+    nvic_priority_group_config(NVIC_PRIORITY_GROUP_2);
+    nvic_irq_enable(USART1_IRQn, 0, 0);
     /* configure uart param */
     usart_init(PRINT_USARTx, 115200, USART_DATA_8BITS, USART_STOP_1_BIT);
     usart_transmitter_enable(PRINT_USARTx, TRUE);
-    nvic_irq_enable(USART1_IRQn, 0, 0);
+    usart_receiver_enable(PRINT_USARTx, TRUE);
+
     usart_interrupt_enable(PRINT_USARTx, USART_RDBF_INT, TRUE);
     usart_enable(PRINT_USARTx, TRUE);
+   
+    uart_is_init=1;
 }
 INIT_HIGH_HAD(uart_init);
 
@@ -80,6 +86,9 @@ void uart_set(uart_t *uart)
 }
 void uart_putc(uart_t *uart, int data)
 {
+    if (!uart_is_init) {
+        return ;
+    }
     while (usart_flag_get(USART1, USART_TDBE_FLAG) == RESET)
         ;
     usart_data_transmit(USART1, (uint16_t)(data));

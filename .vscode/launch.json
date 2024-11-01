@@ -1,6 +1,22 @@
 {
     "configurations": [
         {
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/output/kernel.img.out",
+            "name": "Debug with PyOCD",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "none",
+            "servertype": "pyocd",
+            "targetId": "_at32f437zmt7",
+            "cmsisPack": "D:\\zz\\ArteryTek.AT32F435_437_DFP.2.2.1.pack",
+            "symbolFiles": [
+                "${workspaceFolder}/build/output/bootstrap.elf",
+                "${workspaceFolder}/build/output/mkrtos.elf",
+            ]
+        },
+        {
             "preLaunchTask": "download",
             "name": "openocd",
             "type": "cortex-debug",

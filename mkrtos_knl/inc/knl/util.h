@@ -59,3 +59,10 @@ static inline umword_t is_power_of_2(umword_t num)
 {
     return (num & (num - 1)) == 0;
 }
+static inline umword_t align_power_of_2(umword_t num)
+{
+    if (is_power_of_2(num)) {
+        return num;
+    }
+    return (1 << (ffs(num) + 1));
+}

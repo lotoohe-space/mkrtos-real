@@ -17,6 +17,7 @@
 #include "mk_sys.h"
 #include "mpu.h"
 #include "boot_info.h"
+#include "at32f435_437_clock.h"
 __ALIGN__(CONFIG_THREAD_BLOCK_SIZE)
 static uint8_t thread_knl_stack[CONFIG_THREAD_BLOCK_SIZE] = {0};
 void *_estack = thread_knl_stack + CONFIG_THREAD_BLOCK_SIZE;
@@ -103,6 +104,7 @@ boot_info_t *arch_get_boot_info(void)
 void arch_init(void)
 {
     SystemInit();
+    system_clock_config();
     mpu_init();
     SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk;
     SCB->SHCSR |= SCB_SHCSR_BUSFAULTENA_Msk;
