@@ -376,7 +376,9 @@ extern sd_card_info_struct_type sd_card_info;
 /**
   * sdio paremeters
   */
+#ifndef NULL
 #define NULL                             0
+#endif
 #define SDIO_STATIC_FLAGS                ((uint32_t)0x000005FF)
 #define SDIO_CMD0TIMEOUT                 ((uint32_t)0x00010000)
 #define SDIO_DATATIMEOUT                 ((uint32_t)0xFFFFFFFF)

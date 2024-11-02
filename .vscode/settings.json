@@ -109,7 +109,13 @@
         "u_mutex.h": "c",
         "stdint.h": "c",
         "cons_cli.h": "c",
-        "boot_info.h": "c"
+        "boot_info.h": "c",
+        "at32f435_437_conf.h": "c",
+        "at_surf_f437_board_sd_card.h": "c",
+        "at_surf_f437_board_audio.h": "c",
+        "at_surf_f437_board_delay.h": "c",
+        "at32f435_437.h": "c",
+        "at_surf_f437_board_lcd.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

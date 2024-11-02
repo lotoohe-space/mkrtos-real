@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 
 if (${ARCH_NAME} STREQUAL "armv7_8m")
-    # add_subdirectory(dietlibc)
     add_subdirectory(modbus)
-    add_subdirectory(stm32f1_bsp)
     add_subdirectory(mlibc)
     add_subdirectory(mr)
     # add_subdirectory(at_device)

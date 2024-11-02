@@ -913,6 +913,10 @@ again:;
     if (to->status != THREAD_SUSPEND || to->ipc_status != THREAD_RECV)
     {
         /*TODO:这里应该挂起等待*/
+        if (to->ipc_status == THREAD_IPC_ABORT) {
+            ref_counter_dec_and_release(&to->ref, &to->kobj);
+            return -ECANCELED;
+        }
         spinlock_set(&to->recv_lock, status_lock2);
         thread_sched(TRUE);
         goto again;

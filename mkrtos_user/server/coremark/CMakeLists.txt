@@ -1,13 +1,10 @@
 cmake_minimum_required(VERSION 3.13)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-
 file(
     GLOB deps  
     coremark/*.c  
     *.c
 )
-
 
 add_executable(
     coremark.elf
@@ -23,7 +20,6 @@ target_link_libraries(
     sys
     sys_util
     sys_svr
-    # stm32f1_bsp
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(

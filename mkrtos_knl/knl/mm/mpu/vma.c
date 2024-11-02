@@ -146,6 +146,7 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
     vma_addr = vma_addr_get_addr(vaddr);
     if (vma_addr != 0)
     {
+        printk("vam vaddr must is NULL.\n");
         // 必须让内核自己分配地址
         ret = -EINVAL;
         goto err_end;
