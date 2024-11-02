@@ -1442,7 +1442,10 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
         else
         {
             thread_suspend(tag_th);
-            preemption();
+            if (tag_th != thread_get_current())
+            {
+                preemption();
+            }
             tag_th->sche.prio =
                 (tge_prio >= PRIO_MAX ? PRIO_MAX - 1 : tge_prio);
             thread_ready(tag_th, TRUE);
