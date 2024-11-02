@@ -61,7 +61,8 @@ static inline umword_t is_power_of_2(umword_t num)
 }
 static inline umword_t align_power_of_2(umword_t num)
 {
-    if (is_power_of_2(num)) {
+    if (is_power_of_2(num))
+    {
         return num;
     }
     return (1 << (ffs(num) + 1));

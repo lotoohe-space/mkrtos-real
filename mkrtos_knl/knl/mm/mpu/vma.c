@@ -404,9 +404,9 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr, void *paddr)
         container_of(task_vma, mm_space_t, mem_vma),
         task_t,
         mm_space);
-    mword_t status = spinlock_lock(&task_vma->lock);
 
 #if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
+    mword_t status = spinlock_lock(&task_vma->lock);
     for (int i = 0; i < MPU_PAGE_NUM; i++)
     {
         if (task_vma->mem_pages[i] == NULL)
