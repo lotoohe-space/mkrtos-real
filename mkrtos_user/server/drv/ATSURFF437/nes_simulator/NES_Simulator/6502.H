@@ -45,8 +45,8 @@ extern  CPU_InitFlag NMI_Flag;
 extern  CPU_InitFlag NMI_Flag;
 
 /*¥Ê¥¢∆˜÷∏’Î*/
-extern uint8_t* prg_rombank0;	/* prg-rom lower bank*/
-extern uint8_t* prg_rombank1;	/* prg-rom upper bank*/
+extern uint8* prg_rombank0;	/* prg-rom lower bank*/
+extern uint8* prg_rombank1;	/* prg-rom upper bank*/
 
 /*÷∏¡ÓΩ‚ Õ*/
 void implied6502(void);
@@ -142,10 +142,10 @@ void irq6502(void);
 
 /* must be called first to initialise all 6502 engines arrays */
 
-void init6502mem(	uint8_t* exp_romptr,
-					uint8_t* sramptr,			
-					uint8_t* prg_rombank0ptr,		
-					uint8_t  rom_num);
+void init6502mem(	uint8* exp_romptr,
+					uint8* sramptr,			
+					uint8* prg_rombank0ptr,		
+					uint8  rom_num);
 
 /* sets all of the 6502 registers. The program counter is set from
  * locations $FFFC and $FFFD masked with the above addrmask

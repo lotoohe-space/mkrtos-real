@@ -52,13 +52,13 @@ int  sum, saveflags;
 WORD help;
 
 /* 6502 memory map */
-uint8_t  ram6502[0x800];  /* RAM*/
-//uint8_t* ppu_regbase;		/* PPU IO reg*/
-//uint8_t* apu_regbase;		/* APU IO reg*/
-uint8_t* exp_rom;			/* expansion rom*/
-uint8_t* sram;			/* sram*/
-uint8_t* prg_rombank0;	/* prg-rom lower bank*/
-uint8_t* prg_rombank1;	/* prg-rom upper bank*/
+uint8  ram6502[0x800];  /* RAM*/
+//uint8* ppu_regbase;		/* PPU IO reg*/
+//uint8* apu_regbase;		/* APU IO reg*/
+uint8* exp_rom;			/* expansion rom*/
+uint8* sram;			/* sram*/
+uint8* prg_rombank0;	/* prg-rom lower bank*/
+uint8* prg_rombank1;	/* prg-rom upper bank*/
 
 /* arrays */
 typedef struct{
@@ -123,7 +123,7 @@ const OPCODE opcodetable[]={
 /*0x31*/	{5,	and6502,	indy6502},
 /*0x32*/	{3,	and6502,	indzp6502},
 /*0x33*/	{2,	nop6502,	implied6502},
-/*0x34*/	{4,	bit6502,		zpx6502},
+/*0x34*/	{4,	bit6502,	zpx6502},
 /*0x35*/	{4,	and6502,	zpx6502},
 /*0x36*/	{6,	rol6502,	zpx6502},
 /*0x37*/	{2,	nop6502,	implied6502},
@@ -355,7 +355,7 @@ const OPCODE opcodetable[]={
  */
 void SprDMA(BYTE scr_addr) 		//scr_addr Ϊ��8λ��ַ
 {
-	uint8_t *scr_addrptr = 0;		//������sprite���� ָ��
+	uint8 *scr_addrptr = 0;		//������sprite���� ָ��
 	int 	i;
 
 	switch(scr_addr >> 4){		//ѡ��Դ��ַ��������
@@ -416,7 +416,9 @@ void SprDMA(BYTE scr_addr) 		//scr_addr Ϊ��8λ��ַ
  */
 int get6502memory(WORD addr)//û0x2000����
 {
-   	switch(addr & 0xE000){
+   	uint8 temp;
+	
+	switch(addr & 0xE000){
    	case 0x0000:	//$0000 ~ $0FFF	
 		 return (ram6502[addr&0x7FF]);
 //	case 0x1000:	//$1000 ~ $1FFF	����
@@ -437,10 +439,14 @@ int get6502memory(WORD addr)//û0x2000����
 		 if(addr == 0x4015){ //pAPU Sound / Vertical Clock Signal Register
 		 }
 		 if(addr == 0x4016){
-			return NES_GetJoyPadVlaue(JOYPAD_0);//��Ϊ3��8bit���ݣ���һ��8bitΪ������1,�ڶ��ο�����3��������ID code
+			temp = (uint8)((JoyPadValue_0 >> JoyPadIndex_0) & 1) | 0x40;
+			JoyPadIndex_0 = (JoyPadIndex_0 == 23) ? 0 : (JoyPadIndex_0 + 1);
+			return temp;
 		 }
 		 if(addr == 0x4017){
-			return NES_GetJoyPadVlaue(JOYPAD_1);//��Ϊ3��8bit���ݣ���һ��8bitΪ������2,�ڶ��ο�����4��������ID code
+			temp = (uint8)((JoyPadValue_1 >> JoyPadIndex_1) & 1) | 0x40;
+			JoyPadIndex_1 = (JoyPadIndex_1 == 23) ? 0 : (JoyPadIndex_1 + 1);
+			return temp;
 		 }
 		 break;
 //	case 0x5000:  	/* expansion rom*/
@@ -494,10 +500,9 @@ void put6502memory(WORD addr, BYTE value)
 		 }
 		 if(addr == 0x4016){   
 			/*bit0 JoyPad ����*/
-			if(value & 1){	   //��дbit0:1��λ����״̬����дbit0:0��ֹ
-				NES_JoyPadReset();
-			}else{
-//				NES_JoyPadDisable();   //��д1��д0����λ������
+			if(value & 0x01){	   //��дbit0:1��λ����״̬����дbit0:0��ֹ
+//				NES_JoyPadReset(); //�ֱ���ʼ����Ҫд1��0�������ʼ��û����ɣ�����ѭ����ˣ���չ�ھͿ�������ͨѶ
+				JoyPadIndex_0 = JoyPadIndex_1 = 0;
 			}
 			/*����λ��δʹ��*/				 
 		 }
@@ -547,7 +552,7 @@ void immediate6502(void)
 }
 
 /* ABS */
-void abs6502(void)
+inline void abs6502(void)
 {
 //      savepc = gameImage[PC] + (gameImage[PC + 1] << 8);
 	savepc  = get6502memory(PC);
@@ -558,7 +563,7 @@ void abs6502(void)
 }
 
 /* Branch */
-void relative6502(void)
+inline void relative6502(void)
 {
 //      savepc = gameImage[PC++];
 	savepc  = get6502memory(PC);
@@ -584,7 +589,7 @@ void indirect6502(void)
 }
 
 /* ABS,X */
-void absx6502(void)
+inline void absx6502(void)
 {
 //      savepc = gameImage[PC] + (gameImage[PC + 1] << 8);
 	savepc  = get6502memory(PC);
@@ -599,7 +604,7 @@ void absx6502(void)
 }
 
 /* ABS,Y */
-void absy6502(void)
+inline void absy6502(void)
 {
 //      savepc = gameImage[PC] + (gameImage[PC + 1] << 8);
 	savepc  = get6502memory(PC);
@@ -615,7 +620,7 @@ void absy6502(void)
 }
 
 /* ZP */
-void zp6502(void)
+inline void zp6502(void)
 {
 //	savepc=gameImage[PC++];
 	savepc  = get6502memory(PC);
@@ -623,7 +628,7 @@ void zp6502(void)
 }
 
 /* ZP,X */
-void zpx6502(void)
+inline void zpx6502(void)
 {
 //	savepc=gameImage[PC++]+X;
 	savepc  = get6502memory(PC) + X;
@@ -633,7 +638,7 @@ void zpx6502(void)
 }
 
 /* ZP,Y */
-void zpy6502(void)
+inline void zpy6502(void)
 {
 //      savepc=gameImage[PC++]+Y;
 	savepc  = get6502memory(PC) + Y;
@@ -643,7 +648,7 @@ void zpy6502(void)
 }
 
 /* (ZP,X) */
-void indx6502(void)
+inline void indx6502(void)
 {
 //      value = gameImage[PC++]+X;
 //      savepc = gameImage[value] + (gameImage[value+1] << 8);
@@ -670,7 +675,7 @@ void indy6502(void)
 }
 
 /* (ABS,X) */
-void indabsx6502(void)
+inline void indabsx6502(void)
 {
 //      help = gameImage[PC] + (gameImage[PC + 1] << 8) + X;
 //      savepc = gameImage[help] + (gameImage[help + 1] << 8);
@@ -681,7 +686,7 @@ void indabsx6502(void)
 }
 
 /* (ZP) */
-void indzp6502(void)
+inline void indzp6502(void)
 {
 //      value = gameImage[PC++];
 //      savepc = gameImage[value] + (gameImage[value + 1] << 8);
@@ -731,7 +736,7 @@ void adc6502(void)
 	if (A & 0x80) P |= 0x80; else P &= 0x7f;
 }
 
-void and6502(void)
+inline void and6502(void)
 {
 	opcodetable[opcode].adrmode();
 //      value = gameImage[savepc];
@@ -742,7 +747,7 @@ void and6502(void)
 	if (A & 0x80) P |= 0x80; else P &= 0x7f;
 }
 
-void asl6502(void)
+inline void asl6502(void)
 {
       opcodetable[opcode].adrmode();
       value = get6502memory(savepc);
@@ -753,7 +758,7 @@ void asl6502(void)
       if (value & 0x80) P |= 0x80; else P &= 0x7f;
 }
 
-void asla6502(void)
+inline void asla6502(void)
 {
       P= (P & 0xfe) | ((A >>7) & 0x01);
       A = A << 1;
@@ -761,7 +766,7 @@ void asla6502(void)
       if (A & 0x80) P |= 0x80; else P &= 0x7f;
 }
 
-void bcc6502(void)
+inline void bcc6502(void)
 {
 	if ((P & 0x01)==0)
 	{
@@ -775,7 +780,7 @@ void bcc6502(void)
 	}
 }
 
-void bcs6502(void)
+inline void bcs6502(void)
 {
 	if (P & 0x01){
 		opcodetable[opcode].adrmode();
@@ -788,7 +793,7 @@ void bcs6502(void)
 	}
 }
 
-void beq6502(void)
+inline void beq6502(void)
 {
 	if (P & 0x02){
 		opcodetable[opcode].adrmode();
@@ -801,7 +806,7 @@ void beq6502(void)
 	}
 }
 
-void bit6502(void)
+inline void bit6502(void)
 {
 	opcodetable[opcode].adrmode();
 //	value=gameImage[savepc];
@@ -815,7 +820,7 @@ void bit6502(void)
 	P = (P & 0x3f) | (value & 0xc0);
 }
 
-void bmi6502(void)
+inline void bmi6502(void)
 {
     if (P & 0x80){
 		opcodetable[opcode].adrmode();
@@ -828,7 +833,7 @@ void bmi6502(void)
 	}
 }
 
-void bne6502(void)
+inline void bne6502(void)
 {
 	if ((P & 0x02)==0){
 	    opcodetable[opcode].adrmode();
@@ -943,7 +948,7 @@ void cpy6502(void)
 
 void dec6502(void)
 {
-	uint8_t temp;	
+	uint8 temp;	
 
 	opcodetable[opcode].adrmode();
 //	gameImage[savepc]--;
@@ -981,7 +986,7 @@ void eor6502(void)
 
 void inc6502(void)
 {
-	uint8_t temp;  
+	uint8 temp;  
 	
 	opcodetable[opcode].adrmode();
 //      gameImage[savepc]++;
@@ -1354,7 +1359,7 @@ void stz6502(void)
 
 void tsb6502(void)
 {
-	uint8_t temp;	
+	uint8 temp;	
 
 	opcodetable[opcode].adrmode();
 //      gameImage[savepc] |= A;
@@ -1368,7 +1373,7 @@ void tsb6502(void)
 
 void trb6502(void)
 {
-	uint8_t temp;    
+	uint8 temp;    
 
 	opcodetable[opcode].adrmode();
 //      gameImage[savepc] = gameImage[savepc] & (A ^ 0xff);
@@ -1479,10 +1484,10 @@ void exec6502(int timerTicks)
 }
 
 /* ��ʼ��6502 �洢��*/
-void init6502mem( uint8_t* exp_romptr,
-				  uint8_t* sramptr,			
-				  uint8_t* prg_rombank0ptr,		
-			   	  uint8_t  rom_num)		
+void init6502mem( uint8* exp_romptr,
+				  uint8* sramptr,			
+				  uint8* prg_rombank0ptr,		
+			   	  uint8  rom_num)		
 {
 	exp_rom		= exp_romptr;			/* expansion rom*/
 	sram		= sramptr;				/* sram*/
