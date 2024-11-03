@@ -115,7 +115,12 @@
         "at_surf_f437_board_audio.h": "c",
         "at_surf_f437_board_delay.h": "c",
         "at32f435_437.h": "c",
-        "at_surf_f437_board_lcd.h": "c"
+        "at_surf_f437_board_lcd.h": "c",
+        "nes_main.h": "c",
+        "6502.C": "cpp",
+        "infones_mapper.h": "c",
+        "infones.h": "c",
+        "infones_system.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

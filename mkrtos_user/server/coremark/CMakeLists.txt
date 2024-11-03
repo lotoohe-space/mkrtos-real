@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 file(
     GLOB deps  
-    coremark/*.c  
+    coremark_src/*.c  
     *.c
 )
 
@@ -28,7 +28,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
 
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/coremark/coremark
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/coremark/coremark_src
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/coremark/
 )
 add_dependencies(

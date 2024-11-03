@@ -10,7 +10,7 @@
             "showDevDebugOutput": "none",
             "servertype": "pyocd",
             "targetId": "_at32f437zmt7",
-            "cmsisPack": "D:\\zz\\ArteryTek.AT32F435_437_DFP.2.2.1.pack",
+            "cmsisPack": "/Users/zhangzheng/Documents/ArteryTek.AT32F435_437_DFP.2.2.1.pack",
             "symbolFiles": [
                 "${workspaceFolder}/build/output/bootstrap.elf",
                 "${workspaceFolder}/build/output/mkrtos.elf",
