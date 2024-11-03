@@ -12,8 +12,8 @@
 #define ROUND_UP(a, b) ROUND(a, b)                                 //!< a除b向上取整数
 #define ROUND_DOWN(a, b) ((a) / (b))                               //!< a/b向下取整
 
-#define USED __attribute__((used))
-#define UNUSED __attribute__((unused))
+#define __USED __attribute__((used))
+#define __UNUSED __attribute__((unused))
 #define PACKED __attribute__((packed))
 #define SECTION(section) __attribute__((__section__(section)))
 #define __ALIGN__(size) __attribute__((aligned(size)))

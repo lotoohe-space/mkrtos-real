@@ -53,10 +53,16 @@ signed short userShellWrite(char *data, unsigned short len)
  */
 signed short userShellRead(char *data, unsigned short len)
 {
-    while (cons_read((uint8_t *)data, len) <= 0)
+    int rlen;
+
+again:
+    rlen = cons_read((uint8_t *)data, len);
+    if  (rlen <= 0)
     {
         u_sleep_ms(5);
+        goto again;
     }
+    return rlen;
 }
 /**
  * @brief 列出文件

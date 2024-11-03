@@ -10,10 +10,121 @@
 
 RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_WRITE, write,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data)
-RPC_GENERATION_CALL2(cons_t, CONS_PROT, CONS_READ, read,
-                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data,
-                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
+// RPC_GENERATION_CALL2(cons_t, CONS_PROT, CONS_READ, read,
+//                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data,
+//                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
+msg_tag_t cons_t_read_call(obj_handler_t hd, rpc_ref_array_uint32_t_uint8_t_32_t *var0, rpc_int_t *var1)
+{
+    void *buf;
+    ipc_msg_t *msg_ipc;
+    int off = 0;
+    int off_buf = 0;
+    int ret = -1;
+    umword_t op_val = ((umword_t)1);
 
+    thread_msg_buf_get(-1, (umword_t *)(&buf), ((void *)0));
+    msg_ipc = (ipc_msg_t *)buf;
+    msg_ipc->msg_buf[0] = op_val;
+    off += rpc_align(sizeof(op_val), __alignof(((umword_t)1)));
+
+    do
+    {
+        if (1 == 1)
+        {
+            if (2 == 1 || 2 == 4)
+            {
+                int ret = rpc_cli_msg_to_buf_rpc_ref_array_uint32_t_uint8_t_32_t(var0, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off);
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off = ret;
+            }
+        }
+    } while (0);
+    do
+    {
+        if (1 == 2)
+        {
+            if (2 == 1 || 2 == 4)
+            {
+                int ret = rpc_cli_msg_to_buf_rpc_ref_array_uint32_t_uint8_t_32_t(var0, (uint8_t *)((uint8_t *)msg_ipc->map_buf), off_buf);
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off_buf = ret;
+            }
+        }
+    } while (0);
+    do
+    {
+        if (1 == 1)
+        {
+            if (1 == 1 || 1 == 4)
+            {
+                int ret = rpc_cli_msg_to_buf_rpc_int_t(var1, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off);
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off = ret;
+            }
+        }
+    } while (0);
+    do
+    {
+        if (1 == 2)
+        {
+            if (1 == 1 || 1 == 4)
+            {
+                int ret = rpc_cli_msg_to_buf_rpc_int_t(var1, (uint8_t *)((uint8_t *)msg_ipc->map_buf), off_buf);
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off_buf = ret;
+            }
+        }
+    } while (0);
+    msg_tag_t tag = thread_ipc_call(((msg_tag_t){.flags = (0), .msg_buf_len = ((((off) / ((sizeof(void *)))) + (((off) % ((sizeof(void *)))) ? 1 : 0))), .map_buf_len = ((((off_buf) / ((sizeof(void *)))) + (((off_buf) % ((sizeof(void *)))) ? 1 : 0))), .prot = (0x0006)}), hd, ipc_timeout_create2(0, 0));
+    if (((int)((tag).prot)) < 0)
+    {
+        return tag;
+    }
+    off = 0;
+    do
+    {
+        if (1 == 1)
+        {
+            if (2 == 2 || 2 == 4)
+            {
+                int ret = rpc_cli_buf_to_msg_rpc_ref_array_uint32_t_uint8_t_32_t(var0, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off, tag.msg_buf_len * (sizeof(void *)));
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off = ret;
+            }
+        }
+    } while (0);
+    do
+    {
+        if (1 == 1)
+        {
+            if (1 == 2 || 1 == 4)
+            {
+                int ret = rpc_cli_buf_to_msg_rpc_int_t(var1, (uint8_t *)((uint8_t *)msg_ipc->msg_buf), off, tag.msg_buf_len * (sizeof(void *)));
+                if (ret < 0)
+                {
+                    return ((msg_tag_t){.flags = (0), .msg_buf_len = (0), .map_buf_len = (0), .prot = (ret)});
+                }
+                off = ret;
+            }
+        }
+    } while (0);
+    return tag;
+}
 RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_ACTIVE, active,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
 

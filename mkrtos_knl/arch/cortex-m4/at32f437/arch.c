@@ -28,7 +28,10 @@ static boot_info_t boot_info; //!< 启动信息
 void arch_to_sche(void)
 {
     // 开启pensv中断
-    write_reg(REG1_ADDR, 0x10000000);
+    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk; // 设置PendSV中断标志位
+    _dmb();
+    _dsb();
+    _isb();
 }
 void sys_startup(void)
 {

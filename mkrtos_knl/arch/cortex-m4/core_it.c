@@ -91,7 +91,7 @@ void MemManage_Handler(void)
     if (task_vma_page_fault(&(thread_get_current_task()->mm_space.mem_vma),
                             ALIGN_DOWN(fault_addr, PAGE_SIZE), NULL) < 0)
     {
-      printk("task:0x%x, mem_addr:0x%lx bus_addr:0x%lx semgement fault.\n",
+      printk("[semgement fault] task:0x%x, mem_addr:0x%lx bus_addr:0x%lx .\n",
              thread_get_current_task(), fault_addr, bus_addr);
       task_knl_kill(thread_get_current(), is_knl);
     }
