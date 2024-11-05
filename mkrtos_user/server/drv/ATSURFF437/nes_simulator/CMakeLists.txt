@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DAT32F437ZMT7 -DUSE_STDPERIPH_DRIVER -DAT_SURF_F437_V1 ")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -DAT32F437ZMT7 -DUSE_STDPERIPH_DRIVER -DAT_SURF_F437_V1 ")
-set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS}  -DAT32F437ZMT7 -DUSE_STDPERIPH_DRIVER -DAT_SURF_F437_V1 ")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DAT32F437ZMT7 -DUSE_STDPERIPH_DRIVER -DAT_SURF_F437_V1 -DINFONES")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -DAT32F437ZMT7 -DUSE_STDPERIPH_DRIVER -DAT_SURF_F437_V1 -DINFONES")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS}  -DAT32F437ZMT7 -DUSE_STDPERIPH_DRIVER -DAT_SURF_F437_V1 -DINFONES")
 
 file(
     GLOB deps
@@ -14,7 +14,6 @@ file(
     # ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/NES_Simulator/PPU.c
     # ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/NES_Simulator/ROM__MARIO.c
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/infoNES/*.c
-    # ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/infoNES/mapper/*.c
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/infoNES/ports/*.c
     *.c
 )
@@ -51,6 +50,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/project/at_surf_f437_board/
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/middlewares/i2c_application_library
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator
+
     # ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/NES_Simulator
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/infoNES
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/mapper
