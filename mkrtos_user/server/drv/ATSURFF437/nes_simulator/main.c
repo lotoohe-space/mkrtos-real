@@ -6,12 +6,36 @@
 #include <u_sleep.h>
 #include <u_sys.h>
 #include <u_thread.h>
-// #include <NES_Simulator/nes_main.h>
+#ifndef INFONES
+#include <NES_Simulator/nes_main.h>
+#else
 #include <InfoNES.h>
+#endif
 void delay_ms(int ms)
 {
     u_sleep_ms(ms);
 }
+#ifdef INFONES
+#define BGR565TORGB565(a) (((a) >> 11) | ((a) & (0x3f << 5)) | (a & 0x1f) << 11)
+void nes_lcd_color_fill(uint16_t sx, uint16_t sy, uint16_t ex, uint16_t ey, uint16_t *color)
+{
+    uint16_t height, width;
+    uint16_t i, j;
+
+    width = ex - sx + 1;
+    height = ey - sy + 1;
+
+    lcd_windows_set(sx, sy, ex, ey);
+
+    for (i = 0; i < height; i++)
+    {
+        for (j = 0; j < width; j++)
+        {
+            lcd_data_16bit_write(BGR565TORGB565(color[i * width + j]));
+        }
+    }
+}
+#endif
 void NES_LCD_DisplayLine(int y_axes, uint16_t *Disaplyline_buffer)
 {
     lcd_color_fill(0, y_axes, 256, y_axes, Disaplyline_buffer);
@@ -58,11 +82,14 @@ int main(int argc, char *argv[])
 #endif
     while (1)
     {
-        // nes_main();
+#ifndef INFONES
+        nes_main();
+#else
         if (InfoNES_Load(NULL) == 0)
         {
             FrameSkip = 2;
             InfoNES_Main();
         }
+#endif
     }
 }

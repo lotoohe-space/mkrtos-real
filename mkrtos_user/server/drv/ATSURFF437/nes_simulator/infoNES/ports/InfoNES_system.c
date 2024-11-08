@@ -4,9 +4,10 @@
 #include "InfoNES.h"
 #include "InfoNES_System.h"
 #include <string.h>
+#include <u_types.h>
 // #include "UserMain.h"
-#include <at_surf_f437_board_lcd.h>
-
+// #include <at_surf_f437_board_lcd.h>
+extern void nes_lcd_color_fill(uint16_t sx, uint16_t sy, uint16_t ex, uint16_t ey, uint16_t *color);
 /*-------------------------------------------------------------------*/
 /*  Palette data                                                     */
 /*-------------------------------------------------------------------*/
@@ -150,7 +151,7 @@ void InfoNES_LoadFrame()
 void InfoNES_LoadLine()
 {
 	// BSP_LCD_DrawBitmap(32, PPU_Scanline, 256, 1, WorkLine);
-	lcd_color_fill(32, PPU_Scanline, 32 + 256, PPU_Scanline, WorkLine);
+	nes_lcd_color_fill(32, PPU_Scanline, 32 + 256, PPU_Scanline, WorkLine);
 }
 /* Get a joypad state */
 void InfoNES_PadState(DWORD *pdwPad1, DWORD *pdwPad2, DWORD *pdwSystem)

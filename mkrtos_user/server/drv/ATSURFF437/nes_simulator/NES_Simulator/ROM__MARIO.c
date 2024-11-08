@@ -1,7 +1,7 @@
 
-// #define _USE_ROM_MARIO_
+#define _USE_ROM_MARIO_
 //#define _USE_ROM_DEMO_
-#define _USE_ROM_TANKE_
+// #define _USE_ROM_TANKE_
 
 #ifdef _USE_ROM_MARIO_
 char const rom_file[]={78,69,83,26,2,1,1,0,0,0,0,0,0,0,0,0,
