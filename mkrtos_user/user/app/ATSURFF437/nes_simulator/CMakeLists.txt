@@ -13,8 +13,8 @@ file(
     # ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/NES_Simulator/nes_main.c
     # ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/NES_Simulator/PPU.c
     # ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/NES_Simulator/ROM__MARIO.c
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/infoNES/*.c
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/infoNES/ports/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/infoNES/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/infoNES/ports/*.c
     *.c
 )
 
@@ -52,9 +52,10 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator
 
     # ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/NES_Simulator
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/infoNES
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/mapper
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/nes_simulator/ports
+    ${CMAKE_CURRENT_SOURCE_DIR}/
+    ${CMAKE_CURRENT_SOURCE_DIR}/infoNES
+    ${CMAKE_CURRENT_SOURCE_DIR}/mapper
+    ${CMAKE_CURRENT_SOURCE_DIR}/ports
 )
 add_dependencies(
     nes.elf

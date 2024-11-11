@@ -120,7 +120,16 @@
         "6502.C": "cpp",
         "infones_mapper.h": "c",
         "infones.h": "c",
-        "infones_system.h": "c"
+        "infones_system.h": "c",
+        "mk_pin_drv.h": "c",
+        "dlist.h": "c",
+        "malloc.h": "c",
+        "libfdt.h": "c",
+        "at32f435_437_gpio.h": "c",
+        "at32f435_437_crm.h": "c",
+        "mk_char_dev.h": "c",
+        "unistd.h": "c",
+        "stat.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

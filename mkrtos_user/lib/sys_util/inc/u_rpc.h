@@ -885,13 +885,13 @@ RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
         }                                                                                                 \
         return tag;                                                                                       \
     }
-#define RPC_DISPATCH17(struct_type, prot, op_type, func0_op, func0_name, func1_op, func1_name,            \
+#define RPC_DISPATCH18(struct_type, prot, op_type, func0_op, func0_name, func1_op, func1_name,            \
                        func2_op, func2_name, func3_op, func3_name,                                        \
                        func4_op, func4_name, func5_op, func5_name, func6_op, func6_name,                  \
                        func7_op, func7_name, func8_op, func8_name, func9_op, func9_name,                  \
                        func10_op, func10_name, func11_op, func11_name, func12_op, func12_name,            \
                        func13_op, func13_name, func14_op, func14_name, func15_op, func15_name,            \
-                       func16_op, func16_name)                                                            \
+                       func16_op, func16_name, func17_op, func17_name)                                    \
     msg_tag_t rpc_##struct_type##_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg) \
     {                                                                                                     \
         msg_tag_t tag = msg_tag_init4(0, 0, 0, -EPROTO);                                                  \
@@ -983,6 +983,11 @@ RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
         case func16_op:                                                                                   \
         {                                                                                                 \
             tag = struct_type##_##func16_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func17_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func17_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
         }                                                                                                 \
         break;                                                                                            \
         default:                                                                                          \

@@ -324,8 +324,27 @@ long sys_be_writev(va_list ap)
 }
 long be_ioctl(long fd, long req, void *args)
 {
-    /*TODO:*/
-    return 0;
+    int ret;
+    fd_map_entry_t u_fd;
+    ret = fd_map_get(fd, &u_fd);
+
+    if (ret < 0)
+    {
+        return -EBADF;
+    }
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {   ret = -ENOSYS;
+    }
+    break;
+    case FD_FS:
+    {
+        ret = fs_ioctl(u_fd.priv_fd, req, args);
+    }
+    break;
+    }
+    return ret;
 }
 long sys_be_ioctl(va_list ap)
 {
@@ -371,6 +390,10 @@ long sys_be_lseek(va_list ap)
     ARG_3_BE(ap, fd, long, offset, long, whence, long);
 
     return be_lseek(fd, offset, whence);
+}
+long be_mkdir(const char *path, mode_t mode)
+{
+    return fs_mkdir((char *)path);
 }
 long be_symlink(const char *src, const char *dst)
 {

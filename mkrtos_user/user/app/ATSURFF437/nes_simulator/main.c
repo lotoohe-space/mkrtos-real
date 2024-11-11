@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     lcd_init(LCD_DISPLAY_VERTICAL);
 
     lcd_clear(BLACK);
-#if 1
+#if 0
     thread_run(-1, 3);
 #endif
     while (1)
