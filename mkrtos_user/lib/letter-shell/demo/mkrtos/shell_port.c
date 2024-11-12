@@ -59,7 +59,7 @@ again:
     rlen = cons_read((uint8_t *)data, len);
     if  (rlen <= 0)
     {
-        u_sleep_ms(5);
+        u_sema_down(SEMA_PROT);
         goto again;
     }
     return rlen;

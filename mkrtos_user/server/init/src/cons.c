@@ -6,6 +6,7 @@
 #include <u_log.h>
 #include <u_hd_man.h>
 #include <u_err.h>
+#include <u_sema.h>
 #include <assert.h>
 #include <errno.h>
 #include <u_sleep.h>
@@ -26,7 +27,7 @@ static ATTR_ALIGN(8) uint8_t cons_stack[CONS_STACK_SIZE];
 // static uint8_t cons_msg_buf[MSG_BUG_LEN];
 static cons_t cons_obj;
 static obj_handler_t cons_th;
-
+static obj_handler_t sem_th;
 static void console_read_func(void)
 {
     while (1)
@@ -41,6 +42,10 @@ static void console_read_func(void)
                 q_enqueue(&cons_obj.r_queue, cons_obj.r_data_buf[i]);
             }
             pthread_spin_unlock(&cons_obj.r_lock);
+            if (sem_th)
+            {
+                u_sema_up(sem_th);
+            }
         }
     }
     handler_free_umap(cons_obj.hd_cons_read);
@@ -102,7 +107,6 @@ int console_read(uint8_t *data, size_t len)
     }
     else
     {
-
         pthread_spin_lock(&cons_obj.r_lock);
         if (q_queue_len(&cons_obj.r_queue) == 0)
         {
@@ -129,7 +133,15 @@ int console_read(uint8_t *data, size_t len)
  * @brief 激活控制台为发送者进程
  *
  */
-void console_active(pid_t pid)
+void console_active(pid_t pid, obj_handler_t sem)
 {
     cons_obj.active_pid = pid;
+    if (sem)
+    {
+        if (sem_th)
+        {
+            handler_free_umap(sem_th);
+        }
+        sem_th = sem;
+    }
 }

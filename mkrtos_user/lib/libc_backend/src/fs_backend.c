@@ -14,6 +14,7 @@
 #include <u_prot.h>
 #include <u_task.h>
 #include <u_util.h>
+#include <u_sema.h>
 AUTO_CALL(101)
 void fs_backend_init(void)
 {
@@ -119,7 +120,7 @@ static int be_tty_read(char *buf, long size)
         }
         else if (len == 0)
         {
-            u_sleep_ms(10);
+            u_sema_down(SEMA_PROT);
             continue;
         }
         r_len += len;
@@ -225,7 +226,8 @@ long be_readv(long fd, const struct iovec *iov, long iovcnt)
                 }
                 else if (read_cn == 0)
                 {
-                    u_sleep_ms(10); // TODO:改成信号量
+                    u_sema_down(SEMA_PROT);
+                    cons_write_str(".\n");
                     goto again_read;
                 }
             }
@@ -335,7 +337,8 @@ long be_ioctl(long fd, long req, void *args)
     switch (u_fd.type)
     {
     case FD_TTY:
-    {   ret = -ENOSYS;
+    {
+        ret = -ENOSYS;
     }
     break;
     case FD_FS:

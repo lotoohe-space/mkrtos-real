@@ -75,11 +75,11 @@ int main(int argc, char *argv[])
     while (1)
     {
         val = 1;
-        delay_ms(500);
+        // delay_ms(500);
         lseek(fd, 12, SEEK_SET);
         write(fd, &val, 1);
         val = 0;
-        delay_ms(500);
+        // delay_ms(500);
         lseek(fd, 12, SEEK_SET);
         write(fd, &val, 1);
     }
