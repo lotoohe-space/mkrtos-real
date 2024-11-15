@@ -1,6 +1,7 @@
 #pragma once
 
 #include <u_util.h>
+#include <u_types.h>
 /**
  * @brief 循环双向链表
  */

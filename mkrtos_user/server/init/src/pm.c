@@ -213,12 +213,14 @@ int pm_rpc_run_app(const char *path, int flags)
         (char *)path,
         NULL, /*TODO:支持传递参数*/
     };
-    ret = app_load(path, u_get_global_env(), &pid, args, 1, NULL, 0);
+    obj_handler_t sem;
+
+    ret = app_load(path, u_get_global_env(), &pid, args, 1, NULL, 0, &sem);
     if (ret > 0)
     {
         if (!(flags & PM_APP_BG_RUN))
         {
-            console_active(pid);
+            console_active(pid, sem);
         }
     }
 }

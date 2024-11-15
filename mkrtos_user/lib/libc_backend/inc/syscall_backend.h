@@ -84,6 +84,8 @@ long be_writev(long fd, const struct iovec *iov, long iovcnt);
 long be_ioctl(long fd, long req, void *args);
 long be_set_tid_address(int *val);
 long be_set_thread_area(void *p);
+long be_mkdir(const char *path, mode_t mode);
+
 umword_t be_munmap(void *start, size_t len);
 umword_t be_mmap(void *start,
                  size_t len,

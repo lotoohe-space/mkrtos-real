@@ -115,8 +115,8 @@ RPC_GENERATION_OP2(fs_t, FS_PROT, FS_FSTAT, fstat,
     return ret;
 }
 RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_FSTAT, fstat,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                   rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, statbuf)
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
+                         rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, statbuf)
 
 /*ioctl*/
 RPC_GENERATION_OP3(fs_t, FS_PROT, FS_IOCTL, ioctl,
@@ -128,6 +128,11 @@ RPC_GENERATION_OP3(fs_t, FS_PROT, FS_IOCTL, ioctl,
     int ret = fs_svr_ioctl(fd->data, req->data, (void *)arg->data /*TODO:可能传递的内存指针*/);
 
     return ret;
+}
+ __attribute__((__weak__)) int fs_svr_ioctl(int fd, int req, void *arg)
+{
+    printf("%s is not support.\n", __func__);
+    return -ENOSYS;
 }
 RPC_GENERATION_DISPATCH3(fs_t, FS_PROT, FS_IOCTL, ioctl,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
@@ -255,12 +260,12 @@ RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_STATFS, statfs,
                          rpc_statfs_t_t, rpc_statfs_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf)
 
 /*dispatch*/
-RPC_DISPATCH17(fs_t, FS_PROT, typeof(FS_OPEN), FS_OPEN, open, FS_READ, read,
+RPC_DISPATCH18(fs_t, FS_PROT, typeof(FS_OPEN), FS_OPEN, open, FS_READ, read,
                FS_WRITE, write, FS_CLOSE, close, FS_LSEEK, lseek, FS_FTRUNCATE, ftruncate,
                FS_FSYNC, fsync, FS_READDIR, readdir, FS_MKDIR, mkdir, FS_UNLINK,
                unlink, FS_RENAME, rename, FS_FSTAT, fstat, FS_SYMLINK, symlink,
                FS_RMDIR, rmdir, FS_STAT, stat,
-               FS_READLINK, readlink, FS_STATFS, statfs)
+               FS_READLINK, readlink, FS_STATFS, statfs, FS_IOCTL, ioctl)
 
 void fs_init(fs_t *fs)
 {

@@ -200,8 +200,8 @@ static ns_node_t *node_lookup(ns_node_t *dir, const char *name,
   {
     find_inx++;
     r_inx++;
-    find = TRUE;
   }
+  find = TRUE;
 
   while (1)
   {
@@ -267,6 +267,10 @@ end:
   }
   if (ret_inx)
   {
+    if (name[r_inx] == '/')
+    {
+      r_inx++;
+    }
     *ret_inx = r_inx;
   }
   return node;
@@ -530,8 +534,15 @@ int ns_reg(const char *path, obj_handler_t hd, enum node_type type)
 
   if (ret_inx != inx)
   {
-    handler_free_umap(hd);
-    return -ENOENT;
+    if (inx == -1)
+    {
+      inx = ret_inx;
+    }
+    else
+    {
+      handler_free_umap(hd);
+      return -ENOENT;
+    }
   }
   new_node = create_node(node, path + inx, hd, type);
   if (!new_node)
@@ -608,12 +619,19 @@ int namespace_query(const char *path, obj_handler_t *hd)
   //     ns_unlock();
   //     return -EEXIST;
   // }
-  if (node->type == DIR_NODE)
+  if (node == &ns.root_node)
   {
-    ns_unlock();
-    return -ENOENT;
+    *hd = ns_hd;
   }
-  *hd = node->node_hd;
+  else
+  {
+    if (node->type == DIR_NODE)
+    {
+      ns_unlock();
+      return -ENOENT;
+    }
+    *hd = node->node_hd;
+  }
   ns_unlock();
   return ret_inx;
 }
@@ -648,6 +666,10 @@ int fs_svr_mkdir(char *path)
 {
   int ret = ns_reg(path, 0, DIR_NODE);
 
+  if (ret < 0)
+  {
+    printf("ns mkdir %s is faile : %d\n", path, ret);
+  }
   return ret;
 }
 int fs_svr_renmae(char *oldname, char *newname)

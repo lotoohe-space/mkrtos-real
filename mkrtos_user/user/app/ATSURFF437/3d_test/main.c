@@ -39,8 +39,6 @@ static int drv_iomem_init(void)
 }
 int main(int argc, char *argv[])
 {
-
-
     printf("lcd drv init..\n");
     if (drv_iomem_init() < 0)
     {

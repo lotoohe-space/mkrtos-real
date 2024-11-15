@@ -39,7 +39,8 @@ RPC_GENERATION_DISPATCH2(cons_t, CONS_PROT, CONS_READ, read,
 RPC_GENERATION_OP1(cons_t, CONS_PROT, CONS_ACTIVE, active,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
 {
-    console_active(thread_get_src_pid());
+    printf("warrning: to map sema obj.\n");
+    console_active(thread_get_src_pid(), -1 /*TODO:映射sem*/);
     return 0;
 }
 

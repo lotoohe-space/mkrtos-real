@@ -37,6 +37,7 @@ static sys_t sys_obj;
 enum sys_op
 {
     SYS_INFO_GET,
+    SYS_INFO2_GET,
     REBOOT,
     MEM_INFO,
     DIS_IRQ,
@@ -85,9 +86,20 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         f->regs[2] = arch_get_boot_info()->flash_layer.flash_layer_list[BOOTFS_LAYER_3].st_addr;
 #endif
         f->regs[3] = arch_get_sys_clk();
+
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
+    case SYS_INFO2_GET:
+    {
+#if IS_ENABLED(CONFIG_DTBO_SUPPORT)
+        f->regs[1] = arch_get_boot_info()->flash_layer.flash_layer_list[DTBO_LAYER_1].st_addr;
+#else
+        f->regs[1] = 0;
+#endif
+        tag = msg_tag_init4(0, 0, 0, ret);
+        break;
+    }
     case REBOOT:
     {
         printk("sys reboot.\n");

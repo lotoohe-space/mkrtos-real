@@ -4,7 +4,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMKRTOS_DRV ")
 # add_subdirectory(mr_drv)
 # add_subdirectory(rtthread_drv)
 
-add_subdirectory(${CONFIG_BOARD_NAME})
+# add_subdirectory(${CONFIG_BOARD_NAME})
 
 # if (${CONFIG_BOARD_NAME} STREQUAL "STM32F103ZET6")
 #     add_subdirectory(dm9000_drv)

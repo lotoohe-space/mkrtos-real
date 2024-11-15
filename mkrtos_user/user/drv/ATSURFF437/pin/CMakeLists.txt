@@ -13,12 +13,12 @@ file(
 
 
 add_executable(
-    lcd_drv.elf
+    pin.elf
     ${deps}
     ${START_SRC}
 )
 target_link_libraries(
-    lcd_drv.elf
+    pin.elf
     PUBLIC
     -Bstatic
     ${LIBC_NAME}
@@ -29,47 +29,51 @@ target_link_libraries(
     sys_util
     sys_svr
     --no-whole-archive
+    fdt
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
-    lcd_drv.elf
+    pin.elf
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util/inc
 
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/drivers/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/device_support
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/core_support
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/project/at_surf_f437_board/
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/middlewares/i2c_application_library
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/drv/ATSURFF437/lcd_drv
+    ${CMAKE_CURRENT_SOURCE_DIR}/
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/libfdt/lib/contrib
 )
 add_dependencies(
-    lcd_drv.elf
+    pin.elf
     ${START_LIB}
     sys
     sys_util
 )
 set_target_properties(
-    lcd_drv.elf PROPERTIES LINK_FLAGS
+    pin.elf PROPERTIES LINK_FLAGS
     "-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "
     #--no-warn-rwx-segments
 )
 add_custom_target(
-    lcd_drv_dump ALL
+    pin_dump ALL
     COMMAND
-    ${CMAKE_OBJDUMP} -s -S lcd_drv.elf > ${CMAKE_SOURCE_DIR}/build/output/lcd_drv.S
+    ${CMAKE_OBJDUMP} -s -S pin.elf > ${CMAKE_SOURCE_DIR}/build/output/pin.S
     COMMAND
-    ${CMAKE_READELF} -a lcd_drv.elf > ${CMAKE_SOURCE_DIR}/build/output/lcd_drv.txt
+    ${CMAKE_READELF} -a pin.elf > ${CMAKE_SOURCE_DIR}/build/output/pin.txt
     COMMAND
-    ${CMAKE_OBJCOPY} -O binary -S lcd_drv.elf lcd_drv.bin
+    ${CMAKE_OBJCOPY} -O binary -S pin.elf pin.bin
     COMMAND
-    ${CMAKE_SIZE} lcd_drv.elf
+    ${CMAKE_SIZE} pin.elf
     COMMAND
-    ${CMAKE_COMMAND} -E copy lcd_drv.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/lcd_drv
+    ${CMAKE_COMMAND} -E copy pin.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/pin
     COMMAND
-    cp lcd_drv.elf ${CMAKE_SOURCE_DIR}/build/output/lcd_drv.elf
+    cp pin.elf ${CMAKE_SOURCE_DIR}/build/output/pin.elf
 )
 
-add_dependencies(lcd_drv_dump lcd_drv.elf)
+add_dependencies(pin_dump pin.elf)
  
