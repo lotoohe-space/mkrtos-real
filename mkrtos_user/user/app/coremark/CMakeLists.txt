@@ -28,8 +28,8 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
 
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/coremark/coremark_src
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/coremark/
+    ${CMAKE_CURRENT_SOURCE_DIR}/coremark/coremark_src
+    ${CMAKE_CURRENT_SOURCE_DIR}/coremark/
 )
 add_dependencies(
     coremark.elf
