@@ -8,6 +8,7 @@
 #include <mk_dev.h>
 #include <mk_drv.h>
 #include <stdio.h>
+#include <u_vmam.h>
 typedef struct hook_mach_info
 {
     int node_offset;
@@ -37,7 +38,51 @@ static int dd_hook_mach(mk_drv_t *drv, const char *dev_name, void *data)
     }
     return ret;
 }
+int dev_regs_map(mk_dev_t *dev, void *fdt)
+{
+    const umword_t *reg_raw;
+    int len;
+    msg_tag_t tag;
 
+    reg_raw = fdt_getprop(dev->dtb, dev->dtb_offset,
+                          "regs", &len);
+    if (!reg_raw)
+    {
+        return -ENODEV;
+    }
+    if (len < sizeof(void *) * 2)
+    {
+        return -ENODEV;
+    }
+
+    /*寄存器两个一组*/
+    for (int i = 0; i < len / sizeof(void *); i += 2)
+    {
+        addr_t vaddr;
+        uint32_t reg[2];
+
+        reg[0] = fdt32_to_cpu((fdt32_t)reg_raw[i]);
+        reg[1] = fdt32_to_cpu((fdt32_t)reg_raw[i + 1]);
+
+        printf("reg:0x%x size:0x%x\n", reg[0], reg[1]);
+        tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, 0),
+                           reg[1], reg[0], &vaddr);
+        if (msg_tag_get_val(tag) < 0)
+        {
+            if (i == 0)
+            {
+                printf("periph mem alloc failed..\n");
+                return msg_tag_get_val(tag);
+            }
+            else
+            {
+                printf("periph mem alloc failed. success:%d\n", i / 2);
+                return i / 2;
+            }
+        }
+    }
+    return 0;
+}
 int dtb_parse_init(void)
 {
     printf("init dts parsing.\n");

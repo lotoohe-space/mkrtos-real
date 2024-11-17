@@ -141,11 +141,11 @@ static int mk_pin_drv_ioctl(mk_dev_t *pin, int cmd, umword_t args)
     return 0;
 }
 static mk_file_ops_t file_ops = {
-    .mk_pin_drv_open = NULL,
-    .mk_pin_drv_write = mk_pin_drv_write,
-    .mk_pin_drv_read = mk_pin_drv_read,
-    .mk_pin_drv_ioctl = mk_pin_drv_ioctl,
-    .mk_pin_drv_release = NULL,
+    .open = NULL,
+    .write = mk_pin_drv_write,
+    .read = mk_pin_drv_read,
+    .ioctl = mk_pin_drv_ioctl,
+    .release = NULL,
 };
 
 int mk_pin_register(mk_dev_t *dev, mk_pin_dev_t *pin_drv)

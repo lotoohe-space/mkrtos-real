@@ -6,11 +6,11 @@
 
 typedef struct mk_file_ops
 {
-    int (*mk_pin_drv_open)(mk_dev_t *dev);
-    int (*mk_pin_drv_write)(mk_dev_t *dev, void *buf, size_t size);
-    int (*mk_pin_drv_read)(mk_dev_t *dev, void *buf, size_t size);
-    int (*mk_pin_drv_ioctl)(mk_dev_t *dev, int cmd, umword_t args);
-    int (*mk_pin_drv_release)(mk_dev_t *dev);
+    int (*open)(mk_dev_t *dev);
+    int (*write)(mk_dev_t *dev, void *buf, size_t size);
+    int (*read)(mk_dev_t *dev, void *buf, size_t size);
+    int (*ioctl)(mk_dev_t *dev, int cmd, umword_t args);
+    int (*release)(mk_dev_t *dev);
 } mk_file_ops_t;
 
 typedef struct mk_char_dev

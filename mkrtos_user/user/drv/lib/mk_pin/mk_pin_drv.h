@@ -3,6 +3,7 @@
 #include <u_types.h>
 #include "mk_drv.h"
 #include "mk_dev.h"
+
 #define MK_PIN_MAX_NUM (16 * 8)
 
 typedef struct mk_pin

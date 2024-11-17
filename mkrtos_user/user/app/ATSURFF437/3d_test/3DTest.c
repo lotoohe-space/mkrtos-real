@@ -424,7 +424,8 @@ int fastCos(int i)
  *
  */
 
-const int16_t numVerts1 = 8;
+// const int16_t numVerts1 = 8;
+#define numVerts1 8
 const int16_t verts1[] = {
   -100, -100, -100,  // 0
    100, -100, -100,  // 1
@@ -436,7 +437,8 @@ const int16_t verts1[] = {
   -100,  100,  100,  // 7
 };
 
-const int16_t numQuads1 = 6;
+// const int16_t numQuads1 = 6;
+#define numQuads1 6
 const int16_t quads1[] = {
   0, 1, 2, 3,  // front
   7, 6, 5, 4,  // back

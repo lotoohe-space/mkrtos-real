@@ -22,6 +22,9 @@ target_link_libraries(
     PUBLIC
     -Bstatic
     ${LIBC_NAME}
+    mk_drv
+    mk_pin
+    mk_char
     --whole-archive
     ${START_LIB}
     libc_be
@@ -29,7 +32,6 @@ target_link_libraries(
     sys_util
     sys_svr
     --no-whole-archive
-    fdt
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -46,13 +48,17 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/middlewares/i2c_application_library
     ${CMAKE_CURRENT_SOURCE_DIR}/
 
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/libfdt/lib/contrib
+    
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_pin
 )
 add_dependencies(
     pin.elf
     ${START_LIB}
     sys
     sys_util
+    mk_char
+    mk_drv
+    mk_pin
 )
 set_target_properties(
     pin.elf PROPERTIES LINK_FLAGS

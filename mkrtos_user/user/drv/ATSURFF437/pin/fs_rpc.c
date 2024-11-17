@@ -118,9 +118,9 @@ int fs_svr_open(const char *path, int flags, int mode)
             printf("[pin] not dev %s.\n", path);
             return -ENODEV;
         }
-        if (char_dev->ops->mk_pin_drv_open)
+        if (char_dev->ops->open)
         {
-            ret = char_dev->ops->mk_pin_drv_open(char_dev->dev);
+            ret = char_dev->ops->open(char_dev->dev);
         }
         if (ret < 0)
         {
@@ -132,9 +132,9 @@ int fs_svr_open(const char *path, int flags, int mode)
         if (!fdp)
         {
             printf("[pin] not fd %s.\n", path);
-            if (char_dev->ops->mk_pin_drv_release)
+            if (char_dev->ops->release)
             {
-                char_dev->ops->mk_pin_drv_release(char_dev->dev);
+                char_dev->ops->release(char_dev->dev);
             }
             return -ENOMEM;
         }
@@ -169,16 +169,19 @@ int fs_svr_read(int fd, void *buf, size_t len)
     mk_char_dev_t *char_dev;
 
     char_dev = fdp->ptr_dev;
-    if (!char_dev->ops->mk_pin_drv_ioctl)
+    if (!char_dev->ops->ioctl)
     {
         return -EACCES;
     }
-    char_dev->ops->mk_pin_drv_ioctl(char_dev->dev, MK_PIN_SET_OP_PIN, fdp->offset);
-    if (!char_dev->ops->mk_pin_drv_read)
+    ret = char_dev->ops->ioctl(char_dev->dev, MK_PIN_SET_OP_PIN, fdp->offset);
+    if (ret < 0) {
+        return ret;
+    }
+    if (!char_dev->ops->read)
     {
         return -EACCES;
     }
-    ret = char_dev->ops->mk_pin_drv_read(char_dev->dev, buf, len);
+    ret = char_dev->ops->read(char_dev->dev, buf, len);
     if (ret > 0)
     {
         fdp->offset += ret;
@@ -201,16 +204,16 @@ int fs_svr_write(int fd, void *buf, size_t len)
     mk_char_dev_t *char_dev;
 
     char_dev = fdp->ptr_dev;
-    if (!char_dev->ops->mk_pin_drv_ioctl)
+    if (!char_dev->ops->ioctl)
     {
         return -EACCES;
     }
-    char_dev->ops->mk_pin_drv_ioctl(char_dev->dev, MK_PIN_SET_OP_PIN, fdp->offset);
-    if (!char_dev->ops->mk_pin_drv_write)
+    char_dev->ops->ioctl(char_dev->dev, MK_PIN_SET_OP_PIN, fdp->offset);
+    if (!char_dev->ops->write)
     {
         return -EACCES;
     }
-    ret = char_dev->ops->mk_pin_drv_write(char_dev->dev, buf, len);
+    ret = char_dev->ops->write(char_dev->dev, buf, len);
     if (ret > 0)
     {
         fdp->offset += ret;
@@ -231,9 +234,9 @@ void fs_svr_close(int fd)
         mk_char_dev_t *char_dev;
 
         char_dev = fdp->ptr_dev;
-        if (char_dev->ops->mk_pin_drv_release)
+        if (char_dev->ops->release)
         {
-            char_dev->ops->mk_pin_drv_release(char_dev->dev);
+            char_dev->ops->release(char_dev->dev);
         }
     }
     else
@@ -346,9 +349,9 @@ int fs_svr_ioctl(int fd, int req, void *arg)
     }
     mk_char_dev_t *char_dev = file->ptr_dev;
 
-    if (char_dev->ops->mk_pin_drv_ioctl)
+    if (char_dev->ops->ioctl)
     {
-        ret = char_dev->ops->mk_pin_drv_ioctl(char_dev->dev, req, (umword_t)arg);
+        ret = char_dev->ops->ioctl(char_dev->dev, req, (umword_t)arg);
     }
     return ret;
 }

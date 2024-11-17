@@ -16,7 +16,7 @@
 
 #include "InfoNES.h"
 #include "InfoNES_System.h"
-#include "infones_mapper.h"
+// #include "infones_mapper.h"
 #include "InfoNES_pAPU.h"
 
 #ifdef __cplusplus 
