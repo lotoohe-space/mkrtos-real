@@ -35,7 +35,7 @@ static gpio_type *drv_pin_get_port_data(int pin)
     return gpio_type_list[pin];
 }
 
-static int pin_configure(mk_pin_t *pin, int number, int mode)
+static int pin_configure(mk_pin_t *pin, int number, mk_pin_mode_t cfg)
 {
     gpio_type *pin_port_data = drv_pin_get_port_data(number);
     uint32_t exti_line = number & 0x0f;
@@ -48,7 +48,7 @@ static int pin_configure(mk_pin_t *pin, int number, int mode)
         printf("pin_port_data is NULL.\n");
         return -EINVAL;
     }
-    printf("%s:%d number:%d mode:%d\n", __func__, __LINE__, number, mode);
+    printf("%s:%d number:%d mode:%d cfg:%d\n", __func__, __LINE__, number, cfg.mode, cfg.mux_cfg);
     gpio_default_para_init(&gpio_init_struct);
     exint_default_para_init(&exint_init_struct);
 
@@ -85,7 +85,7 @@ static int pin_configure(mk_pin_t *pin, int number, int mode)
     {
         crm_periph_clock_enable(CRM_GPIOH_PERIPH_CLOCK, TRUE);
     }
-    switch (mode)
+    switch (cfg.mode)
     {
     case MK_PIN_MODE_NONE:
     {
@@ -135,6 +135,24 @@ static int pin_configure(mk_pin_t *pin, int number, int mode)
         gpio_init_struct.gpio_pull = GPIO_PULL_UP;
         break;
     }
+    case MK_PIN_MODE_MUX_OUTPUT:
+    {
+        gpio_init_struct.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER;
+        gpio_init_struct.gpio_out_type = GPIO_OUTPUT_PUSH_PULL;
+        gpio_init_struct.gpio_mode = GPIO_MODE_MUX;
+        gpio_init_struct.gpio_pull = GPIO_PULL_NONE;
+        gpio_pin_mux_config(pin_port_data, number % 16, cfg.mux_cfg);
+        break;
+    }
+    case MK_PIN_MODE_MUX_OUTPUT_OD:
+    {
+        gpio_init_struct.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER;
+        gpio_init_struct.gpio_out_type = GPIO_OUTPUT_OPEN_DRAIN;
+        gpio_init_struct.gpio_mode = GPIO_MODE_MUX;
+        gpio_init_struct.gpio_pull = GPIO_PULL_NONE;
+        gpio_pin_mux_config(pin_port_data, number % 16, cfg.mux_cfg);
+        break;
+    }
     case MK_PIN_MODE_IRQ_RISING:
     {
         gpio_init_struct.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER;
@@ -168,7 +186,7 @@ static int pin_configure(mk_pin_t *pin, int number, int mode)
     }
     }
 
-    if (mode >= MK_PIN_MODE_IRQ_RISING)
+    if (cfg.mode >= MK_PIN_MODE_IRQ_RISING)
     {
         crm_periph_clock_enable(CRM_SCFG_PERIPH_CLOCK, TRUE);
         scfg_exint_line_config(number / 16, number % 16);
@@ -180,7 +198,7 @@ static int pin_configure(mk_pin_t *pin, int number, int mode)
         // nvic_irq_enable(EXINT0_IRQn, 1, 0);TODO:这里需要在内核设置
     }
 
-    pin->pins[number] = mode;
+    pin->pins[number] = cfg;
     gpio_init_struct.gpio_pins = (1 << (number % 16));
     gpio_init(pin_port_data, &gpio_init_struct);
     return 0;
@@ -208,8 +226,6 @@ static int pin_write(mk_pin_t *pin, int number, uint8_t value)
     gpio_bits_write(pin_port_data, (1 << (number % 16)), !!value);
     return 0;
 }
-
-
 
 static mk_pin_ops_t pin_ops = {
     .drv_pin_configure = pin_configure,

@@ -15,6 +15,15 @@
 		0x40020000 0x2000 /*GPIO*/
 		0x40013800 0x400  /*EXINT & SCFG*/
 		0x40013C00 0x400  /*EXINT & SCFG*/
+		0x40023800 0x400  /*CRM*/
+		>;
+	};
+	disp {
+		compatible = "at32f43x,lcd";
+		regs = <
+		0xA0000000 0x1000 /*XMC_REG*/
+		0x40023800 0x400  /*CRM*/
+		0x60000000 0x100000  /*XMC_MEM*/
 		>;
 	};
 };

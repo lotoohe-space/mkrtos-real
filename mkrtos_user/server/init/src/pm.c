@@ -17,6 +17,7 @@
 #include "u_task.h"
 #include "u_hd_man.h"
 #include "u_sig.h"
+#include "pm.h"
 #include <errno.h>
 #include <malloc.h>
 #include <stdio.h>
@@ -223,4 +224,23 @@ int pm_rpc_run_app(const char *path, int flags)
             console_active(pid, sem);
         }
     }
+}
+/**
+ * @brief 用于拷贝数据
+ *
+ * @param src_pid
+ * @param dst_pid
+ * @param src_addr
+ * @param dst_addr
+ * @param len
+ * @return int
+ */
+int pm_rpc_copy_data(pid_t src_pid, pid_t dst_pid, umword_t src_addr, umword_t dst_addr, size_t len)
+{
+    msg_tag_t tag;
+
+    tag = task_copy_data_to(pm_hd2pid(src_pid), pm_hd2pid(dst_pid),
+                            (void *)src_addr, (void *)dst_addr, len);
+
+    return msg_tag_get_val(tag);
 }

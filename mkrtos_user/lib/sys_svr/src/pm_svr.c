@@ -62,8 +62,32 @@ RPC_GENERATION_DISPATCH3(pm_t, PM_PROT, PM_WATCH_PID, watch_pid,
                          rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, sig_hd,
                          rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
+/*PM_COPY_TO_DATA*/
+RPC_GENERATION_OP5(pm_t, PM_PROT, PM_COPY_DATA, copy_data,
+                   rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, src_pid,
+                   rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, dst_pid,
+                   rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, src_addr,
+                   rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, dst_addr,
+                   rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
+{
+    int16_t ret = 0;
+
+    ret = pm_rpc_copy_data(src_pid->data, dst_pid->data, src_addr->data, dst_addr->data, len->data);
+    return ret;
+}
+
+RPC_GENERATION_DISPATCH5(pm_t, PM_PROT, PM_COPY_DATA, copy_data,
+                         rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, src_pid,
+                         rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, dst_pid,
+                         rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, src_addr,
+                         rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, dst_addr,
+                         rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 /*dispatch*/
-RPC_DISPATCH3(pm_t, PM_PROT, typeof(PM_RUN_APP), PM_RUN_APP, run_app, PM_KILL_TASK, kill_task, PM_WATCH_PID, watch_pid)
+RPC_DISPATCH4(pm_t, PM_PROT, typeof(PM_RUN_APP),
+              PM_RUN_APP, run_app,
+              PM_KILL_TASK, kill_task,
+              PM_WATCH_PID, watch_pid,
+              PM_COPY_DATA, copy_data)
 
 void pm_svr_obj_init(pm_t *pm)
 {

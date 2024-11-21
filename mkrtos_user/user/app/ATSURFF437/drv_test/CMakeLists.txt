@@ -32,6 +32,10 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
 
     ${CMAKE_CURRENT_SOURCE_DIR}/
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_pin
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_drv
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_display
 )
 add_dependencies(
     drv_test.elf

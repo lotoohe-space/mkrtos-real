@@ -8,43 +8,16 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include "mk_pin_drv.h"
+#include "mk_display_drv.h"
+#include <u_vmam.h>
+#define PIN_TEST 0
 void delay_ms(int ms)
 {
     u_sleep_ms(ms);
 }
-typedef union mk_pin_cfg
+static int_fast16_t pin_test(void)
 {
-    struct
-    {
-        uint16_t mode;
-        uint16_t pin;
-    };
-    uint32_t cfg_raw;
-} mk_pin_cfg_t;
-enum mk_pin_mode
-{
-    MK_PIN_MODE_NONE = 1,
-    MK_PIN_MODE_OUTPUT,
-    MK_PIN_MODE_OUTPUT_OD,
-    MK_PIN_MODE_INPUT,
-    MK_PIN_MODE_INPUT_DOWN,
-    MK_PIN_MODE_INPUT_UP,
-
-    MK_PIN_MODE_IRQ_RISING,
-    MK_PIN_MODE_IRQ_FALLING,
-    MK_PIN_MODE_IRQ_EDGE,
-    MK_PIN_MODE_IRQ_LOW,
-    MK_PIN_MODE_IRQ_HIGH,
-};
-enum mk_pin_ioctl_op
-{
-    MK_PIN_SET_MODE,   //!< 设置模式
-    MK_PIN_GET_MODE,   //!< 获取模式
-    MK_PIN_SET_OP_PIN, //!< 设置要操作的引脚，标记读写的起始引脚
-};
-int main(int argc, char *argv[])
-{
-    printf("drv test init..\n");
     int fd = open("/pin", O_RDWR, 0777);
     int ret;
 
@@ -54,14 +27,15 @@ int main(int argc, char *argv[])
     }
 
     ioctl(fd, MK_PIN_SET_MODE, ((mk_pin_cfg_t){
-                      .mode = MK_PIN_MODE_OUTPUT,
-                      .pin = 12,
-                  })
-                     .cfg_raw);
-    ret = ioctl(fd, MK_PIN_GET_MODE, ((mk_pin_cfg_t){ 
-                            .pin = 12,
-                        })
-                           .cfg_raw);
+                                    .mode = MK_PIN_MODE_OUTPUT,
+                                    .pin = 12,
+                                    .cfg = 0,
+                                })
+                                   .cfg_raw);
+    ret = ioctl(fd, MK_PIN_GET_MODE, ((mk_pin_cfg_t){
+                                          .pin = 12,
+                                      })
+                                         .cfg_raw);
     printf("ret = %d\n", ret);
     assert(MK_PIN_MODE_OUTPUT == ret);
     uint8_t val = 1;
@@ -82,5 +56,58 @@ int main(int argc, char *argv[])
         // delay_ms(500);
         lseek(fd, 12, SEEK_SET);
         write(fd, &val, 1);
+    }
+    return 0;
+}
+static int display_test(void)
+{
+    mk_display_cfg_t info;
+    int fd = open("/display", O_RDWR, 0777);
+    int ret;
+
+    if (fd < 0)
+    {
+        return fd;
+    }
+    ioctl(fd, MK_DISPLAY_SET_WIN, &((mk_display_win_t){
+                                      .x = 0,
+                                      .y = 0,
+                                      .w = 240,
+                                      .h = 320,
+                                  }));
+    ioctl(fd, MK_DISPLAY_GET_INFO, &info);
+    printf("display addr:0x%x\n", info.display_addr);
+    msg_tag_t tag;
+    addr_t addr;
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, 0),
+                       512, info.display_addr, &addr);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        printf("periph mem alloc failed..\n");
+        return -1;
+    }
+    int j = 0;
+    while (1)
+    {
+        for (int i = 0; i < 230; i++)
+        {
+            for (int i = 0; i < 320; i++)
+            {
+                *(volatile uint16_t *)(info.display_addr) = j++;
+            }
+        }
+    }
+    return 0;
+}
+int main(int argc, char *argv[])
+{
+    printf("drv test init..\n");
+#if PIN_TEST
+    pin_test();
+#endif
+    display_test();
+    while (1)
+    {
+        u_sleep_ms(10000000);
     }
 }

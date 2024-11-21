@@ -21,6 +21,7 @@
 #include "spinlock.h"
 #include "string.h"
 #include "thread.h"
+#include "thread_arch.h"
 #if IS_ENABLED(CONFIG_MMU)
 #include "arch.h"
 #endif
@@ -38,6 +39,7 @@ enum task_op_code
     TASK_GET_PID,        //!< 获取task的pid
     TASK_COPY_DATA,      //!< 拷贝数据到task的数据区域
     TASK_SET_OBJ_NAME,   //!< 设置对象的名字
+    TASK_COPY_DATA_TO,   //!< 从当前task拷贝数据到目的task
 };
 static bool_t task_put(kobject_t *kobj);
 static void task_release_stage1(kobject_t *kobj);
@@ -343,6 +345,56 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
+    case TASK_COPY_DATA_TO: //!< 从当前task拷贝到目的task
+    {
+        int st0, st1;
+        int ret = 0;
+        obj_handler_t dst_task_hd;
+        addr_t src_addr;
+        addr_t dst_addr;
+        size_t copy_len;
+        int suc;
+
+        dst_task_hd = f->regs[0];
+        src_addr = f->regs[1];
+        dst_addr = f->regs[2];
+        copy_len = f->regs[3];
+        kobject_t *source_kobj = obj_space_lookup_kobj_cmp_type(&cur_task->obj_space, dst_task_hd, TASK_TYPE);
+
+        if (!source_kobj)
+        {
+            ret = -EINVAL;
+            goto copy_data_to_end;
+        }
+        task_t *dst_task_obj = container_of(source_kobj, task_t, kobj);
+
+        suc = task_lock_2(&tag_task->kobj.lock, &dst_task_obj->kobj.lock, &st0, &st1);
+        if (!suc)
+        {
+            tag = msg_tag_init4(0, 0, 0, -EINVAL);
+            break;
+        }
+        if (!is_rw_access(tag_task, (void *)src_addr, copy_len, FALSE))
+        {
+            ret = -EPERM;
+            goto copy_data_to_end;
+        }
+        if (!is_rw_access(dst_task_obj, (void *)dst_addr, copy_len, FALSE))
+        {
+            ret = -EPERM;
+            goto copy_data_to_end;
+        }
+
+        paddr_t src_paddr = (paddr_t)task_get_currnt_paddr((vaddr_t)src_addr);
+        paddr_t dst_paddr = (paddr_t)task_get_currnt_paddr((vaddr_t)dst_addr);
+
+        memcpy((void *)dst_paddr, (void *)src_paddr, copy_len);
+
+    copy_data_to_end:
+        task_unlock_2(&tag_task->kobj.lock, &dst_task_obj->kobj.lock, st0, st1);
+        tag = msg_tag_init4(0, 0, 0, ret);
+    }
+    break;
     default:
         break;
     }
@@ -371,7 +423,7 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     knl_pdir_init(&task->mm_space.mem_dir, task->mm_space.mem_dir.dir, 3 /*TODO:*/);
 #else
     assert(task_vma_alloc(&task->mm_space.mem_vma, vma_addr_create(VPAGE_PROT_RO, 0, 0),
-                   align_power_of_2(CONFIG_SYS_TEXT_SIZE), CONFIG_SYS_TEXT_ADDR, NULL) >=0 );
+                          align_power_of_2(CONFIG_SYS_TEXT_SIZE), CONFIG_SYS_TEXT_ADDR, NULL) >= 0);
 #endif
 }
 

@@ -129,7 +129,11 @@
         "at32f435_437_crm.h": "c",
         "mk_char_dev.h": "c",
         "unistd.h": "c",
-        "stat.h": "c"
+        "stat.h": "c",
+        "mk_drv.h": "c",
+        "mk_display_drv_impl.h": "c",
+        "at_surf_f437_board_font.h": "c",
+        "infones_types.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": false,

@@ -998,3 +998,4 @@ RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
 #include "u_rpc_1.h"
 #include "u_rpc_2.h"
 #include "u_rpc_3.h"
+#include "u_rpc_5.h"

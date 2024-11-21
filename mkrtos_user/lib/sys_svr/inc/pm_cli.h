@@ -7,3 +7,4 @@
 int pm_run_app(const char *path, int flags);
 int pm_kill_task(int pid, int flags);
 int pm_watch_pid(obj_handler_t sig_hd, pid_t pid, int flags);
+int pm_copy_data(pid_t src_pid, pid_t dst_pid, addr_t src_addr, addr_t dst_addr, size_t len);

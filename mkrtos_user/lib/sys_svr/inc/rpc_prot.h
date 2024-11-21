@@ -35,10 +35,11 @@
 
 #define META_PROT 0x0004 //!< 元协议
 
-#define PM_PROT 0x0005             //!< 进程管理协议
-#define PM_RUN_APP ((umword_t)0)   //!< 启动应用程序
-#define PM_KILL_TASK ((umword_t)1) //!< 删除进程
-#define PM_WATCH_PID ((umword_t)2) //!< watch pid
+#define PM_PROT 0x0005                //!< 进程管理协议
+#define PM_RUN_APP ((umword_t)0)      //!< 启动应用程序
+#define PM_KILL_TASK ((umword_t)1)    //!< 删除进程
+#define PM_WATCH_PID ((umword_t)2)    //!< watch pid
+#define PM_COPY_DATA ((umword_t)3) //!< copy 进程数据
 
 #define CONS_PROT 0x0006          //!< console协议
 #define CONS_WRITE ((umword_t)0)  //!< console删除

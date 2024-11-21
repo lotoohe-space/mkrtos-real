@@ -103,7 +103,10 @@ static int mk_pin_drv_ioctl(mk_dev_t *pin, int cmd, umword_t args)
         }
         if (ops->drv_pin_configure)
         {
-            ret = ops->drv_pin_configure(&pin_dev->pins, cfg.pin, cfg.mode);
+            ret = ops->drv_pin_configure(&pin_dev->pins, cfg.pin, (mk_pin_mode_t){
+                                                                      .mode = cfg.mode,
+                                                                      .mux_cfg = cfg.cfg,
+                                                                  });
             if (ret < 0)
             {
                 return ret;
@@ -123,7 +126,7 @@ static int mk_pin_drv_ioctl(mk_dev_t *pin, int cmd, umword_t args)
         {
             return -EINVAL;
         }
-        return pin_dev->pins.pins[cfg.pin];
+        return pin_dev->pins.pins[cfg.pin].raw;
     }
     break;
     case MK_PIN_SET_OP_PIN:

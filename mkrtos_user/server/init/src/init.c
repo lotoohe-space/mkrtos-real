@@ -39,7 +39,9 @@ int main(int argc, char *args[])
 
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_init");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_init");
-
+// #if 1
+//     thread_run(-1, 3);
+// #endif
     ulog_write_str(LOG_PROT, "init..\n");
     u_env_default_init();
     env = u_get_global_env();

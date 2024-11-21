@@ -3,7 +3,8 @@
 #include "u_prot.h"
 #include "u_types.h"
 
-enum task_op_code {
+enum task_op_code
+{
     TASK_OBJ_MAP,
     TASK_OBJ_UNMAP,
     TASK_ALLOC_RAM_BASE,
@@ -12,6 +13,7 @@ enum task_op_code {
     TASK_GET_PID,
     TASK_COPY_DATA,
     TASK_SET_OBJ_NAME,
+    TASK_COPY_DATA_TO, //!< 从当前task拷贝数据到目的task
 };
 
 msg_tag_t task_set_obj_name(obj_handler_t dst_task, obj_handler_t obj, const char *name)
@@ -68,7 +70,8 @@ msg_tag_t task_get_pid(obj_handler_t dst_task, umword_t *pid)
                      :
                      :
                      : ARCH_REG_0, ARCH_REG_1);
-    if (pid) {
+    if (pid)
+    {
         *pid = r1;
     }
 
@@ -90,7 +93,8 @@ msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx, int *obj
                      :
                      :
                      : ARCH_REG_0);
-    if (obj_type) {
+    if (obj_type)
+    {
         *obj_type = r1;
     }
 
@@ -148,7 +152,8 @@ msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *all
                      :
                      :
                      : ARCH_REG_0, ARCH_REG_1);
-    if (alloc_addr) {
+    if (alloc_addr)
+    {
         *alloc_addr = r1;
     }
 
@@ -163,6 +168,24 @@ msg_tag_t task_copy_data(obj_handler_t task_obj, void *st_addr, umword_t size)
                size,
                0,
                0,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0, ARCH_REG_1);
+
+    return msg_tag_init(r0);
+}
+msg_tag_t task_copy_data_to(obj_handler_t task_obj, obj_handler_t dst_task_obj, void *st_addr, void *dst_addr, umword_t size)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+
+    mk_syscall(syscall_prot_create(TASK_COPY_DATA_TO, TASK_PROT, task_obj).raw,
+               dst_task_obj,
+               st_addr,
+               dst_addr,
+               size,
                0,
                0);
     asm __volatile__(""

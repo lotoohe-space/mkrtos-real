@@ -913,7 +913,8 @@ again:;
     if (to->status != THREAD_SUSPEND || to->ipc_status != THREAD_RECV)
     {
         /*TODO:这里应该挂起等待*/
-        if (to->ipc_status == THREAD_IPC_ABORT) {
+        if (to->ipc_status == THREAD_IPC_ABORT)
+        {
             ref_counter_dec_and_release(&to->ref, &to->kobj);
             return -ECANCELED;
         }
@@ -1440,8 +1441,8 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
 #else
         if (!slist_in_list(&tag_th->sche.node))
         {
+            tag_th->sche.prio = tge_prio;
             thread_ready(tag_th, TRUE);
-
         }
         else
         {

@@ -56,6 +56,8 @@ target_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/infoNES
     ${CMAKE_CURRENT_SOURCE_DIR}/mapper
     ${CMAKE_CURRENT_SOURCE_DIR}/ports
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_drv
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_display
 )
 add_dependencies(
     nes.elf
