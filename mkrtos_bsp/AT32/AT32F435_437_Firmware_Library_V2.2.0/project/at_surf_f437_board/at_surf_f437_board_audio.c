@@ -258,7 +258,7 @@ void codec_i2s_init(audio_codec_type *param)
   i2s_init_struct.mclk_output_enable = TRUE;
   i2s_init_struct.audio_sampling_freq = I2S_AUDIO_FREQUENCY_48K;
   i2s_init_struct.clock_polarity = I2S_CLOCK_POLARITY_LOW;
-  i2s_init_struct.operation_mode = I2S_MODE_SLAVE_TX                                                             ;
+  i2s_init_struct.operation_mode = I2S_MODE_SLAVE_TX;
   i2s_init(I2S_SPIx, &i2s_init_struct);
   /* i2s2EXT Rx init */
   i2s_init_struct.operation_mode = I2S_MODE_SLAVE_RX;

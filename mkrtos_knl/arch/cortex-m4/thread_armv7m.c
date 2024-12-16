@@ -22,12 +22,11 @@ typedef struct entry_frame_tmp
     umword_t r[8];
 } entry_frame_tmp_t;
 
-static void syscall_entry_raw(entry_frame_tmp_t entry);
-
-syscall_entry_func syscall_handler_get(void)
+void syscall_entry_call(entry_frame_tmp_t entry)
 {
-    return (void *)syscall_entry_raw;
+    syscall_entry((entry_frame_t *)&entry);
 }
+
 static void syscall_entry_raw(entry_frame_tmp_t entry)
 {
     syscall_entry((entry_frame_t *)&entry);

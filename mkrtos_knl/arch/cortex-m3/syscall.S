@@ -2,7 +2,7 @@
 @ .cpu cortex-m3
 .thumb
 
-.global syscall_handler_get
+.global syscall_entry_call
 /**
 * @brief syscall结束时到这儿
 */
@@ -10,6 +10,7 @@
 syscall_exit:
 	svc 1
 	b .
+
 
 /**
 * void syscall_ret_user(int ret_val);
@@ -68,15 +69,12 @@ SYS_CALL:
     //svc 128
 	mov r1, r7
 	//获得需要调用的syscall函数的地址
-	push {r0-r2,lr}
-	blx	syscall_handler_get
-	mov r3,r0
-	pop {r0-r2,lr}
+	ldr r3, = syscall_entry_call
 
 	//r4-r11 压入到内核栈中
 	stmfd sp!,{r4-r11}
 	//压入到用户栈中
-	stmfd r0,{r4-r11}
+	//stmfd r0,{r4-r11}
 	//取出PSR PC LR R12 R3 R2 R1 R0
 	ldmfd r0,{r4-r11}
 	//压入到内核栈中
@@ -107,3 +105,4 @@ SYS_CALL:
 TO_END:
 CPSIE I
 	bx	lr
+

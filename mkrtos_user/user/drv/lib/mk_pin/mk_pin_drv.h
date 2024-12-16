@@ -42,6 +42,7 @@ enum mk_pin_ioctl_op
     MK_PIN_SET_MODE,   //!< 设置模式
     MK_PIN_GET_MODE,   //!< 获取模式
     MK_PIN_SET_OP_PIN, //!< 设置要操作的引脚，标记读写的起始引脚
+    MK_PIN_READ_PIN,   //!< 读取引脚状态
 };
 
 enum mk_pin_mode_cfg

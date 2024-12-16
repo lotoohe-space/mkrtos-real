@@ -29,9 +29,6 @@ void arch_to_sche(void)
 {
     // 开启pensv中断
     SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk; // 设置PendSV中断标志位
-    _dmb();
-    _dsb();
-    _isb();
 }
 void sys_startup(void)
 {

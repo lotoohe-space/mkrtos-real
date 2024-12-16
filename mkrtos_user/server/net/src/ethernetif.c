@@ -28,16 +28,16 @@ umword_t send_shm_size;
 //        其他,失败
 static err_t low_level_init(struct netif *netif)
 {
-	umword_t tmp = *(vu32 *)(0x1FFFF7E8);
+	// umword_t tmp = *(vu32 *)(0x1FFFF7E8);
 	// INT8U err;
 	netif->hwaddr_len = ETHARP_HWADDR_LEN; // 设置MAC地址长度,为6个字节
 	// 初始化MAC地址,设置什么地址由用户自己设置,但是不能与网络中其他设备MAC地址重复
 	netif->hwaddr[0] = 2;
 	netif->hwaddr[1] = 0;
 	netif->hwaddr[2] = 0;
-	netif->hwaddr[3] = (tmp >> 16) & 0XFF; // 低三字节用STM32的唯一ID
-	netif->hwaddr[4] = (tmp >> 8) & 0XFF;
-	netif->hwaddr[5] = tmp & 0XFF;
+	netif->hwaddr[3] = 0; // 低三字节用STM32的唯一ID
+	netif->hwaddr[4] = 0;
+	netif->hwaddr[5] = 2 & 0XFF;
 	netif->mtu = 1500; // 最大允许传输单元,允许该网卡广播和ARP功能
 	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
 

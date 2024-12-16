@@ -14,6 +14,7 @@ enum task_op_code
     TASK_COPY_DATA,
     TASK_SET_OBJ_NAME,
     TASK_COPY_DATA_TO, //!< 从当前task拷贝数据到目的task
+    TASK_SET_COM_POINT
 };
 
 msg_tag_t task_set_obj_name(obj_handler_t dst_task, obj_handler_t obj, const char *name)
@@ -186,6 +187,24 @@ msg_tag_t task_copy_data_to(obj_handler_t task_obj, obj_handler_t dst_task_obj, 
                st_addr,
                dst_addr,
                size,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0, ARCH_REG_1);
+
+    return msg_tag_init(r0);
+}
+msg_tag_t task_set_com_point(obj_handler_t task_obj, void *com_point_func, addr_t stack)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+
+    mk_syscall(syscall_prot_create(TASK_SET_COM_POINT, TASK_PROT, task_obj).raw,
+               com_point_func,
+               stack,
+               0,
+               0,
                0,
                0);
     asm __volatile__(""

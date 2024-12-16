@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 
 static fs_t fs;
 
@@ -24,7 +25,7 @@ typedef struct file_desc
     pid_t pid;
     mk_char_dev_iter_t iter;
     void *ptr_dev;
-    int offset;
+    off_t offset;
     int open_type;
 } file_desc_t;
 
@@ -181,7 +182,7 @@ int fs_svr_read(int fd, void *buf, size_t len)
     {
         return -EACCES;
     }
-    ret = char_dev->ops->read(char_dev->dev, buf, len);
+    ret = char_dev->ops->read(char_dev->dev, buf, len, &fdp->offset);
     if (ret > 0)
     {
         fdp->offset += ret;
@@ -213,7 +214,7 @@ int fs_svr_write(int fd, void *buf, size_t len)
     {
         return -EACCES;
     }
-    ret = char_dev->ops->write(char_dev->dev, buf, len);
+    ret = char_dev->ops->write(char_dev->dev, buf, len, &fdp->offset);
     if (ret > 0)
     {
         fdp->offset += ret;
@@ -338,7 +339,7 @@ int fs_svr_ioctl(int fd, int req, void *arg)
     file_desc_t *file = fd_get(thread_get_src_pid(), fd);
     int new_offs = 0;
     int ret = -EIO;
-    printf("%s fd:%d req:%d arg:0x%x\n", __func__, fd, req, (umword_t)arg);
+    // printf("%s fd:%d req:%d arg:0x%x\n", __func__, fd, req, (umword_t)arg);
     if (!file)
     {
         return -ENOENT;

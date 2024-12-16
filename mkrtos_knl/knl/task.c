@@ -40,6 +40,7 @@ enum task_op_code
     TASK_COPY_DATA,      //!< 拷贝数据到task的数据区域
     TASK_SET_OBJ_NAME,   //!< 设置对象的名字
     TASK_COPY_DATA_TO,   //!< 从当前task拷贝数据到目的task
+    TASK_SET_COM_POINT,  //!< 通信点
 };
 static bool_t task_put(kobject_t *kobj);
 static void task_release_stage1(kobject_t *kobj);
@@ -86,7 +87,7 @@ int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size)
     }
     memset(ram, 0, size + THREAD_MSG_BUG_LEN);
     mm_space_set_ram_block(&tk->mm_space, ram, size + THREAD_MSG_BUG_LEN);
-    printk("task alloc size is %d, base is 0x%x\n", size + THREAD_MSG_BUG_LEN, ram);
+    printk("task alloc [0x%x - 0x%x]\n", ram, (umword_t)ram + size + THREAD_MSG_BUG_LEN - 1);
     return 0;
 }
 #endif
@@ -393,6 +394,13 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     copy_data_to_end:
         task_unlock_2(&tag_task->kobj.lock, &dst_task_obj->kobj.lock, st0, st1);
         tag = msg_tag_init4(0, 0, 0, ret);
+    }
+    break;
+    case TASK_SET_COM_POINT:
+    {
+        tag_task->nofity_point = (void *)(f->regs[0]);
+        tag_task->nofity_stack = (addr_t)(f->regs[1]);
+        tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
     default:

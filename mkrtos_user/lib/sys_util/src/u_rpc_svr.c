@@ -46,6 +46,7 @@ static rpc_svr_obj_t *meta_svr_find(meta_t *meta, umword_t prot)
         }
     }
     pthread_spin_unlock(&meta->lock);
+    return NULL;
 }
 void meta_unreg_svr_obj_raw(meta_t *meta, umword_t prot)
 {

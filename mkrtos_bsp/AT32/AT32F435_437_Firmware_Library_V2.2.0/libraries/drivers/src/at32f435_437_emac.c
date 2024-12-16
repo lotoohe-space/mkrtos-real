@@ -2311,7 +2311,9 @@ void emac_ptp_pps_frequency_set(emac_ptp_pps_control_type freq)
 {
   EMAC_PTP->ppscr_bit.pofc = freq;
 }
-
+#ifdef MKRTOS_DRV
+  #include "u_sys.h"
+#endif
 /**
   * @brief  this is delay function base on system clock.
   * @param  delay: delay time
@@ -2319,7 +2321,11 @@ void emac_ptp_pps_frequency_set(emac_ptp_pps_control_type freq)
   */
 static void emac_delay(uint32_t delay)
 {
+  #ifdef MKRTOS_DRV
+  __IO uint32_t delay_time = delay * (sys_read_clk() / 8 / 1000);
+  #else
   __IO uint32_t delay_time = delay * (system_core_clock / 8 / 1000);
+  #endif
   do
   {
     __NOP();

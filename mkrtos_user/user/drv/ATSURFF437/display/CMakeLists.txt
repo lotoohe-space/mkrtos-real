@@ -51,6 +51,7 @@ target_include_directories(
     
     ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_display
     ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_pin
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_pca9555
 )
 add_dependencies(
     display.elf

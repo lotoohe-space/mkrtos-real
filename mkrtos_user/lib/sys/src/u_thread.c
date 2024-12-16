@@ -20,6 +20,8 @@ enum IPC_TYPE
     IPC_WAIT,
     IPC_RECV,
     IPC_SEND,
+    IPC_FAST_CALL, //!< 快速CALL通信，不切换上下文
+    IPC_FAST_REPLAY,
 };
 msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj, obj_handler_t ipc_obj)
 {
@@ -82,6 +84,38 @@ msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_tim
                IPC_CALL,
                0,
                timeout.raw,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0);
+    return msg_tag_init(r0);
+}
+msg_tag_t thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, target_obj, TRUE).raw,
+               in_tag.raw,
+               IPC_FAST_CALL,
+               0,
+               0,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0);
+    return msg_tag_init(r0);
+}
+msg_tag_t thread_ipc_fast_replay(obj_handler_t target_obj)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, target_obj, TRUE).raw,
+               0,
+               IPC_FAST_REPLAY,
+               0,
+               0,
                0,
                0);
     asm __volatile__(""

@@ -32,9 +32,12 @@
 #include <unistd.h>
 #include "mk_pin_drv.h"
 #include "u_sleep.h"
+#include "mk_pca9555_drv.h"
+#include <stdio.h>
 lcd_device_type lcddev;
 
 #define DEV_PIN_PATH "/pin"
+#define DEV_PCA9555_PATH "/pca9555"
 
 static const uint8_t lcd_pins[] = {
     (3 * 16) + 14 /*GPIOD 14*/,
@@ -59,11 +62,13 @@ static const uint8_t lcd_pins[] = {
     (6 * 16) + 0 /*GPIOG 0*/,
 };
 static int pin_fd;
+static int pca9555_fd;
 
 void delay_ms(uint16_t nms)
 {
     u_sleep_ms(nms);
 }
+
 /**
  * @brief  configures the xmc and gpios to interface with the lcd.
  *         this function must be called before any write/read operation
@@ -79,36 +84,24 @@ static int lcd_gpio_xmc_init(void)
     xmc_norsram_init_type xmc_norsram_init_struct;
     xmc_norsram_timing_init_type rw_timing_struct, w_timing_struct;
 
-    /* enable the gpio clock */
-    // crm_periph_clock_enable(LCD_D0_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D1_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D2_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D3_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D4_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D5_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D6_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D7_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D8_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D9_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D10_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D11_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D12_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D13_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D14_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_D15_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_NE1_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_NWE_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_NOE_GPIO_CLK, TRUE);
-    // crm_periph_clock_enable(LCD_A10_GPIO_CLK, TRUE);
-
     /* enable the xmc clock */
     crm_periph_clock_enable(CRM_XMC_PERIPH_CLOCK, TRUE);
-
+again:
+    pca9555_fd = open(DEV_PCA9555_PATH, O_RDWR, 0777);
+    if (pca9555_fd < 0)
+    {
+        u_sleep_ms(50);
+        goto again;
+    }
+    ioctl(pca9555_fd, PCA9555_SET_OUTPUT_MODE, PCA_IO0_PINS_0);
+    ioctl(pca9555_fd, PCA9555_IO_SET, PCA_IO0_PINS_0);
+again2:
     pin_fd = open(DEV_PIN_PATH, O_RDWR, 0777);
 
     if (pin_fd < 0)
     {
-        return pin_fd;
+        u_sleep_ms(50);
+        goto again2;
     }
 
     for (int i = 0; i < ARRAY_SIZE(lcd_pins); i++)
@@ -124,93 +117,6 @@ static int lcd_gpio_xmc_init(void)
             return ret;
         }
     }
-    /*-- gpio configuration ------------------------------------------------------*/
-    // gpio_pin_mux_config(LCD_D0_GPIO_PORT, LCD_D0_GPIO_PINS_SOURCE, LCD_D0_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D1_GPIO_PORT, LCD_D1_GPIO_PINS_SOURCE, LCD_D1_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D2_GPIO_PORT, LCD_D2_GPIO_PINS_SOURCE, LCD_D2_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D3_GPIO_PORT, LCD_D3_GPIO_PINS_SOURCE, LCD_D3_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D4_GPIO_PORT, LCD_D4_GPIO_PINS_SOURCE, LCD_D4_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D5_GPIO_PORT, LCD_D5_GPIO_PINS_SOURCE, LCD_D5_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D6_GPIO_PORT, LCD_D6_GPIO_PINS_SOURCE, LCD_D6_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D7_GPIO_PORT, LCD_D7_GPIO_PINS_SOURCE, LCD_D7_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D8_GPIO_PORT, LCD_D8_GPIO_PINS_SOURCE, LCD_D8_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D9_GPIO_PORT, LCD_D9_GPIO_PINS_SOURCE, LCD_D9_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D10_GPIO_PORT, LCD_D10_GPIO_PINS_SOURCE, LCD_D10_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D11_GPIO_PORT, LCD_D11_GPIO_PINS_SOURCE, LCD_D11_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D12_GPIO_PORT, LCD_D12_GPIO_PINS_SOURCE, LCD_D12_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D13_GPIO_PORT, LCD_D13_GPIO_PINS_SOURCE, LCD_D13_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D14_GPIO_PORT, LCD_D14_GPIO_PINS_SOURCE, LCD_D14_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_D15_GPIO_PORT, LCD_D15_GPIO_PINS_SOURCE, LCD_D15_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_NE1_GPIO_PORT, LCD_NE1_GPIO_PINS_SOURCE, LCD_NE1_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_NWE_GPIO_PORT, LCD_NWE_GPIO_PINS_SOURCE, LCD_NWE_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_NOE_GPIO_PORT, LCD_NOE_GPIO_PINS_SOURCE, LCD_NOE_GPIO_MUX);
-    // gpio_pin_mux_config(LCD_A10_GPIO_PORT, LCD_A10_GPIO_PINS_SOURCE, LCD_A10_GPIO_MUX);
-
-    /* lcd data lines configuration */
-    // gpio_init_struct.gpio_mode = GPIO_MODE_MUX;
-    // gpio_init_struct.gpio_out_type = GPIO_OUTPUT_PUSH_PULL;
-    // gpio_init_struct.gpio_pull = GPIO_PULL_NONE;
-    // gpio_init_struct.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER;
-
-    // gpio_init_struct.gpio_pins = LCD_D0_GPIO_PIN;
-    // gpio_init(LCD_D0_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D1_GPIO_PIN;
-    // gpio_init(LCD_D1_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D2_GPIO_PIN;
-    // gpio_init(LCD_D2_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D3_GPIO_PIN;
-    // gpio_init(LCD_D3_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D4_GPIO_PIN;
-    // gpio_init(LCD_D4_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D5_GPIO_PIN;
-    // gpio_init(LCD_D5_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D6_GPIO_PIN;
-    // gpio_init(LCD_D6_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D7_GPIO_PIN;
-    // gpio_init(LCD_D7_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D8_GPIO_PIN;
-    // gpio_init(LCD_D8_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D9_GPIO_PIN;
-    // gpio_init(LCD_D9_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D10_GPIO_PIN;
-    // gpio_init(LCD_D10_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D11_GPIO_PIN;
-    // gpio_init(LCD_D11_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D12_GPIO_PIN;
-    // gpio_init(LCD_D12_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D13_GPIO_PIN;
-    // gpio_init(LCD_D13_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D14_GPIO_PIN;
-    // gpio_init(LCD_D14_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_D15_GPIO_PIN;
-    // gpio_init(LCD_D15_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_NE1_GPIO_PIN;
-    // gpio_init(LCD_NE1_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_NWE_GPIO_PIN;
-    // gpio_init(LCD_NWE_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_NOE_GPIO_PIN;
-    // gpio_init(LCD_NOE_GPIO_PORT, &gpio_init_struct);
-
-    // gpio_init_struct.gpio_pins = LCD_A10_GPIO_PIN;
-    // gpio_init(LCD_A10_GPIO_PORT, &gpio_init_struct);
 
     /*-- xmc configuration ------------------------------------------------------*/
     xmc_norsram_default_para_init(&xmc_norsram_init_struct);

@@ -320,7 +320,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
 
     *p_sem_hd = hd_sem;
     /*启动线程运行*/
-    tag = thread_run(hd_thread, 2);
+    tag = thread_run(hd_thread, 3);
     assert(msg_tag_get_prot(tag) >= 0);
     task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_thread));
     handler_free(hd_thread);

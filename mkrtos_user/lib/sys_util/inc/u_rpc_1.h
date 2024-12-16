@@ -73,7 +73,7 @@
         off = 0;                                                                                           \
         int off_map = 0;                                                                                   \
         RPC_SVR_MSG_TO_BUF_OUT(rpc_type0, svr_type0, &var0, dir0, value, off);                             \
-        PRC_SVR_FILL_MAP_BUF(rpc_type0, svr_type0, &var0, dir0, value, off_map);                           \
+        PRC_SVR_FILL_MAP_BUF(rpc_type0, svr_type0, &var0, dir0, ipc_msg->map_buf, off_map);                           \
         return msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_map, WORD_BYTES), ret_val);        \
     }
 /**

@@ -81,7 +81,7 @@
 #define LWIP_SO_RCVTIMEO 1 // 通过定义LWIP_SO_RCVTIMEO使能netconn结构体中recv_timeout,使用recv_timeout可以避免阻塞线程
 
 // 有关系统的选项
-#define TCPIP_THREAD_PRIO 6        // 定义内核任务的优先级为5
+#define TCPIP_THREAD_PRIO 3        // 定义内核任务的优先级为5
 #define TCPIP_THREAD_STACKSIZE 512 // 内核任务堆栈大小
 #define DEFAULT_UDP_RECVMBOX_SIZE 512
 #define DEFAULT_THREAD_STACKSIZE 512

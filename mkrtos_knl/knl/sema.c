@@ -8,7 +8,8 @@
 #include "factory.h"
 #include "sema.h"
 #include "init.h"
-
+#include "ref.h"
+#include "slist.h"
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <slab.h>
 static slab_t *sema_slab;
@@ -62,7 +63,11 @@ void sema_up(sema_t *obj)
         first_wait_node = slist_first(&obj->suspend_head);
         first_wait = container_of(first_wait_node, sema_wait_item_t, node);
         slist_del(first_wait_node);
-        thread_ready_remote(first_wait->thread, FALSE);
+        if (ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj) != 1)
+        {
+
+            thread_ready_remote(first_wait->thread, FALSE);
+        }
         if (obj->cnt < obj->max_cnt)
         {
             obj->cnt++;
@@ -82,6 +87,7 @@ again:
     if (obj->cnt == 0)
     {
         sema_wait_item_init(&wait_item, th);
+        ref_counter_inc(&th->ref);
         slist_add_append(&obj->suspend_head, &wait_item.node);
         thread_suspend_sw(th, FALSE);
         spinlock_set(&obj->lock, status);
@@ -147,15 +153,38 @@ static void sema_unmap(obj_space_t *obj_space, kobject_t *kobj)
 }
 static void sema_release_stage1(kobject_t *kobj)
 {
-    /*TODO:*/
-
-    sema_t *sm = container_of(kobj, sema_t, kobj);
+    sema_t *obj = container_of(kobj, sema_t, kobj);
     kobject_invalidate(kobj);
+    sema_wait_item_t *wait_item;
+
+    slist_foreach(wait_item, &obj->suspend_head, node)
+    {
+        slist_head_t *first_wait_node;
+        sema_wait_item_t *first_wait;
+
+        first_wait_node = slist_first(&obj->suspend_head);
+        first_wait = container_of(first_wait_node, sema_wait_item_t, node);
+        slist_del(first_wait_node);
+        if (ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj) != 1)
+        {
+            thread_ready_remote(first_wait->thread, FALSE);
+        }
+        if (obj->cnt < obj->max_cnt)
+        {
+            obj->cnt++;
+        }
+    }
 }
 static void sema_release_stage2(kobject_t *kobj)
 {
-    /*TODO:*/
-    printk("TODO:sema 0x%x free.\n", kobj);
+    sema_t *obj = container_of(kobj, sema_t, kobj);
+
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+    mm_limit_free_slab(sema_slab, thread_get_current_task()->lim, obj);
+#else
+    mm_limit_free(thread_get_current_task()->lim, obj);
+#endif
+    printk("sema 0x%x free.\n", kobj);
 }
 
 void sema_init(sema_t *obj, int cnt, int max)

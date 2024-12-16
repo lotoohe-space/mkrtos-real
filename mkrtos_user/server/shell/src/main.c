@@ -7,6 +7,8 @@
 #include <pm_cli.h>
 #include <u_sleep.h>
 #include <u_task.h>
+#include <u_thread.h>
+#include <u_env.h>
 int main(int argc, char *args[])
 {
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_sh");
@@ -14,6 +16,7 @@ int main(int argc, char *args[])
 #if 1
     thread_run(-1, 3);
 #endif
+    // thread_ipc_fast_call(msg_tag_init(0), u_get_global_env()->ns_hd);
     for (int i = 0; i < argc; i++)
     {
         printf("args[%d]:%s\n", i, args[i]);

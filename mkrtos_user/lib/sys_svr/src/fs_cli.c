@@ -20,7 +20,7 @@ RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_OPEN, open,
 sd_t fs_open(const char *path, int flags, int mode)
 {
     obj_handler_t hd;
-    int ret = ns_query(path, &hd);
+    int ret = ns_query(path, &hd, 0x1);
 
     if (ret < 0)
     {
@@ -124,7 +124,7 @@ int fs_write(sd_t _fd, void *buf, size_t len)
         .data = fd,
     };
     int wlen = 0;
-    while (wlen < len)
+    while ((wlen < len) || len == 0)
     {
         int w_once_len = 0;
 
@@ -144,6 +144,10 @@ int fs_write(sd_t _fd, void *buf, size_t len)
         }
         wlen += msg_tag_get_val(tag);
         if (msg_tag_get_val(tag) != w_once_len)
+        {
+            break;
+        }
+        if (len == 0)
         {
             break;
         }
@@ -343,7 +347,7 @@ RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_UNLINK, unlink,
 int fs_unlink(const char *path)
 {
     obj_handler_t hd;
-    int ret = ns_query(path, &hd);
+    int ret = ns_query(path, &hd, 0x1);
 
     if (ret < 0)
     {
@@ -369,13 +373,13 @@ int fs_symlink(const char *src, const char *dst)
     obj_handler_t src_hd;
     obj_handler_t dst_hd;
 
-    int src_ret = ns_query(src, &src_hd);
+    int src_ret = ns_query(src, &src_hd, 0x1);
 
     if (src_ret < 0)
     {
         return src_ret;
     }
-    int dst_ret = ns_query(dst, &dst_hd);
+    int dst_ret = ns_query(dst, &dst_hd, 0x1);
 
     if (dst_ret < 0)
     {
@@ -407,7 +411,7 @@ RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_MKDIR, mkdir,
 int fs_mkdir(char *path)
 {
     obj_handler_t hd;
-    int ret = ns_query(path, &hd);
+    int ret = ns_query(path, &hd, 0x1);
 
     if (ret < 0)
     {
@@ -431,7 +435,7 @@ RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_RMDIR, rmdir,
 int fs_rmdir(char *path)
 {
     obj_handler_t hd;
-    int ret = ns_query(path, &hd);
+    int ret = ns_query(path, &hd, 0x1);
 
     if (ret < 0)
     {
@@ -457,13 +461,13 @@ int fs_rename(char *old, char *new)
     obj_handler_t src_hd;
     obj_handler_t dst_hd;
 
-    int src_ret = ns_query(old, &src_hd);
+    int src_ret = ns_query(old, &src_hd, 0x1);
 
     if (src_ret < 0)
     {
         return src_ret;
     }
-    int dst_ret = ns_query(new, &dst_hd);
+    int dst_ret = ns_query(new, &dst_hd, 0x1);
 
     if (dst_ret < 0)
     {
@@ -499,7 +503,7 @@ int fs_stat(char *path, stat_t *buf)
     {
         return -EINVAL;
     }
-    int ret = ns_query(path, &hd);
+    int ret = ns_query(path, &hd, 0x1);
 
     if (ret < 0)
     {
@@ -533,7 +537,7 @@ int fs_readlink(const char *path, char *buf, int bufsize)
     {
         return -EINVAL;
     }
-    int ret = ns_query(path, &hd);
+    int ret = ns_query(path, &hd, 0x1);
 
     if (ret < 0)
     {
@@ -568,7 +572,7 @@ int fs_statfs(const char *path, statfs_t *buf)
     {
         return -EINVAL;
     }
-    int ret = ns_query(path, &hd);
+    int ret = ns_query(path, &hd, 0x1);
 
     if (ret < 0)
     {

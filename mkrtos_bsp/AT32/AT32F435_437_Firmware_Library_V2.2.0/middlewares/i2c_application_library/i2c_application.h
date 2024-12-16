@@ -143,7 +143,7 @@ typedef struct
   */
 
 void            i2c_config                (i2c_handle_type* hi2c);
-void            i2c_lowlevel_init         (i2c_handle_type* hi2c);
+int            i2c_lowlevel_init         (i2c_handle_type* hi2c);
 void            i2c_reset_ctrl2_register  (i2c_handle_type* hi2c);
 i2c_status_type i2c_wait_end              (i2c_handle_type* hi2c, uint32_t timeout);
 i2c_status_type i2c_wait_flag             (i2c_handle_type* hi2c, uint32_t flag, uint32_t event_check, uint32_t timeout);

@@ -13,16 +13,18 @@
 #include <assert.h>
 #include <sys/stat.h>
 #include "mk_pin_drv_impl.h"
+#include <u_task.h>
 
 int main(int argc, char *argv[])
 {
     obj_handler_t hd;
     int ret;
-
+    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_pin");
+    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_pin");
     printf("%s init..\n", argv[0]);
-#if 1
-    thread_run(-1, 3);
-#endif
+// #if 1
+//     thread_run(-1, 3);
+// #endif
     mk_drv_init();
     mk_dev_init();
     drv_pin_init();

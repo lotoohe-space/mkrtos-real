@@ -96,7 +96,7 @@ int ns_register(const char *path, obj_handler_t svr_hd, enum node_type type)
 
     return msg_tag_get_val(tag);
 }
-int ns_query(const char *path, obj_handler_t *svr_hd)
+int ns_query(const char *path, obj_handler_t *svr_hd, int flags)
 {
     int inx = 0;
     assert(path);
@@ -133,6 +133,15 @@ int ns_query(const char *path, obj_handler_t *svr_hd)
     {
         handler_free(newfd);
         return msg_tag_get_val(tag);
+    }
+    if (flags & 0x1)
+    {
+        if (msg_tag_get_val(tag) != strlen(path))
+        {
+            // printf("ns query don't find svr obj.\n");
+            handler_free_umap(newfd);
+            return -ENOENT;
+        }
     }
     if (reg_hd(path, newfd, msg_tag_get_val(tag)) == FALSE)
     {

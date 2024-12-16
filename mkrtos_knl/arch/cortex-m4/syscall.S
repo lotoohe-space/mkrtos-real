@@ -2,7 +2,7 @@
 @ .cpu cortex-m3
 .thumb
 
-.global syscall_handler_get
+.global syscall_entry_call
 /**
 * @brief syscall结束时到这儿
 */
@@ -70,19 +70,16 @@ SYS_CALL:
 	//放入之前的栈地址
 	mrs r1,CONTROL
 
-	push {r0,r1,r2,lr}
+	push {r0-r2,lr}
     //svc 128
 	mov r1, r7
 	//获得需要调用的syscall函数的地址
-	push {r0-r2,lr}
-	blx	syscall_handler_get
-	mov r3,r0
-	pop {r0-r2,lr}
+	ldr r3, = syscall_entry_call
 
 	//r4-r11 压入到内核栈中
 	stmfd sp!,{r4-r11}
 	//压入到用户栈中
-	stmfd r0,{r4-r11}
+	//stmfd r0,{r4-r11}
 #ifdef MKRTOS_USE_FPU
 	// 如果支持浮点，则里则要把惰性浮点得位置留查出来
 	TST lr, #0x10
@@ -105,9 +102,9 @@ SYS_CALL:
 	str		r3, [r0, #28]
 
 	//重新设置control
-    mrs     r0, CONTROL
-    bic     r0, r0, #0x03
-    msr     CONTROL, r0
+    mrs     r1, CONTROL
+    bic     r1, r1, #0x03
+    msr     CONTROL, r1
 
     dsb
     isb

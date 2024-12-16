@@ -102,9 +102,9 @@
   * @param  none
   * @retval none
   */
-__WEAK void i2c_lowlevel_init(i2c_handle_type* hi2c)
+__WEAK int i2c_lowlevel_init(i2c_handle_type* hi2c)
 {
-
+  return 0;
 }
 
 /**

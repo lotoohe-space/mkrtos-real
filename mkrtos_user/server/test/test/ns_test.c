@@ -23,7 +23,7 @@ void ns_test(void)
     assert(ns_register("shell", tmp_ipc_hd, FILE_NODE) >= 0);
     obj_handler_t rcv_ipc_hd;
 
-    assert(ns_query("shell", &rcv_ipc_hd) >= 0);
+    assert(ns_query("shell", &rcv_ipc_hd, 0x1) >= 0);
 
     handler_free_umap(rcv_ipc_hd);
 }

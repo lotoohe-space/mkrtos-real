@@ -15,7 +15,7 @@
 #define STACK_SIZE (4 * 1024) //(1024 + 256)
 #else
 #define HEAP_SIZE (2 * 1024)
-#define STACK_SIZE (2 * 1024) //(1024 + 256)
+#define STACK_SIZE (3 * 1024) //(1024 + 256)
 #endif
 
 #if defined(__CC_ARM)

@@ -13,7 +13,7 @@
  * @param size 写入大小
  * @return int 写入的个数
  */
-static int mk_pin_drv_write(mk_dev_t *pin, void *buf, size_t size)
+static int mk_pin_drv_write(mk_dev_t *pin, void *buf, size_t size, off_t *offset)
 {
     assert(buf);
     assert(pin);
@@ -47,7 +47,7 @@ static int mk_pin_drv_write(mk_dev_t *pin, void *buf, size_t size)
  * @param size
  * @return int
  */
-static int mk_pin_drv_read(mk_dev_t *pin, void *buf, size_t size)
+static int mk_pin_drv_read(mk_dev_t *pin, void *buf, size_t size, off_t *offset)
 {
     assert(buf);
     assert(pin);
@@ -89,10 +89,35 @@ static int mk_pin_drv_ioctl(mk_dev_t *pin, int cmd, umword_t args)
     mk_pin_dev_t *pin_dev = pin->priv_data;
     mk_pin_ops_t *ops = pin_dev->ops;
     assert(ops);
-    int ret;
+    int ret = 0;
 
     switch (cmd)
     {
+    case MK_PIN_READ_PIN:
+    {
+        mk_pin_cfg_t cfg = (mk_pin_cfg_t){.cfg_raw = args};
+        uint8_t rval = 0;
+
+        if (cfg.pin >= sizeof(pin_dev->pins))
+        {
+            return -EINVAL;
+        }
+        if (ops->drv_pin_read)
+        {
+            ret = ops->drv_pin_read(&pin_dev->pins, cfg.pin, &rval);
+
+            if (ret < 0)
+            {
+                return ret;
+            }
+            ret = rval;
+        }
+        else
+        {
+            ret = -EIO;
+        }
+    }
+    break;
     case MK_PIN_SET_MODE:
     {
         mk_pin_cfg_t cfg = (mk_pin_cfg_t){.cfg_raw = args};
@@ -141,7 +166,7 @@ static int mk_pin_drv_ioctl(mk_dev_t *pin, int cmd, umword_t args)
     default:
         break;
     }
-    return 0;
+    return ret;
 }
 static mk_file_ops_t file_ops = {
     .open = NULL,

@@ -55,6 +55,8 @@ enum IPC_TYPE
     IPC_WAIT,
     IPC_RECV,
     IPC_SEND,
+    IPC_FAST_CALL,   //!< 快速CALL通信，不切换上下文
+    IPC_FAST_REPLAY, //!<
 };
 static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
                            msg_tag_t in_tag, entry_frame_t *f);
@@ -716,7 +718,7 @@ void thread_timeout_del_recv_remote(thread_t *th, bool_t is_sche)
  * @param tag
  * @return int
  */
-static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
+static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag, int is_reply)
 {
     void *src = thread_get_kmsg_buf(src_th);
     void *dst = thread_get_kmsg_buf(dst_th);
@@ -742,7 +744,7 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
             vpage_t dst_page = vpage_create_raw(dst_ipc->map_buf[i]);
             vpage_t src_page = vpage_create_raw(src_ipc->map_buf[i]);
 
-            if (src_page.flags & VPAGE_FLAGS_MAP)
+            if ((src_page.flags & VPAGE_FLAGS_MAP) || is_reply)
             {
                 ret = obj_map_src_dst(&dst_tk->obj_space, &src_tk->obj_space,
                                       vpage_get_obj_handler(dst_page),
@@ -920,6 +922,7 @@ again:;
         }
         spinlock_set(&to->recv_lock, status_lock2);
         thread_sched(TRUE);
+        preemption();
         goto again;
     }
 #if THREAD_IS_DEBUG
@@ -927,7 +930,7 @@ again:;
                kobject_get_name(&form->kobj), form, kobject_get_name(&to->kobj), to);
 #endif
     //!< 发送数据给上一次的发送者
-    int ret = ipc_data_copy(to, form, in_tag); //!< 拷贝数据
+    int ret = ipc_data_copy(to, form, in_tag, TRUE); //!< 拷贝数据
 
     if (ret < 0)
     {
@@ -1107,7 +1110,8 @@ end:
     assert(recv_th->status == THREAD_SUSPEND && recv_th->ipc_status == THREAD_RECV);
     return ret;
 }
-__attribute__((optimize(0))) int thread_ipc_call(
+//__attribute__((optimize(0)))
+int thread_ipc_call(
     thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag, ipc_timeout_t timout,
     umword_t *ret_user_id, bool_t is_call)
 {
@@ -1136,7 +1140,7 @@ again:
     if (thread_get_status(recv_kobj) == THREAD_SUSPEND && thread_get_ipc_state(recv_kobj) == THREAD_RECV)
     {
         //!< 开始发送数据
-        ret = ipc_data_copy(recv_kobj, cur_th, in_tag); //!< 拷贝数据
+        ret = ipc_data_copy(recv_kobj, cur_th, in_tag, FALSE); //!< 拷贝数据
         if (ret < 0)
         {
             //!< 拷贝失败
@@ -1219,6 +1223,59 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
 
     switch (ipc_type)
     {
+    case IPC_FAST_REPLAY:
+    {
+        thread_task_restore(cur_th); //!< 切换task到目的task，并且进行备份
+        arch_set_user_sp((umword_t)(cur_th->usp_backup));
+
+        pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
+
+        cur_pf->regs[5] = (umword_t)(thread_get_current_task()->mm_space.mm_block);
+        extern void mpu_switch_to_task(struct task * tk);
+        mpu_switch_to_task(thread_get_current_task());
+
+        return msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
+    case IPC_FAST_CALL:
+    {
+        // 线程中的task
+        // 内核栈返回需要修改r9
+        // 还原用户站
+        task_t *to_task = thread_get_bind_task(to_th);
+
+        if (to_task->nofity_point == NULL)
+        {
+            return msg_tag_init4(0, 0, 0, -EIO);
+        }
+
+        thread_set_task_and_backup(cur_th, to_task); //!< 切换task到目的task，并且进行备份
+
+        //!< 执行目标线程时用的是当前线程的资源，这里还需要备份当前线程的上下文。
+        void *prev_usp = (void *)arch_get_user_sp();
+
+        cur_th->usp_backup = prev_usp;//!<保存之前的用户栈
+        arch_set_user_sp(to_task->nofity_stack - 32); //!<重新设置
+        pf_s_t *usr_stask_point = (void *)arch_get_user_sp();
+
+        // usr_stask_point->rg0[0] = 0x1111;
+        // usr_stask_point->rg0[1] = 0x2222;
+        // usr_stask_point->rg0[2] = 0x3333;
+        // usr_stask_point->rg0[3] = 0x4444;
+        usr_stask_point->r12 = 0x12121212;
+        usr_stask_point->xpsr = 0x01000000L;
+        usr_stask_point->lr = (umword_t)NULL; //!< 线程退出时调用的函数
+        usr_stask_point->pc = (umword_t)(to_task->nofity_point) | 0x1;
+
+        pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1; //!< 获得内核栈栈顶
+        cur_pf->regs[5] = (umword_t)(to_task->mm_space.mm_block);                     // 重新设置r9寄存器
+
+        extern void mpu_switch_to_task(struct task * tk);
+        mpu_switch_to_task(to_task);
+
+        return msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
     case IPC_CALL:
     {
         msg_tag_t in_tag = msg_tag_init(f->regs[0]);

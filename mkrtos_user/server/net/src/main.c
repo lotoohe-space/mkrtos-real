@@ -1,7 +1,6 @@
 
 #include "cons_cli.h"
 #include "netconf.h"
-#include "u_drv.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <assert.h>
@@ -14,6 +13,7 @@
 #include <u_task.h>
 #include <u_factory.h>
 #include <u_share_mem.h>
+#include <u_sema.h>
 #include <net_drv_cli.h>
 #include <ns_cli.h>
 umword_t addr;
@@ -25,9 +25,13 @@ int main(int args, char *argv[])
     int ret;
     msg_tag_t tag;
     printf("net startup..\n");
-    ret = ns_query("/dm9000", &net_drv_hd);
-    assert(ret >= 0);
-
+again:
+    ret = ns_query("/eth", &net_drv_hd, 0x1);
+    if (ret < 0)
+    {
+        u_sleep_ms(50);
+        goto again;
+    }
     cons_write_str("net init..\n");
     net_init();
     cons_write_str("net start success..\n");
@@ -35,6 +39,14 @@ int main(int args, char *argv[])
 
     IP_ADDR4(&perf_server_ip, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
     lwiperf_start_tcp_server(&perf_server_ip, 9527, NULL, NULL);
+
+    obj_handler_t sem_hd;
+
+    if (net_drv_cli_map(net_drv_hd, &sem_hd) < 0)
+    {
+        printf("net drv sem map error.\n");
+        return -1;
+    }
 
     obj_handler_t shm_hd = handler_alloc();
     assert(shm_hd != HANDLER_INVALID);
@@ -46,6 +58,10 @@ int main(int args, char *argv[])
 
     while (1)
     {
+        if (msg_tag_get_prot(u_sema_down(sem_hd)) < 0)
+        {
+            printf("error.\n");
+        }
         int ret = net_drv_cli_read(net_drv_hd, shm_hd);
 
         if (ret > 0)

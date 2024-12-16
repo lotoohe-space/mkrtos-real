@@ -192,7 +192,7 @@ void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
     task_t *task = container_of(kill_thread->task, task_t, kobj);
     if (!is_knl)
     {
-        printk("kill task:0x%x, pid:%d\n", task, task->pid);
+        printk("kill %s task:0x%x, pid:%d\n", kobject_get_name(&task->kobj), task, task->pid);
         umword_t status2;
 
         status2 = spinlock_lock(&del_lock);

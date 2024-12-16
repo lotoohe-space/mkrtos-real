@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-file(GLOB_RECURSE deps *.c *.S)
+file(GLOB_RECURSE deps src/*.c src/*.S)
 
 add_executable(net.elf
     ${deps}
@@ -31,7 +31,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/net/inc
 )
 set_target_properties(net.elf PROPERTIES LINK_FLAGS
-"-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "
+"-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker  "
 )
 add_custom_target(
     net_dump ALL
@@ -40,17 +40,15 @@ add_custom_target(
     COMMAND
     ${CMAKE_OBJCOPY} -O binary -S net.elf net.bin
     COMMAND
-    mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
+    ${CMAKE_COMMAND} -E copy net.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/net
     COMMAND
-    cp net.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/net
-    COMMAND
-    cp net.elf ${CMAKE_SOURCE_DIR}/build/output/net.elf
+    ${CMAKE_COMMAND} -E copy net.elf ${CMAKE_SOURCE_DIR}/build/output/net.elf
 )
 if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
     add_custom_target(
         net_dump_elf ALL
         COMMAND
-        cp net.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/net
+        ${CMAKE_COMMAND} -E copy net.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/net
     )
     add_dependencies(net_dump_elf net_dump)
 endif()

@@ -136,7 +136,7 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
     pthread_cnt_inc();
     // if (!(st_args->start_flag & PTHREAD_DONT_RUN))
     // {
-    thread_run(th1_hd, 2); // 优先级默认为2
+    thread_run(th1_hd, 3); // 优先级默认为2
     // }
     ret = 0;
     goto end_ok;

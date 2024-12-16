@@ -29,19 +29,30 @@
 #include "parse_cfg.h"
 #include <assert.h>
 #include <stdio.h>
-
+static ATTR_ALIGN(8) uint8_t cons_stack[2048];
 #define DEFAULT_INIT_CFG "init.cfg"
-
+static void init_com_point_test_func(int r0,int r1,int r2,int r3)
+{
+    printf("comm r0:%d r1:%d r2:%d r3:%d\n", r0, r1, r2, r3);
+    printf("comm\n");
+    printf("comm\n");
+    printf("comm\n");
+    printf("comm\n");
+    thread_ipc_fast_replay(-1);
+}
 int main(int argc, char *args[])
 {
     int ret;
     uenv_t *env;
 
+#if 1
+    thread_run(-1, 4);
+#endif
+    task_set_com_point(TASK_THIS,&init_com_point_test_func, (addr_t)(cons_stack + sizeof(cons_stack) - 8));
+
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_init");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_init");
-// #if 1
-//     thread_run(-1, 3);
-// #endif
+
     ulog_write_str(LOG_PROT, "init..\n");
     u_env_default_init();
     env = u_get_global_env();

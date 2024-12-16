@@ -76,7 +76,7 @@ SYS_CALL:
 	//r4-r11 压入到内核栈中
 	stmfd sp!,{r4-r11}
 	//压入到用户栈中
-	stmfd r0,{r4-r11}
+	//stmfd r0,{r4-r11}
 	//取出PSR PC LR R12 R3 R2 R1 R0
 	ldmfd r0,{r4-r11}
 	//压入到内核栈中

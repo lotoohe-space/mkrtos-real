@@ -16,6 +16,7 @@
 #include "arch.h"
 #include "ref.h"
 #include <atomics.h>
+#include "task.h"
 struct task;
 typedef struct task task_t;
 struct thread;
@@ -30,9 +31,9 @@ typedef struct thread thread_t;
 #define MSG_BUF_RECV_R_FLAGS 0x02U                   //!< 接收来自recv_th的消息
 #define MSG_BUF_REPLY_FLAGS 0x04U                    //!< 回复消息给send_th
 
-#define IPC_MSG_SIZE (CONFIG_THREAD_IPC_MSG_LEN * sizeof(void*))
-#define MAP_BUF_SIZE (CONFIG_THREAD_MAP_BUF_LEN * sizeof(void*))
-#define IPC_USER_SIZE (CONFIG_THREAD_USER_BUF_LEN * sizeof(void*))
+#define IPC_MSG_SIZE (CONFIG_THREAD_IPC_MSG_LEN * sizeof(void *))
+#define MAP_BUF_SIZE (CONFIG_THREAD_MAP_BUF_LEN * sizeof(void *))
+#define IPC_USER_SIZE (CONFIG_THREAD_USER_BUF_LEN * sizeof(void *))
 
 #if IS_ENABLED(CONFIG_VCPU)
 #define IPC_VPUC_MSG_OFFSET (3 * 1024) //!< vcpu 传递消息的偏移量
@@ -109,12 +110,13 @@ typedef struct msg_buf
 #define THREAD_MAGIC 0xdeadead //!< 用于栈溢出检测
 typedef struct thread
 {
-    kobject_t kobj;    //!< 内核对象节点
-    sched_t sche;      //!< 调度节点
-    kobject_t *task;   //!< 绑定的task
-    sp_info_t sp;      //!< sp信息
-    ram_limit_t *lim;  //!< 内存限制
-    ref_counter_t ref; //!< 引用计数
+    kobject_t kobj;     //!< 内核对象节点
+    sched_t sche;       //!< 调度节点
+    kobject_t *task;    //!< 绑定的task
+    kobject_t *task_bk; //!< 备份task，用于快速通信
+    sp_info_t sp;       //!< sp信息
+    ram_limit_t *lim;   //!< 内存限制
+    ref_counter_t ref;  //!< 引用计数
 
     slist_head_t futex_node; //!< futex使用
 
@@ -130,7 +132,7 @@ typedef struct thread
     slist_head_t wait_send_head; //!< 等待头，那些节点等待给当前线程发送数据
     spinlock_t recv_lock;        //!< 当前线程接收消息时锁住
     spinlock_t send_lock;        //!< 当前线程发送消息时锁住
-    bool_t has_wait_send_th;    //!< 有线程等待给当前线程发送消息
+    bool_t has_wait_send_th;     //!< 有线程等待给当前线程发送消息
 
     thread_t *last_send_th; //!< 当前线程上次接收到谁的数据
     kobject_t *ipc_kobj;    //!< 发送者放到一个ipc对象中
@@ -138,6 +140,8 @@ typedef struct thread
 
     enum thread_state status;         //!< 线程状态
     enum thread_ipc_state ipc_status; //!< ipc状态
+
+    void *usp_backup;
 
     umword_t magic; //!< maigc
 } thread_t;
@@ -202,6 +206,15 @@ static inline thread_t *thread_get_current(void)
     thread_t *th = (thread_t *)(ALIGN_DOWN(sp, CONFIG_THREAD_BLOCK_SIZE));
 
     return th;
+}
+static inline void thread_set_task_and_backup(thread_t *th, task_t *tk)
+{
+    th->task_bk = th->task;
+    th->task = (void*)(&(tk->kobj));
+}
+static inline void thread_task_restore(thread_t *th)
+{
+    th->task = th->task_bk;
 }
 task_t *thread_get_current_task(void);
 task_t *thread_get_task(thread_t *th);

@@ -4,6 +4,7 @@
 #include <at32f435_437_conf.h>
 #include <u_sleep.h>
 #include <u_sys.h>
+#include <u_task.h>
 #include <mk_dtb_parse.h>
 #include <mk_dev.h>
 #include <mk_drv.h>
@@ -17,11 +18,9 @@ int main(int argc, char *argv[])
 {
     obj_handler_t hd;
     int ret;
-
+    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_dis");
+    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_dis");
     printf("%s init..\n", argv[0]);
-#if 1
-    thread_run(-1, 3);
-#endif
     mk_drv_init();
     mk_dev_init();
     drv_display_init();

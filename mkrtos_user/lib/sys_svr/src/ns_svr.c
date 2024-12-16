@@ -40,7 +40,7 @@ RPC_GENERATION_OP2(ns_t, NS_PROT, NS_QUERY_OP, query,
     int ret = namespace_query((char *)(path->data), &cli_hd->data);
     if (ret >= 0)
     {
-        printf("The request service [%s] was successful, hd is %d.\n", (char *)(path->data), cli_hd->data);
+        // printf("The request service [%s] was successful, hd is %d.\n", (char *)(path->data), cli_hd->data);
     }
     else
     {
