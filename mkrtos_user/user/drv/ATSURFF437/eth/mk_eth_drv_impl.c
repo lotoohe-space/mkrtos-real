@@ -23,7 +23,7 @@ typedef struct eth_priv_data
 
 static eth_priv_data_t eth_priv_data;
 
-static int eth_bus_configure(mk_eth_t *drv, enum mk_eth_ioctl_op op, mk_ioctl_set_info_t *info)
+static int eth_bus_configure(mk_eth_t *drv, enum mk_eth_ioctl_op op, mk_eth_ioctl_set_info_t *info)
 {
     assert(drv);
     eth_priv_data_t *priv_data = drv->priv_data;

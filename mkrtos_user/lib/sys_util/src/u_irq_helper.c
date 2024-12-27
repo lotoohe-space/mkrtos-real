@@ -7,7 +7,7 @@
 
 int u_irq_request(int irq_no, void *stack, void *msg_buf, obj_handler_t *ret_irq_obj, void (*irq_func)(void), u_irq_prio_t prio)
 {
-    static obj_handler_t irq_obj;
+    obj_handler_t irq_obj;
 
     irq_obj = handler_alloc();
     if (irq_obj == HANDLER_INVALID)
@@ -28,15 +28,15 @@ int u_irq_request(int irq_no, void *stack, void *msg_buf, obj_handler_t *ret_irq
     }
     obj_handler_t th_hd;
 
+    if (ret_irq_obj)
+    {
+        *ret_irq_obj = irq_obj;
+    }
     int ret = u_thread_create(&th_hd, stack, msg_buf, irq_func);
     if (ret < 0)
     {
         handler_free_umap(irq_obj);
         return ret;
-    }
-    if (ret_irq_obj)
-    {
-        *ret_irq_obj = irq_obj;
     }
     u_thread_run(th_hd, IRQ_THREAD_PRIO);
 

@@ -153,6 +153,24 @@ static int pin_configure(mk_pin_t *pin, int number, mk_pin_mode_t cfg)
         gpio_pin_mux_config(pin_port_data, number % 16, cfg.mux_cfg);
         break;
     }
+    case MK_PIN_MODE_MUX_OUTPUT_UP:
+    {
+        gpio_init_struct.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER;
+        gpio_init_struct.gpio_out_type = GPIO_OUTPUT_PUSH_PULL;
+        gpio_init_struct.gpio_mode = GPIO_MODE_MUX;
+        gpio_init_struct.gpio_pull = GPIO_PULL_UP;
+        gpio_pin_mux_config(pin_port_data, number % 16, cfg.mux_cfg);
+        break;
+    }
+    case MK_PIN_MODE_MUX_OUTPUT_DOWN:
+    {
+        gpio_init_struct.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER;
+        gpio_init_struct.gpio_out_type = GPIO_OUTPUT_PUSH_PULL;
+        gpio_init_struct.gpio_mode = GPIO_MODE_MUX;
+        gpio_init_struct.gpio_pull = GPIO_PULL_DOWN;
+        gpio_pin_mux_config(pin_port_data, number % 16, cfg.mux_cfg);
+        break;
+    }
     case MK_PIN_MODE_IRQ_RISING:
     {
         gpio_init_struct.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER;

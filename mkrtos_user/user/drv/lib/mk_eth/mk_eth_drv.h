@@ -8,10 +8,10 @@ enum mk_eth_ioctl_op
     ETH_SET_MAC_ADDR,
 };
 
-typedef struct mk_ioctl_set_info
+typedef struct mk_eth_ioctl_set_info
 {
     uint8_t mac_addr[6];
-} mk_ioctl_set_info_t;
+} mk_eth_ioctl_set_info_t;
 /**
  * @brief eth设备数据
  *
@@ -26,7 +26,7 @@ typedef struct mk_eth
  */
 typedef struct mk_eth_ops
 {
-    int (*eth_configure)(mk_eth_t *drv, enum mk_eth_ioctl_op op, mk_ioctl_set_info_t *info);
+    int (*eth_configure)(mk_eth_t *drv, enum mk_eth_ioctl_op op, mk_eth_ioctl_set_info_t *info);
     int (*eth_read)(mk_eth_t *drv, uint8_t *data, int len);
     int (*eth_write)(mk_eth_t *drv, uint8_t *dat, int len);
 } mk_eth_ops_t;

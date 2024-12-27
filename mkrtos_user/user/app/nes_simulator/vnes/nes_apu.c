@@ -30,7 +30,7 @@
 #define  APU_OVERSAMPLE
 #define  APU_VOLUME_DECAY(x)  ((x) -= ((x) >> 7))
 //需要用到的汇编的代码及参数
-uint8_t K6502_Read( uint16_t wAddr );	  //6502.s
+uint8_t K6502_Read( uint16_t wAddr, uint32_t nes_ram_offset );	  //6502.s
 extern uint32_t clocks;			  //6502.s
 //noise lookups for both modes */
 //噪音查找两种模式 */
@@ -512,6 +512,7 @@ void apu_dmcreload(dmc_t *chan)
     chan->dma_length = chan->cached_dmalength;
     chan->irq_occurred = FALSE;
 }
+extern uint32_t nes_ram_offset;
 
 /* DELTA MODULATION CHANNEL
 ** =========================
@@ -540,7 +541,7 @@ int apu_dmc(dmc_t *chan)
 
             if (7 == delta_bit)
             {
-                chan->cur_byte = K6502_Read(chan->address); //chan->cur_byte = nes6502_getbyte(chan->address);*********************
+                chan->cur_byte = K6502_Read(chan->address, nes_ram_offset); //chan->cur_byte = nes6502_getbyte(chan->address);*********************
                 /* steal a cycle from CPU偷从CPU周期*/
                 clocks++;  // nes6502_burn(1);//要CPU时钟数加1**********************************************************************
 
@@ -1082,7 +1083,6 @@ void Apu_Write4017(uint8 value, uint32 address )
 
 #endif
 }
-
 void Apu_Write4015(uint8_t value, uint32_t address )
 {
     apudata_t d;

@@ -153,10 +153,20 @@
         "at_surf_f437_board_emac.h": "c",
         "at_surf_f437_board_pca9555.h": "c",
         "net_drv_svr.h": "c",
-        "u_factory.h": "c"
+        "u_factory.h": "c",
+        "mk_eth_drv_impl.h": "c",
+        "mk_snd_drv.h": "c",
+        "at_surf_f437_board_player.h": "c",
+        "mk_snd_drv_impl.h": "c",
+        "ns_cli.h": "c",
+        "snd_drv_svr.h": "c",
+        "net_drv_cli.h": "c",
+        "lwiperf.h": "c",
+        "stdio_impl.h": "c",
+        "stack.h": "c"
     },
     "cortex-debug.showRTOS": false,
-    "cortex-debug.variableUseNaturalFormat": false,
+    "cortex-debug.variableUseNaturalFormat": true,
     "C_Cpp.default.systemIncludePath": [""],
     "C_Cpp.default.forcedInclude": ["${workspaceFolder}/build/autoconf.h"]
 }

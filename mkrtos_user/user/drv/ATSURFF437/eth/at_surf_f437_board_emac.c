@@ -480,6 +480,7 @@ error_status emac_speed_config(emac_auto_negotiation_type nego, emac_duplex_type
       {
         return ERROR;
       }
+      u_sleep_ms(10);
     } while (!(data & PHY_LINKED_STATUS_BIT) && (timeout < PHY_TIMEOUT));
 
     if (timeout == PHY_TIMEOUT)
@@ -501,6 +502,7 @@ error_status emac_speed_config(emac_auto_negotiation_type nego, emac_duplex_type
       {
         return ERROR;
       }
+      u_sleep_ms(10);
     } while (!(data & PHY_NEGO_COMPLETE_BIT) && (timeout < PHY_TIMEOUT));
 
     if (timeout == PHY_TIMEOUT)

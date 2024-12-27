@@ -59,6 +59,12 @@ int pca9555_set_mode(pca9555_t *io9555, enum pca9555_io_mode mode, uint16_t val)
     {
         io9555->imode &= ~val;
     }
+    ret = lseek(io9555->i2c_fd, (0 << 16) | (io9555->i2c_addr), SEEK_SET);
+    if (ret < 0)
+    {
+        printf("%s:%d ret:%d\n", __func__, __LINE__, ret);
+        return ret;
+    }
     const uint8_t write_init_data[] = {
         PCA_REG_CTRL,
         io9555->imode & 0xff,
@@ -84,6 +90,14 @@ int pca9555_output_write(pca9555_t *io9555, uint16_t val)
         io9555->odata & 0xff,
         (io9555->odata >> 8) & 0xff,
     };
+
+    ret = lseek(io9555->i2c_fd, (0 << 16) | (io9555->i2c_addr), SEEK_SET);
+    if (ret < 0)
+    {
+        printf("%s:%d ret:%d\n", __func__, __LINE__, ret);
+        return ret;
+    }
+
     ret = write(io9555->i2c_fd, write_init_data, sizeof(write_init_data));
     if (ret != sizeof(write_init_data))
     {

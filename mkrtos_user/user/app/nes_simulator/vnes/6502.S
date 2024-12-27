@@ -2249,9 +2249,9 @@ IO_W:		//I/O write
 	ldr r2,=io_write_tbl   ////改过，加3行
 	add r2,r2,r4
 	add r2,r2,r1,lsl#2			  //<<2		
-	ldrmi r1,[r2]          ////直接操作pc太他妈危险了
-	orr r1,r1,#0x1
-	bx r1
+	ldrmi r2,[r2]          ////直接操作pc太他妈危险了
+	orr r2,r2,#0x1
+	bx r2
 	b empty_R		  //读地址不正确
  	nop
 .data 
@@ -2521,16 +2521,17 @@ joy1_R:		//4017
 K6502_Read://apu  Rendering DPCM channel #5		r0=APU->ApuC5Address不确定正确*
 //---------------------------------------------------------------
 	   //EXPORT  K6502_Read		//switch ( wAddr & 0xe000 ) apu.c
-    stmfd sp!,{lr}
-	
+    stmfd sp!,{r4, lr}
+	mov r4, r1
 	mov r1,r0,lsr#13 //>>13=  & 0xe000
 	ldr r2,=CPU_RAM//////存储器映象 ram+rom	
+	add r2, r2, r4
 	ldr r1,[r2,r1,lsl#2]	//lookup rom ptr..查找ptr
 	
     bic r0,r0,#0xe000 //and r0,#0x1fff &0x1fff	
 	ldrb r0,[r1,r0]
 	
-    ldmfd sp!,{lr}
+    ldmfd sp!,{r4, lr}
 	bx lr
 //	nop
 //------------------------------------------------------------------------

@@ -9,8 +9,14 @@
 #include <u_sys.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-// #include "drv_audio.h"
-// #include "drv_input.h"
+#include "ns_cli.h"
+#include "u_sleep.h"
+#include <u_hd_man.h>
+#include <u_task.h>
+#include <u_factory.h>
+#include <u_share_mem.h>
+#include <snd_drv_cli.h>
+#include <assert.h>
 
 //////////////////////////////////////////////////////////////////////////////////
 // 本程序移植自网友ye781205的NES模拟器工程
@@ -495,6 +501,7 @@ void nes_emulate_frame(void)
 		apu_soundoutput();	  // 输出游戏声音
 		framecnt++;
 		nes_frame++;
+#if 0
 		if (nes_frame > jump_frame_cnt)
 		{
 			nes_frame = 0; // 跳帧
@@ -507,6 +514,13 @@ void nes_emulate_frame(void)
 				jump_frame_cnt = 1;
 			}
 		}
+#else
+
+		if (nes_frame > NES_SKIP_FRAME)
+		{
+			nes_frame = 0;
+		}
+#endif
 #if 0
 		printf("fps:%d\n", 1000 / ((sys_read_tick() - st_tick) / framecnt));
 #endif
@@ -520,9 +534,31 @@ void debug_6502(u16 reg0, u8 reg1)
 //////////////////////////////////////////////////////////////////////////////////
 // nes,音频输出支持部分
 
+static obj_handler_t snd_drv_hd;
+static addr_t addr;
+static umword_t size;
+static obj_handler_t shm_hd;
+
 // NES打开音频输出
 int nes_sound_open(int samples_per_sync, int sample_rate)
 {
+	int ret;
+	msg_tag_t tag;
+again:
+	ret = ns_query("/snd", &snd_drv_hd, 0x1);
+	if (ret < 0)
+	{
+		u_sleep_ms(50);
+		goto again;
+	}
+	shm_hd = handler_alloc();
+	assert(shm_hd != HANDLER_INVALID);
+	tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+								   SHARE_MEM_CNT_BUDDY_CNT, 2048);
+	assert(msg_tag_get_prot(tag) >= 0);
+	tag = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
+	assert(msg_tag_get_prot(tag) >= 0);
+
 	// f1c100s_audio_config(1,16,sample_rate);
 	// f1c100s_audio_open(samples_per_sync*2);
 	return 1;
@@ -534,5 +570,10 @@ void nes_sound_close(void)
 // NES音频输出到SAI缓存
 void nes_apu_fill_buffer(int samples, u16 *wavebuf)
 {
-	// audio_pcm_play((unsigned char*)wavebuf,APU_PCMBUF_SIZE*2);
+	memcpy((void *)addr, wavebuf, APU_PCMBUF_SIZE * 2);
+	int ret = snd_drv_cli_write(snd_drv_hd, shm_hd, APU_PCMBUF_SIZE * 2);
+	if (ret < 0)
+	{
+		printf("snd write error.\n");
+	}
 }

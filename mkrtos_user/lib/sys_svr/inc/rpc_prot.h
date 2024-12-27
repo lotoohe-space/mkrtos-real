@@ -53,3 +53,8 @@
 #define NET_DRV_WRITE ((umword_t)0) //!< 网络驱动写
 #define NET_DRV_READ ((umword_t)1)  //!< 网络驱动读
 #define NET_DRV_MAP ((umword_t)2)   //!< net map
+
+#define SND_DRV_PROT 0x0009
+#define SND_DRV_WRITE ((umword_t)0) //!< snd驱动写
+#define SND_DRV_READ ((umword_t)1)  //!< snd驱动读
+#define SND_DRV_MAP ((umword_t)2)   //!< snd map

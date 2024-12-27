@@ -1,6 +1,6 @@
 
-#define HEAP_SIZE (64 * 1024)
-#define STACK_SIZE (1024 * 3)
+#define HEAP_SIZE (2048)
+#define STACK_SIZE (1024 * 2)
 
 #if defined(__CC_ARM)
 #define HEAP_ATTR SECTION("HEAP") __attribute__((zero_init))

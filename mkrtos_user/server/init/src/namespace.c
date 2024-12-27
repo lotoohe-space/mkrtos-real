@@ -193,6 +193,7 @@ static ns_node_t *node_lookup(ns_node_t *dir, const char *name,
   }
   if (name[0] == 0)
   {
+    *ret_inx = 0;
     return dir;
   }
   node = dir;
@@ -605,7 +606,7 @@ int namespace_query(const char *path, obj_handler_t *hd)
   if (path[0] == '/' && path[1] == 0)
   {
     *hd = ns_hd;
-    return 0;
+    return 1;
   }
   ns_lock();
   node = node_lookup(&ns.root_node, path, &ret_inx);
