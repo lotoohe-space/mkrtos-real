@@ -72,15 +72,23 @@ static void knl_main(void)
                 msg_tag_t tag;
                 umword_t user_id;
                 ipc_msg_t *msg = (ipc_msg_t *)knl_msg_buf;
-                msg->msg_buf[0] = 1; /*KILL_TASK*/
-                msg->msg_buf[1] = pos->pid;
-                msg->msg_buf[2] = 0;
-                int ret = thread_ipc_call(init_thread, msg_tag_init4(0, 3, 0, 0x0005 /*PM_PROT*/),
-                                          &tag, ipc_timeout_create2(3000, 3000), &user_id, TRUE);
 
-                if (ret < 0)
+                if (pos->pid != 0)
                 {
-                    printk("%s:%d ret:%d\n", __func__, __LINE__, ret);
+                    msg->msg_buf[0] = 1; /*KILL_TASK*/
+                    msg->msg_buf[1] = pos->pid;
+                    msg->msg_buf[2] = 0;
+
+                    if (thread_get_ipc_state(init_thread) != THREAD_IPC_ABORT)
+                    {
+                        int ret = thread_ipc_call(init_thread, msg_tag_init4(0, 3, 0, 0x0005 /*PM_PROT*/),
+                                                  &tag, ipc_timeout_create2(3000, 3000), &user_id, TRUE);
+
+                        if (ret < 0)
+                        {
+                            printk("%s:%d ret:%d\n", __func__, __LINE__, ret);
+                        }
+                    }
                 }
             }
             task_kill(pos);
@@ -151,7 +159,7 @@ static void knl_init_2(void)
                           cpio_get_size(cpio_images), (paddr_t)cpio_images, 0) >= 0);
     thread_set_msg_buf(init_thread, (void *)init_msg_buf, (void *)CONFIG_MSG_BUF_VADDR);
     thread_user_pf_set(init_thread, (void *)(entry), (void *)0xdeaddead,
-                       NULL, 0);
+                       NULL);
 #else
     app_info_t *app;
 
@@ -167,7 +175,7 @@ static void knl_init_2(void)
 
     thread_set_msg_buf(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
     thread_user_pf_set(init_thread, (void *)(app), (void *)((umword_t)sp_addr_top - 8),
-                       init_task->mm_space.mm_block, 0);
+                       init_task->mm_space.mm_block);
 #endif
     thread_bind(init_thread, &init_task->kobj);
     assert(obj_map_root(&init_thread->kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, THREAD_PROT)));
@@ -180,7 +188,7 @@ static void knl_init_2(void)
             assert(obj_map_root(kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, i)));
         }
     }
-    init_thread->sche.prio = 2;
+    init_thread->sche.prio = 15;
     init_task->pid = 0;
     thread_ready(init_thread, FALSE);
 #endif
@@ -197,6 +205,7 @@ void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
 
         status2 = spinlock_lock(&del_lock);
         thread_suspend(kill_thread);
+        kill_thread->ipc_status = THREAD_IPC_ABORT;
         slist_add_append(&del_task_head, &task->del_node);
         spinlock_set(&del_lock, status2);
     }

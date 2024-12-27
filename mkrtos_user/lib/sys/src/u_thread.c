@@ -92,15 +92,15 @@ msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_tim
                      : ARCH_REG_0);
     return msg_tag_init(r0);
 }
-msg_tag_t thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj)
+msg_tag_t thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj, umword_t arg0, umword_t arg1, umword_t arg2)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, target_obj, TRUE).raw,
                in_tag.raw,
                IPC_FAST_CALL,
-               0,
-               0,
-               0,
+               arg0,
+               arg1,
+               arg2,
                0);
     asm __volatile__(""
                      :
@@ -108,13 +108,13 @@ msg_tag_t thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj)
                      : ARCH_REG_0);
     return msg_tag_init(r0);
 }
-msg_tag_t thread_ipc_fast_replay(obj_handler_t target_obj)
+msg_tag_t thread_ipc_fast_replay(msg_tag_t in_tag, obj_handler_t target_obj, int unlock_bitmap)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, target_obj, TRUE).raw,
-               0,
+               in_tag.raw,
                IPC_FAST_REPLAY,
-               0,
+               unlock_bitmap,
                0,
                0,
                0);
@@ -147,7 +147,7 @@ msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg)
     register volatile umword_t r1 asm(ARCH_REG_1);
     register volatile umword_t r2 asm(ARCH_REG_2);
 
-    mk_syscall(syscall_prot_create(MSG_BUG_SET, THREAD_PROT, obj).raw,
+    mk_syscall(syscall_prot_create4(MSG_BUG_SET, THREAD_PROT, obj, TRUE).raw,
                0,
                msg,
                0,

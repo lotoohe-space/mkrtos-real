@@ -32,6 +32,7 @@
 #include "thread.h"
 #include "thread_task_arch.h"
 #include "types.h"
+#include "sema.h"
 #if IS_ENABLED(CONFIG_SMP)
 #include <ipi.h>
 #endif
@@ -120,11 +121,15 @@ void thread_init(thread_t *th, ram_limit_t *lim, umword_t flags)
     sched_init(&th->sche);
     slist_init(&th->futex_node);
     slist_init(&th->wait_send_head);
+    slist_init(&th->fast_ipc_node);
     spinlock_init(&th->recv_lock);
     spinlock_init(&th->send_lock);
     ref_counter_init(&th->ref);
     ref_counter_inc(&th->ref);
     thread_arch_init(th, flags);
+    stack_init(&th->fast_ipc_stack, &th->fast_ipc_stack_data,
+               ARRARY_LEN(th->fast_ipc_stack_data),
+               sizeof(th->fast_ipc_stack_data[0]));
     th->cpu = arch_get_current_cpu_id();
     th->lim = lim;
     th->kobj.invoke_func = thread_syscall;
@@ -310,7 +315,7 @@ static void thread_release_stage2(kobject_t *kobj)
 #else
     mm_limit_free_align(th->lim, kobj, CONFIG_THREAD_BLOCK_SIZE);
     // mm_trace();
-    // printk("release thread 0x%x\n", kobj);
+    printk("release thread 0x%x, name:%s\n", kobj, kobject_get_name(kobj));
 #endif
 }
 
@@ -322,9 +327,9 @@ static void thread_release_stage2(kobject_t *kobj)
  * @param ip
  */
 void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t user_sp,
-                         umword_t ram, umword_t stack)
+                         umword_t ram)
 {
-    thread_user_pf_set(th, (void *)pc, (void *)user_sp, (void *)ram, stack);
+    thread_user_pf_set(th, (void *)pc, (void *)user_sp, (void *)ram);
 }
 /**
  * @brief 线程绑定到task
@@ -710,6 +715,41 @@ void thread_timeout_del_recv_remote(thread_t *th, bool_t is_sche)
     thread_ready(th, is_sche); //!< 直接唤醒接受者
 #endif
 }
+static int ipc_dat_copy_raw(obj_space_t *dst_obj, obj_space_t *src_obj, ram_limit_t *lim,
+                            ipc_msg_t *dst_ipc, ipc_msg_t *src_ipc, msg_tag_t tag, int is_reply)
+{
+    if (tag.map_buf_len > 0)
+    {
+        kobj_del_list_t del;
+        int map_len = tag.map_buf_len;
+
+        kobj_del_list_init(&del);
+
+        for (int i = 0; i < map_len; i++)
+        {
+            int ret = 0;
+
+            vpage_t dst_page = vpage_create_raw(dst_ipc->map_buf[i]);
+            vpage_t src_page = vpage_create_raw(src_ipc->map_buf[i]);
+
+            if ((src_page.flags & VPAGE_FLAGS_MAP) || is_reply)
+            {
+                ret = obj_map_src_dst(dst_obj, src_obj,
+                                      vpage_get_obj_handler(dst_page),
+                                      vpage_get_obj_handler(src_page), lim,
+                                      vpage_get_attrs(src_page), &del);
+            }
+
+            if (ret < 0)
+            {
+                return ret;
+            }
+        }
+        kobj_del_list_to_do(&del);
+    }
+    memcpy(dst_ipc->msg_buf, src_ipc->msg_buf,
+           MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
+}
 /**
  * @brief ipc传输时的数据拷贝
  *
@@ -730,38 +770,9 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag, int 
     src_ipc = src;
     dst_ipc = dst;
 
-    if (tag.map_buf_len > 0)
-    {
-        kobj_del_list_t del;
-        int map_len = tag.map_buf_len;
-
-        kobj_del_list_init(&del);
-
-        for (int i = 0; i < map_len; i++)
-        {
-            int ret = 0;
-
-            vpage_t dst_page = vpage_create_raw(dst_ipc->map_buf[i]);
-            vpage_t src_page = vpage_create_raw(src_ipc->map_buf[i]);
-
-            if ((src_page.flags & VPAGE_FLAGS_MAP) || is_reply)
-            {
-                ret = obj_map_src_dst(&dst_tk->obj_space, &src_tk->obj_space,
-                                      vpage_get_obj_handler(dst_page),
-                                      vpage_get_obj_handler(src_page), dst_tk->lim,
-                                      vpage_get_attrs(src_page), &del);
-            }
-
-            if (ret < 0)
-            {
-                return ret;
-            }
-        }
-        kobj_del_list_to_do(&del);
-    }
+    ipc_dat_copy_raw(&dst_tk->obj_space, &src_tk->obj_space, dst_tk->lim, dst_ipc, src_ipc, tag, is_reply);
     dst_ipc->user[2] = task_pid_get(src_tk);
-    memcpy(dst_ipc->msg_buf, src_ipc->msg_buf,
-           MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
+
     dst_th->msg.tag = tag;
     return 0;
 }
@@ -918,10 +929,11 @@ again:;
         if (to->ipc_status == THREAD_IPC_ABORT)
         {
             ref_counter_dec_and_release(&to->ref, &to->kobj);
+            spinlock_set(&to->recv_lock, status_lock2);
             return -ECANCELED;
         }
-        spinlock_set(&to->recv_lock, status_lock2);
         thread_sched(TRUE);
+        spinlock_set(&to->recv_lock, status_lock2);
         preemption();
         goto again;
     }
@@ -946,7 +958,6 @@ again:;
         assert(to->status == THREAD_SUSPEND && to->ipc_status == THREAD_RECV);
         thread_timeout_del_from_send_queue_remote(to);
     }
-    // to->last_send_th = NULL;
     ref_counter_dec_and_release(&to->ref, &to->kobj);
     spinlock_set(&to->recv_lock, status_lock2);
     return 0;
@@ -1225,55 +1236,114 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
     {
     case IPC_FAST_REPLAY:
     {
-        thread_task_restore(cur_th); //!< 切换task到目的task，并且进行备份
-        arch_set_user_sp((umword_t)(cur_th->usp_backup));
+        msg_tag_t in_tag = msg_tag_init(f->regs[0]);
+        task_t *old_task = thread_get_bind_task(cur_th);
 
+        //! 解锁bitmap
+        *(cur_task->nofity_bitmap) &= ~(1 << MIN(f->regs[2], cur_task->nofity_bitmap_len));
+        slist_del(&cur_th->fast_ipc_node);
+
+        ret = thread_fast_ipc_restore(cur_th); // 还原栈和usp
+        if (ret < 0)
+        {
+            mutex_unlock(&old_task->nofity_lock);
+            return msg_tag_init4(0, 0, 0, ret);
+        }
+        task_t *cur_task = thread_get_current_task();
+        ipc_msg_t *dst_ipc = (void *)cur_th->msg.msg;
+        ipc_msg_t *src_ipc = (void *)old_task->nofity_msg_buf;
+        ret = ipc_dat_copy_raw(&cur_task->obj_space, &old_task->obj_space, cur_task->lim,
+                               dst_ipc, src_ipc, in_tag, FALSE);
+        if (ret < 0)
+        {
+            mutex_unlock(&old_task->nofity_lock);
+            return msg_tag_init4(0, 0, 0, ret);
+        }
+        mutex_unlock(&old_task->nofity_lock);
         pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
 
-        cur_pf->regs[5] = (umword_t)(thread_get_current_task()->mm_space.mm_block);
+        cur_pf->regs[5] = (umword_t)(cur_task->mm_space.mm_block);
         extern void mpu_switch_to_task(struct task * tk);
-        mpu_switch_to_task(thread_get_current_task());
-
-        return msg_tag_init4(0, 0, 0, 0);
+        mpu_switch_to_task(cur_task);
+        ref_counter_dec_and_release(&old_task->ref_cn, &old_task->kobj);
+        return msg_tag_init4(0, 0, 0, ret);
     }
     break;
     case IPC_FAST_CALL:
     {
-        // 线程中的task
-        // 内核栈返回需要修改r9
-        // 还原用户站
+        msg_tag_t in_tag = msg_tag_init(f->regs[0]);
+        // 1.需要切换的资源有r9，task，和用户栈
+        // 2.在对方进程中被杀死，需要还原当前线程的状态，并返回一个错误
+        // 3.多线程访问时，服务端提供一个小的用户线程栈，然后内核到用户部分为临界区域，在服务端重新分配用户栈用，使用新的用户栈。
+        // 4.fastipc嵌套访问会有问题，内核必须要提供一个软件上的调用栈。
         task_t *to_task = thread_get_bind_task(to_th);
 
         if (to_task->nofity_point == NULL)
         {
             return msg_tag_init4(0, 0, 0, -EIO);
         }
-
-        thread_set_task_and_backup(cur_th, to_task); //!< 切换task到目的task，并且进行备份
-
+    _to_unlock:
+        if (GET_LSB(*to_task->nofity_bitmap, to_task->nofity_bitmap_len) == GET_LSB((~0ULL), to_task->nofity_bitmap_len))
+        {
+            thread_sched(TRUE); /*TODO:应该挂起，并在释放时唤醒*/
+            preemption();
+            goto _to_unlock;
+        }
+        mutex_lock(&to_task->nofity_lock);
+        if (GET_LSB(*to_task->nofity_bitmap, to_task->nofity_bitmap_len) == GET_LSB((~0ULL), to_task->nofity_bitmap_len))
+        {
+            mutex_unlock(&to_task->nofity_lock);
+            thread_sched(TRUE); /*TODO:应该挂起，并在释放时唤醒*/
+            preemption();
+            goto _to_unlock;
+        }
+        ref_counter_inc((&to_task->ref_cn));
         //!< 执行目标线程时用的是当前线程的资源，这里还需要备份当前线程的上下文。
-        void *prev_usp = (void *)arch_get_user_sp();
+        ret = thread_fast_ipc_save(cur_th, to_task, (void *)(to_task->nofity_stack - 4 * 8)); //!< 备份栈和usp
+        if (ret >= 0)
+        {
+            ipc_msg_t *dst_ipc = (void *)to_task->nofity_msg_buf;
+            ipc_msg_t *src_ipc = (void *)cur_th->msg.msg;
+            ret = ipc_dat_copy_raw(&to_task->obj_space, &cur_task->obj_space, to_task->lim,
+                                   dst_ipc, src_ipc, in_tag, FALSE);
+            if (ret >= 0)
+            {
+                dst_ipc->user[2] = task_pid_get(cur_task); // 设置pid
 
-        cur_th->usp_backup = prev_usp;//!<保存之前的用户栈
-        arch_set_user_sp(to_task->nofity_stack - 32); //!<重新设置
-        pf_s_t *usr_stask_point = (void *)arch_get_user_sp();
+                slist_add(&to_task->nofity_theads_head, &cur_th->fast_ipc_node);
 
-        // usr_stask_point->rg0[0] = 0x1111;
-        // usr_stask_point->rg0[1] = 0x2222;
-        // usr_stask_point->rg0[2] = 0x3333;
-        // usr_stask_point->rg0[3] = 0x4444;
-        usr_stask_point->r12 = 0x12121212;
-        usr_stask_point->xpsr = 0x01000000L;
-        usr_stask_point->lr = (umword_t)NULL; //!< 线程退出时调用的函数
-        usr_stask_point->pc = (umword_t)(to_task->nofity_point) | 0x1;
+                pf_s_t *usr_stask_point = (void *)arch_get_user_sp();
 
-        pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1; //!< 获得内核栈栈顶
-        cur_pf->regs[5] = (umword_t)(to_task->mm_space.mm_block);                     // 重新设置r9寄存器
+                usr_stask_point->r12 = 0x12121212;
+                usr_stask_point->xpsr = 0x01000000L;
+                usr_stask_point->lr = (umword_t)NULL; //!< 线程退出时调用的函数
+                usr_stask_point->pc = (umword_t)(to_task->nofity_point) | 0x1;
 
-        extern void mpu_switch_to_task(struct task * tk);
-        mpu_switch_to_task(to_task);
+                pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1; //!< 获得内核栈栈顶
+                cur_pf->regs[5] = (umword_t)(to_task->mm_space.mm_block);                     // 重新设置r9寄存器
 
-        return msg_tag_init4(0, 0, 0, 0);
+                //! 寄存器传参数
+                f->regs[0] = in_tag.raw;
+                f->regs[1] = f->regs[2];
+                f->regs[2] = f->regs[3];
+                f->regs[3] = f->regs[4];
+
+                extern void mpu_switch_to_task(struct task * tk);
+                mpu_switch_to_task(to_task);
+                return in_tag;
+            }
+            else
+            {
+                ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
+                mutex_unlock(&to_task->nofity_lock);
+            }
+        }
+        else
+        {
+            ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
+            mutex_unlock(&to_task->nofity_lock);
+        }
+        return msg_tag_init4(0, 0, 0, ret);
     }
     break;
     case IPC_CALL:
@@ -1376,14 +1446,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
     {
     case SET_EXEC_REGS:
     {
-        umword_t stack_bottom = 0;
-
-        if (f->regs[4]) //!< cp_stack
-        {
-            stack_bottom = (umword_t)(thread_get_msg_buf(cur_th));
-        }
-        thread_set_exc_regs(tag_th, f->regs[1], f->regs[2], f->regs[3],
-                            stack_bottom);
+        thread_set_exc_regs(tag_th, f->regs[1], f->regs[2], f->regs[3]);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;

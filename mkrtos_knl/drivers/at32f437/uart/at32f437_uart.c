@@ -67,7 +67,7 @@ void uart_init(void)
     nvic_priority_group_config(NVIC_PRIORITY_GROUP_2);
     nvic_irq_enable(USART1_IRQn, 0, 0);
     /* configure uart param */
-    usart_init(PRINT_USARTx, 115200, USART_DATA_8BITS, USART_STOP_1_BIT);
+    usart_init(PRINT_USARTx, 921600, USART_DATA_8BITS, USART_STOP_1_BIT);
     usart_transmitter_enable(PRINT_USARTx, TRUE);
     usart_receiver_enable(PRINT_USARTx, TRUE);
 

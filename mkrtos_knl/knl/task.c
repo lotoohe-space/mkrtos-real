@@ -22,6 +22,7 @@
 #include "string.h"
 #include "thread.h"
 #include "thread_arch.h"
+#include "thread_task_arch.h"
 #if IS_ENABLED(CONFIG_MMU)
 #include "arch.h"
 #endif
@@ -41,6 +42,8 @@ enum task_op_code
     TASK_SET_OBJ_NAME,   //!< 设置对象的名字
     TASK_COPY_DATA_TO,   //!< 从当前task拷贝数据到目的task
     TASK_SET_COM_POINT,  //!< 通信点
+    TASK_COM_UNLOCK,     //!< 任务通信解锁
+    TASK_COM_LOCK,       //!< 任务通信加锁
 };
 static bool_t task_put(kobject_t *kobj);
 static void task_release_stage1(kobject_t *kobj);
@@ -396,10 +399,51 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
-    case TASK_SET_COM_POINT:
+    case TASK_SET_COM_POINT: //!< 设置通信点
     {
+        if (!is_rw_access(tag_task, (void *)(f->regs[1]), f->regs[2], FALSE))
+        {
+            tag = msg_tag_init4(0, 0, 0, -EPERM);
+            break;
+        }
+        if (f->regs[4] >= WORD_BITS)
+        {
+            tag = msg_tag_init4(0, 0, 0, -EINVAL);
+            break;
+        }
+        if (!is_rw_access(tag_task, (void *)(f->regs[3]), ROUND_UP(f->regs[4], 8), FALSE))
+        {
+            tag = msg_tag_init4(0, 0, 0, -EPERM);
+            break;
+        }
+        if (!is_rw_access(tag_task, (void *)(f->regs[5]), THREAD_MSG_BUG_LEN, FALSE))
+        {
+            tag = msg_tag_init4(0, 0, 0, -EPERM);
+            break;
+        }
+        int stack_size = f->regs[2];
+
         tag_task->nofity_point = (void *)(f->regs[0]);
-        tag_task->nofity_stack = (addr_t)(f->regs[1]);
+        tag_task->nofity_stack = (addr_t)(f->regs[1] + stack_size);
+        tag_task->nofity_bitmap = (void *)(f->regs[3]);
+        tag_task->nofity_bitmap_len = (f->regs[4]);
+        tag_task->nofity_msg_buf = (addr_t)f->regs[5];
+        tag = msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
+    case TASK_COM_UNLOCK:
+    {
+        task_t *cur_task = thread_get_current_task();
+
+        mutex_unlock(&cur_task->nofity_lock);
+        tag = msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
+    case TASK_COM_LOCK:
+    {
+        task_t *cur_task = thread_get_current_task();
+
+        mutex_lock(&cur_task->nofity_lock);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
@@ -420,6 +464,8 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl)
     ref_counter_init(&task->ref_cn);
     ref_counter_inc(&task->ref_cn);
     slist_init(&task->del_node);
+    slist_init(&task->nofity_theads_head);
+    mutex_init(&task->nofity_lock);
     task->pid = -1;
     task->lim = ram;
     task->kobj.invoke_func = task_syscall_func;
@@ -442,12 +488,35 @@ static bool_t task_put(kobject_t *kobj)
 }
 static void task_release_stage1(kobject_t *kobj)
 {
+    int ret;
     task_t *tk = container_of(kobj, task_t, kobj);
     kobj_del_list_t kobj_list;
     kobject_invalidate(kobj);
     kobj_del_list_init(&kobj_list);
     obj_unmap_all(&tk->obj_space, &kobj_list);
     kobj_del_list_to_do(&kobj_list);
+
+    thread_t *restore_th;
+    thread_fast_ipc_item_t ipc_item;
+
+    slist_foreach(restore_th, &tk->nofity_theads_head, fast_ipc_node)
+    {
+        ret = thread_fast_ipc_pop(restore_th, &ipc_item);
+        if (ret >= 0)
+        {
+            // 还原栈和usp
+            restore_th->ipc_status = THREAD_NONE;
+            if (restore_th->status == THREAD_SUSPEND)
+            {
+                thread_ready(restore_th, TRUE);
+            }
+            restore_th->task = ipc_item.task_bk;
+            thread_user_pf_restore(restore_th, ipc_item.usp_backup);
+            pf_t *cur_pf = ((pf_t *)((char *)restore_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
+            cur_pf->regs[5] = (umword_t)(thread_get_bind_task(restore_th)->mm_space.mm_block);
+            ref_counter_dec_and_release(&tk->ref_cn, &tk->kobj);
+        }
+    }
 
 #if IS_ENABLED(CONFIG_MMU)
     task_vma_clean(&tk->mm_space.mem_vma);
@@ -482,7 +551,7 @@ static void task_release_stage2(kobject_t *kobj)
     // arch_to_sche();
     // }
     // mm_trace();
-    printk("release tk %x\n", tk);
+    printk("release tk %x, name is:%s\n", tk, kobject_get_name(&tk->kobj));
 }
 void task_kill(task_t *tk)
 {

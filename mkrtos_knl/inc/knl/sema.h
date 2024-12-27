@@ -18,15 +18,15 @@ void sema_init(sema_t *obj, int cnt, int max);
 void sema_up(sema_t *obj);
 void sema_down(sema_t *obj);
 
-void mutex_init(mutex_t *lock)
+static inline void mutex_init(mutex_t *lock)
 {
     sema_init(lock, 1, 1);
 }
-void mutex_lock(mutex_t *lock)
+static inline void mutex_lock(mutex_t *lock)
 {
     sema_down(lock);
 }
-void mutex_unlock(mutex_t *lock)
+static inline void mutex_unlock(mutex_t *lock)
 {
     sema_up(lock);
 }

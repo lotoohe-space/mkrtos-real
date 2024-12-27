@@ -18,7 +18,7 @@
 #include "obj_space.h"
 #include "mm_space.h"
 #include "ref.h"
-
+#include "sema.h"
 typedef struct task
 {
     kobject_t kobj;        //!< task kernel object.
@@ -28,9 +28,16 @@ typedef struct task
     kobject_t *exec_th;    //!< execption thread.
     ref_counter_t ref_cn;  //!< ref count.
     slist_head_t del_node; //!< delect list node.
-    void *nofity_point;    //!< commint point.
-    addr_t nofity_stack;   //!< nofity_point_stack.
-    pid_t pid;             //!< task pid.
+
+    void *nofity_point;  //!< commint point func.
+    addr_t nofity_stack; //!< nofity_point_stack.
+    mutex_t nofity_lock;
+    addr_t nofity_msg_buf;   //!<
+    umword_t *nofity_bitmap; //!<
+    int nofity_bitmap_len;   //!< max is WORD_BITS
+    slist_head_t nofity_theads_head;
+
+    pid_t pid; //!< task pid.
 } task_t;
 
 static inline pid_t task_pid_get(task_t *task)
