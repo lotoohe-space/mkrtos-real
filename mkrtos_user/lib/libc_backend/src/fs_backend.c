@@ -15,6 +15,11 @@
 #include <u_task.h>
 #include <u_util.h>
 #include <u_sema.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <string.h>
 AUTO_CALL(101)
 void fs_backend_init(void)
 {
@@ -338,7 +343,13 @@ long be_ioctl(long fd, long req, void *args)
     {
     case FD_TTY:
     {
-        ret = -ENOSYS;
+        struct winsize *wsz = args;
+
+        wsz->ws_row = 30;
+        wsz->ws_col = 30;
+        wsz->ws_xpixel = 800;
+        wsz->ws_ypixel = 480;
+        ret = 0;
     }
     break;
     case FD_FS:
