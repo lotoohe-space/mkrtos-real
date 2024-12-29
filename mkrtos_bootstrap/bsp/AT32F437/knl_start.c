@@ -3,6 +3,9 @@
 #include <util.h>
 #include <boot_info.h>
 #include "at32f435_437_clock.h"
+#include "at_surf_f437_board_qspi_sram.h"
+#include "at_surf_f437_board_sdram.h"
+
 //! 内核镜像的开始地址
 #define KERNEL_IMG_START_ADDR (CONFIG_SYS_TEXT_ADDR + CONFIG_BOOTSTRAP_TEXT_SIZE + CONFIG_DTBO_TEXT_SIZE)
 
@@ -52,14 +55,34 @@ static boot_info_t boot_info = {
                 .is_sys_mem = 1,
                 .speed = 0,
             },
+            {
+                .addr = 0xC0000000,
+                .size = 32 * 1024 * 1024,
+                .is_sys_mem = 0,
+                .speed = 1,
+            },
+            {
+                .addr = QSPI_SRAM_MEM_BASE,
+                .size = 8 * 1024 * 1024,
+                .is_sys_mem = 0,
+                .speed = 2,
+            },
         },
-        .mem_num = 1,
+        .mem_num = 3,
     },
 };
-
+void delay_ms(int ms)
+{
+    for (volatile int i = 0; i < 1000000; i++)
+        ;
+}
 static void mem_init(void)
 {
-    /*Nothing.*/
+    /* initialize qspi sram */
+    qspi_sram_init();
+
+    /* initialize sdram */
+    sdram_init();
 }
 
 void jump2kernel(addr_t cpio_start, addr_t cpio_end)

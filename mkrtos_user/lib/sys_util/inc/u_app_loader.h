@@ -3,4 +3,8 @@
 #include "u_env.h"
 #include "u_hd_man.h"
 
-int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int arg_cn, char *envp[], int envp_cn, obj_handler_t *p_sem_hd);
+int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
+             char *argv[], int arg_cn,
+             char *envp[], int envp_cn,
+             obj_handler_t *p_sem_hd,
+             int mem_block);

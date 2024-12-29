@@ -17,10 +17,18 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <snd_drv_svr.h>
+#include <u_fast_ipc.h>
 
 #include "mk_snd_drv_impl.h"
 static snd_drv_t snd_drv; //!< 网络驱动的协议
-
+#define STACK_COM_ITME_SIZE (1024+512)
+ATTR_ALIGN(8)
+uint8_t stack_coms[STACK_COM_ITME_SIZE];
+uint8_t msg_buf_coms[MSG_BUG_LEN];
+void fast_ipc_init(void)
+{
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
+}
 int snd_drv_write(obj_handler_t obj, int len)
 {
     int ret = -1;
@@ -64,6 +72,7 @@ int main(int argc, char *argv[])
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_snd");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_snd");
     printf("%s init..\n", argv[0]);
+    fast_ipc_init();
     mk_drv_init();
     mk_dev_init();
     drv_snd_init();

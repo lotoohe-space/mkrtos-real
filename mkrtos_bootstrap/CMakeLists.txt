@@ -98,7 +98,6 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "at32f437" )
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAT32F437ZMT7 -DUSE_STDPERIPH_DRIVER -DAT_SURF_F437_V1 ")
     endif()
     file(GLOB bsp_src 
-        # ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/device_support/system_at32f435_437.c
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/drivers/src/*.c
     )
     list(APPEND deps ${bsp_src})
@@ -109,6 +108,7 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "at32f437" )
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/core_support
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/device_support
         ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/drivers/inc
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/project/at_surf_f437_board
     )
     add_subdirectory(bsp/AT32F437)
     set(LINKS_FLAGS " --gc-section ")

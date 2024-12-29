@@ -30,70 +30,18 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <u_fast_ipc.h>
+
 #define DEFAULT_INIT_CFG "init.cfg"
 
-#define STACK_SIZE 2048
-#define STASCK_NUM 4
-static ATTR_ALIGN(8) uint8_t com_stack[512];
-static ATTR_ALIGN(8) uint8_t cons_stack[STASCK_NUM][STACK_SIZE];
-static uint8_t cons_msg_buf[STASCK_NUM][MSG_BUG_LEN];
-static umword_t cons_stack_bitmap;
-static uint8_t cons_msg_buf_main[MSG_BUG_LEN];
-static inline umword_t arch_get_sp(void)
+#define STACK_COM_ITME_SIZE (1024+512)
+ATTR_ALIGN(8)
+uint8_t stack_coms[STACK_COM_ITME_SIZE];
+uint8_t msg_buf_coms[MSG_BUG_LEN];
+void fast_ipc_init(void)
 {
-    umword_t ret;
-    __asm__ __volatile__(
-        "mov     %0, sp\n"
-        : "=r"(ret)
-        :
-        :);
-    return ret;
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
 }
-#define SET_SP(sp)                                    \
-    do                                                \
-    {                                                 \
-        __asm__ __volatile__("mov sp, %0" ::"r"(sp)); \
-        __asm__ __volatile__(""                       \
-                             :                        \
-                             :                        \
-                             : "sp");                 \
-    } while (0)
-
-int setsp(int i, void *stack, msg_tag_t tag, int arg0, int arg1);
-
-void last_process(int j, msg_tag_t tag, int arg0, int arg1)
-{
-    thread_msg_buf_set(-1, (void *)(cons_msg_buf[j]));
-    task_com_unlock(TASK_THIS);
-
-    // printf("j:%d sp:0x%x\n", j, arch_get_sp());
-    // printf("j:%d comm tag:%x r0:%d r1:%d\n", j, tag.raw, arg0, arg1);
-    // printf("%s\n", cons_msg_buf[j]);
-    // strcpy((void *)cons_msg_buf[j], "okay");
-
-    // u_sleep_ms(100);
-
-    // *((uint8_t *)0) = 0;
-    task_com_lock(TASK_THIS);
-    memcpy(cons_msg_buf_main, cons_msg_buf[j], MSG_BUG_LEN);
-    tag = msg_tag_init4(0, 2, 0, 0);
-    thread_ipc_fast_replay(tag, -1, j);
-}
-static void init_com_point_test_func(msg_tag_t tag, int arg0, int arg1, int arg2)
-{
-    int i;
-    for (i = 0; i < STASCK_NUM; i++)
-    {
-        if ((cons_stack_bitmap & (1 << i)) == 0)
-        {
-            cons_stack_bitmap |= (1 << i);
-            break;
-        }
-    }
-    memcpy(cons_msg_buf[i], cons_msg_buf_main, MSG_BUG_LEN);
-    setsp(i, &cons_stack[i][STACK_SIZE - 8], tag, arg0, arg1);
-}
-
 int main(int argc, char *args[])
 {
     int ret;
@@ -102,9 +50,7 @@ int main(int argc, char *args[])
 #if 0
     thread_run(-1, 4);
 #endif
-    task_set_com_point(TASK_THIS, &init_com_point_test_func, (addr_t)com_stack,
-                       sizeof(com_stack), &cons_stack_bitmap, STASCK_NUM, cons_msg_buf_main);
-
+    fast_ipc_init();
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_init");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_init");
 

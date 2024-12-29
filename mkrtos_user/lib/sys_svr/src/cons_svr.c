@@ -56,5 +56,5 @@ void cons_svr_obj_init(cons_t *cons)
     cons->active_pid = -1;
     q_init(&cons->r_queue, cons->r_data, CONS_WRITE_BUF_SIZE);
     pthread_spin_init(&cons->r_lock, 0);
-    pthread_mutex_init(&cons->w_lock, NULL);
+    // pthread_mutex_init(&cons->w_lock, NULL);
 }

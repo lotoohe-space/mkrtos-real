@@ -12,8 +12,17 @@
 #include "ns_cli.h"
 #include <assert.h>
 #include <sys/stat.h>
-#include "mk_pca9555_drv_impl.h"
+#include <u_fast_ipc.h>
 
+#include "mk_pca9555_drv_impl.h"
+#define STACK_COM_ITME_SIZE (1024+512)
+ATTR_ALIGN(8)
+uint8_t stack_coms[STACK_COM_ITME_SIZE];
+uint8_t msg_buf_coms[MSG_BUG_LEN];
+void fast_ipc_init(void)
+{
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
+}
 int main(int argc, char *argv[])
 {
     obj_handler_t hd;
@@ -21,6 +30,7 @@ int main(int argc, char *argv[])
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_pca");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_pca");
     printf("%s init..\n", argv[0]);
+    fast_ipc_init();
     // u_sleep_ms(1000);
     mk_drv_init();
     mk_dev_init();

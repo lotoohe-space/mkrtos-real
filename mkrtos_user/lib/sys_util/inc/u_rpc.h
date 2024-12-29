@@ -441,7 +441,13 @@ RPC_SVR_MSG_TO_BUF_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
  */
 RPC_SVR_BUF_TO_MSG_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
 {
-    return len;
+    if (sizeof(d->data) + rpc_align(len, __alignof(d->data)) > max)
+    {
+        return -ETOLONG;
+    }
+    len = rpc_align(len, __alignof(d->data));
+    d->data = *((typeof(d->data) *)(buf + len));
+    return sizeof(d->data) + rpc_align(len, __alignof(d->data));
 }
 /**
  * @brief Construct a new rpc type init without impl object
@@ -550,6 +556,26 @@ RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
     do                                                                                    \
     {                                                                                     \
         if (rpc_type == RPC_TYPE_DATA)                                                    \
+        {                                                                                 \
+            if (dir == RPC_DIR_IN || dir == RPC_DIR_INOUT)                                \
+            {                                                                             \
+                int ret = rpc_svr_buf_to_msg_##var_type(var, (uint8_t *)(buf), off, max); \
+                if (ret < 0)                                                              \
+                {                                                                         \
+                    return msg_tag_init4(0, 0, 0, ret);                                   \
+                }                                                                         \
+                off = ret;                                                                \
+            }                                                                             \
+        }                                                                                 \
+    } while (0)
+/**
+ * @brief 服务端从map里面取出数据
+ *
+ */
+#define RPC_SVR_MAP_TO_MSG_IN(rpc_type, var_type, var, dir, buf, off, max)                \
+    do                                                                                    \
+    {                                                                                     \
+        if (rpc_type == RPC_TYPE_BUF)                                                     \
         {                                                                                 \
             if (dir == RPC_DIR_IN || dir == RPC_DIR_INOUT)                                \
             {                                                                             \

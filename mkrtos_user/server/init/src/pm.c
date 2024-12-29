@@ -194,7 +194,7 @@ int pm_rpc_kill_task(int pid, int flags)
     ns_node_del_by_pid(pid, flags);          //!< 从ns中删除
     pm_del_watch_by_pid(&pm, pid);           //!< 从watch中删除
     pm_send_sig_to_task(&pm, pid, KILL_SIG); //!< 给watch者发送sig
-    handler_del_umap(pid);
+    // handler_del_umap(pid);
     printf("[pm] kill pid:%d.\n", pid);
     return 0;
 }
@@ -216,7 +216,7 @@ int pm_rpc_run_app(const char *path, int flags)
     };
     obj_handler_t sem;
 
-    ret = app_load(path, u_get_global_env(), &pid, args, 1, NULL, 0, &sem);
+    ret = app_load(path, u_get_global_env(), &pid, args, 1, NULL, 0, &sem, 0);
     if (ret > 0)
     {
         if (!(flags & PM_APP_BG_RUN))

@@ -110,7 +110,11 @@ static void *app_stack_push_array(obj_handler_t task_obj, umword_t **stack, uint
  * @param name app的名字
  * @return int
  */
-int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int arg_cn, char *envp[], int envp_cn, obj_handler_t *p_sem_hd)
+int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
+             char *argv[], int arg_cn,
+             char *envp[], int envp_cn,
+             obj_handler_t *p_sem_hd,
+             int mem_block)
 {
     msg_tag_t tag;
     sys_info_t sys_info;
@@ -170,7 +174,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         goto end_del_obj;
     }
-    tag = task_alloc_ram_base(hd_task, app->i.ram_size, &ram_base);
+    tag = task_alloc_ram_base(hd_task, app->i.ram_size, &ram_base, mem_block);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;

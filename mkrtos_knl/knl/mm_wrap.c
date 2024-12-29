@@ -99,6 +99,11 @@ void mm_limit_free(ram_limit_t *limit, void *mem)
     mem_free(&mem_manage[0], (char *)mem - sizeof(size_t));
     ram_limit_free(limit, size);
 }
+struct mem_heap *mm_get_free_raw(int mem_inx, struct mem_heap *next,
+                                 umword_t hope_size, umword_t *ret_addr)
+{
+    return mem_get_free(&mem_manage[mem_inx], next, hope_size, (uint32_t *)ret_addr);
+}
 struct mem_heap *mm_get_free(struct mem_heap *next,
                              umword_t hope_size, umword_t *ret_addr)
 {
@@ -112,13 +117,13 @@ void mm_info(size_t *total, size_t *free)
 {
     mem_info(&mem_manage[0], total, free);
 }
-void *mm_limit_alloc_align(ram_limit_t *limit, size_t size, size_t align)
+void *mm_limit_alloc_align_raw(int mem_inx, ram_limit_t *limit, size_t size, size_t align)
 {
     if (ram_limit_alloc(limit, size) == FALSE)
     {
         return NULL;
     }
-    void *new_mem = mem_alloc_align(&mem_manage[0], size, align);
+    void *new_mem = mem_alloc_align(&mem_manage[mem_inx], size, align);
 
     if (!new_mem)
     {
@@ -128,14 +133,22 @@ void *mm_limit_alloc_align(ram_limit_t *limit, size_t size, size_t align)
 
     return (char *)new_mem;
 }
-void mm_limit_free_align(ram_limit_t *limit, void *mem, size_t size)
+void *mm_limit_alloc_align(ram_limit_t *limit, size_t size, size_t align)
+{
+    return mm_limit_alloc_align_raw(0, limit, size, align);
+}
+void mm_limit_free_align_raw(int mem_inx, ram_limit_t *limit, void *mem, size_t size)
 {
     if (!mem)
     {
         return;
     }
-    mem_free_align(&mem_manage[0], (char *)mem);
+    mem_free_align(&mem_manage[mem_inx], (char *)mem);
     ram_limit_free(limit, size);
+}
+void mm_limit_free_align(ram_limit_t *limit, void *mem, size_t size)
+{
+    mm_limit_free_align_raw(0, limit, mem, size);
 }
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <buddy.h>

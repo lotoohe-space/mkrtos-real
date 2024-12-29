@@ -68,12 +68,12 @@ static bool_t reg_hd(const char *path, obj_handler_t hd, int split_inx)
     return FALSE;
 }
 
-RPC_GENERATION_CALL3(ns_t, NS_PROT, NS_REGISTER_OP, register,
+RPC_GENERATION_CALL3(TRUE, ns_t, NS_PROT, NS_REGISTER_OP, register,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, svr_hd,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, type)
 
-RPC_GENERATION_CALL2(ns_t, NS_PROT, NS_QUERY_OP, query,
+RPC_GENERATION_CALL2(TRUE, ns_t, NS_PROT, NS_QUERY_OP, query,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_INOUT, RPC_TYPE_BUF, cli_hd)
 

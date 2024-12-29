@@ -13,7 +13,7 @@
 #include <assert.h>
 
 /*open*/
-RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_OPEN, open,
+RPC_GENERATION_CALL3(TRUE, fs_t, FS_PROT, FS_OPEN, open,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mode)
@@ -47,7 +47,7 @@ sd_t fs_open(const char *path, int flags, int mode)
     return mk_sd_init2(hd, msg_tag_get_val(tag)).raw;
 }
 /*close*/
-RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_CLOSE, close,
+RPC_GENERATION_CALL1(TRUE, fs_t, FS_PROT, FS_CLOSE, close,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd)
 int fs_close(sd_t _fd)
 {
@@ -67,7 +67,7 @@ int fs_close(sd_t _fd)
     return msg_tag_get_val(tag);
 }
 /*read*/
-RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_READ, read,
+RPC_GENERATION_CALL3(TRUE, fs_t, FS_PROT, FS_READ, read,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
@@ -110,7 +110,7 @@ int fs_read(sd_t _fd, void *buf, size_t len)
     return rlen;
 }
 /*write*/
-RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_WRITE, write,
+RPC_GENERATION_CALL3(TRUE, fs_t, FS_PROT, FS_WRITE, write,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, buf,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
@@ -156,7 +156,7 @@ int fs_write(sd_t _fd, void *buf, size_t len)
     return wlen;
 }
 /*readdir*/
-RPC_GENERATION_CALL2(fs_t, FS_PROT, FS_READDIR, readdir,
+RPC_GENERATION_CALL2(TRUE, fs_t, FS_PROT, FS_READDIR, readdir,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_dirent_t_t, rpc_dirent_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, dir)
 
@@ -184,7 +184,7 @@ int fs_readdir(sd_t _fd, dirent_t *dirent)
     return msg_tag_get_val(tag);
 }
 /*lseek*/
-RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_LSEEK, lseek,
+RPC_GENERATION_CALL3(TRUE, fs_t, FS_PROT, FS_LSEEK, lseek,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, offs,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, whence)
@@ -213,7 +213,7 @@ int fs_lseek(sd_t _fd, int offs, int whence)
     return msg_tag_get_val(tag);
 }
 /*ftruncate*/
-RPC_GENERATION_CALL2(fs_t, FS_PROT, FS_FTRUNCATE, ftruncate,
+RPC_GENERATION_CALL2(TRUE, fs_t, FS_PROT, FS_FTRUNCATE, ftruncate,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_int64_t_t, rpc_int64_t_t, RPC_DIR_IN, RPC_TYPE_DATA, offs)
 int fs_ftruncate(sd_t _fd, off_t off)
@@ -238,7 +238,7 @@ int fs_ftruncate(sd_t _fd, off_t off)
 }
 /*fstat*/
 // int fstat(int fd, struct stat *statbuf);
-RPC_GENERATION_CALL2(fs_t, FS_PROT, FS_FSTAT, fstat,
+RPC_GENERATION_CALL2(TRUE, fs_t, FS_PROT, FS_FSTAT, fstat,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, statbuf)
 int fs_fstat(sd_t _fd, stat_t *stat)
@@ -267,7 +267,7 @@ int fs_fstat(sd_t _fd, stat_t *stat)
     return msg_tag_get_val(tag);
 }
 // int ioctl(int fd, int req, void *arg)
-RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_IOCTL, ioctl,
+RPC_GENERATION_CALL3(TRUE, fs_t, FS_PROT, FS_IOCTL, ioctl,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, req,
                      rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, arg)
@@ -296,7 +296,7 @@ int fs_ioctl(sd_t _fd, int req, void *arg)
     return msg_tag_get_val(tag);
 }
 // int fcntl(int fd, int cmd, void *arg)
-RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_FCNTL, fcntl,
+RPC_GENERATION_CALL3(TRUE, fs_t, FS_PROT, FS_FCNTL, fcntl,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, cmd,
                      rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, arg)
@@ -326,7 +326,7 @@ int fs_fcntl(sd_t _fd, int cmd, void *arg)
 }
 
 /*fsync*/
-RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_FSYNC, fsync,
+RPC_GENERATION_CALL1(TRUE, fs_t, FS_PROT, FS_FSYNC, fsync,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd)
 int fs_fsync(sd_t _fd)
 {
@@ -342,7 +342,7 @@ int fs_fsync(sd_t _fd)
 }
 
 /*int unlink(const char *path)*/
-RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_UNLINK, unlink,
+RPC_GENERATION_CALL1(TRUE, fs_t, FS_PROT, FS_UNLINK, unlink,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path)
 int fs_unlink(const char *path)
 {
@@ -364,7 +364,7 @@ int fs_unlink(const char *path)
     return msg_tag_get_val(tag);
 }
 // int symlink(const char *existing, const char *new)
-RPC_GENERATION_CALL2(fs_t, FS_PROT, FS_SYMLINK, symlink,
+RPC_GENERATION_CALL2(TRUE, fs_t, FS_PROT, FS_SYMLINK, symlink,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, src,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, dst)
 
@@ -405,7 +405,7 @@ int fs_symlink(const char *src, const char *dst)
 }
 
 /*int mkdir(char *path)*/
-RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_MKDIR, mkdir,
+RPC_GENERATION_CALL1(TRUE, fs_t, FS_PROT, FS_MKDIR, mkdir,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, dir)
 
 int fs_mkdir(char *path)
@@ -429,7 +429,7 @@ int fs_mkdir(char *path)
 }
 
 /*int rmdir(char *path)*/
-RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_RMDIR, rmdir,
+RPC_GENERATION_CALL1(TRUE, fs_t, FS_PROT, FS_RMDIR, rmdir,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, dir)
 
 int fs_rmdir(char *path)
@@ -452,7 +452,7 @@ int fs_rmdir(char *path)
     return msg_tag_get_val(tag);
 }
 /*int rename(char *old, char *new)*/
-RPC_GENERATION_CALL2(fs_t, FS_PROT, FS_RENAME, rename,
+RPC_GENERATION_CALL2(TRUE, fs_t, FS_PROT, FS_RENAME, rename,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, old,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, new)
 
@@ -492,7 +492,7 @@ int fs_rename(char *old, char *new)
     return msg_tag_get_val(tag);
 }
 // int stat(const char *restrict path, struct stat *restrict buf)
-RPC_GENERATION_CALL2(fs_t, FS_PROT, FS_STAT, stat,
+RPC_GENERATION_CALL2(TRUE, fs_t, FS_PROT, FS_STAT, stat,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf)
 
@@ -525,7 +525,7 @@ int fs_stat(char *path, stat_t *buf)
     return msg_tag_get_val(tag);
 }
 // ssize_t readlink(const char *restrict path, char *restrict buf, size_t bufsize)
-RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_READLINK, readlink,
+RPC_GENERATION_CALL3(TRUE, fs_t, FS_PROT, FS_READLINK, readlink,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, bufsize)
@@ -561,7 +561,7 @@ int fs_readlink(const char *path, char *buf, int bufsize)
 }
 
 // static int __statfs(const char *path, struct statfs *buf)
-RPC_GENERATION_CALL2(fs_t, FS_PROT, FS_STATFS, statfs,
+RPC_GENERATION_CALL2(TRUE, fs_t, FS_PROT, FS_STATFS, statfs,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_statfs_t_t, rpc_statfs_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf)
 

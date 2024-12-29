@@ -169,7 +169,7 @@ static void knl_init_2(void)
     assert(app);
     printk("init task text is 0x%x.\n", app);
     // 申请init的ram内存
-    assert(task_alloc_base_ram(init_task, &root_factory_get()->limit, app->i.ram_size + THREAD_MSG_BUG_LEN) >= 0);
+    assert(task_alloc_base_ram(init_task, &root_factory_get()->limit, app->i.ram_size + THREAD_MSG_BUG_LEN, 0) >= 0);
     void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 

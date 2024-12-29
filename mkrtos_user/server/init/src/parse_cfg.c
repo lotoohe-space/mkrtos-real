@@ -21,6 +21,7 @@
 #include <cons_svr.h>
 #include <u_mutex.h>
 #include <u_hd_man.h>
+#include <stdlib.h>
 
 #define CMD_LEN 64                                          //!< 命令行最大长度
 #define CMD_PARAMS_CN 8                                     //!< 参数个数
@@ -45,11 +46,12 @@ void parse_cfg_init(void)
 }
 /**
  * @brief   解析命令行
- *
+ * @return  int 应用使用的内存块
  */
-static void parse_cfg_cmd_line(void)
+static int parse_cfg_cmd_line(void)
 {
     int cmd_params_inx = 0;
+    int mem_block = 0;
 
     cmd_params_num = 0;
     printf("cmd_line:%s\n", cmd_line);
@@ -73,7 +75,13 @@ static void parse_cfg_cmd_line(void)
                 break;
             }
         }
+        if (cmd_line[i] == '|')
+        {
+            cmd_line[i] = 0;
+            mem_block = atol(&cmd_line[i + 1]); // 获取应用使用的内存块
+        }
     }
+    return mem_block;
 }
 
 /**
@@ -152,15 +160,17 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
                     NULL,
                 };
                 obj_handler_t hd_sem;
+                int mem_block;
 
-                parse_cfg_cmd_line();
+                mem_block = parse_cfg_cmd_line();
                 for (int i = 0; i < cmd_params_num; i++)
                 {
                     args[i] = &cmd_line[cmd_params_off[i]];
                     printf("parse_cfg args[%d] = %s\n", i, args[i]);
                 }
                 printf("parse_cfg cmd_params_num:%d\n", cmd_params_num);
-                int ret = app_load(cmd_line, env, &pid, args, cmd_params_num, NULL, 0, &hd_sem);
+                int ret = app_load(cmd_line, env, &pid, args, cmd_params_num,
+                                   NULL, 0, &hd_sem, mem_block);
                 if (ret < 0)
                 {
                     printf("%s load fail, 0x%x\n", cmd_line, ret);

@@ -73,16 +73,17 @@ INIT_KOBJ_MEM(task_mem_init);
  * @param tk
  * @param lim
  * @param size
+ * @param mem_block 使用的内存块
  * @return int
  */
-int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size)
+int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size, int mem_block)
 {
     if (tk->mm_space.mm_block)
     {
         return -EACCES;
     }
     // 申请init的ram内存
-    void *ram = mpu_ram_alloc(&tk->mm_space, lim, size + THREAD_MSG_BUG_LEN);
+    void *ram = mpu_ram_alloc(&tk->mm_space, lim, size + THREAD_MSG_BUG_LEN, mem_block);
     if (!ram)
     {
         printk("Failed to request process memory.\n");
@@ -306,7 +307,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        int ret = task_alloc_base_ram(tag_task, tag_task->lim, f->regs[1]);
+        int ret = task_alloc_base_ram(tag_task, tag_task->lim, f->regs[1], f->regs[2]);
         tag = msg_tag_init4(0, 0, 0, ret);
         f->regs[1] = (umword_t)(tag_task->mm_space.mm_block);
         spinlock_set(&tag_task->kobj.lock, status);
@@ -411,12 +412,14 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        if (!is_rw_access(tag_task, (void *)(f->regs[3]), ROUND_UP(f->regs[4], 8), FALSE))
+        if (!is_rw_access(tag_task, (void *)(f->regs[3]),
+                          ROUND_UP(f->regs[4], 8), FALSE))
         {
             tag = msg_tag_init4(0, 0, 0, -EPERM);
             break;
         }
-        if (!is_rw_access(tag_task, (void *)(f->regs[5]), THREAD_MSG_BUG_LEN, FALSE))
+        if (!is_rw_access(tag_task, (void *)(f->regs[5]),
+                          THREAD_MSG_BUG_LEN + CONFIG_THREAD_MAP_BUF_LEN * WORD_BYTES, FALSE))
         {
             tag = msg_tag_init4(0, 0, 0, -EPERM);
             break;
@@ -428,6 +431,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         tag_task->nofity_bitmap = (void *)(f->regs[3]);
         tag_task->nofity_bitmap_len = (f->regs[4]);
         tag_task->nofity_msg_buf = (addr_t)f->regs[5];
+        tag_task->nofity_map_buf = (umword_t *)((addr_t)f->regs[5] + THREAD_MSG_BUG_LEN);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;

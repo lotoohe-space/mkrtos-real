@@ -191,7 +191,9 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
                 if (alloc_cn == 0)
                 {
                     task_vma->mem_pages_alloc_size[i] = size;
-                } else {
+                }
+                else
+                {
                     task_vma->mem_pages_alloc_size[i] = 0;
                 }
                 alloc_cn++;
@@ -592,14 +594,14 @@ static bool_t mpu_calc(
     return TRUE;
 }
 
-void *mpu_ram_alloc(mm_space_t *ms, ram_limit_t *r_limit, size_t ram_size)
+void *mpu_ram_alloc(mm_space_t *ms, ram_limit_t *r_limit, size_t ram_size, int mem_block)
 {
 #if CONFIG_MPU_VERSION == 1
     umword_t pre_alloc_addr;
     struct mem_heap *heap = NULL;
     umword_t status = cpulock_lock();
 again_alloc:
-    heap = mm_get_free(heap, ram_size, &pre_alloc_addr);
+    heap = mm_get_free_raw(mem_block, heap, ram_size, &pre_alloc_addr);
     if (!heap)
     {
         cpulock_set(status);
@@ -619,7 +621,7 @@ again_alloc:
         return NULL;
     }
 
-    void *ram = mm_limit_alloc_align(r_limit, ram_size, need_align);
+    void *ram = mm_limit_alloc_align_raw(mem_block, r_limit, ram_size, need_align);
     if (!ram)
     {
         cpulock_set(status);
@@ -632,7 +634,7 @@ again_alloc:
     {
         cpulock_set(status);
         printk("Again.\n");
-        mm_limit_free_align(r_limit, ram, need_align);
+        mm_limit_free_align_raw(mem_block, r_limit, ram, need_align);
         heap = heap->next;
         goto again_alloc;
     }
@@ -641,7 +643,7 @@ again_alloc:
 #elif CONFIG_MPU_VERSION == 2
     region_info_t *region;
 
-    void *ram = mm_limit_alloc_align(r_limit, ram_size + MPU_ALIGN_SIZE, MPU_ALIGN_SIZE);
+    void *ram = mm_limit_alloc_align_raw(mem_block, r_limit, ram_size + MPU_ALIGN_SIZE, MPU_ALIGN_SIZE);
     if (!ram)
     {
         printk("The system is low on memory.\n");
@@ -650,7 +652,7 @@ again_alloc:
     region = mm_space_alloc_pt_region(ms);
     if (!region)
     {
-        mm_limit_free_align(r_limit, ram, ram_size);
+        mm_limit_free_align_raw(mem_block, r_limit, ram, ram_size);
         return NULL;
     }
     region->block_start_addr = (umword_t)ram;
@@ -662,9 +664,9 @@ again_alloc:
 #endif
 }
 #else
-void *mpu_ram_alloc(mm_space_t *ms, ram_limit_t *r_limit, size_t ram_size)
+void *mpu_ram_alloc(mm_space_t *ms, ram_limit_t *r_limit, size_t ram_size, int mem_block)
 {
-    void *ram = mm_limit_alloc(r_limit, ram_size);
+    void *ram = mm_limit_alloc_raw(mem_block, r_limit, ram_size);
 
     return ram;
 }

@@ -115,7 +115,7 @@ typedef struct thread_fast_ipc_item
     void *usp_backup;   //!< 备份用户栈，用于快速通信
     void *msg_buf;
 } thread_fast_ipc_item_t;
-#define THREAD_FAST_IPC_ITEM_NUM 8
+#define THREAD_FAST_IPC_ITEM_NUM 4
 
 #define THREAD_MAGIC 0xdeadead //!< 用于栈溢出检测
 typedef struct thread

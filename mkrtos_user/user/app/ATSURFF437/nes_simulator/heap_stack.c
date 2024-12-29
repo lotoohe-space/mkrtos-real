@@ -1,5 +1,5 @@
 
-#define HEAP_SIZE (64 * 1024)
+#define HEAP_SIZE (32 * 1024)
 #define STACK_SIZE (1024 * 3)
 
 #if defined(__CC_ARM)

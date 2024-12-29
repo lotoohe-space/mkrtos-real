@@ -44,7 +44,7 @@ void thread_knl_pf_set(thread_t *cur_th, void *pc)
     cur_th->sp.user_sp = 0;
     cur_th->sp.sp_type = 0xfffffff9;
 }
-void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram, umword_t stack)
+void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram)
 {
     // assert((((umword_t)user_sp) & 0x7UL) == 0);
     umword_t usp = ((umword_t)(user_sp) & ~0x7UL);
@@ -59,8 +59,12 @@ void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram, um
     cur_th->sp.knl_sp = ((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE - 8);
     cur_th->sp.user_sp = cur_pf;
     cur_th->sp.sp_type = 0xfffffffd;
-
-    // printk("exc_regs:%x %x %x\n", cur_pf->pf_s.pc, cur_th->sp.user_sp, ram);
+}
+void thread_user_pf_restore(thread_t *cur_th, void *user_sp)
+{
+    cur_th->sp.knl_sp = ((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE - 8);
+    cur_th->sp.user_sp = user_sp;
+    cur_th->sp.sp_type = 0xfffffffd;
 }
 void task_knl_init(task_t *knl_tk)
 {

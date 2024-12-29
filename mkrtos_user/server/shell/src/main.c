@@ -10,6 +10,16 @@
 #include <u_thread.h>
 #include <u_env.h>
 #include <pthread.h>
+#include <u_fast_ipc.h>
+#define STACK_COM_ITME_SIZE (1024+512)
+ATTR_ALIGN(8)
+uint8_t stack_coms[STACK_COM_ITME_SIZE];
+uint8_t msg_buf_coms[MSG_BUG_LEN];
+void fast_ipc_init(void)
+{
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
+}
+
 void *test_func(void *arg)
 {
     msg_tag_t tag;
@@ -46,10 +56,11 @@ int main(int argc, char *args[])
 {
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_sh");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_sh");
+    fast_ipc_init();
 #if 0
     thread_run(-1, 3);
 #endif
-    fast_ipc_test();
+    // fast_ipc_test();
     for (int i = 0; i < argc; i++)
     {
         printf("args[%d]:%s\n", i, args[i]);

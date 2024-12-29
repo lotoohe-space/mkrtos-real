@@ -17,7 +17,7 @@ RPC_GENERATION_OP1(test_svr_t, 0, register, rpc_int_t, rpc_int_t, RPC_DIR_INOUT,
     return 1;
 }
 RPC_GENERATION_DISPATCH1(test_svr_t, 0, register, rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0)
-RPC_GENERATION_CALL1(test_svr_t, 0, register, rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0)
+RPC_GENERATION_CALL1(TRUE, test_svr_t, 0, register, rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0)
 #endif
 #if 0
 RPC_GENERATION_OP2(test_svr_t, 0, query,
@@ -34,7 +34,7 @@ RPC_GENERATION_OP2(test_svr_t, 0, query,
 RPC_GENERATION_DISPATCH2(test_svr_t, 0, query,
                          rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
                          rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var1)
-RPC_GENERATION_CALL2(test_svr_t, 0, query,
+RPC_GENERATION_CALL2(TRUE, test_svr_t, 0, query,
                      rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
                      rpc_int_t, rpc_int_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var1)
 
@@ -62,7 +62,7 @@ RPC_GENERATION_DISPATCH2(test_svr_t, 0, query,
                          rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
                          rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var1)
 
-RPC_GENERATION_CALL2(test_svr_t, 0, query,
+RPC_GENERATION_CALL2(TRUE, test_svr_t, 0, query,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var1)
 
@@ -86,7 +86,7 @@ RPC_GENERATION_DISPATCH2(test_svr_t, 0, query,
                          rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
                          rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
 
-RPC_GENERATION_CALL2(test_svr_t, 0, query,
+RPC_GENERATION_CALL2(TRUE, test_svr_t, 0, query,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_INOUT, RPC_TYPE_DATA, var0,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
 
@@ -107,7 +107,7 @@ RPC_GENERATION_OP2(test_svr_t, 0, 0, query,
 RPC_GENERATION_DISPATCH2(test_svr_t, 0, 0, query,
                          rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_OUT, RPC_TYPE_BUF, var0,
                          rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
-RPC_GENERATION_CALL2(test_svr_t, 0, 0, query,
+RPC_GENERATION_CALL2(TRUE, test_svr_t, 0, 0, query,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_OUT, RPC_TYPE_BUF, var0,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, var1)
 

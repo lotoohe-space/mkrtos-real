@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 {
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_nes");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_nes");
-    thread_run(-1, 4);
+    // thread_run(-1, 4);
     printf("nes init..\n");
 #if 0
     if (drv_iomem_init() < 0)

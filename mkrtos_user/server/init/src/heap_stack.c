@@ -12,7 +12,7 @@
  */
 #ifdef MKRTOS_TEST_MODE
 #define HEAP_SIZE (256 * 1024)
-#define STACK_SIZE (4 * 1024) //(1024 + 256)
+#define STACK_SIZE (2 * 1024) //(1024 + 256)
 #else
 #define HEAP_SIZE (2 * 1024)
 #define STACK_SIZE (4 * 1024) //(1024 + 256)

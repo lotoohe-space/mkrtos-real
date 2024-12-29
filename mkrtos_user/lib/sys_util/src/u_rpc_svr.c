@@ -1,12 +1,12 @@
 /**
  * @file u_rpc_svr.c
  * @author ATShining (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-08-27
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 #include "u_ipc.h"
 #include "u_factory.h"
@@ -192,7 +192,8 @@ void rpc_loop(void)
         thread_ipc_reply(tag, ipc_timeout_create2(0, 0));
     }
 }
-#define RPC_MTD_TH_STACK_SIZE (1024+256)
+
+#define RPC_MTD_TH_STACK_SIZE (1024 + 256)
 typedef struct mtd_params
 {
     rpc_svr_obj_t *obj;
@@ -298,7 +299,6 @@ int rpc_mtd_loop(void)
         }
         uint8_t *msg_buf = (uint8_t *)stack + RPC_MTD_TH_STACK_SIZE;
 
-        
         int ret_val;
         umword_t *stack_tmp = (umword_t *)((uint8_t *)stack + RPC_MTD_TH_STACK_SIZE);
         mtd_params_t *params = (mtd_params_t *)((char *)stack + RPC_MTD_TH_STACK_SIZE + MSG_BUG_LEN);
@@ -334,7 +334,7 @@ int rpc_mtd_loop(void)
         }
         memcpy(msg_buf, main_msg_buf, MSG_BUG_LEN - IPC_USER_SIZE);
         ipc_msg_t *msg = (ipc_msg_t *)msg_buf;
-        
+
         msg->user[2] = thread_get_src_pid();
         u_thread_run(params->th_obj, 2);
 

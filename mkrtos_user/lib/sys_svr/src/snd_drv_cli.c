@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-RPC_GENERATION_CALL2(snd_drv_t, SND_DRV_PROT, SND_DRV_WRITE, write,
+RPC_GENERATION_CALL2(TRUE, snd_drv_t, SND_DRV_PROT, SND_DRV_WRITE, write,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, shm_obj,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 int snd_drv_cli_write(obj_handler_t dm9000_obj, obj_handler_t shm_obj, int len)
@@ -27,7 +27,7 @@ int snd_drv_cli_write(obj_handler_t dm9000_obj, obj_handler_t shm_obj, int len)
 
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL2(snd_drv_t, SND_DRV_PROT, SND_DRV_READ, read,
+RPC_GENERATION_CALL2(TRUE, snd_drv_t, SND_DRV_PROT, SND_DRV_READ, read,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, shm_obj,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 
@@ -43,7 +43,7 @@ int snd_drv_cli_read(obj_handler_t dm9000_obj, obj_handler_t shm_obj)
 
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL1(snd_drv_t, SND_DRV_PROT, SND_DRV_MAP, map,
+RPC_GENERATION_CALL1(TRUE, snd_drv_t, SND_DRV_PROT, SND_DRV_MAP, map,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_INOUT, RPC_TYPE_BUF, cli_hd)
 
 int snd_drv_cli_map(obj_handler_t dm9000_obj, obj_handler_t *sem_obj)

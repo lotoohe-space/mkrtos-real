@@ -718,6 +718,7 @@ void thread_timeout_del_recv_remote(thread_t *th, bool_t is_sche)
 static int ipc_dat_copy_raw(obj_space_t *dst_obj, obj_space_t *src_obj, ram_limit_t *lim,
                             ipc_msg_t *dst_ipc, ipc_msg_t *src_ipc, msg_tag_t tag, int is_reply)
 {
+    int i = 0;
     if (tag.map_buf_len > 0)
     {
         kobj_del_list_t del;
@@ -725,13 +726,14 @@ static int ipc_dat_copy_raw(obj_space_t *dst_obj, obj_space_t *src_obj, ram_limi
 
         kobj_del_list_init(&del);
 
-        for (int i = 0; i < map_len; i++)
+        for (i = 0; i < map_len; i++)
         {
             int ret = 0;
 
             vpage_t dst_page = vpage_create_raw(dst_ipc->map_buf[i]);
             vpage_t src_page = vpage_create_raw(src_ipc->map_buf[i]);
 
+            // printk("map-> src:%d dst:%d\n", src_page.addr, dst_page.addr);
             if ((src_page.flags & VPAGE_FLAGS_MAP) || is_reply)
             {
                 ret = obj_map_src_dst(dst_obj, src_obj,
@@ -749,6 +751,7 @@ static int ipc_dat_copy_raw(obj_space_t *dst_obj, obj_space_t *src_obj, ram_limi
     }
     memcpy(dst_ipc->msg_buf, src_ipc->msg_buf,
            MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
+    return i;
 }
 /**
  * @brief ipc传输时的数据拷贝
@@ -1249,15 +1252,27 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
             mutex_unlock(&old_task->nofity_lock);
             return msg_tag_init4(0, 0, 0, ret);
         }
+        umword_t cpu_status = cpulock_lock();
+
         task_t *cur_task = thread_get_current_task();
         ipc_msg_t *dst_ipc = (void *)cur_th->msg.msg;
         ipc_msg_t *src_ipc = (void *)old_task->nofity_msg_buf;
         ret = ipc_dat_copy_raw(&cur_task->obj_space, &old_task->obj_space, cur_task->lim,
-                               dst_ipc, src_ipc, in_tag, FALSE);
-        if (ret < 0)
+                               dst_ipc, src_ipc, in_tag, TRUE);
+        // if (ret > 0)
+        // {
+        // }
+        for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
         {
-            mutex_unlock(&old_task->nofity_lock);
-            return msg_tag_init4(0, 0, 0, ret);
+            if (i < ret)
+            {
+                src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
+                old_task->nofity_map_buf[i] = 0;
+            }
+            else
+            {
+                src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
+            }
         }
         mutex_unlock(&old_task->nofity_lock);
         pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
@@ -1266,7 +1281,12 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
         extern void mpu_switch_to_task(struct task * tk);
         mpu_switch_to_task(cur_task);
         ref_counter_dec_and_release(&old_task->ref_cn, &old_task->kobj);
-        return msg_tag_init4(0, 0, 0, ret);
+        if (ret < 0)
+        {
+            in_tag = msg_tag_init4(0, 0, 0, ret);
+        }
+        cpulock_set(cpu_status);
+        return in_tag;
     }
     break;
     case IPC_FAST_CALL:
@@ -1280,6 +1300,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
 
         if (to_task->nofity_point == NULL)
         {
+            printk("task:0x%x, notify point is not set.\n", to_task);
             return msg_tag_init4(0, 0, 0, -EIO);
         }
     _to_unlock:
@@ -1297,6 +1318,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
             preemption();
             goto _to_unlock;
         }
+        umword_t cpu_status = cpulock_lock();
         ref_counter_inc((&to_task->ref_cn));
         //!< 执行目标线程时用的是当前线程的资源，这里还需要备份当前线程的上下文。
         ret = thread_fast_ipc_save(cur_th, to_task, (void *)(to_task->nofity_stack - 4 * 8)); //!< 备份栈和usp
@@ -1324,9 +1346,9 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
 
                 //! 寄存器传参数
                 f->regs[0] = in_tag.raw;
-                f->regs[1] = f->regs[2];
-                f->regs[2] = f->regs[3];
-                f->regs[3] = f->regs[4];
+                f->regs[1] = user_id;
+                f->regs[2] = f->regs[2];
+                f->regs[3] = f->regs[3];
 
                 extern void mpu_switch_to_task(struct task * tk);
                 mpu_switch_to_task(to_task);
@@ -1343,6 +1365,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
             ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
             mutex_unlock(&to_task->nofity_lock);
         }
+        cpulock_set(cpu_status);
         return msg_tag_init4(0, 0, 0, ret);
     }
     break;

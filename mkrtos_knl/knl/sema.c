@@ -75,6 +75,7 @@ void sema_up(sema_t *obj)
         // printk("up1 sema cnt:%d max:%d.\n", obj->cnt, obj->max_cnt);
     }
     spinlock_set(&obj->lock, status);
+    preemption();
 }
 void sema_down(sema_t *obj)
 {
@@ -91,6 +92,7 @@ again:
         slist_add_append(&obj->suspend_head, &wait_item.node);
         thread_suspend_sw(th, FALSE);
         spinlock_set(&obj->lock, status);
+        preemption();
         goto again;
     }
     else

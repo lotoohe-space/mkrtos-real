@@ -32,7 +32,8 @@ typedef struct task
     void *nofity_point;  //!< commint point func.
     addr_t nofity_stack; //!< nofity_point_stack.
     mutex_t nofity_lock;
-    addr_t nofity_msg_buf;   //!<
+    addr_t nofity_msg_buf; //!<
+    umword_t *nofity_map_buf;
     umword_t *nofity_bitmap; //!<
     int nofity_bitmap_len;   //!< max is WORD_BITS
     slist_head_t nofity_theads_head;
@@ -46,6 +47,6 @@ static inline pid_t task_pid_get(task_t *task)
 }
 void task_init(task_t *task, ram_limit_t *ram, int is_knl);
 task_t *task_create(ram_limit_t *lim, int is_knl);
-int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size);
+int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size, int mem_block);
 void task_kill(task_t *tk);
 int task_set_pid(task_t *task, pid_t pid);

@@ -17,10 +17,19 @@
 #include <assert.h>
 #include <sys/stat.h>
 #include "mk_eth_drv_impl.h"
+#include <u_fast_ipc.h>
+
 #include <errno.h>
 #include "at_surf_f437_board_emac.h"
 static net_drv_t net_drv; //!< 网络驱动的协议
-
+#define STACK_COM_ITME_SIZE (1024+512)
+ATTR_ALIGN(8)
+uint8_t stack_coms[STACK_COM_ITME_SIZE];
+uint8_t msg_buf_coms[MSG_BUG_LEN];
+void fast_ipc_init(void)
+{
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
+}
 int net_drv_write(obj_handler_t obj, int len)
 {
     int ret = -1;
@@ -64,6 +73,7 @@ int main(int argc, char *argv[])
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_eth");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_eth");
     printf("%s init..\n", argv[0]);
+    fast_ipc_init();
     mk_drv_init();
     mk_dev_init();
     drv_eth_init();

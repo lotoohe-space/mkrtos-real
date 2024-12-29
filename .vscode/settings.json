@@ -163,7 +163,12 @@
         "net_drv_cli.h": "c",
         "lwiperf.h": "c",
         "stdio_impl.h": "c",
-        "stack.h": "c"
+        "stack.h": "c",
+        "u_fast_ipc.h": "c",
+        "cons_svr.h": "c",
+        "u_rpc_buf.h": "c",
+        "at32f435_437_clock.h": "c",
+        "at_surf_f437_board_sdram.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

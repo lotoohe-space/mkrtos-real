@@ -78,9 +78,9 @@ int console_write(uint8_t *data, size_t len)
     //     /*TODO:存储到文件或者通过其他方式*/
     //     return -EACCES;
     // }
-    pthread_mutex_lock(&cons_obj.w_lock);
+    // pthread_mutex_lock(&cons_obj.w_lock);
     ulog_write_bytes(LOG_PROT, data, len);
-    pthread_mutex_unlock(&cons_obj.w_lock);
+    // pthread_mutex_unlock(&cons_obj.w_lock);
 
     return len;
 }
