@@ -15,23 +15,32 @@
 #include "fs_svr.h"
 #include "pm_svr.h"
 #include "u_rpc_buf.h"
+#include "fs_types.h"
 #include <stdio.h>
 
-/*run_app*/
-RPC_GENERATION_OP2(pm_t, PM_PROT, PM_RUN_APP, run_app,
-                   rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
+/**
+ * @brief 运行app
+ * run_app
+ */
+RPC_GENERATION_OP4(pm_t, PM_PROT, PM_RUN_APP, run_app,
+                   rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
+                   rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len)
 {
     int16_t ret = -1;
 
     path->data[path->len - 1] = 0;
-    ret = pm_rpc_run_app(path->data, flags->data);
+    ret = pm_rpc_run_app(path->data, flags->data, params->data, params_len->data);
     return ret;
 }
 
-RPC_GENERATION_DISPATCH2(pm_t, PM_PROT, PM_RUN_APP, run_app,
-                         rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
+RPC_GENERATION_DISPATCH4(pm_t, PM_PROT, PM_RUN_APP, run_app,
+                         rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
+                         rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len)
+
 /*kill_task*/
 RPC_GENERATION_OP2(pm_t, PM_PROT, PM_KILL_TASK, kill_task,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,

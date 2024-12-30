@@ -205,7 +205,7 @@ int pm_rpc_kill_task(int pid, int flags)
  * @param flags
  * @return int
  */
-int pm_rpc_run_app(const char *path, int flags)
+int pm_rpc_run_app(const char *path, int flags, char *params, int params_len)
 {
     pid_t pid;
     int ret;

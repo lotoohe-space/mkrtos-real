@@ -32,7 +32,7 @@ typedef struct pm
 #define PM_APP_BG_RUN 0x1
 
 void pm_svr_obj_init(pm_t *pm);
-int pm_rpc_run_app(const char *path, int flags);
+int pm_rpc_run_app(const char *path, int flags, char *params, int params_len);
 int pm_rpc_kill_task(int pid, int flags);
 int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags);
 int pm_rpc_copy_data(pid_t src_pid, pid_t dst_pid, umword_t src_addr, umword_t dst_addr, size_t len);

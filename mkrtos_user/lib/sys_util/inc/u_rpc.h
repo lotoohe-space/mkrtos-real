@@ -306,6 +306,7 @@ RPC_TYPE_DEF_ALL(statfs_t)
  */
 RPC_ARRAY_DEF(uint32_t, uint8_t, 32)
 RPC_ARRAY_DEF(uint32_t, uint8_t, 64)
+RPC_ARRAY_DEF(uint32_t, uint8_t, 96)
 RPC_ARRAY_DEF(uint32_t, uint8_t, 128)
 RPC_ARRAY_DEF(uint32_t, uint8_t, 256)
 RPC_ARRAY_DEF(uint32_t, uint8_t, 400)
@@ -380,7 +381,9 @@ RPC_ARRAY_DEF(uint32_t, uint8_t, 512)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 32)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 48)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 64)
+RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 96)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 128)
+RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 160)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 256)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 400)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 512)
@@ -1024,4 +1027,5 @@ RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
 #include "u_rpc_1.h"
 #include "u_rpc_2.h"
 #include "u_rpc_3.h"
+#include "u_rpc_4.h"
 #include "u_rpc_5.h"

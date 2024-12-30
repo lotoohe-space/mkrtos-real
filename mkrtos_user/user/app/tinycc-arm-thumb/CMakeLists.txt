@@ -9,7 +9,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -DUSE_STDPERIPH_DRIVER=1 \
 #  -DTCC_ARM_HARDFLOAT
 
 file(GLOB deps 
-    heap_stack.c
+    ${ARCH_NAME}/heap_stack.c
     # arm-thumb-gen.c
     # arm-thumb-instructions.c
     arm-link.c
@@ -74,8 +74,8 @@ add_custom_target(
     ${CMAKE_OBJCOPY} -O binary -S tcc.elf tcc.bin
     COMMAND
     ${CMAKE_SIZE} tcc.elf
-    # COMMAND
-    # ${CMAKE_COMMAND} -E copy tcc.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc
+    COMMAND
+    ${CMAKE_COMMAND} -E copy tcc.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc
 
 )
 if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))

@@ -168,7 +168,10 @@
         "cons_svr.h": "c",
         "u_rpc_buf.h": "c",
         "at32f435_437_clock.h": "c",
-        "at_surf_f437_board_sdram.h": "c"
+        "at_surf_f437_board_sdram.h": "c",
+        "fs_types.h": "c",
+        "u_rpc.h": "c",
+        "u_env.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

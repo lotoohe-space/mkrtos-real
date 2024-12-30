@@ -6,23 +6,34 @@
 #include "u_prot.h"
 #include "u_hd_man.h"
 #include "pm_svr.h"
+#include "fs_types.h"
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
-RPC_GENERATION_CALL2(TRUE, pm_t, PM_PROT, PM_RUN_APP, run_app,
-                     rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
-int pm_run_app(const char *path, int flags)
+RPC_GENERATION_CALL4(TRUE, pm_t, PM_PROT, PM_RUN_APP, run_app,
+                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
+                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
+                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
+                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len)
+int pm_run_app(const char *path, int flags, uint8_t *params, int params_len)
 {
-    rpc_ref_array_uint32_t_uint8_t_32_t rpc_path = {
+    rpc_ref_file_array_t rpc_path = {
         .data = (uint8_t *)path,
         .len = strlen(path) + 1,
     };
     rpc_int_t rpc_flags = {
         .data = flags,
     };
-    msg_tag_t tag = pm_t_run_app_call(u_get_global_env()->ns_hd, &rpc_path, &rpc_flags);
+    rpc_ref_file_array_t rpc_params = {
+        .data = (uint8_t *)params,
+        .len = MIN(params_len, FS_RPC_BUF_LEN),
+    };
+    rpc_int_t rpc_params_len = {
+        .data = params_len,
+    };
+    msg_tag_t tag = pm_t_run_app_call(u_get_global_env()->ns_hd, &rpc_path, &rpc_flags,
+                                      &rpc_params, &rpc_params_len);
 
     return msg_tag_get_val(tag);
 }

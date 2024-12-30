@@ -14,7 +14,7 @@
 #include "stdio.h"
 #include "stdarg.h"
 #include "shell_ext.h"
-
+#include "fs_types.h"
 #if SHELL_USING_CMD_EXPORT == 1
 /**
  * @brief 默认用户
@@ -1452,8 +1452,16 @@ void shellExec(Shell *shell)
         }
         else
         {
+            uint8_t params[FS_RPC_BUF_LEN];
+            int params_len = 0;
+
+            for (int i = 1; i < shell->parser.paramCount; i++)
+            {
+                memcpy(&params[params_len], shell->parser.param[i], strlen(shell->parser.param[i]) + 1); // copy the string
+                params_len += strlen(shell->parser.param[i]) + 1;
+            }
             //!< 内建命令中未找到，则执行应用
-            if (pm_run_app(shell->parser.param[0], PM_APP_BG_RUN) < 0)
+            if (pm_run_app(shell->parser.param[0], PM_APP_BG_RUN, params, params_len) < 0)
             {
                 shellWriteString(shell, shellText[SHELL_TEXT_CMD_NOT_FOUND]);
             }
