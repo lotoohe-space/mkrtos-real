@@ -19,6 +19,7 @@
 #include "cpiofs.h"
 #include "u_env.h"
 #include "u_sys.h"
+
 #include <assert.h>
 #include <string.h>
 #include <elf.h>
@@ -125,6 +126,10 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     {
         return -ENOENT;
     }
+    // for (int i = 0; i < arg_cn; i++)
+    // {
+    //     printf("argv[%d]:%s\n", i, argv[i]);
+    // }
     int type;
     umword_t addr;
     int ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL, &type, &addr);
@@ -254,28 +259,26 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
         .rev2 = HANDLER_INVALID,
     };
     umword_t *app_env;
-    char *cp_args;
-    char *cp_envp;
+    char *cp_args[8/*FIXME:*/];
+    char *cp_envp[8];
+    size_t params_envp_len = 0;
 
     app_env = app_stack_push_array(hd_task, &usp_top, (uint8_t *)(&uenv), sizeof(uenv));
     for (int i = 0; i < arg_cn; i++)
     {
-        cp_args = app_stack_push_str(hd_task, &usp_top, argv[i]);
-        if ((ALIGN(strlen(argv[i]) + 1, sizeof(void *)) / sizeof(void *)) % 2)
-        {
-            app_stack_push_umword(hd_task, &usp_top, 0);
-        }
-        printf("app_load 1 cp_args:%p\n", cp_args);
+        cp_args[i] = app_stack_push_str(hd_task, &usp_top, argv[i]);
+        params_envp_len += ALIGN(strlen(argv[i]) + 1, sizeof(void *));
+        printf("app_load 1 cp_args:%p\n", cp_args[i]);
     }
     for (int i = 0; i < envp_cn; i++)
     {
-        cp_envp = app_stack_push_str(hd_task, &usp_top, envp[i]);
-        if ((ALIGN(strlen(argv[i]) + 1, sizeof(void *)) / sizeof(void *)) % 2)
-        {
-            app_stack_push_umword(hd_task, &usp_top, 0);
-        }
+        cp_envp[i] = app_stack_push_str(hd_task, &usp_top, envp[i]);
+        params_envp_len += ALIGN(strlen(argv[i]) + 1, sizeof(void *));
     }
-
+    if ((umword_t)usp_top & 0x7UL)
+    {
+        usp_top = (umword_t *)((umword_t)usp_top & ~0x7UL);
+    }
     app_stack_push_umword(hd_task, &usp_top, 0);
     if ((arg_cn + envp_cn) & 0x1) // 参数是奇数是，多添加一个
     {
@@ -289,31 +292,15 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     app_stack_push_umword(hd_task, &usp_top, (umword_t)AT_PAGESZ);
 
     app_stack_push_umword(hd_task, &usp_top, 0);
-    for (int i = 0; i < envp_cn; i++)
+    for (int i = envp_cn - 1; i >= 0; i--)
     {
-        app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_envp);
-        cp_envp += ALIGN(strlen(envp[i]), sizeof(void *));
-        if ((ALIGN(strlen(envp[i]) + 1, sizeof(void *)) / sizeof(void *)) % 2)
-        {
-            cp_envp += sizeof(void *);
-        }
+        app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_envp[i]);
     }
-    if (arg_cn)
+    app_stack_push_umword(hd_task, &usp_top, 0);
+    for (int i = arg_cn - 1; i >= 0; i--)
     {
-        app_stack_push_umword(hd_task, &usp_top, 0);
-        for (int i = 0; i < arg_cn; i++)
-        {
-            if (i != 0)
-            {
-                if ((ALIGN(strlen(argv[i]) + 1, sizeof(void *)) / sizeof(void *)) % 2)
-                {
-                    cp_args += sizeof(void *);
-                }
-            }
-            printf("app_load 2 cp_args:%p\n", cp_args);
-            app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_args);
-            cp_args += ALIGN(strlen(argv[i]) + 1, sizeof(void *));
-        }
+        printf("app_load 2 cp_args:%p\n", cp_args[i]);
+        app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_args[i]);
     }
     app_stack_push_umword(hd_task, &usp_top, arg_cn);
 

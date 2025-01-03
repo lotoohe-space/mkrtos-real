@@ -24,7 +24,11 @@ sd_t fs_open(const char *path, int flags, int mode)
 
     if (ret < 0)
     {
-        return ret;
+        ret = ns_query(path, &hd, 0x0);
+        if (ret < 0)
+        {
+            return ret;
+        }
     }
 
     rpc_ref_file_array_t rpc_path = {

@@ -27,7 +27,7 @@
 #include "u_sleep.h"
 static Shell shell;
 static ShellFs shellFs;
-static char shellBuffer[256];
+static char shellBuffer[512];
 // static char shellPathBuffer[128] = "/";
 
 /**

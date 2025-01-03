@@ -76,6 +76,8 @@ add_custom_target(
     ${CMAKE_SIZE} tcc.elf
     COMMAND
     ${CMAKE_COMMAND} -E copy tcc.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/tcc
+    COMMAND
+    ${CMAKE_COMMAND} -E copy tcc.elf ${CMAKE_SOURCE_DIR}/build/output/tcc.elf
 
 )
 if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))

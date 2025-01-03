@@ -23,9 +23,7 @@
 #include <u_hd_man.h>
 #include <stdlib.h>
 
-#define CMD_LEN 64                                          //!< 命令行最大长度
-#define CMD_PARAMS_CN 8                                     //!< 参数个数
-#define CMD_PARAMS_ITEM_LEN 16                              //!< 每个参数的最大长度
+#include <parse_cfg.h>
 static char cmd_line[CMD_LEN];                              //!< 命令行
 static char cmd_params[CMD_PARAMS_CN][CMD_PARAMS_ITEM_LEN]; //!< 参数数组
 static int cmd_params_off[CMD_PARAMS_CN];                   //!< 参数偏移量
@@ -79,6 +77,8 @@ static int parse_cfg_cmd_line(void)
         {
             cmd_line[i] = 0;
             mem_block = atol(&cmd_line[i + 1]); // 获取应用使用的内存块
+            cmd_params_num--;
+            break;
         }
     }
     return mem_block;

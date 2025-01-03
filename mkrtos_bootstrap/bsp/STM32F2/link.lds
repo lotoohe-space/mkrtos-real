@@ -1,10 +1,10 @@
 ENTRY(Reset_Handler)
-_estack = 0x20000000 + 0x800000;
+_estack = 0x20000000 + 0x2000000;
 _Min_Heap_Size = 0;
 _Min_Stack_Size = 0x300;
 MEMORY
 {
-RAM (xrw) : ORIGIN = 0x20000000 + 0x800000 - 0x4000, LENGTH = 0x4000 - 0x300
+RAM (xrw) : ORIGIN = 0x20000000 + 0x2000000 - 0x4000, LENGTH = 0x4000 - 0x300
 FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 0x2000
 }
 SECTIONS

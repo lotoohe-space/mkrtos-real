@@ -125,7 +125,8 @@ static void uart_hardware_flow_rts(USART_TypeDef *USARTx, uint16_t flow)
     USARTx->CR3 = (uint16_t)tmpreg;
 }
 static uart_t uart = {
-    .baud = 115200};
+    .baud = 115200,
+};
 
 uart_t *uart_get_global(void)
 {

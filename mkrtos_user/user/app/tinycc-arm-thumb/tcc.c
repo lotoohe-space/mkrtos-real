@@ -255,11 +255,11 @@ char *fake_argv[] = {
     "-nostdinc",
     "-nostdlib",
     "-c",
-    "/mnt/1.c",
+    "/bin/1.c",
     "-o",
     "/mnt/a.out"
 };
-
+//tcc -nostdinc -nostdlib -c /bin/1.c -o /mnt/a.out
 int main(int argc0, char **argv0)
 {
     TCCState *s, *s1;
@@ -270,9 +270,13 @@ int main(int argc0, char **argv0)
     char **argv;
     FILE *ppfp = stdout;
 
+    for(int i=0;i<argc0;i++)
+    {
+        printf("%s \n", argv0[i]);
+    }
+    printf("\n");
 redo:
-    // argc = argc0, argv = argv0;
-    argc = 7, argv = fake_argv;
+    argc = argc0, argv = argv0;
     s = s1 = tcc_new();
     opt = tcc_parse_args(s, &argc, &argv, 1);
 

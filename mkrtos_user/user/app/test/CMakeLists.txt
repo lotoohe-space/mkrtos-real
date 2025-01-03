@@ -7,12 +7,12 @@ file(
 )
 
 add_executable(
-    app_test.elf
+    tst.elf
     ${deps}
     ${START_SRC}
 )
 target_link_libraries(
-    app_test.elf
+    tst.elf
     PUBLIC
     -Bstatic
     ${LIBC_NAME}
@@ -26,7 +26,7 @@ target_link_libraries(
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
-    app_test.elf
+    tst.elf
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
@@ -38,31 +38,31 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_display
 )
 add_dependencies(
-    app_test.elf
+    tst.elf
     ${START_LIB}
     sys
     sys_util
 )
 set_target_properties(
-    app_test.elf PROPERTIES LINK_FLAGS
+    tst.elf PROPERTIES LINK_FLAGS
     "-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "
     #--no-warn-rwx-segments
 )
 add_custom_target(
-    app_test_dump ALL
+    tst_dump ALL
     COMMAND
-    ${CMAKE_OBJDUMP} -s -S app_test.elf > ${CMAKE_SOURCE_DIR}/build/output/app_test.S
+    ${CMAKE_OBJDUMP} -s -S tst.elf > ${CMAKE_SOURCE_DIR}/build/output/tst.S
     COMMAND
-    ${CMAKE_READELF} -a app_test.elf > ${CMAKE_SOURCE_DIR}/build/output/app_test.txt
+    ${CMAKE_READELF} -a tst.elf > ${CMAKE_SOURCE_DIR}/build/output/tst.txt
     COMMAND
-    ${CMAKE_OBJCOPY} -O binary -S app_test.elf app_test.bin
+    ${CMAKE_OBJCOPY} -O binary -S tst.elf tst.bin
     COMMAND
-    ${CMAKE_SIZE} app_test.elf
+    ${CMAKE_SIZE} tst.elf
     COMMAND
-    ${CMAKE_COMMAND} -E copy app_test.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/app_test
+    ${CMAKE_COMMAND} -E copy tst.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/tst
     COMMAND
-    cp app_test.elf ${CMAKE_SOURCE_DIR}/build/output/app_test.elf
+    cp tst.elf ${CMAKE_SOURCE_DIR}/build/output/tst.elf
 )
 
-add_dependencies(app_test_dump app_test.elf)
+add_dependencies(tst_dump tst.elf)
  

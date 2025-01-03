@@ -18,7 +18,7 @@
             printk("\n%s:%d %s\n", __FILE__, __LINE__, #cond); \
             dumpstack();                                       \
             mm_trace();                                        \
-            sys_reset();                                       \
+            /*sys_reset();*/                                       \
             while (1)                                          \
                 ;                                              \
         }                                                      \

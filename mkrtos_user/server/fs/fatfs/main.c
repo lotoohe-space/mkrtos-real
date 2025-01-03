@@ -3,13 +3,22 @@
 #include "u_rpc_svr.h"
 #include "u_prot.h"
 #include "u_env.h"
-#include "u_drv.h"
 #include "cons_cli.h"
 #include "fs_rpc.h"
 #include <ff.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <u_fast_ipc.h>
+#define STACK_COM_ITME_SIZE (2048)
+ATTR_ALIGN(8)
+uint8_t stack_coms[STACK_COM_ITME_SIZE];
+uint8_t msg_buf_coms[MSG_BUG_LEN];
+void fast_ipc_init(void)
+{
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
+}
+
 static FATFS fs;
 static MKFS_PARM defopt = {FM_ANY, 0, 0, 0};
 
@@ -17,6 +26,7 @@ int main(int args, char *argv[])
 {
     obj_handler_t hd;
     int ret;
+    fast_ipc_init();
 
     ret = rpc_meta_init(THREAD_MAIN, &hd);
     assert(ret >= 0);

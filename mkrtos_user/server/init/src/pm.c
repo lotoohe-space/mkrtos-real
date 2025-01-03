@@ -18,10 +18,12 @@
 #include "u_hd_man.h"
 #include "u_sig.h"
 #include "pm.h"
+#include "parse_cfg.h"
 #include <errno.h>
 #include <malloc.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 static pm_t pm;
 
 void pm_init(void)
@@ -210,13 +212,27 @@ int pm_rpc_run_app(const char *path, int flags, char *params, int params_len)
     pid_t pid;
     int ret;
     printf("pm run %s.\n", path);
-    char *args[] = {
+    char *args[CMD_PARAMS_CN] = {
         (char *)path,
-        NULL, /*TODO:支持传递参数*/
     };
     obj_handler_t sem;
+    int i;
+    int j = 0;
 
-    ret = app_load(path, u_get_global_env(), &pid, args, 1, NULL, 0, &sem, 0);
+    for (i = 1; *params && i < CMD_PARAMS_CN; i++)
+    {
+        if (j >= params_len)
+        {
+            break;
+        }
+        args[i] = params;
+        printf("params[%d]: %s\n", i, params);
+        j += strlen(params) + 1;
+        params += strlen(params) + 1;
+    }
+
+    ret = app_load(path, u_get_global_env(), &pid, args, i,
+                   NULL, 0, &sem, 0);
     if (ret > 0)
     {
         if (!(flags & PM_APP_BG_RUN))

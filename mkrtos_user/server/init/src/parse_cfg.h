@@ -11,6 +11,8 @@
  */
 
 #include <u_env.h>
-
+#define CMD_LEN 64                                          //!< 命令行最大长度
+#define CMD_PARAMS_CN 8                                     //!< 参数个数
+#define CMD_PARAMS_ITEM_LEN 16                              //!< 每个参数的最大长度
 void parse_cfg_init(void);
 int parse_cfg(const char *parse_cfg_file_name, uenv_t *env);
