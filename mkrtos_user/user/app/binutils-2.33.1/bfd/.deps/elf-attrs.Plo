@@ -1,0 +1,83 @@
+elf-attrs.lo: elf-attrs.c \
+ /home/zhangzheng/projects/mkrtos-real/build/autoconf.h sysdep.h config.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stddef.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/alltypes.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdio.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/features.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/types.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/endian.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/select.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/errno.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/errno.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/string.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/strings.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdlib.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/alloca.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/time.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/time.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/unistd.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/posix.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/resource.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/resource.h \
+ ../include/fopen-same.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/fcntl.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/fcntl.h \
+ ../include/filenames.h ../include/hashtab.h ../include/ansidecl.h bfd.h \
+ ../include/ansidecl.h ../include/symcat.h bfd_stdint.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdint.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/stdint.h \
+ ../include/diagnostics.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdarg.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/stat.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/stat.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/inttypes.h \
+ ../include/libiberty.h libbfd.h ../include/hashtab.h elf-bfd.h \
+ ../include/elf/common.h ../include/elf/external.h \
+ ../include/elf/internal.h ../include/bfdlink.h
+/home/zhangzheng/projects/mkrtos-real/build/autoconf.h:
+sysdep.h:
+config.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stddef.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/alltypes.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdio.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/features.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/types.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/endian.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/select.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/errno.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/errno.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/string.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/strings.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdlib.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/alloca.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/time.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/time.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/unistd.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/posix.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/resource.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/resource.h:
+../include/fopen-same.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/fcntl.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/fcntl.h:
+../include/filenames.h:
+../include/hashtab.h:
+../include/ansidecl.h:
+bfd.h:
+../include/ansidecl.h:
+../include/symcat.h:
+bfd_stdint.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdint.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/stdint.h:
+../include/diagnostics.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdarg.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/stat.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/stat.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/inttypes.h:
+../include/libiberty.h:
+libbfd.h:
+../include/hashtab.h:
+elf-bfd.h:
+../include/elf/common.h:
+../include/elf/external.h:
+../include/elf/internal.h:
+../include/bfdlink.h:

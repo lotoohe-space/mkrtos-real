@@ -60,7 +60,7 @@ static inline void unlock_requeue(volatile int *l, volatile int *r, int w)
 #ifdef NO_LITTLE_MODE
 		__syscall(SYS_futex, l, FUTEX_REQUEUE | FUTEX_PRIVATE, 0, 1, r) != -ENOSYS || __syscall(SYS_futex, l, FUTEX_REQUEUE, 0, 1, r);
 #else
-		be_futex(l, FUTEX_REQUEUE | FUTEX_PRIVATE, 0, 1, r, 0) != -ENOSYS || be_futex(l, FUTEX_REQUEUE, 0, 1, r, 0);
+		be_futex(l, FUTEX_REQUEUE | FUTEX_PRIVATE, 0, (void *)1, (uint32_t)r, 0) != -ENOSYS || be_futex(l, FUTEX_REQUEUE, 0, (void *)1, (uint32_t)r, 0);
 #endif
 	}
 }

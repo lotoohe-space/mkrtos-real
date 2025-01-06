@@ -5,6 +5,7 @@
 #include "u_rpc_svr.h"
 #include "u_prot.h"
 #include "u_env.h"
+#include "u_task.h"
 #include "cons_cli.h"
 #include "fs_rpc.h"
 #include <stdio.h>

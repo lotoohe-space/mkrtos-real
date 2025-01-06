@@ -1,0 +1,38 @@
+libz_a-deflate.o: deflate.c \
+ /home/zhangzheng/projects/mkrtos-real/build/autoconf.h deflate.h zutil.h \
+ zlib.h zconf.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stddef.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/alltypes.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/limits.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/features.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/limits.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/types.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/endian.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/select.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdarg.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/unistd.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/posix.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/string.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/strings.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdlib.h \
+ /home/zhangzheng/projects/mkrtos-real/build/libc/output/include/alloca.h
+/home/zhangzheng/projects/mkrtos-real/build/autoconf.h:
+deflate.h:
+zutil.h:
+zlib.h:
+zconf.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stddef.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/alltypes.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/limits.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/features.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/limits.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/types.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/endian.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/sys/select.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdarg.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/unistd.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/bits/posix.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/string.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/strings.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/stdlib.h:
+/home/zhangzheng/projects/mkrtos-real/build/libc/output/include/alloca.h:

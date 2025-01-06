@@ -1,0 +1,77 @@
+2019-10-12  Nick Clifton  <nickc@redhat.com>
+
+	Release 2.33.1
+	* configure: Regenerate.
+
+2019-09-30  Phil Blundell  <pb@pbcl.net>
+
+	Release 2.33
+	* configure, Makefile.in, po/gprof.pot: Regenerate.
+
+2019-09-16  Phil Blundell  <pb@pbcl.net>
+
+	* configure, Makefile.in: Regenerated.
+
+2019-09-09  Phil Blundell  <pb@pbcl.net>
+
+	binutils 2.33 branch created.
+
+2019-05-20  Nick Clifton  <nickc@redhat.com>
+
+	PR 24569
+	* gprof.c (usage): Restore alphabetical sorting to short options
+	list.  Add -r, -R and -t short options to the list.
+	(main): Add comment about -g and -G possibly being deprecated.
+	* gprof.texi: Update usage example in line with changes above.
+
+2019-05-20  Nick Clifton  <nickc@redhat.com>
+
+	* po/de.po: Updated German translation.
+
+2019-05-08  Alan Modra  <amodra@gmail.com>
+
+	PR 24520
+	* corefile.c (core_init): Set BFD_DECOMPRESS.
+
+2019-04-01  Alan Modra  <amodra@gmail.com>
+
+	PR 24402
+	* symtab.c (symtab_finalize): Init prev_addr to one less than
+	first symbol address, not one more.  Correct test for symbols
+	with leading underscores.
+
+2019-01-21  Nick Clifton  <nickc@redhat.com>
+
+	* po/tr.po: Updated Turkish translation.
+
+2019-01-19  Nick Clifton  <nickc@redhat.com>
+
+	* configure: Regenerate.
+	* po/gprof.pot: Regenerate.
+
+2018-06-24  Nick Clifton  <nickc@redhat.com>
+
+	2.32 branch created.
+
+2019-01-09  Andrew Paprocki  <andrew@ishiboo.com>
+
+	* configure: Regenerate.
+
+2019-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+For older changes see ChangeLog-2018
+
+Copyright (C) 2019 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

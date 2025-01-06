@@ -10,7 +10,7 @@ int __clone__(int (*func)(void *), void *stack, int flags, void *arg, ...)
 	va_list ap;
 
 	va_start(ap, arg);
-	ARG_3_BE(ap, ptid, long, tls, long, ctid, long);
+	ARG_3_BE(ap, ptid, void*, tls, void*, ctid, void*);
 	va_end(ap);
 
 	return be_clone(func, stack, flags, arg, ptid, tls, ctid);

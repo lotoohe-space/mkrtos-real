@@ -260,6 +260,8 @@ char *fake_argv[] = {
     "/mnt/a.out"
 };
 //tcc -nostdinc -nostdlib -c /bin/1.c -o /mnt/a.out
+//ld -e EntryPoint --gc-sections -r -Tu main.o -o a.out -lc -S
+//ld-new.bin syscalls.o start.o main.o -Tuser.ld -o a.out -r
 int main(int argc0, char **argv0)
 {
     TCCState *s, *s1;

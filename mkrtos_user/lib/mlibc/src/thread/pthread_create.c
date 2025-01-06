@@ -265,7 +265,7 @@ static FILE *volatile dummy_file = 0;
 weak_alias(dummy_file, __stdin_used);
 weak_alias(dummy_file, __stdout_used);
 weak_alias(dummy_file, __stderr_used);
-
+extern int __clone__(int (*func)(void *), void *stack, int flags, void *arg, ...);
 static void init_file_lock(FILE *f)
 {
 	if (f && f->lock < 0)

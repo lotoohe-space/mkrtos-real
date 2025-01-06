@@ -29,7 +29,7 @@ static int checker(void *p)
 #ifdef NO_LITTLE_MODE
 	__syscall(SYS_write, c->p, &ret, sizeof ret);
 #else
-	be_write(c->p, &ret, sizeof ret);
+	be_write(c->p, (char*)&ret, sizeof ret);
 #endif
 	return 0;
 }
@@ -70,7 +70,7 @@ int faccessat(int fd, const char *filename, int amode, int flag)
 	if (pid < 0 || __syscall(SYS_read, p[0], &ret, sizeof ret) != sizeof(ret))
 		ret = -EBUSY;
 #else
-	if (pid < 0 || be_read(p[0], &ret, sizeof ret) != sizeof(ret))
+	if (pid < 0 || be_read(p[0], (char*)&ret, sizeof ret) != sizeof(ret))
 		ret = -EBUSY;
 #endif
 	be_close(p[0]);

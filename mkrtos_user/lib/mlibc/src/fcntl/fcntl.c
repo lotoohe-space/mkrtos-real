@@ -3,7 +3,9 @@
 #include <stdarg.h>
 #include <errno.h>
 #include "syscall.h"
-
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
 int fcntl(int fd, int cmd, ...)
 {
 	unsigned long arg;

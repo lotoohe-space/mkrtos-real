@@ -51,7 +51,7 @@ int cat(int argc, char *argv[])
 
     while ((c = fgetc(fp)) != EOF)
     {
-        cons_write(&c, 1);
+        cons_write((uint8_t *)&c, 1);
     }
     fclose(fp);
 
@@ -95,7 +95,7 @@ int shell_mem_info(int argc, char *argv[])
     size_t total;
     size_t free;
 
-    sys_mem_info(SYS_PROT, &total, &free);
+    sys_mem_info(SYS_PROT, (umword_t *)&total, (umword_t *)&free);
     printf("sys mem:\ntotal:%dB\nfree:%dB\n", total, free);
     return 0;
 }

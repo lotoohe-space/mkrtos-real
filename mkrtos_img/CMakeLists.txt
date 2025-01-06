@@ -24,6 +24,32 @@ add_custom_target(
         ${CMAKE_SOURCE_DIR}/build/output/kernel.img.out --rename-section .data=.text 
     COMMAND
     ${CMAKE_OBJCOPY}  --change-section-address .text=${CONFIG_SYS_TEXT_ADDR} ${CMAKE_SOURCE_DIR}/build/output/kernel.img.out 
+    COMMAND
+    cd ../../
+    COMMAND
+    rm -f -r usr_lib
+    COMMAND
+    mkdir -p usr_lib
+    COMMAND
+    find mkrtos_user -name "*.a" | xargs cp -t usr_lib
+    COMMAND
+    cd usr_lib
+    COMMAND
+    ${CMAKE_AR} x libmuslc.a 
+    COMMAND
+    ${CMAKE_AR} x liblibc_be.a 
+    COMMAND
+    ${CMAKE_AR} x libsys.a 
+    COMMAND
+    ${CMAKE_AR} x libsys_svr.a 
+    COMMAND
+    ${CMAKE_AR} x libsys_util.a 
+    COMMAND
+    ${CMAKE_AR} x libutil.a 
+    COMMAND
+    ${CMAKE_AR} cr libnewc.a *.obj
+    COMMAND
+    rm *.obj
 )
 add_dependencies(mkrtos_img_dump
     bootstrap_dump

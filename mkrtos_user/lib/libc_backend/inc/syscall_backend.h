@@ -77,6 +77,13 @@ void fs_backend_init(void);
 long be_lseek(long fd, long offset, long whence);
 int be_open(const char *path, int flags, mode_t mode);
 int be_close(int fd);
+void be_exit(long exit_code);
+umword_t be_mmap2(void *start,
+                  size_t len,
+                  long prot,
+                  long flags,
+                  long fd,
+                  long _offset);
 long be_read(long fd, char *buf, long size);
 long be_write(long fd, char *buf, long size);
 long be_readv(long fd, const struct iovec *iov, long iovcnt);
@@ -84,8 +91,10 @@ long be_writev(long fd, const struct iovec *iov, long iovcnt);
 long be_ioctl(long fd, long req, void *args);
 long be_set_tid_address(int *val);
 long be_set_thread_area(void *p);
+long be_getdents(long fd, char *buf, size_t size);
 long be_mkdir(const char *path, mode_t mode);
-
+long be_symlink(const char *src, const char *dst);
+int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *ptid, void *tls, pid_t *ctid);
 umword_t be_munmap(void *start, size_t len);
 umword_t be_mmap(void *start,
                  size_t len,

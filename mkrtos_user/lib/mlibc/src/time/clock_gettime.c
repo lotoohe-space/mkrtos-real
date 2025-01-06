@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include "syscall.h"
 #include "atomic.h"
-
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
 #ifdef VDSO_CGT_SYM
 
 static void *volatile vdso_func;

@@ -234,7 +234,7 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
         else if (cmd->attr.attrs.type <= SHELL_TYPE_KEY)
         {
             cmd->data.key.desc += start_addr;
-            cmd->data.key.function = (int (*)())((unsigned long)cmd->data.key.function + start_addr | 0x1);
+            cmd->data.key.function = (void*)(int (*)())((unsigned long)cmd->data.key.function + start_addr | 0x1);
         }
     }
 #endif

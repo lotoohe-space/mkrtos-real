@@ -186,7 +186,7 @@ fail:
 		while (__syscall(SYS_write, p, &ret, sizeof ret) < 0)
 			;
 #else
-		while (be_write(p, &ret, sizeof ret) < 0)
+		while (be_write(p, (char*)&ret, sizeof ret) < 0)
 			;
 #endif
 	_exit(127);

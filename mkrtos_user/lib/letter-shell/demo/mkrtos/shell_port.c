@@ -25,6 +25,8 @@
 #include <pthread.h>
 #include "cons_cli.h"
 #include "u_sleep.h"
+#include "u_sema.h"
+#include "u_task.h"
 static Shell shell;
 static ShellFs shellFs;
 static char shellBuffer[512];
