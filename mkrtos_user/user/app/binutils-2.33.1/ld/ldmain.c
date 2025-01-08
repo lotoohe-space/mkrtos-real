@@ -189,8 +189,8 @@ ld_bfd_error_handler (const char *fmt, va_list ap)
 
 #ifdef MKRTOS
 
-#define HEAP_SIZE 1*1024 * 1024
-#define STACK_SIZE (4096 * 1024)
+#define HEAP_SIZE (1*1024 * 1024)
+#define STACK_SIZE (8 * 1024)
 
 #if defined(__CC_ARM)
 #define HEAP_ATTR SECTION("HEAP") __attribute__((zero_init))
@@ -204,7 +204,7 @@ ld_bfd_error_handler (const char *fmt, va_list ap)
 #endif
 
 __attribute__((used)) HEAP_ATTR static char _____heap_____[HEAP_SIZE];
-__attribute__((used)) STACK_ATTR static char _____stack_____[STACK_SIZE];
+__attribute__((used)) __attribute__((aligned(8)))  STACK_ATTR static char _____stack_____[STACK_SIZE];
 
 #endif
 

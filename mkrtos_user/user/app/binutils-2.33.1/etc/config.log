@@ -27,7 +27,7 @@ uname -v = #52-Ubuntu SMP PREEMPT_DYNAMIC Thu Dec  5 13:09:44 UTC 2024
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
 
-PATH: /home/zhangzheng/.vscode-server/bin/74b1f979648cc44d385a2286793c226e611f59e7/bin/remote-cli
+PATH: /home/zhangzheng/.vscode-server/cli/servers/Stable-fabdb6a30b49f79a7aba0f2ad9df9b399473380f/server/bin/remote-cli
 PATH: /usr/local/sbin
 PATH: /usr/local/bin
 PATH: /usr/sbin
@@ -37,6 +37,7 @@ PATH: /bin
 PATH: /usr/games
 PATH: /usr/local/games
 PATH: /snap/bin
+PATH: /home/zhangzheng/.vscode-server/data/User/globalStorage/github.copilot-chat/debugCommand
 PATH: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin
 PATH: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/
 
@@ -45,10 +46,9 @@ PATH: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/
 ## Core tests. ##
 ## ----------- ##
 
-configure:1603: creating cache ./config.cache
+configure:1595: loading cache ./config.cache
 configure:1720: checking for a BSD-compatible install
 configure:1788: result: /usr/bin/install -c
-configure:1879: updating cache ./config.cache
 configure:1964: creating ./config.status
 
 ## ---------------------- ##

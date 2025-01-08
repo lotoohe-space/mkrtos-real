@@ -173,7 +173,8 @@
         "u_rpc.h": "c",
         "u_env.h": "c",
         "u_app_loader.h": "c",
-        "crt_arch_init.h": "c"
+        "crt_arch_init.h": "c",
+        "kstat.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

@@ -6,7 +6,10 @@
 #include "u_rpc.h"
 #include "fs_types.h"
 #include <stdio.h>
-
+#include <sys/stat.h>
+#include "kstat.h"
+typedef struct kstat kstat_t;
+RPC_TYPE_DEF_ALL(kstat_t)
 /*open*/
 RPC_GENERATION_OP3(fs_t, FS_PROT, FS_OPEN, open,
                    rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
@@ -109,14 +112,14 @@ RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_FTRUNCATE, ftruncate,
 /*fstat*/
 RPC_GENERATION_OP2(fs_t, FS_PROT, FS_FSTAT, fstat,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                   rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, statbuf)
+                   rpc_kstat_t_t, rpc_kstat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, statbuf)
 {
     int ret = fs_svr_fstat(fd->data, &statbuf->data);
     return ret;
 }
 RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_FSTAT, fstat,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                         rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, statbuf)
+                         rpc_kstat_t_t, rpc_kstat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, statbuf)
 
 /*ioctl*/
 RPC_GENERATION_OP3(fs_t, FS_PROT, FS_IOCTL, ioctl,
@@ -222,14 +225,14 @@ RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_RENAME, rename,
 // int stat(const char *restrict path, struct stat *restrict buf)
 RPC_GENERATION_OP2(fs_t, FS_PROT, FS_STAT, stat,
                    rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                   rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf)
+                   rpc_kstat_t_t, rpc_kstat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf)
 {
     path->data[path->len - 1] = 0;
     return fs_svr_stat(path->data, &buf->data);
 }
 RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_STAT, stat,
                          rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                         rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf)
+                         rpc_kstat_t_t, rpc_kstat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf)
 
 // ssize_t readlink(const char *restrict path, char *restrict buf, size_t bufsize)
 RPC_GENERATION_OP3(fs_t, FS_PROT, FS_READLINK, readlink,

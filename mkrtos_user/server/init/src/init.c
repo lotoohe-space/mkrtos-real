@@ -34,7 +34,7 @@
 
 #define DEFAULT_INIT_CFG "init.cfg"
 
-#define STACK_COM_ITME_SIZE (1024+512)
+#define STACK_COM_ITME_SIZE (3*1024)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];

@@ -677,7 +677,7 @@ int fs_svr_renmae(char *oldname, char *newname)
 {
   return -ENOSYS;
 }
-int fs_svr_fstat(int fd, stat_t *stat)
+int fs_svr_fstat(int fd, void *stat)
 {
   return -ENOSYS;
 }
@@ -689,7 +689,7 @@ int fs_svr_rename(char *old, char *new)
 {
   return -ENOSYS;
 }
-int fs_svr_stat(const char *path, struct stat *buf)
+int fs_svr_stat(const char *path, void *_buf)
 {
   return -ENOSYS;
 }

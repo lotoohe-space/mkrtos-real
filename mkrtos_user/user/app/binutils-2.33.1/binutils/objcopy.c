@@ -17,7 +17,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA
    02110-1301, USA.  */
-
+
 #include "sysdep.h"
 #include "bfd.h"
 #include "progress.h"
@@ -31,6 +31,27 @@
 #include "coff/internal.h"
 #include "libcoff.h"
 #include "safe-ctype.h"
+
+#ifdef MKRTOS
+
+#define HEAP_SIZE 1*1024 * 1024
+#define STACK_SIZE (8 * 1024)
+
+#if defined(__CC_ARM)
+#define HEAP_ATTR SECTION("HEAP") __attribute__((zero_init))
+#define STACK_ATTR SECTION("STACK") __attribute__((zero_init))
+#elif defined(__GNUC__)
+#define HEAP_ATTR __attribute__((__section__(".bss.heap")))
+#define STACK_ATTR __attribute__((__section__(".bss.stack")))
+#elif defined(__IAR_SYSTEMS_ICC__)
+#define HEAP_ATTR
+#define STACK_ATTR
+#endif
+
+__attribute__((used)) HEAP_ATTR static char _____heap_____[HEAP_SIZE];
+__attribute__((used)) STACK_ATTR static char _____stack_____[STACK_SIZE];
+
+#endif
 
 /* FIXME: See bfd/peXXigen.c for why we include an architecture specific
    header in generic PE code.  */

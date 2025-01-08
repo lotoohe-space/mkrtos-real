@@ -6,12 +6,15 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <u_vmam.h>
-
+#include "fs_test.h"
 int main(int argc, char *argv[])
 {
     for (int i = 0; i < argc; i++)
     {
         printf("argv[%d]: %s\n", i, argv[i]);
     }
+    fs_test3();
+    fs_test2();
+    fs_test();
     return 0;
 }

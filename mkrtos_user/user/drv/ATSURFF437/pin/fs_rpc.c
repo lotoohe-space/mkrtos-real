@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
-
+#include <sys/stat.h>
 static fs_t fs;
 
 typedef struct file_desc
@@ -368,8 +368,9 @@ int fs_svr_renmae(char *oldname, char *newname)
 {
     return -ENOSYS;
 }
-int fs_svr_fstat(int fd, stat_t *stat)
+int fs_svr_fstat(int fd, void *_stat)
 {
+    struct kstat *stat = _stat;
     file_desc_t *file = fd_get(thread_get_src_pid(), fd);
 
     if (!file)
@@ -395,7 +396,7 @@ int fs_svr_rename(char *old, char *new)
 {
     return -ENOSYS;
 }
-int fs_svr_stat(const char *path, struct stat *buf)
+int fs_svr_stat(const char *path, void *_buf)
 {
     if (path == NULL || buf == NULL)
     {

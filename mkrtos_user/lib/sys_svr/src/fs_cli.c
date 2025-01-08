@@ -11,7 +11,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-
+#include <sys/stat.h>
+#include "kstat.h"
+typedef struct kstat kstat_t;
+RPC_TYPE_DEF_ALL(kstat_t)
 /*open*/
 RPC_GENERATION_CALL3(TRUE, fs_t, FS_PROT, FS_OPEN, open,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
@@ -244,8 +247,8 @@ int fs_ftruncate(sd_t _fd, off_t off)
 // int fstat(int fd, struct stat *statbuf);
 RPC_GENERATION_CALL2(TRUE, fs_t, FS_PROT, FS_FSTAT, fstat,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                     rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, statbuf)
-int fs_fstat(sd_t _fd, stat_t *stat)
+                     rpc_kstat_t_t, rpc_kstat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, statbuf)
+int fs_fstat(sd_t _fd, kstat_t *stat)
 {
     obj_handler_t hd = mk_sd_init_raw(_fd).hd;
     int fd = mk_sd_init_raw(_fd).fd;
@@ -253,7 +256,7 @@ int fs_fstat(sd_t _fd, stat_t *stat)
     rpc_int_t rpc_fd = {
         .data = fd,
     };
-    rpc_stat_t_t rpc_statbuf;
+    rpc_kstat_t_t rpc_statbuf;
     msg_tag_t tag;
 
     if (!stat)
@@ -498,16 +501,17 @@ int fs_rename(char *old, char *new)
 // int stat(const char *restrict path, struct stat *restrict buf)
 RPC_GENERATION_CALL2(TRUE, fs_t, FS_PROT, FS_STAT, stat,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                     rpc_stat_t_t, rpc_stat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf)
+                     rpc_kstat_t_t, rpc_kstat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf)
 
-int fs_stat(char *path, stat_t *buf)
+int fs_stat(char *path, void *_buf)
 {
+    kstat_t *buf = (kstat_t *)_buf;
     obj_handler_t hd;
     if (!buf)
     {
         return -EINVAL;
     }
-    int ret = ns_query(path, &hd, 0x1);
+    int ret = ns_query(path, &hd, 0x0);
 
     if (ret < 0)
     {
@@ -517,7 +521,7 @@ int fs_stat(char *path, stat_t *buf)
         .data = (uint8_t *)(&path[ret]),
         .len = strlen(&path[ret]) + 1,
     };
-    rpc_stat_t_t rpc_buf;
+    rpc_kstat_t_t rpc_buf;
     msg_tag_t tag;
 
     tag = fs_t_stat_call(hd, &rpc_path, &rpc_buf);

@@ -1,3 +1,4 @@
+#include "fs_rpc.h"
 #include "cons_cli.h"
 #include "cpiofs.h"
 #include "fs_svr.h"
@@ -7,13 +8,14 @@
 #include "u_rpc.h"
 #include "u_rpc_svr.h"
 #include "u_sys.h"
-#include "fs_rpc.h"
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+#include "kstat.h"
 static fs_t fs;
 
 typedef struct file_desc
@@ -285,8 +287,9 @@ int fs_svr_renmae(char *oldname, char *newname)
 {
     return -ENOSYS;
 }
-int fs_svr_fstat(int fd, stat_t *stat)
+int fs_svr_fstat(int fd, void *_stat)
 {
+    struct kstat *stat = _stat;
     file_desc_t *file = fd_get(thread_get_src_pid(), fd);
 
     if (!file)
@@ -294,6 +297,7 @@ int fs_svr_fstat(int fd, stat_t *stat)
         return -ENOENT;
     }
     stat->st_size = file->file_size;
+    stat->st_mode = file->type == 1 ? S_IFDIR : S_IFREG;
     return 0;
 }
 int fs_svr_symlink(const char *src, const char *dst)
@@ -312,12 +316,25 @@ int fs_svr_rename(char *old, char *new)
 {
     return -ENOSYS;
 }
-int fs_svr_stat(const char *path, struct stat *buf)
+int fs_svr_stat(const char *path, void *_buf)
 {
-    if (path == NULL || buf == NULL)
+    umword_t size;
+    int type;
+    umword_t addr;
+    struct kstat *buf = (struct kstat *)_buf;
+    int ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr,
+                             (umword_t)(-1), path, &size, &type, &addr);
+    if (ret < 0)
     {
-        return -EINVAL;
+        return ret;
     }
+    memset(buf, 0xff, sizeof(*buf));
+    buf->st_mode = type == 1 ? S_IFDIR : S_IFREG;
+    buf->st_size = size;
+    return 0;
+}
+int fs_svr_ioctl(int fd, int req, void *arg)
+{
     return -ENOSYS;
 }
 ssize_t fs_svr_readlink(const char *path, char *buf, size_t bufsize)

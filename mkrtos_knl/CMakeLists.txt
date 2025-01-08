@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+-O3 \
 -Werror \
 -Wno-unused-parameter \
 -Wno-unused-function \

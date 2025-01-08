@@ -9,6 +9,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include "u_sys.h"
 int ls(int argc, char *agrv[])
@@ -28,7 +29,9 @@ int ls(int argc, char *agrv[])
     }
     while ((ptr = readdir(dir)) != NULL)
     {
-        printf("%s \n", ptr->d_name);
+        struct stat st = {0};
+        stat(ptr->d_name, &st);
+        printf("%s\t\t\t%dB\n", ptr->d_name, st.st_size);
     }
     closedir(dir);
     return 0;
@@ -58,7 +61,38 @@ int cat(int argc, char *argv[])
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), cat, cat, cat command);
+int hex(int argc, char *argv[])
+{
+    int i = 0;
+    if (argc != 2)
+    {
+        return (-1);
+    }
 
+    FILE *fp;
+    char c;
+    int ret;
+
+    if ((fp = fopen(argv[1], "rb")) == NULL)
+    {
+        return errno;
+    }
+
+    while ((ret = fread( &c, 1,1,fp)) == 1)
+    {
+        printf("%02x ", c);
+        i++;
+        if (i % 16 == 0)
+        {
+            printf("\n");
+        }
+    }
+    printf("\nsize:%dB\n", i);
+    fclose(fp);
+
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), hex, hex, hex command);
 int kill(int argc, char *argv[])
 {
     if (argc < 2)

@@ -7,19 +7,18 @@
 #include <assert.h>
 #include <cons_cli.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
 #include <sys/uio.h>
 #include <u_env.h>
 #include <u_log.h>
 #include <u_prot.h>
+#include <u_sema.h>
 #include <u_task.h>
 #include <u_util.h>
-#include <u_sema.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <string.h>
 AUTO_CALL(101)
 void fs_backend_init(void)
 {
@@ -438,6 +437,25 @@ long be_getdents(long fd, char *buf, size_t size)
         return -ENOSYS;
     }
     return ret;
+}
+
+// int stat(const char *pathname, struct stat *buf);
+long be_stat(const char *path, void *_buf)
+{
+    struct kstat *buf = _buf;
+    return fs_stat((char *)path, buf);
+}
+long be_fstat(int fd, void *_buf)
+{
+    struct kstat *buf = _buf;
+    fd_map_entry_t u_fd;
+    int ret = fd_map_get(fd, &u_fd);
+
+    if (ret < 0)
+    {
+        return -EBADF;
+    }
+    return fs_fstat(u_fd.priv_fd, (void *)buf);
 }
 long sys_be_getdents(va_list ap)
 {

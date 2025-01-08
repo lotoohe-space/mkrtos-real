@@ -22,7 +22,9 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/statfs.h>
+
 typedef struct stat stat_t;
+// typedef struct kstat kstat_t;
 typedef struct statfs statfs_t;
 typedef struct dirent dirent_t;
 
@@ -190,6 +192,7 @@ RPC_TYPE_DEF_ALL(umword_t) //!< 定义所有的
 RPC_TYPE_DEF_ALL(mword_t)  //!< 定义所有的
 RPC_TYPE_DEF_ALL(dirent_t) //!< 目录类型
 RPC_TYPE_DEF_ALL(stat_t)
+// RPC_TYPE_DEF_ALL(kstat_t)
 RPC_TYPE_DEF_ALL(statfs_t)
 
 /**

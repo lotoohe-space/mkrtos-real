@@ -39,7 +39,6 @@ PATH: /usr/local/games
 PATH: /snap/bin
 PATH: /home/zhangzheng/.vscode-server/data/User/globalStorage/github.copilot-chat/debugCommand
 PATH: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin
-PATH: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/
 
 
 ## ----------- ##
@@ -47,300 +46,13 @@ PATH: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/
 ## ----------- ##
 
 configure:2154: loading cache ./config.cache
-configure:2273: checking build system type
-configure:2287: result: x86_64-pc-linux-gnu
-configure:2307: checking host system type
-configure:2320: result: arm-none-eabi
-configure:2340: checking target system type
-configure:2353: result: arm-none-eabi
-configure:2390: checking for arm-none-eabi-gcc
-configure:2417: result: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc
-configure:2686: checking for C compiler version
-configure:2695: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc --version >&5
-arm-none-eabi-gcc (GNU Toolchain for the A-profile Architecture 10.3-2021.07 (arm-10.29)) 10.3.1 20210621
-Copyright (C) 2020 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-configure:2706: $? = 0
-configure:2695: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -v >&5
-Using built-in specs.
-COLLECT_GCC=/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc
-COLLECT_LTO_WRAPPER=/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/../libexec/gcc/arm-none-eabi/10.3.1/lto-wrapper
-Target: arm-none-eabi
-Configured with: /data/jenkins/workspace/GNU-toolchain/arm-10/src/gcc/configure --target=arm-none-eabi --prefix=/data/jenkins/workspace/GNU-toolchain/arm-10/build-arm-none-eabi/install// --with-gmp=/data/jenkins/workspace/GNU-toolchain/arm-10/build-arm-none-eabi/host-tools --with-mpfr=/data/jenkins/workspace/GNU-toolchain/arm-10/build-arm-none-eabi/host-tools --with-mpc=/data/jenkins/workspace/GNU-toolchain/arm-10/build-arm-none-eabi/host-tools --with-isl=/data/jenkins/workspace/GNU-toolchain/arm-10/build-arm-none-eabi/host-tools --disable-shared --disable-nls --disable-threads --disable-tls --enable-checking=release --enable-languages=c,c++,fortran --with-newlib --with-multilib-list=aprofile,rmprofile --with-pkgversion='GNU Toolchain for the A-profile Architecture 10.3-2021.07 (arm-10.29)' --with-bugurl=https://bugs.linaro.org/
-Thread model: single
-Supported LTO compression algorithms: zlib
-gcc version 10.3.1 20210621 (GNU Toolchain for the A-profile Architecture 10.3-2021.07 (arm-10.29)) 
-configure:2706: $? = 0
-configure:2695: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -V >&5
-arm-none-eabi-gcc: error: unrecognized command-line option '-V'
-arm-none-eabi-gcc: fatal error: no input files
-compilation terminated.
-configure:2706: $? = 1
-configure:2695: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -qversion >&5
-arm-none-eabi-gcc: error: unrecognized command-line option '-qversion'; did you mean '--version'?
-arm-none-eabi-gcc: fatal error: no input files
-compilation terminated.
-configure:2706: $? = 1
-configure:2726: checking whether the C compiler works
-configure:2748: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -mcpu=cortex-m3 -O0 -g3 -mfloat-abi=soft  -mthumb  -DMKRTOS -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -u=_printf_float -nostartfiles -nodefaultlibs -nostdlib -nostdinc -fno-stack-protector -Wl,--gc-sections -D__ARM_ARCH_7M__ -include /home/zhangzheng/projects/mkrtos-real/build/autoconf.h      -fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative      -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/arch/arm/ -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/arch/generic -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/obj/src/internal -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/src/include -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/src/internal -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/obj/include -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/include -L/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/ -Wl,-no-dynamic-linker -T /home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/armv7_8m/link.lds -L/home/zhangzheng/projects/mkrtos-real/build/usr_lib -Wl,--start-group -static -lstart -llibc_be -lmuslc -lgcc -lsys -lsys_svr -lsys_util -lutil -llibc_be -lmuslc -Wl,--end-group     conftest.c  >&5
-configure:2752: $? = 0
-configure:2800: result: yes
-configure:2803: checking for C compiler default output file name
-configure:2805: result: a.out
-configure:2811: checking for suffix of executables
-configure:2818: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -o conftest -mcpu=cortex-m3 -O0 -g3 -mfloat-abi=soft  -mthumb  -DMKRTOS -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -u=_printf_float -nostartfiles -nodefaultlibs -nostdlib -nostdinc -fno-stack-protector -Wl,--gc-sections -D__ARM_ARCH_7M__ -include /home/zhangzheng/projects/mkrtos-real/build/autoconf.h      -fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative      -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/arch/arm/ -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/arch/generic -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/obj/src/internal -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/src/include -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/src/internal -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/obj/include -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/include -L/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/ -Wl,-no-dynamic-linker -T /home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/armv7_8m/link.lds -L/home/zhangzheng/projects/mkrtos-real/build/usr_lib -Wl,--start-group -static -lstart -llibc_be -lmuslc -lgcc -lsys -lsys_svr -lsys_util -lutil -llibc_be -lmuslc -Wl,--end-group     conftest.c  >&5
-configure:2822: $? = 0
-configure:2844: result: 
-configure:2866: checking whether we are cross compiling
-configure:2904: result: yes
-configure:2909: checking for suffix of object files
-configure:2956: result: o
-configure:2960: checking whether we are using the GNU C compiler
-configure:2988: result: yes
-configure:2997: checking whether /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc accepts -g
-configure:3058: result: yes
-configure:3075: checking for /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc option to accept ISO C89
-configure:3151: result: none needed
-configure:3176: checking whether /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc understands -c and -o together
-configure:3213: result: yes
-configure:3231: checking for library containing strerror
-configure:3279: result: none required
-configure:3304: checking for a BSD-compatible install
-configure:3372: result: /usr/bin/install -c
-configure:3383: checking whether build environment is sane
-configure:3438: result: yes
-configure:3494: checking for arm-none-eabi-strip
-configure:3521: result: arm-none-eabi-strip
-configure:3586: checking for a thread-safe mkdir -p
-configure:3625: result: /usr/bin/mkdir -p
-configure:3632: checking for gawk
-configure:3659: result: mawk
-configure:3670: checking whether make sets $(MAKE)
-configure:3692: result: yes
-configure:3722: checking for style of include used by make
-configure:3750: result: GNU
-configure:3784: checking whether make supports nested variables
-configure:3801: result: yes
-configure:3886: checking dependency style of /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc
-configure:3997: result: gcc3
-configure:4067: checking for arm-none-eabi-gcc
-configure:4094: result: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc
-configure:4363: checking for C compiler version
-configure:4372: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc --version >&5
-arm-none-eabi-gcc (GNU Toolchain for the A-profile Architecture 10.3-2021.07 (arm-10.29)) 10.3.1 20210621
-Copyright (C) 2020 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-configure:4383: $? = 0
-configure:4372: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -v >&5
-Using built-in specs.
-COLLECT_GCC=/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc
-COLLECT_LTO_WRAPPER=/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/../libexec/gcc/arm-none-eabi/10.3.1/lto-wrapper
-Target: arm-none-eabi
-Configured with: /data/jenkins/workspace/GNU-toolchain/arm-10/src/gcc/configure --target=arm-none-eabi --prefix=/data/jenkins/workspace/GNU-toolchain/arm-10/build-arm-none-eabi/install// --with-gmp=/data/jenkins/workspace/GNU-toolchain/arm-10/build-arm-none-eabi/host-tools --with-mpfr=/data/jenkins/workspace/GNU-toolchain/arm-10/build-arm-none-eabi/host-tools --with-mpc=/data/jenkins/workspace/GNU-toolchain/arm-10/build-arm-none-eabi/host-tools --with-isl=/data/jenkins/workspace/GNU-toolchain/arm-10/build-arm-none-eabi/host-tools --disable-shared --disable-nls --disable-threads --disable-tls --enable-checking=release --enable-languages=c,c++,fortran --with-newlib --with-multilib-list=aprofile,rmprofile --with-pkgversion='GNU Toolchain for the A-profile Architecture 10.3-2021.07 (arm-10.29)' --with-bugurl=https://bugs.linaro.org/
-Thread model: single
-Supported LTO compression algorithms: zlib
-gcc version 10.3.1 20210621 (GNU Toolchain for the A-profile Architecture 10.3-2021.07 (arm-10.29)) 
-configure:4383: $? = 0
-configure:4372: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -V >&5
-arm-none-eabi-gcc: error: unrecognized command-line option '-V'
-arm-none-eabi-gcc: fatal error: no input files
-compilation terminated.
-configure:4383: $? = 1
-configure:4372: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -qversion >&5
-arm-none-eabi-gcc: error: unrecognized command-line option '-qversion'; did you mean '--version'?
-arm-none-eabi-gcc: fatal error: no input files
-compilation terminated.
-configure:4383: $? = 1
-configure:4387: checking whether we are using the GNU C compiler
-configure:4415: result: yes
-configure:4424: checking whether /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc accepts -g
-configure:4485: result: yes
-configure:4502: checking for /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc option to accept ISO C89
-configure:4578: result: none needed
-configure:4603: checking whether /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc understands -c and -o together
-configure:4640: result: yes
-configure:4662: checking how to run the C preprocessor
-configure:4732: result: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -E
-configure:4752: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -E  conftest.c
-configure:4752: $? = 0
-configure:4766: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -E  conftest.c
-conftest.c:11:10: fatal error: ac_nonexistent.h: No such file or directory
-   11 | #include <ac_nonexistent.h>
-      |          ^~~~~~~~~~~~~~~~~~
-compilation terminated.
-configure:4766: $? = 1
-configure: failed program was:
-| /* confdefs.h */
-| #define PACKAGE_NAME "gprof"
-| #define PACKAGE_TARNAME "gprof"
-| #define PACKAGE_VERSION "2.33.1"
-| #define PACKAGE_STRING "gprof 2.33.1"
-| #define PACKAGE_BUGREPORT ""
-| #define PACKAGE_URL ""
-| #define PACKAGE "gprof"
-| #define VERSION "2.33.1"
-| /* end confdefs.h.  */
-| #include <ac_nonexistent.h>
-configure:4795: checking for grep that handles long lines and -e
-configure:4853: result: /usr/bin/grep
-configure:4858: checking for egrep
-configure:4920: result: /usr/bin/grep -E
-configure:4925: checking for ANSI C header files
-configure:5029: result: yes
-configure:5042: checking for sys/types.h
-configure:5042: result: yes
-configure:5042: checking for sys/stat.h
-configure:5042: result: yes
-configure:5042: checking for stdlib.h
-configure:5042: result: yes
-configure:5042: checking for string.h
-configure:5042: result: yes
-configure:5042: checking for memory.h
-configure:5042: result: yes
-configure:5042: checking for strings.h
-configure:5042: result: yes
-configure:5042: checking for inttypes.h
-configure:5042: result: yes
-configure:5042: checking for stdint.h
-configure:5042: result: yes
-configure:5042: checking for unistd.h
-configure:5042: result: yes
-configure:5055: checking for minix/config.h
-configure:5055: result: no
-configure:5076: checking whether it is safe to define __EXTENSIONS__
-configure:5101: result: yes
-configure:5165: checking how to print strings
-configure:5192: result: printf
-configure:5213: checking for a sed that does not truncate output
-configure:5277: result: /usr/bin/sed
-configure:5295: checking for fgrep
-configure:5357: result: /usr/bin/grep -F
-configure:5392: checking for ld used by /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc
-configure:5459: result: /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/bin/ld
-configure:5466: checking if the linker (/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/bin/ld) is GNU ld
-configure:5481: result: yes
-configure:5493: checking for BSD- or MS-compatible name lister (nm)
-configure:5542: result: arm-none-eabi-nm
-configure:5672: checking the name lister (arm-none-eabi-nm) interface
-configure:5692: result: BSD nm
-configure:5695: checking whether ln -s works
-configure:5699: result: yes
-configure:5707: checking the maximum length of command line arguments
-configure:5832: result: 1572864
-configure:5849: checking whether the shell understands some XSI constructs
-configure:5859: result: yes
-configure:5863: checking whether the shell understands "+="
-configure:5869: result: yes
-configure:5904: checking for /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/bin/ld option to reload object files
-configure:5911: result: -r
-configure:5940: checking for arm-none-eabi-objdump
-configure:5967: result: arm-none-eabi-objdump
-configure:6039: checking how to recognize dependent libraries
-configure:6240: result: unknown
-configure:6260: checking for arm-none-eabi-ar
-configure:6287: result: arm-none-eabi-ar
-configure:6365: checking for arm-none-eabi-strip
-configure:6392: result: arm-none-eabi-strip
-configure:6464: checking for arm-none-eabi-ranlib
-configure:6491: result: arm-none-eabi-ranlib
-configure:6633: checking command to parse arm-none-eabi-nm output from /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc object
-configure:6856: result: ok
-configure:7704: checking for dlfcn.h
-configure:7704: result: yes
-configure:7891: checking for objdir
-configure:7906: result: .libs
-configure:8177: checking if /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc supports -fno-rtti -fno-exceptions
-configure:8212: result: no
-configure:8232: checking for /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc option to produce PIC
-configure:8518: result: -fPIC -DPIC
-configure:8530: checking if /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc PIC flag -fPIC -DPIC works
-configure:8565: result: yes
-configure:8589: checking if /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc static flag -static works
-configure:8617: result: yes
-configure:8632: checking if /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc supports -c -o file.o
-configure:8679: result: yes
-configure:8687: checking if /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc supports -c -o file.o
-configure:8734: result: yes
-configure:8767: checking whether the /home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc linker (/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/bin/ld) supports shared libraries
-configure:9838: result: yes
-configure:9875: checking whether -lc should be explicitly linked in
-configure:9918: result: yes
-configure:10083: checking dynamic linker characteristics
-configure:10756: result: no
-configure:10863: checking how to hardcode library paths into programs
-configure:10888: result: immediate
-configure:11428: checking whether stripping libraries is possible
-configure:11433: result: yes
-configure:11468: checking if libtool supports shared libraries
-configure:11470: result: no
-configure:11473: checking whether to build shared libraries
-configure:11494: result: no
-configure:11497: checking whether to build static libraries
-configure:11501: result: yes
-configure:11549: checking for dlfcn.h
-configure:11549: result: yes
-configure:11562: checking for windows.h
-configure:11562: result: no
-configure:11589: checking for library containing dlsym
-configure:11637: result: no
-configure:11668: checking for special C compiler options needed for large files
-configure:11713: result: no
-configure:11719: checking for _FILE_OFFSET_BITS value needed for large files
-configure:11776: result: no
-configure:11865: checking for setmode
-configure:11865: result: no
-configure:11889: checking whether NLS is requested
-configure:11895: result: yes
-configure:11901: checking for catalogs to be installed
-configure:11933: result:  bg da de eo es fi fr ga hu id it ja ms nl pt_BR ro ru rw sr sv tr uk vi bg da de eo es fi fr ga hu id it ja ms nl pt_BR ro ru rw sr sv tr uk vi
-configure:11960: checking whether NLS is requested
-configure:11969: result: yes
-configure:12007: checking for msgfmt
-configure:12041: result: no
-configure:12047: checking for gmsgfmt
-configure:12078: result: :
-configure:12118: checking for xgettext
-configure:12152: result: no
-configure:12189: checking for msgmerge
-configure:12222: result: no
-configure:12256: checking whether to enable maintainer-specific portions of Makefiles
-configure:12265: result: no
-configure:12290: checking for sys/gmon_out.h
-configure:12290: result: no
-configure:12301: checking for a known getopt prototype in unistd.h
-configure:12325: result: yes
-configure:12334: checking for library containing fabs
-configure:12382: result: -lm
-configure:12652: checking that generated files are newer than configure
-configure:12658: result: done
-configure:12689: creating ./config.status
-
-## ---------------------- ##
-## Running config.status. ##
-## ---------------------- ##
-
-This file was extended by gprof config.status 2.33.1, which was
-generated by GNU Autoconf 2.69.  Invocation command line was
-
-  CONFIG_FILES    = 
-  CONFIG_HEADERS  = 
-  CONFIG_LINKS    = 
-  CONFIG_COMMANDS = 
-  $ ./config.status 
-
-on liushiyi-X99
-
-config.status:1120: creating Makefile
-config.status:1120: creating po/Makefile.in
-config.status:1120: creating gconfig.h
-config.status:1301: gconfig.h is unchanged
-config.status:1349: executing depfiles commands
-config.status:1349: executing libtool commands
-config.status:1349: executing default-1 commands
+configure:2191: error: `CFLAGS' has changed since the previous run:
+configure:2199:   former value:  `-mcpu=cortex-m3 -O0 -g3 -mfloat-abi=soft  -mthumb  -DMKRTOS -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -u=_printf_float -nostartfiles -nodefaultlibs -nostdlib -nostdinc -fno-stack-protector -Wl,--gc-sections -D__ARM_ARCH_7M__ -include /home/zhangzheng/projects/mkrtos-real/build/autoconf.h      -fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative      -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/arch/arm/ -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/arch/generic -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/obj/src/internal -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/src/include -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/src/internal -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/obj/include -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/include -L/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/ -Wl,-no-dynamic-linker -T /home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/armv7_8m/link.lds -L/home/zhangzheng/projects/mkrtos-real/build/usr_lib -Wl,--start-group -static -lstart -llibc_be -lmuslc -lgcc -lsys -lsys_svr -lsys_util -lutil -llibc_be -lmuslc -Wl,--end-group '
+configure:2201:   current value: `-mcpu=cortex-m3 -O0 -g3 -mfloat-abi=soft  -mthumb  -DMKRTOS -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -u=_printf_float -nostartfiles -nodefaultlibs -nostdlib -nostdinc -fno-stack-protector -Wl,--gc-sections -D__ARM_ARCH_7M__ -include /home/zhangzheng/projects/mkrtos-real/build/autoconf.h      -fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative      -I/home/zhangzheng/projects/mkrtos-real/build/libc/output/include -L/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/ -DHAVE_STPCPY -DHAVE_MEMPCPY -DHAVE_PSIGNAL -Wl,-no-dynamic-linker -T /home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/armv7_8m/link.lds -L/home/zhangzheng/projects/mkrtos-real/build/usr_lib -Wl,--start-group -static -lnewc -lstart -llibc_be -lmuslc -lgcc -lsys -lsys_svr -lsys_util -lutil -lnewc -Wl,--end-group '
+configure:2181: error: `LIBS' was not set in the previous run
+configure:2218: error: in `/home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/gprof':
+configure:2220: error: changes in the environment can compromise the build
+configure:2222: error: run `make distclean' and/or `rm ./config.cache' and start over
 
 ## ---------------- ##
 ## Cache variables. ##
@@ -437,76 +149,76 @@ lt_cv_sys_max_cmd_len=1572864
 ## Output variables. ##
 ## ----------------- ##
 
-ACLOCAL='${SHELL} /home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/missing aclocal-1.15'
-AMDEPBACKSLASH='\'
-AMDEP_FALSE='#'
+ACLOCAL=''
+AMDEPBACKSLASH=''
+AMDEP_FALSE=''
 AMDEP_TRUE=''
-AMTAR='$${TAR-tar}'
-AM_BACKSLASH='\'
-AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
-AM_DEFAULT_VERBOSITY='1'
-AM_V='$(V)'
+AMTAR=''
+AM_BACKSLASH=''
+AM_DEFAULT_V=''
+AM_DEFAULT_VERBOSITY=''
+AM_V=''
 AR='arm-none-eabi-ar'
-AUTOCONF='${SHELL} /home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/missing autoconf'
-AUTOHEADER='${SHELL} /home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/missing autoheader'
-AUTOMAKE='${SHELL} /home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/missing automake-1.15'
+AUTOCONF=''
+AUTOHEADER=''
+AUTOMAKE=''
 AWK='mawk'
-CATALOGS=' bg.gmo da.gmo de.gmo eo.gmo es.gmo fi.gmo fr.gmo ga.gmo hu.gmo id.gmo it.gmo ja.gmo ms.gmo nl.gmo pt_BR.gmo ro.gmo ru.gmo rw.gmo sr.gmo sv.gmo tr.gmo uk.gmo vi.gmo bg.gmo da.gmo de.gmo eo.gmo es.gmo fi.gmo fr.gmo ga.gmo hu.gmo id.gmo it.gmo ja.gmo ms.gmo nl.gmo pt_BR.gmo ro.gmo ru.gmo rw.gmo sr.gmo sv.gmo tr.gmo uk.gmo vi.gmo'
-CATOBJEXT='.gmo'
+CATALOGS=''
+CATOBJEXT=''
 CC='/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc'
-CCDEPMODE='depmode=gcc3'
-CFLAGS='-mcpu=cortex-m3 -O0 -g3 -mfloat-abi=soft  -mthumb  -DMKRTOS -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -u=_printf_float -nostartfiles -nodefaultlibs -nostdlib -nostdinc -fno-stack-protector -Wl,--gc-sections -D__ARM_ARCH_7M__ -include /home/zhangzheng/projects/mkrtos-real/build/autoconf.h      -fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative      -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/arch/arm/ -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/arch/generic -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/obj/src/internal -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/src/include -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/src/internal -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/obj/include -I/home/zhangzheng/projects/mkrtos-real/mkrtos_user/lib/mlibc/include -L/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/ -Wl,-no-dynamic-linker -T /home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/armv7_8m/link.lds -L/home/zhangzheng/projects/mkrtos-real/build/usr_lib -Wl,--start-group -static -lstart -llibc_be -lmuslc -lgcc -lsys -lsys_svr -lsys_util -lutil -llibc_be -lmuslc -Wl,--end-group '
-CPP='/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -E'
+CCDEPMODE=''
+CFLAGS='-mcpu=cortex-m3 -O0 -g3 -mfloat-abi=soft  -mthumb  -DMKRTOS -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -u=_printf_float -nostartfiles -nodefaultlibs -nostdlib -nostdinc -fno-stack-protector -Wl,--gc-sections -D__ARM_ARCH_7M__ -include /home/zhangzheng/projects/mkrtos-real/build/autoconf.h      -fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative      -I/home/zhangzheng/projects/mkrtos-real/build/libc/output/include -L/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/ -DHAVE_STPCPY -DHAVE_MEMPCPY -DHAVE_PSIGNAL -Wl,-no-dynamic-linker -T /home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/armv7_8m/link.lds -L/home/zhangzheng/projects/mkrtos-real/build/usr_lib -Wl,--start-group -static -lnewc -lstart -llibc_be -lmuslc -lgcc -lsys -lsys_svr -lsys_util -lutil -lnewc -Wl,--end-group '
+CPP=''
 CPPFLAGS=''
-CYGPATH_W='echo'
-DATADIRNAME='share'
-DEFS='-DHAVE_CONFIG_H'
-DEPDIR='.deps'
+CYGPATH_W=''
+DATADIRNAME=''
+DEFS=''
+DEPDIR=''
 DSYMUTIL=''
 DUMPBIN=''
 ECHO_C=''
 ECHO_N='-n'
 ECHO_T=''
-EGREP='/usr/bin/grep -E'
+EGREP=''
 EXEEXT=''
-FGREP='/usr/bin/grep -F'
-GENCAT='gencat'
+FGREP=''
+GENCAT=''
 GENINSRC_NEVER_FALSE=''
-GENINSRC_NEVER_TRUE='#'
-GMSGFMT=':'
-GREP='/usr/bin/grep'
-INCINTL='-I${top_builddir}/../intl'
+GENINSRC_NEVER_TRUE=''
+GMSGFMT=''
+GREP=''
+INCINTL=''
 INSTALL_DATA='/usr/bin/install -c -m 644'
 INSTALL_PROGRAM='/usr/bin/install -c'
 INSTALL_SCRIPT='/usr/bin/install -c'
-INSTALL_STRIP_PROGRAM='$(install_sh) -c -s'
-INSTOBJEXT='.mo'
+INSTALL_STRIP_PROGRAM=''
+INSTOBJEXT=''
 LD='/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/bin/ld'
 LDFLAGS=' '
-LIBINTL='${top_builddir}/../intl/libintl.a'
-LIBINTL_DEP='${top_builddir}/../intl/libintl.a'
+LIBINTL=''
+LIBINTL_DEP=''
 LIBOBJS=''
-LIBS='-lm '
-LIBTOOL='$(SHELL) $(top_builddir)/libtool'
+LIBS='-Wl,--start-group -static -lnewc -lstart -llibc_be -lmuslc -lgcc -lsys -lsys_svr -lsys_util -lutil -lnewc -Wl,--end-group '
+LIBTOOL=''
 LIPO=''
-LN_S='ln -s'
+LN_S=''
 LTLIBOBJS=''
-MAINT='#'
+MAINT=''
 MAINTAINER_MODE_FALSE=''
-MAINTAINER_MODE_TRUE='#'
+MAINTAINER_MODE_TRUE=''
 MAKEINFO='makeinfo --split-size=5000000'
-MKDIR_P='/usr/bin/mkdir -p'
-MKINSTALLDIRS='$(top_builddir)/./../mkinstalldirs'
-MSGFMT=':'
-MSGMERGE=':'
+MKDIR_P=''
+MKINSTALLDIRS=''
+MSGFMT=''
+MSGMERGE=''
 NM='arm-none-eabi-nm'
 NMEDIT=''
 NO_WERROR=''
 OBJDUMP='arm-none-eabi-objdump'
-OBJEXT='o'
+OBJEXT=''
 OTOOL64=''
 OTOOL=''
-PACKAGE='gprof'
+PACKAGE=''
 PACKAGE_BUGREPORT=''
 PACKAGE_NAME='gprof'
 PACKAGE_STRING='gprof 2.33.1'
@@ -514,60 +226,60 @@ PACKAGE_TARNAME='gprof'
 PACKAGE_URL=''
 PACKAGE_VERSION='2.33.1'
 PATH_SEPARATOR=':'
-POSUB='po'
+POSUB=''
 RANLIB='arm-none-eabi-ranlib'
 SED='/usr/bin/sed'
 SET_MAKE=''
 SHELL='/bin/bash'
-STRIP='arm-none-eabi-strip'
-USE_NLS='yes'
-VERSION='2.33.1'
-WARN_CFLAGS='-W -Wall -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wstack-usage=262144'
-WARN_CFLAGS_FOR_BUILD='-W -Wall -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wstack-usage=262144'
-WARN_WRITE_STRINGS='-Wwrite-strings'
-XGETTEXT=':'
+STRIP=''
+USE_NLS=''
+VERSION=''
+WARN_CFLAGS=''
+WARN_CFLAGS_FOR_BUILD=''
+WARN_WRITE_STRINGS=''
+XGETTEXT=''
 ac_ct_CC=''
 ac_ct_DUMPBIN=''
 am__EXEEXT_FALSE=''
-am__EXEEXT_TRUE='#'
-am__fastdepCC_FALSE='#'
+am__EXEEXT_TRUE=''
+am__fastdepCC_FALSE=''
 am__fastdepCC_TRUE=''
-am__include='include'
+am__include=''
 am__isrc=''
-am__leading_dot='.'
-am__nodep='_no'
+am__leading_dot=''
+am__nodep=''
 am__quote=''
-am__tar='$${TAR-tar} chof - "$$tardir"'
-am__untar='$${TAR-tar} xf -'
+am__tar=''
+am__untar=''
 bindir='${exec_prefix}/bin'
 build='x86_64-pc-linux-gnu'
 build_alias='x86_64-pc-linux-gnu'
-build_cpu='x86_64'
-build_os='linux-gnu'
-build_vendor='pc'
+build_cpu=''
+build_os=''
+build_vendor=''
 datadir='${datarootdir}'
 datarootdir='${prefix}/share'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
 dvidir='${docdir}'
-exec_prefix='${prefix}'
+exec_prefix='NONE'
 host='arm-none-eabi'
 host_alias='arm-none-eabi'
-host_cpu='arm'
-host_os='eabi'
-host_vendor='none'
+host_cpu=''
+host_os=''
+host_vendor=''
 htmldir='${docdir}'
 includedir='${prefix}/include'
 infodir='${datarootdir}/info'
-install_sh='${SHELL} /home/zhangzheng/projects/mkrtos-real/mkrtos_user/user/app/binutils-2.33.1/install-sh'
+install_sh=''
 libdir='${exec_prefix}/lib'
 libexecdir='${exec_prefix}/libexec'
 localedir='${datarootdir}/locale'
 localstatedir='${prefix}/var'
 mandir='${datarootdir}/man'
-mkdir_p='$(MKDIR_P)'
+mkdir_p=''
 oldincludedir='/usr/include'
 pdfdir='${docdir}'
-prefix='/usr/local'
+prefix='NONE'
 program_transform_name='s,y,y,'
 psdir='${docdir}'
 sbindir='${exec_prefix}/sbin'
@@ -575,9 +287,9 @@ sharedstatedir='${prefix}/com'
 sysconfdir='${prefix}/etc'
 target='arm-none-eabi'
 target_alias='arm-none-eabi'
-target_cpu='arm'
-target_os='eabi'
-target_vendor='none'
+target_cpu=''
+target_os=''
+target_vendor=''
 
 ## ----------- ##
 ## confdefs.h. ##
@@ -590,27 +302,5 @@ target_vendor='none'
 #define PACKAGE_STRING "gprof 2.33.1"
 #define PACKAGE_BUGREPORT ""
 #define PACKAGE_URL ""
-#define PACKAGE "gprof"
-#define VERSION "2.33.1"
-#define STDC_HEADERS 1
-#define HAVE_SYS_TYPES_H 1
-#define HAVE_SYS_STAT_H 1
-#define HAVE_STDLIB_H 1
-#define HAVE_STRING_H 1
-#define HAVE_MEMORY_H 1
-#define HAVE_STRINGS_H 1
-#define HAVE_INTTYPES_H 1
-#define HAVE_STDINT_H 1
-#define HAVE_UNISTD_H 1
-#define __EXTENSIONS__ 1
-#define _ALL_SOURCE 1
-#define _GNU_SOURCE 1
-#define _POSIX_PTHREAD_SEMANTICS 1
-#define _TANDEM_SOURCE 1
-#define HAVE_DLFCN_H 1
-#define LT_OBJDIR ".libs/"
-#define HAVE_DLFCN_H 1
-#define ENABLE_NLS 1
-#define HAVE_DECL_GETOPT 1
 
-configure: exit 0
+configure: exit 1

@@ -52,7 +52,7 @@ static boot_info_t boot_info = {
                 .speed = 0,
             }
         },
-        .mem_num = 2,
+        .mem_num = 1,
     },
 };
 

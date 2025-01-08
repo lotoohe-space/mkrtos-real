@@ -67,7 +67,9 @@ static int fstatat_statx(int fd, const char *restrict path, struct stat *restric
 	};
 	return 0;
 }
-
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
 #ifdef SYS_fstatat
 
 #include "kstat.h"
@@ -78,7 +80,11 @@ static int fstatat_kstat(int fd, const char *restrict path, struct stat *restric
 	struct kstat kst;
 
 	if (flag==AT_EMPTY_PATH && fd>=0 && !*path) {
+#ifdef NO_LITTLE_MODE
 		ret = __syscall(SYS_fstat, fd, &kst);
+#else
+		ret = be_fstat(fd, &kst);
+#endif
 		if (ret==-EBADF && __syscall(SYS_fcntl, fd, F_GETFD)>=0) {
 			ret = __syscall(SYS_fstatat, fd, path, &kst, flag);
 			if (ret==-EINVAL) {
@@ -97,8 +103,14 @@ static int fstatat_kstat(int fd, const char *restrict path, struct stat *restric
 		ret = __syscall(SYS_lstat, path, &kst);
 #endif
 #ifdef SYS_stat
-	else if ((fd == AT_FDCWD || *path=='/') && !flag)
-		ret = __syscall(SYS_stat, path, &kst);
+	else if ((fd == AT_FDCWD || *path=='/') && !flag) {
+#ifdef NO_LITTLE_MODE
+	ret = __syscall(SYS_stat, path, &kst);
+#else
+	ret = be_stat( path, &kst);
+#endif
+		
+	}
 #endif
 	else ret = __syscall(SYS_fstatat, fd, path, &kst, flag);
 

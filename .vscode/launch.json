@@ -71,8 +71,9 @@
             // "miDebuggerPath": "/home/zhangzheng/gcc-arm-10.3-2021.07-aarch64-aarch64-none-elf/bin/aarch64-none-elf-gdb",
             // "miDebuggerPath": "/home/mkrtos-smart/toolchains/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin/aarch64-none-elf-gdb",
             // "miDebuggerPath": "/home/toolchains/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin/aarch64-none-elf-gdb",
-            "miDebuggerPath": "/Users/zhangzheng/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gdb",
-            "miDebuggerServerAddress": "127.0.0.1:3333",
+            // "miDebuggerPath": "/Users/zhangzheng/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gdb",
+            "miDebuggerPath": "/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/arm-none-eabi-gdb",
+            "miDebuggerServerAddress": "127.0.0.1:33333",
             "MIMode": "gdb",
             "setupCommands": [
                 {
