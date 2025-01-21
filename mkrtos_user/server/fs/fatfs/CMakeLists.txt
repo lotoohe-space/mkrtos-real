@@ -68,8 +68,8 @@ add_custom_target(
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
     COMMAND
     cp fatfs.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/fatfs
-    COMMAND
-    cp fatfs.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/fatfs.elf
+    # COMMAND
+    # cp fatfs.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/fatfs.elf
 )
 
 add_dependencies(fatfs_dump fatfs.elf)

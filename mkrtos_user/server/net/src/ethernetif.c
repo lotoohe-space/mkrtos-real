@@ -7,7 +7,7 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include <cons_cli.h>
-#include <net_drv_cli.h>
+#include <blk_drv_cli.h>
 #include <u_hd_man.h>
 #include <u_factory.h>
 #include <u_share_mem.h>
@@ -64,7 +64,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 	int ret;
 
 	memcpy((void *)send_shm_addr, p->payload, p->len);
-	ret = net_drv_cli_write(net_drv_hd, send_shm_hd, p->len);
+	ret = blk_drv_cli_write(net_drv_hd, send_shm_hd, p->len, 0);
 	return ret >= 0 ? ERR_OK : ERR_IF;
 }
 

@@ -24,6 +24,7 @@
 #include <stdlib.h>
 
 #include <parse_cfg.h>
+#include <appfs_tiny.h>
 static char cmd_line[CMD_LEN];                              //!< 命令行
 static char cmd_params[CMD_PARAMS_CN][CMD_PARAMS_ITEM_LEN]; //!< 参数数组
 static int cmd_params_off[CMD_PARAMS_CN];                   //!< 参数偏移量
@@ -128,9 +129,17 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
     umword_t size;
     int type;
     const char *str;
+#if IS_ENABLED(CONFIG_CPIO_SUPPORT)
     ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr,
                          (umword_t)(-1), parse_cfg_file_name, &size, &type, (umword_t *)&str);
-
+#else
+    str = (const char *)appfs_tiny_find_file_addr_by_name(appfs_tiny_get_form_addr((void *)sys_info.bootfs_start_addr), parse_cfg_file_name, &size);
+    if (str == NULL)
+    {
+        ret = -ENOENT;
+    }
+    type = 0;
+#endif
     if (ret < 0 || (ret >= 0 && type == 1))
     {
         ret = -ENOENT;

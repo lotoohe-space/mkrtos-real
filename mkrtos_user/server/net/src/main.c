@@ -14,7 +14,7 @@
 #include <u_factory.h>
 #include <u_share_mem.h>
 #include <u_sema.h>
-#include <net_drv_cli.h>
+#include <blk_drv_cli.h>
 #include <ns_cli.h>
 umword_t addr;
 umword_t size;
@@ -42,7 +42,7 @@ again:
 
     obj_handler_t sem_hd;
 
-    if (net_drv_cli_map(net_drv_hd, &sem_hd) < 0)
+    if (blk_drv_cli_map(net_drv_hd, &sem_hd) < 0)
     {
         printf("net drv sem map error.\n");
         return -1;
@@ -62,7 +62,7 @@ again:
         {
             printf("error.\n");
         }
-        int ret = net_drv_cli_read(net_drv_hd, shm_hd);
+        int ret = blk_drv_cli_read(net_drv_hd, shm_hd, 0, 0);
 
         if (ret > 0)
         {

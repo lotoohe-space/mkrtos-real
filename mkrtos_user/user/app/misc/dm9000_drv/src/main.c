@@ -68,7 +68,7 @@ int main(int argc, char *args[])
 
     ret = rpc_meta_init(THREAD_MAIN, &hd);
     assert(ret >= 0);
-    meta_reg_svr_obj(&net_drv.svr, NET_DRV_PROT);
+    meta_reg_svr_obj(&net_drv.svr, BLK_DRV_PROT);
 
     assert(ns_register("/dm9000", hd, MOUNT_NODE) >= 0);
     mk_printf("dm9000 reg success\n");

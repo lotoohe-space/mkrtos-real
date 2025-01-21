@@ -363,7 +363,7 @@ int fs_svr_rename(char *old, char *new)
 }
 int fs_svr_stat(const char *path, void *_buf)
 {
-    if (path == NULL || buf == NULL)
+    if (path == NULL || _buf == NULL)
     {
         return -EINVAL;
     }

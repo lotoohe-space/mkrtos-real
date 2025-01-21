@@ -2,7 +2,7 @@
 .thumb
 .global fast_ipc_setsp
 /**
-* @brief syscall结束时到这儿
+* @brief fast_ip_setsp
 */
 .type fast_ipc_setsp, %function
 fast_ipc_setsp:

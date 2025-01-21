@@ -27,6 +27,7 @@ target_link_libraries(init.elf
     util
     cutest
     --no-whole-archive
+    appfs_tiny
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -71,4 +72,4 @@ if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
     add_dependencies(init_dump_elf init_dump)
 endif()
 add_dependencies(init_dump init.elf)
-add_dependencies(init.elf libc_be util)
+add_dependencies(init.elf libc_be util appfs_tiny)

@@ -1,12 +1,15 @@
 #!/bin/bash
 
+export TOOLCHAIN=/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/
+export TOOLCHAIN_LIB=/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp
+
 # linux build
 # export TOOLCHAIN=/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/bin/
 # export TOOLCHAIN_LIB=/home/zhangzheng/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv7e-m/fpu
 
 # mac compile
-export TOOLCHAIN=/Users/zhangzheng/gcc-arm-none-eabi-10.3-2021.10/bin/
-export TOOLCHAIN_LIB=/Users/zhangzheng/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m+fp/softfp
+# export TOOLCHAIN=/Users/zhangzheng/gcc-arm-none-eabi-10.3-2021.10/bin/
+# export TOOLCHAIN_LIB=/Users/zhangzheng/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m+fp/softfp
 
 # windows compile
 # export TOOLCHAIN=/d/GNUArmEmbeddedToolchain/102021.10/bin/

@@ -32,7 +32,11 @@
 #if IS_ENABLED(CONFIG_MMU)
 #include <vma.h>
 #endif
+#if IS_ENABLED(CONFIG_CPIO_SUPPORT)
 #include <cpio.h>
+#else
+#include <appfs_tiny.h>
+#endif
 #include <boot_info.h>
 
 static uint8_t knl_msg_buf[CONFIG_CPU][THREAD_MSG_BUG_LEN];
@@ -145,8 +149,11 @@ static void knl_init_2(void)
 
 #if IS_ENABLED(CONFIG_ELF_LAUNCH)
     addr_t entry;
-
+#if IS_ENABLED(CONFIG_CPIO_SUPPORT)
     ret_addr = cpio_find_file(cpio_images, (umword_t)(-1), "init", &size);
+#else
+    ret_addr = appfs_find_file_addr_by_name(appfs_get_form_addr((void *)(cpio_images)), "init", &size);
+#endif
     assert(ret_addr);
     elf_load(init_task, ret_addr, size, &entry);
     void *init_msg_buf = mm_buddy_alloc_one_page();
@@ -163,7 +170,11 @@ static void knl_init_2(void)
 #else
     app_info_t *app;
 
+#if IS_ENABLED(CONFIG_CPIO_SUPPORT)
     ret_addr = cpio_find_file(arch_get_boot_info()->flash_layer.flash_layer_list[BOOTFS_LAYER_3].st_addr, (umword_t)(-1), "init", &size);
+#else
+    ret_addr = appfs_find_file_addr_by_name(appfs_get_form_addr((void *)(arch_get_boot_info()->flash_layer.flash_layer_list[BOOTFS_LAYER_3].st_addr)), "init", &size);
+#endif
     assert(ret_addr);
     app = app_info_get((void *)(ret_addr));
     assert(app);

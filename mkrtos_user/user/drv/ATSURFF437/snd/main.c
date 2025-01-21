@@ -16,11 +16,11 @@
 #include <assert.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <snd_drv_svr.h>
+#include <blk_drv_svr.h>
 #include <u_fast_ipc.h>
 
 #include "mk_snd_drv_impl.h"
-static snd_drv_t snd_drv; //!< 网络驱动的协议
+static blk_drv_t snd_drv; //!< 网络驱动的协议
 #define STACK_COM_ITME_SIZE (1024+512)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
@@ -29,7 +29,7 @@ void fast_ipc_init(void)
 {
     u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
 }
-int snd_drv_write(obj_handler_t obj, int len)
+int blk_drv_write(obj_handler_t obj, int len, int inx)
 {
     int ret = -1;
     addr_t addr = 0;
@@ -48,7 +48,7 @@ int snd_drv_write(obj_handler_t obj, int len)
     handler_free_umap(obj);
     return len;
 }
-int snd_drv_read(obj_handler_t obj, int len)
+int blk_drv_read(obj_handler_t obj, int len, int inx)
 {
     int ret = -1;
     addr_t addr = 0;
@@ -60,9 +60,8 @@ int snd_drv_read(obj_handler_t obj, int len)
     handler_free_umap(obj);
     return ret;
 }
-int snd_drv_map(obj_handler_t *hd)
+int blk_drv_map(obj_handler_t *hd)
 {
-    // *hd = emac_get_sema();
     return -1;
 }
 int main(int argc, char *argv[])
@@ -78,11 +77,11 @@ int main(int argc, char *argv[])
     drv_snd_init();
     dtb_parse_init();
 
-    snd_drv_init(&snd_drv);
+    blk_drv_init(&snd_drv);
     ret = rpc_meta_init(THREAD_MAIN, &hd);
     assert(ret >= 0);
     ns_register("/snd", hd, FILE_NODE);
-    meta_reg_svr_obj(&snd_drv.svr, SND_DRV_PROT);
+    meta_reg_svr_obj(&snd_drv.svr, BLK_DRV_PROT);
     while (1)
     {
         rpc_loop();

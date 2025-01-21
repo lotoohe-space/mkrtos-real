@@ -3,7 +3,7 @@
 #include "u_rpc_svr.h"
 #include "u_slist.h"
 
-typedef struct snd_drv
+typedef struct blk_drv
 {
     rpc_svr_obj_t svr;
-} snd_drv_t;
+} blk_drv_t;

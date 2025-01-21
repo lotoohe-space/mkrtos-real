@@ -30,9 +30,15 @@ config DTBO_OFFSET
     hex "dtbo img offset."
     default 0x1000
 
-config RTT_DIR
-    string ""
-    default "./"
+config CPIO_SUPPORT
+    bool "support cpio img."
+    default y
 
+config APP_PARAMS_NR
+    int "app params nr"
+    default 8
 
+config APP_ENV_NR
+    int "app env nr"
+    default 8
 

@@ -15,7 +15,7 @@
 #include <u_task.h>
 #include <u_factory.h>
 #include <u_share_mem.h>
-#include <snd_drv_cli.h>
+#include <blk_drv_cli.h>
 #include <assert.h>
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -571,7 +571,7 @@ void nes_sound_close(void)
 void nes_apu_fill_buffer(int samples, u16 *wavebuf)
 {
 	memcpy((void *)addr, wavebuf, APU_PCMBUF_SIZE * 2);
-	int ret = snd_drv_cli_write(snd_drv_hd, shm_hd, APU_PCMBUF_SIZE * 2);
+	int ret = blk_drv_cli_write(snd_drv_hd, shm_hd, APU_PCMBUF_SIZE * 2, 0);
 	if (ret < 0)
 	{
 		printf("snd write error.\n");

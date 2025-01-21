@@ -49,12 +49,7 @@
 #define PM_SIG_PROT 0x0007          //!< pm信号协议
 #define PM_SIG_NOTIFY ((umword_t)0) //!< 通知消息
 
-#define NET_DRV_PROT 0x0008
-#define NET_DRV_WRITE ((umword_t)0) //!< 网络驱动写
-#define NET_DRV_READ ((umword_t)1)  //!< 网络驱动读
-#define NET_DRV_MAP ((umword_t)2)   //!< net map
-
-#define SND_DRV_PROT 0x0009
-#define SND_DRV_WRITE ((umword_t)0) //!< snd驱动写
-#define SND_DRV_READ ((umword_t)1)  //!< snd驱动读
-#define SND_DRV_MAP ((umword_t)2)   //!< snd map
+#define BLK_DRV_PROT 0x0008
+#define BLK_DRV_WRITE ((umword_t)0) //!< 块驱动写
+#define BLK_DRV_READ ((umword_t)1)  //!< 块驱动读
+#define BLK_DRV_MAP ((umword_t)2)   //!< 块驱动对象映射

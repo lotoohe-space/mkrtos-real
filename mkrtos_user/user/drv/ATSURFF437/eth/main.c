@@ -13,7 +13,7 @@
 #include "rpc_prot.h"
 #include "u_hd_man.h"
 #include "u_share_mem.h"
-#include <net_drv_svr.h>
+#include <blk_drv_svr.h>
 #include <assert.h>
 #include <sys/stat.h>
 #include "mk_eth_drv_impl.h"
@@ -21,7 +21,7 @@
 
 #include <errno.h>
 #include "at_surf_f437_board_emac.h"
-static net_drv_t net_drv; //!< 网络驱动的协议
+static blk_drv_t net_drv; //!< 网络驱动的协议
 #define STACK_COM_ITME_SIZE (1024+512)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
@@ -30,7 +30,7 @@ void fast_ipc_init(void)
 {
     u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
 }
-int net_drv_write(obj_handler_t obj, int len)
+int blk_drv_write(obj_handler_t obj, int len, int inx)
 {
     int ret = -1;
     addr_t addr = 0;
@@ -49,7 +49,7 @@ int net_drv_write(obj_handler_t obj, int len)
     handler_free_umap(obj);
     return len;
 }
-int net_drv_read(obj_handler_t obj, int len)
+int blk_drv_read(obj_handler_t obj, int len, int inx)
 {
     int ret = -1;
     addr_t addr = 0;
@@ -61,7 +61,7 @@ int net_drv_read(obj_handler_t obj, int len)
     handler_free_umap(obj);
     return ret;
 }
-int net_drv_map(obj_handler_t *hd)
+int blk_drv_map(obj_handler_t *hd)
 {
     *hd = emac_get_sema();
     return 0;
@@ -79,13 +79,13 @@ int main(int argc, char *argv[])
     drv_eth_init();
     dtb_parse_init();
 
-    net_drv_init(&net_drv);
+    blk_drv_init(&net_drv);
     ret = rpc_meta_init(THREAD_MAIN, &hd);
     assert(ret >= 0);
     // fs_svr_init();
     // mkdir("/dev", 0777);
     ns_register("/eth", hd, FILE_NODE);
-    meta_reg_svr_obj(&net_drv.svr, NET_DRV_PROT);
+    meta_reg_svr_obj(&net_drv.svr, BLK_DRV_PROT);
     while (1)
     {
         rpc_loop();

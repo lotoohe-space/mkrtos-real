@@ -26,6 +26,10 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sys/types.h>
+
+#if !IS_ENABLED(CONFIG_CPIO_SUPPORT)
+#include <appfs_tiny.h>
+#endif
 /**
  * @brief 向栈中存放数据
  *
@@ -132,8 +136,18 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     // }
     int type;
     umword_t addr;
-    int ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL, &type, &addr);
+    int ret;
 
+#if IS_ENABLED(CONFIG_CPIO_SUPPORT)
+    ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL, &type, &addr);
+#else
+    type = 0;
+    addr = (umword_t)appfs_tiny_find_file_addr_by_name(appfs_tiny_get_form_addr((void *)sys_info.bootfs_start_addr), name, NULL);
+    if (addr == 0)
+    {
+        ret = -ENOENT;
+    }
+#endif
     if (ret < 0 || (ret >= 0 && type == 1))
     {
         return -ENOENT;
@@ -259,8 +273,8 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
         .rev2 = HANDLER_INVALID,
     };
     umword_t *app_env;
-    char *cp_args[8/*FIXME:*/];
-    char *cp_envp[8];
+    char *cp_args[CONFIG_APP_PARAMS_NR];
+    char *cp_envp[CONFIG_APP_ENV_NR];
     size_t params_envp_len = 0;
 
     app_env = app_stack_push_array(hd_task, &usp_top, (uint8_t *)(&uenv), sizeof(uenv));
