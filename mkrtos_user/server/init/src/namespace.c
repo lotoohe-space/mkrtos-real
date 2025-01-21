@@ -35,6 +35,8 @@ int ns_reg(const char *path, obj_handler_t hd, enum node_type type);
 int ns_node_free(ns_node_t *node);
 static int find_path(const char *name);
 
+static obj_handler_t ns_hd;
+
 static void ns_lock(void) { pthread_spin_lock(&lock); }
 static void ns_unlock(void) { pthread_spin_unlock(&lock); }
 /**
@@ -46,35 +48,29 @@ static void ns_unlock(void) { pthread_spin_unlock(&lock); }
  */
 static void _ns_node_del_by_pid(slist_head_t *head, pid_t pid, int to_del)
 {
-  ns_node_t *pos;
+    ns_node_t *pos;
 
-  slist_foreach_not_next(pos, head, node)
-  {
-    ns_node_t *next = slist_next_entry(pos, head, node);
-
-    if (pos->type != DIR_NODE)
+    slist_foreach_not_next(pos, head, node)
     {
-      if (pid == pos->pid)
-      {
-        if (ns_node_free(pos) == 0)
-        {
-          if (to_del)
-          {
-            // task_unmap(TASK_THIS,
-            // vpage_create_raw3(KOBJ_DELETE_RIGHT, 0,
-            // pos->node_hd));
-            handler_del_umap(pos->node_hd);
-          }
+        ns_node_t *next = slist_next_entry(pos, head, node);
+
+        if (pos->type != DIR_NODE) {
+            if (pid == pos->pid) {
+                if (ns_node_free(pos) == 0) {
+                    if (to_del) {
+                        // task_unmap(TASK_THIS,
+                        // vpage_create_raw3(KOBJ_DELETE_RIGHT, 0,
+                        // pos->node_hd));
+                        handler_del_umap(pos->node_hd);
+                    }
+                }
+            }
+        } else {
+            _ns_node_del_by_pid(&pos->sub_dir, pid, to_del);
         }
-      }
-    }
-    else
-    {
-      _ns_node_del_by_pid(&pos->sub_dir, pid, to_del);
-    }
 
-    pos = next;
-  }
+        pos = next;
+    }
 }
 /**
  * @brief 从ns删除某个task注册的所有节点
@@ -84,9 +80,9 @@ static void _ns_node_del_by_pid(slist_head_t *head, pid_t pid, int to_del)
  */
 void ns_node_del_by_pid(pid_t pid, int to_del)
 {
-  ns_lock();
-  _ns_node_del_by_pid(&ns.root_node.sub_dir, pid, to_del);
-  ns_unlock();
+    ns_lock();
+    _ns_node_del_by_pid(&ns.root_node.sub_dir, pid, to_del);
+    ns_unlock();
 }
 /**
  * @brief 初始化一个节点
@@ -102,33 +98,31 @@ static ns_node_t *node_init(ns_node_t *new_node, ns_node_t *parent,
                             const char *name, obj_handler_t hd,
                             enum node_type type)
 {
-  strncpy(new_node->node_name, name, sizeof(new_node->node_name));
-  new_node->node_name[sizeof(new_node->node_name) - 1] = 0;
-  new_node->ref = 1;
-  new_node->type = type;
-  new_node->parent = parent;
-  new_node->pid = thread_get_src_pid();
-  if (parent)
-  {
-    parent->ref++; //! 父目录的引用计数+1
-  }
-  slist_init(&new_node->node);
-  switch (type)
-  {
-  case DIR_NODE:
-    slist_init(&new_node->sub_dir);
-    break;
-  case FILE_NODE:
-  case MOUNT_NODE:
-    new_node->node_hd = hd;
-    break;
-  case SYM_NODE:
-    new_node->sym_path[0] = 0;
-    break;
-  default:
-    break;
-  }
-  return new_node;
+    strncpy(new_node->node_name, name, sizeof(new_node->node_name));
+    new_node->node_name[sizeof(new_node->node_name) - 1] = 0;
+    new_node->ref = 1;
+    new_node->type = type;
+    new_node->parent = parent;
+    new_node->pid = thread_get_src_pid();
+    if (parent) {
+        parent->ref++; //! 父目录的引用计数+1
+    }
+    slist_init(&new_node->node);
+    switch (type) {
+    case DIR_NODE:
+        slist_init(&new_node->sub_dir);
+        break;
+    case FILE_NODE:
+    case MOUNT_NODE:
+        new_node->node_hd = hd;
+        break;
+    case SYM_NODE:
+        new_node->sym_path[0] = 0;
+        break;
+    default:
+        break;
+    }
+    return new_node;
 }
 /**
  * @brief Create a node object
@@ -142,14 +136,13 @@ static ns_node_t *node_init(ns_node_t *new_node, ns_node_t *parent,
 static ns_node_t *create_node(ns_node_t *parent, const char *name,
                               obj_handler_t hd, enum node_type type)
 {
-  ns_node_t *new_node = malloc(sizeof(*new_node));
+    ns_node_t *new_node = malloc(sizeof(*new_node));
 
-  if (new_node == NULL)
-  {
-    return NULL;
-  }
-  node_init(new_node, parent, name, hd, type);
-  return new_node;
+    if (new_node == NULL) {
+        return NULL;
+    }
+    node_init(new_node, parent, name, hd, type);
+    return new_node;
 }
 /**
  * @brief 路径分割
@@ -159,16 +152,14 @@ static ns_node_t *create_node(ns_node_t *parent, const char *name,
  */
 static int path_split(const char *name)
 {
-  int i = -1;
+    int i = -1;
 
-  for (i = 0; name[i]; i++)
-  {
-    if (name[i] == '/')
-    {
-      break;
+    for (i = 0; name[i]; i++) {
+        if (name[i] == '/') {
+            break;
+        }
     }
-  }
-  return i;
+    return i;
 }
 /**
  * @brief 找到某个节点
@@ -181,100 +172,83 @@ static int path_split(const char *name)
 static ns_node_t *node_lookup(ns_node_t *dir, const char *name,
                               size_t *ret_inx)
 {
-  int inx = -1;
-  int find_inx = 0;
-  int r_inx = 0;
-  ns_node_t *node = NULL;
-  bool_t find = FALSE;
+    int inx = -1;
+    int find_inx = 0;
+    int r_inx = 0;
+    ns_node_t *node = NULL;
+    bool_t find = FALSE;
 
-  if (dir->type != DIR_NODE)
-  {
-    return NULL;
-  }
-  if (name[0] == 0)
-  {
-    *ret_inx = 0;
-    return dir;
-  }
-  node = dir;
-  if (name[0] == '/')
-  {
-    find_inx++;
-    r_inx++;
-  }
-  find = TRUE;
-
-  while (1)
-  {
-    ns_node_t *pos;
-
-    inx = path_split(name + find_inx);
-    if (inx <= 0)
-    {
-      break;
+    if (dir->type != DIR_NODE) {
+        return NULL;
     }
-    slist_foreach(pos, &(node->sub_dir), node)
-    {
-      if (strncmp(name + find_inx, pos->node_name, inx) != 0)
-      {
-        continue;
-      }
-      switch (pos->type)
-      {
-      case DIR_NODE:
-      {
-        // dir
-        node = pos;
-        r_inx += inx;
-        find = TRUE;
-      }
-      break;
-      case FILE_NODE:
-      case MOUNT_NODE:
-      {
-        find = TRUE;
-        r_inx += inx;
-        node = pos;
-        goto end;
-      }
-      break;
-      case SYM_NODE:
-      {
-        size_t ret_inx;
-        ns_node_t *sym_node =
-            node_lookup(&ns.root_node, pos->sym_path, &ret_inx);
+    if (name[0] == 0) {
+        *ret_inx = 0;
+        return dir;
+    }
+    node = dir;
+    if (name[0] == '/') {
+        find_inx++;
+        r_inx++;
+    }
+    find = TRUE;
 
-        if (sym_node == NULL)
-        {
-          return NULL;
+    while (1) {
+        ns_node_t *pos;
+
+        inx = path_split(name + find_inx);
+        if (inx <= 0) {
+            break;
         }
-        node = sym_node;
-        r_inx += inx;
-        find = TRUE;
-      }
-      break;
-      default:
-        assert(0);
-        break;
-      }
-      break;
+        slist_foreach(pos, &(node->sub_dir), node)
+        {
+            if (strncmp(name + find_inx, pos->node_name, inx) != 0) {
+                continue;
+            }
+            switch (pos->type) {
+            case DIR_NODE: {
+                // dir
+                node = pos;
+                r_inx += inx;
+                find = TRUE;
+            } break;
+            case FILE_NODE:
+            case MOUNT_NODE: {
+                find = TRUE;
+                r_inx += inx;
+                node = pos;
+                goto end;
+            } break;
+            case SYM_NODE: {
+                size_t ret_inx;
+                ns_node_t *sym_node =
+                    node_lookup(&ns.root_node, pos->sym_path, &ret_inx);
+
+                if (sym_node == NULL) {
+                    return NULL;
+                }
+                node = sym_node;
+                r_inx += inx;
+                find = TRUE;
+            } break;
+            default:
+                assert(0);
+                break;
+            }
+            break;
+        }
+        find_inx += inx;
     }
-    find_inx += inx;
-  }
 end:
-  if (!find)
-  {
-    return NULL;
-  }
-  if (ret_inx)
-  {
-    if (name[r_inx] == '/')
-    {
-      r_inx++;
+    if (!find) {
+        return NULL;
     }
-    *ret_inx = r_inx;
-  }
-  return node;
+    if (ret_inx) {
+        if (name[r_inx] == '/') {
+            r_inx++;
+        }
+        *ret_inx = r_inx;
+    }
+    return node;
 }
 /**
  * @brief 释放一个节点
@@ -283,172 +257,150 @@ end:
  */
 int ns_node_free(ns_node_t *node)
 {
-  int ref = 0;
-  if (!node)
-  {
-    return 0;
-  }
-  if (node->ref == 1)
-  {
-    //!< 父级目录的引用计数-1
-    ns_node_free(node->parent);
-  }
-  node->ref--;
-  ref = node->ref;
-  if (node->ref <= 0)
-  {
-    switch (node->type)
-    {
-    case DIR_NODE:
-      assert(slist_is_empty(&node->sub_dir));
-      break;
-    case FILE_NODE:
-    case MOUNT_NODE:
-      handler_free_umap(node->node_hd);
-      break;
-    default:
-      assert(0);
-      break;
+    int ref = 0;
+    if (!node) {
+        return 0;
     }
-    if (slist_in_list(&node->node))
-    {
-      slist_del(&node->node);
+    if (node->ref == 1) {
+        //!< 父级目录的引用计数-1
+        ns_node_free(node->parent);
     }
-    free(node);
-  }
-  return ref;
+    node->ref--;
+    ref = node->ref;
+    if (node->ref <= 0) {
+        switch (node->type) {
+        case DIR_NODE:
+            assert(slist_is_empty(&node->sub_dir));
+            break;
+        case FILE_NODE:
+        case MOUNT_NODE:
+            handler_free_umap(node->node_hd);
+            break;
+        default:
+            assert(0);
+            break;
+        }
+        if (slist_in_list(&node->node)) {
+            slist_del(&node->node);
+        }
+        free(node);
+    }
+    return ref;
 }
+
 int fs_svr_open(const char *path, int flags, int mode)
 {
-  ns_node_t *node;
-  size_t ret_inx;
-  int len;
+    ns_node_t *node;
+    size_t ret_inx;
+    int len;
 
-  // again:
-  node = node_lookup(&ns.root_node, path, &ret_inx);
-  if (!node)
-  {
-    return -ENOENT;
-  }
-  len = strlen(path);
-  if (len != ret_inx)
-  {
-    /* 这里应该用mkdir创建
-    if (flags & O_CREAT)
-    {
-        int ret = ns_reg(path, 0, DIR_NODE);
-
-        if (ret < 0)
-        {
-            return ret;
-        }
-        goto again;
+    // again:
+    node = node_lookup(&ns.root_node, path, &ret_inx);
+    if (!node) {
+        return -ENOENT;
     }
-    */
-    return -ENOENT;
-  }
-  file_desc_t *fd_p = fd_alloc(node);
+    len = strlen(path);
+    if (len != ret_inx) {
+        /* 这里应该用mkdir创建
+        if (flags & O_CREAT)
+        {
+            int ret = ns_reg(path, 0, DIR_NODE);
 
-  if (!fd_p)
-  {
-    return -ENOMEM;
-  }
-  node->ref++;
-  return 0;
+            if (ret < 0)
+            {
+                return ret;
+            }
+            goto again;
+        }
+        */
+        return -ENOENT;
+    }
+    file_desc_t *fd_p = fd_alloc(node);
+
+    if (!fd_p) {
+        return -ENOMEM;
+    }
+    node->ref++;
+    return 0;
 }
+
 int fs_svr_readdir(int fd, dirent_t *dir)
 {
-  bool_t is_dec_ref = 0;
-  file_desc_t *fdp = fd_get(fd);
+    bool_t is_dec_ref = 0;
+    file_desc_t *fdp = fd_get(fd);
 
-  if (!fdp)
-  {
-    return -ENOENT;
-  }
-  if (fdp->node_iter == (void *)((umword_t)(-1)))
-  {
-    return -ENOENT;
-  }
-  if (fdp->node_iter == NULL)
-  {
-    // 首次迭代
-    if (slist_is_empty(&fdp->node->sub_dir))
-    {
-      return -ENOENT;
+    if (!fdp) {
+        return -ENOENT;
     }
-    // 获得第一个节点
-    fdp->node_iter =
-        container_of(slist_first(&fdp->node->sub_dir), ns_node_t, node);
-    fdp->node_iter->ref++;
-  }
+    if (fdp->node_iter == (void *)((umword_t)(-1))) {
+        return -ENOENT;
+    }
+    if (fdp->node_iter == NULL) {
+        // 首次迭代
+        if (slist_is_empty(&fdp->node->sub_dir)) {
+            return -ENOENT;
+        }
+        // 获得第一个节点
+        fdp->node_iter =
+            container_of(slist_first(&fdp->node->sub_dir), ns_node_t, node);
+        fdp->node_iter->ref++;
+    }
 
-  // 拷贝数据
-  dir->d_type = fdp->node_iter->type == FILE_NODE ? DT_CHR : DT_DIR;
-  dir->d_reclen = sizeof(*dir);
-  strncpy(dir->d_name, fdp->node_iter->node_name, sizeof(dir->d_name));
-  dir->d_name[sizeof(dir->d_name) - 1] = 0;
-  dir->d_ino = 0;
-  slist_head_t *next = fdp->node_iter->node.next;
+    // 拷贝数据
+    dir->d_type = fdp->node_iter->type == FILE_NODE ? DT_CHR : DT_DIR;
+    dir->d_reclen = sizeof(*dir);
+    strncpy(dir->d_name, fdp->node_iter->node_name, sizeof(dir->d_name));
+    dir->d_name[sizeof(dir->d_name) - 1] = 0;
+    dir->d_ino = 0;
+    slist_head_t *next = fdp->node_iter->node.next;
 
-  ns_node_free(fdp->node_iter);
-  if (next == &fdp->node->sub_dir)
-  {
-    // 到达结尾
-    fdp->node_iter = (void *)((umword_t)(-1));
+    ns_node_free(fdp->node_iter);
+    if (next == &fdp->node->sub_dir) {
+        // 到达结尾
+        fdp->node_iter = (void *)((umword_t)(-1));
+        return sizeof(*dir);
+    } else {
+        ns_node_t *next_n = container_of(next, ns_node_t, node);
+
+        fdp->node_iter = next_n;
+        next_n->ref++;
+    }
     return sizeof(*dir);
-  }
-  else
-  {
-    ns_node_t *next_n = container_of(next, ns_node_t, node);
-
-    fdp->node_iter = next_n;
-    next_n->ref++;
-  }
-  return sizeof(*dir);
 }
 void fs_svr_close(int fd)
 {
-  file_desc_t *fdp = fd_get(fd);
+    file_desc_t *fdp = fd_get(fd);
 
-  if (!fdp)
-  {
-    return;
-  }
-  if (fdp->node_iter && fdp->node_iter != (void *)(-1))
-  {
-    // 最后一个迭代的节点需要删除
-    ns_node_free(fdp->node_iter);
-  }
-  ns_node_free(fdp->node);
-  fd_free(fd);
+    if (!fdp) {
+        return;
+    }
+    if (fdp->node_iter && fdp->node_iter != (void *)(-1)) {
+        // 最后一个迭代的节点需要删除
+        ns_node_free(fdp->node_iter);
+    }
+    ns_node_free(fdp->node);
+    fd_free(fd);
 }
 int fs_svr_unlink(const char *path)
 {
-  ns_node_t *node;
-  size_t ret_inx;
+    ns_node_t *node;
+    size_t ret_inx;
 
-  node = node_lookup(&ns.root_node, path, &ret_inx);
-  if (!node)
-  {
-    return -EEXIST;
-  }
-  if (node && ret_inx == strlen(path))
-  {
-    if (node->ref == 1)
-    {
-      ns_node_free(node);
+    node = node_lookup(&ns.root_node, path, &ret_inx);
+    if (!node) {
+        return -EEXIST;
     }
-    else
-    {
-      return -ENOTEMPTY;
+    if (node && ret_inx == strlen(path)) {
+        if (node->ref == 1) {
+            ns_node_free(node);
+        } else {
+            return -ENOTEMPTY;
+        }
+    } else {
+        return -ENOENT;
     }
-  }
-  else
-  {
-    return -ENOENT;
-  }
 
-  return 0;
+    return 0;
 }
 /**
  * @brief 创建一个软链接节点
@@ -459,54 +411,48 @@ int fs_svr_unlink(const char *path)
  */
 int fs_svr_symlink(const char *src, const char *dst)
 {
-  ns_node_t *node;
-  size_t ret_inx;
-  int len;
-  printf("%s:%d. %s --> %s\n", __func__, __LINE__, src, dst);
+    ns_node_t *node;
+    size_t ret_inx;
+    int len;
+    printf("%s:%d. %s --> %s\n", __func__, __LINE__, src, dst);
 
-  node = node_lookup(&ns.root_node, dst, &ret_inx);
-  if (!node)
-  {
-    return -ENOENT;
-  }
-  len = strlen(dst);
-  if (len == ret_inx)
-  {
-    // 已经存在
-    return -EEXIST;
-  }
-  int inx = find_path(dst);
+    node = node_lookup(&ns.root_node, dst, &ret_inx);
+    if (!node) {
+        return -ENOENT;
+    }
+    len = strlen(dst);
+    if (len == ret_inx) {
+        // 已经存在
+        return -EEXIST;
+    }
+    int inx = find_path(dst);
 
-  if (ret_inx != inx)
-  {
-    // 父级目录不存在
-    return -ENOENT;
-  }
-  ns_node_t *new_node = create_node(&ns.root_node, dst + inx, 0, SYM_NODE);
+    if (ret_inx != inx) {
+        // 父级目录不存在
+        return -ENOENT;
+    }
+    ns_node_t *new_node = create_node(&ns.root_node, dst + inx, 0, SYM_NODE);
 
-  if (!new_node)
-  {
-    return -ENOMEM;
-  }
-  strncpy(new_node->sym_path, src, NAMESPACE_PATH_LEN);
-  new_node->sym_path[NAMESPACE_PATH_LEN - 1] = 0;
-  assert(node->type == DIR_NODE);
-  slist_add_append(&node->sub_dir, &new_node->node);
-  return 0;
+    if (!new_node) {
+        return -ENOMEM;
+    }
+    strncpy(new_node->sym_path, src, NAMESPACE_PATH_LEN);
+    new_node->sym_path[NAMESPACE_PATH_LEN - 1] = 0;
+    assert(node->type == DIR_NODE);
+    slist_add_append(&node->sub_dir, &new_node->node);
+    return 0;
 }
 
 static int find_path(const char *name)
 {
-  int len = strlen(name);
+    int len = strlen(name);
 
-  for (int i = len; i >= 0; i--)
-  {
-    if (name[i] == '/')
-    {
-      return i + 1;
+    for (int i = len; i >= 0; i--) {
+        if (name[i] == '/') {
+            return i + 1;
+        }
     }
-  }
-  return -1;
+    return -1;
 }
 /**
  * @brief 注册一个节点
@@ -517,56 +463,37 @@ static int find_path(const char *name)
  */
 int ns_reg(const char *path, obj_handler_t hd, enum node_type type)
 {
-  size_t ret_inx;
-  ns_node_t *new_node;
-  ns_node_t *node;
+    size_t ret_inx;
+    ns_node_t *new_node;
+    ns_node_t *node;
 
-  node = node_lookup(&ns.root_node, path, &ret_inx);
-  if (!node)
-  {
-    return -EEXIST;
-  }
-  if (node && ret_inx == strlen(path))
-  {
-    handler_free_umap(hd);
-    return -EEXIST;
-  }
-  int inx = find_path(path);
-
-  if (ret_inx != inx)
-  {
-    if (inx == -1)
-    {
-      inx = ret_inx;
+    node = node_lookup(&ns.root_node, path, &ret_inx);
+    if (!node) {
+        return -EEXIST;
     }
-    else
-    {
-      handler_free_umap(hd);
-      return -ENOENT;
+    if (node && ret_inx == strlen(path)) {
+        handler_free_umap(hd);
+        return -EEXIST;
     }
-  }
-  new_node = create_node(node, path + inx, hd, type);
-  if (!new_node)
-  {
-    handler_free_umap(hd);
-    return -ENOMEM;
-  }
+    int inx = find_path(path);
 
-  slist_add_append(&node->sub_dir, &new_node->node);
+    if (ret_inx != inx) {
+        if (inx == -1) {
+            inx = ret_inx;
+        } else {
+            handler_free_umap(hd);
+            return -ENOENT;
+        }
+    }
+    new_node = create_node(node, path + inx, hd, type);
+    if (!new_node) {
+        handler_free_umap(hd);
+        return -ENOMEM;
+    }
 
-  return 0;
-}
-static obj_handler_t ns_hd;
-void namespace_init(obj_handler_t ipc_hd)
-{
-  ns_init(&ns);
-  fs_init(&ns_fs);
-  meta_reg_svr_obj(&ns.svr, NS_PROT);
-  meta_reg_svr_obj(&ns_fs.svr, FS_PROT);
-  thread_set_src_pid(0);
-  node_init(&ns.root_node, NULL, "", 0, DIR_NODE);
-  ns_hd = ipc_hd;
-  // printf("ns svr init...\n");
+    slist_add_append(&node->sub_dir, &new_node->node);
+
+    return 0;
 }
 
 /**
@@ -578,16 +505,15 @@ void namespace_init(obj_handler_t ipc_hd)
  */
 int namespace_register(const char *path, obj_handler_t hd, int type)
 {
-  if (type == DIR_NODE)
-  {
-    handler_free_umap(hd);
-    return -ECANCELED;
-  }
-  ns_lock();
-  int ret = ns_reg(path, hd, type);
-  ns_unlock();
-  printf("register svr, name is %s, hd is %d\n", path, hd);
-  return ret;
+    if (type == DIR_NODE) {
+        handler_free_umap(hd);
+        return -ECANCELED;
+    }
+    ns_lock();
+    int ret = ns_reg(path, hd, type);
+    ns_unlock();
+    printf("register svr, name is %s, hd is %d\n", path, hd);
+    return ret;
 }
 /**
  * @brief 申请一个obj
@@ -598,106 +524,72 @@ int namespace_register(const char *path, obj_handler_t hd, int type)
  */
 int namespace_query(const char *path, obj_handler_t *hd)
 {
-  assert(hd);
-  size_t ret_inx;
-  ns_node_t *new_node;
-  ns_node_t *node;
+    assert(hd);
+    size_t ret_inx;
+    ns_node_t *new_node;
+    ns_node_t *node;
 
-  if (path[0] == '/' && path[1] == 0)
-  {
-    *hd = ns_hd;
-    return 1;
-  }
-  ns_lock();
-  node = node_lookup(&ns.root_node, path, &ret_inx);
-  if (!node)
-  {
-    ns_unlock();
-    return -EEXIST;
-  }
-  // if (ret_inx == strlen(path))
-  // {
-  //     ns_unlock();
-  //     return -EEXIST;
-  // }
-  if (node == &ns.root_node)
-  {
-    *hd = ns_hd;
-  }
-  else
-  {
-    if (node->type == DIR_NODE)
-    {
-      ns_unlock();
-      return -ENOENT;
+    if (path[0] == '/' && path[1] == 0) {
+        *hd = ns_hd;
+        return 1;
     }
-    *hd = node->node_hd;
-  }
-  ns_unlock();
-  return ret_inx;
+    ns_lock();
+    node = node_lookup(&ns.root_node, path, &ret_inx);
+    if (!node) {
+        ns_unlock();
+        return -EEXIST;
+    }
+    // if (ret_inx == strlen(path))
+    // {
+    //     ns_unlock();
+    //     return -EEXIST;
+    // }
+    if (node == &ns.root_node) {
+        *hd = ns_hd;
+    } else {
+        if (node->type == DIR_NODE) {
+            ns_unlock();
+            return -ENOENT;
+        }
+        *hd = node->node_hd;
+    }
+    ns_unlock();
+    return ret_inx;
 }
 
 void namespace_loop(void)
 {
-  rpc_loop();
-  // rpc_mtd_loop();
+    rpc_loop();
+    // rpc_mtd_loop();
 }
 
-int fs_svr_read(int fd, void *buf, size_t len)
-{
-  return -ENOSYS;
-}
-int fs_svr_write(int fd, void *buf, size_t len)
-{
-  return -ENOSYS;
-}
-int fs_svr_lseek(int fd, int offs, int whence)
-{
-  return -ENOSYS;
-}
-int fs_svr_ftruncate(int fd, off_t off)
-{
-  return -ENOSYS;
-}
-int fs_svr_fsync(int fd)
-{
-  return -ENOSYS;
-}
 int fs_svr_mkdir(char *path)
 {
-  int ret = ns_reg(path, 0, DIR_NODE);
+    int ret = ns_reg(path, 0, DIR_NODE);
 
-  if (ret < 0)
-  {
-    printf("ns mkdir %s is faile : %d\n", path, ret);
-  }
-  return ret;
+    if (ret < 0) {
+        printf("ns mkdir %s is faile : %d\n", path, ret);
+    }
+    return ret;
 }
-int fs_svr_renmae(char *oldname, char *newname)
+
+static const fs_operations_t ops =
 {
-  return -ENOSYS;
-}
-int fs_svr_fstat(int fd, void *stat)
+        .fs_svr_mkdir = fs_svr_mkdir,
+        .fs_svr_symlink = fs_svr_symlink,
+        .fs_svr_unlink = fs_svr_unlink,
+        .fs_svr_close = fs_svr_close,
+        .fs_svr_readdir = fs_svr_readdir,
+        .fs_svr_open = fs_svr_open,
+};
+void namespace_init(obj_handler_t ipc_hd)
 {
-  return -ENOSYS;
-}
-int fs_svr_rmdir(char *path)
-{
-  return -ENOSYS;
-}
-int fs_svr_rename(char *old, char *new)
-{
-  return -ENOSYS;
-}
-int fs_svr_stat(const char *path, void *_buf)
-{
-  return -ENOSYS;
-}
-ssize_t fs_svr_readlink(const char *path, char *buf, size_t bufsize)
-{
-  return -ENOSYS;
-}
-int fs_svr_statfs(const char *path, struct statfs *buf)
-{
-  return -ENOSYS;
+    ns_init(&ns);
+    fs_init(&ns_fs, &ops);
+    meta_reg_svr_obj(&ns.svr, NS_PROT);
+    meta_reg_svr_obj(&ns_fs.svr, FS_PROT);
+    thread_set_src_pid(0);
+    node_init(&ns.root_node, NULL, "", 0, DIR_NODE);
+    ns_hd = ipc_hd;
+    // printf("ns svr init...\n");
 }

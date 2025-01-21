@@ -508,7 +508,7 @@ static void task_release_stage1(kobject_t *kobj)
         ret = thread_fast_ipc_pop(restore_th, &ipc_item);
         if (ret >= 0)
         {
-            // 还原栈和usp
+            // 还原栈和usp TODO: arch相关的
             restore_th->ipc_status = THREAD_NONE;
             if (restore_th->status == THREAD_SUSPEND)
             {

@@ -215,8 +215,24 @@ void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
         umword_t status2;
 
         status2 = spinlock_lock(&del_lock);
-        thread_suspend(kill_thread);
-        kill_thread->ipc_status = THREAD_IPC_ABORT;
+        if (stack_len(&kill_thread->fast_ipc_stack)!=0) {
+            int ret;
+            thread_fast_ipc_item_t ipc_item;
+
+            ret = thread_fast_ipc_pop(kill_thread, &ipc_item);
+            if (ret >= 0)
+            {
+                // 还原栈和usp TODO: arch相关的
+                kill_thread->task = ipc_item.task_bk;
+                thread_user_pf_restore(kill_thread, ipc_item.usp_backup);
+                pf_t *cur_pf = ((pf_t *)((char *)kill_thread + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
+                cur_pf->regs[5] = (umword_t)(thread_get_bind_task(kill_thread)->mm_space.mm_block);
+                ref_counter_dec_and_release(&task->ref_cn, &task->kobj);
+            }
+        }else{
+            thread_suspend(kill_thread);
+            kill_thread->ipc_status = THREAD_IPC_ABORT;
+        }
         slist_add_append(&del_task_head, &task->del_node);
         spinlock_set(&del_lock, status2);
     }

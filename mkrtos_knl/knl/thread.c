@@ -237,67 +237,6 @@ static void thread_release_stage1(kobject_t *kobj)
     {
         thread_release_stage1_remote(cur);
     }
-    // if (cur != th)
-    // {
-    //     //! 线程在运行中，则挂起线程
-    //     if (th->status == THREAD_READY)
-    //     {
-    //         thread_suspend_remote(th, FALSE);
-    //     }
-    //     th->ipc_status = THREAD_IPC_ABORT;
-    // }
-    // else
-    // {
-    //     if (cur->status == THREAD_READY)
-    //     {
-    //         thread_suspend_remote(th, FALSE);
-    //     }
-    //     cur->ipc_status = THREAD_IPC_ABORT;
-    // }
-    // thread_wait_entry_t *pos;
-
-    // slist_foreach_not_next(
-    //     pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
-    //     node_timeout)
-    // {
-    //     assert(pos->th->status == THREAD_SUSPEND);
-    //     thread_wait_entry_t *next = slist_next_entry(
-    //         pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
-    //         node_timeout);
-
-    //     if (pos->th != th)
-    //     {
-    //         pos->th->ipc_status = THREAD_IPC_ABORT;
-    //         thread_ready_remote(pos->th, FALSE);
-    //     }
-
-    //     slist_del(&pos->node_timeout);
-    //     if (slist_in_list(&pos->node))
-    //     {
-    //         slist_del(&pos->node);
-    //     }
-    //     pos = next;
-    // }
-    // thread_wait_entry_t *pos2;
-
-    // slist_foreach_not_next(
-    //     pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-    //     node)
-    // {
-    //     assert(pos2->th->status == THREAD_SUSPEND);
-    //     thread_wait_entry_t *next = slist_next_entry(
-    //         pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-    //         node);
-
-    //     slist_del(&pos2->node);
-    //     if (pos2->th != th)
-    //     {
-    //         pos2->th->ipc_status = THREAD_IPC_ABORT;
-    //         thread_ready_remote(pos2->th, FALSE);
-    //     }
-    //     pos2 = next;
-    // }
-    // thread_unbind(th);
 }
 static void thread_release_stage2(kobject_t *kobj)
 {
@@ -1242,9 +1181,9 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
         msg_tag_t in_tag = msg_tag_init(f->regs[0]);
         task_t *old_task = thread_get_bind_task(cur_th);
 
-        //! 解锁bitmap
-        *(cur_task->nofity_bitmap) &= ~(1 << MIN(f->regs[2], cur_task->nofity_bitmap_len));
-        slist_del(&cur_th->fast_ipc_node);
+       
+        *(cur_task->nofity_bitmap) &= ~(1 << MIN(f->regs[2], cur_task->nofity_bitmap_len)); //!< 解锁bitmap
+        slist_del(&cur_th->fast_ipc_node);//从链表中删除
 
         ret = thread_fast_ipc_restore(cur_th); // 还原栈和usp
         if (ret < 0)
@@ -1258,28 +1197,27 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
         ipc_msg_t *dst_ipc = (void *)cur_th->msg.msg;
         ipc_msg_t *src_ipc = (void *)old_task->nofity_msg_buf;
         ret = ipc_dat_copy_raw(&cur_task->obj_space, &old_task->obj_space, cur_task->lim,
-                               dst_ipc, src_ipc, in_tag, TRUE);
-        // if (ret > 0)
-        // {
-        // }
-        for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
-        {
-            if (i < ret)
+                               dst_ipc, src_ipc, in_tag, TRUE); // copy数据
+        if (ret >=0 ) {
+            for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
             {
-                src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
-                old_task->nofity_map_buf[i] = 0;
-            }
-            else
-            {
-                src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
+                if (i < ret)
+                {
+                    src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
+                    old_task->nofity_map_buf[i] = 0;
+                }
+                else
+                {
+                    src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
+                }
             }
         }
         mutex_unlock(&old_task->nofity_lock);
         pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
 
-        cur_pf->regs[5] = (umword_t)(cur_task->mm_space.mm_block);
+        cur_pf->regs[5] = (umword_t)(cur_task->mm_space.mm_block); //更新r9寄存器
         extern void mpu_switch_to_task(struct task * tk);
-        mpu_switch_to_task(cur_task);
+        mpu_switch_to_task(cur_task);//切换mpu
         ref_counter_dec_and_release(&old_task->ref_cn, &old_task->kobj);
         if (ret < 0)
         {
@@ -1296,6 +1234,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
         // 2.在对方进程中被杀死，需要还原当前线程的状态，并返回一个错误
         // 3.多线程访问时，服务端提供一个小的用户线程栈，然后内核到用户部分为临界区域，在服务端重新分配用户栈用，使用新的用户栈。
         // 4.fastipc嵌套访问会有问题，内核必须要提供一个软件上的调用栈。
+        // 在嵌套调用时，如果在其它进程中挂掉，如果是当前线程则需要还原
         task_t *to_task = thread_get_bind_task(to_th);
 
         if (to_task->nofity_point == NULL)

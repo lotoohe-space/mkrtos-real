@@ -14,6 +14,10 @@ void stack_init(stack_t *stack, void *stack_data, int len, int item_size)
     stack->item_size = item_size;
     stack->data = stack_data;
 }
+int stack_len(stack_t *stack)
+{
+    return stack->top + 1;
+}
 int stack_push(stack_t *stack, void *item)
 {
     if (stack->top < stack->len)

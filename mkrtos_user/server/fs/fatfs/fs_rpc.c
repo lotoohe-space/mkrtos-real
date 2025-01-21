@@ -1,6 +1,7 @@
 #include "cons_cli.h"
 #include "ff.h"
 #include "fs_svr.h"
+#include "kstat.h"
 #include "rpc_prot.h"
 #include "u_env.h"
 #include "u_log.h"
@@ -12,17 +13,9 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-#include "kstat.h"
 static fs_t fs;
 static int fs_sig_call_back(pid_t pid, umword_t sig_val);
-void fs_svr_init(void)
-{
-    fs_init(&fs);
-    meta_reg_svr_obj(&fs.svr, FS_PROT);
-#ifdef CONFIG_USING_SIG
-    pm_sig_func_set(fs_sig_call_back);
-#endif
-}
+
 typedef struct file_desc {
     union {
         FIL fp;
@@ -276,11 +269,11 @@ int fs_svr_lseek(int fd, int offs, int whence)
     default:
         return -EINVAL;
     }
-    #if 0
+#if 0
     if (new_offs > f_size(&file->fp)) {
         new_offs = f_size(&file->fp);
     }
-    #endif
+#endif
     if (new_offs < 0) {
         new_offs = 0;
     }
@@ -361,7 +354,7 @@ int fs_svr_stat(const char *path, void *_buf)
 {
     FILINFO INFO;
     FRESULT ret;
-    struct kstat *buf=(struct kstat *)_buf;
+    struct kstat *buf = (struct kstat *)_buf;
 
     ret = f_stat(path, &INFO);
     if (ret != FR_OK) {
@@ -384,4 +377,33 @@ int fs_svr_statfs(const char *path, struct statfs *buf)
 void fs_svr_loop(void)
 {
     rpc_loop();
+}
+static const fs_operations_t ops =
+    {
+        .fs_svr_open = fs_svr_open,
+        .fs_svr_read = fs_svr_read,
+        .fs_svr_write = fs_svr_write,
+        .fs_svr_close = fs_svr_close,
+        .fs_svr_readdir = fs_svr_readdir,
+        .fs_svr_lseek = fs_svr_lseek,
+        .fs_svr_ftruncate = fs_svr_ftruncate,
+        .fs_svr_fstat = fs_svr_fstat,
+        .fs_svr_ioctl = fs_svr_ioctl,
+        // .fs_svr_fcntl = fs_svr_fcntl,
+        .fs_svr_fsync = fs_svr_fsync,
+        .fs_svr_unlink = fs_svr_unlink,
+        .fs_svr_symlink = fs_svr_symlink,
+        .fs_svr_mkdir = fs_svr_mkdir,
+        .fs_svr_rmdir = fs_svr_rmdir,
+        .fs_svr_rename = fs_svr_rename,
+        .fs_svr_stat = fs_svr_stat,
+        .fs_svr_readlink = fs_svr_readlink,
+};
+void fs_svr_init(void)
+{
+    fs_init(&fs, &ops);
+    meta_reg_svr_obj(&fs.svr, FS_PROT);
+#ifdef CONFIG_USING_SIG
+    pm_sig_func_set(fs_sig_call_back);
+#endif
 }

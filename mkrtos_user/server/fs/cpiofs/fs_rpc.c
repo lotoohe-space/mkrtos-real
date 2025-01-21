@@ -86,20 +86,13 @@ static void fd_free(int fd)
     }
 }
 static sys_info_t sys_info;
-void fs_svr_init(void)
-{
-    msg_tag_t tag;
 
-    fs_init(&fs);
-    meta_reg_svr_obj(&fs.svr, FS_PROT);
-    tag = sys_read_info(SYS_PROT, &sys_info, SYS_FLAGS_MAP_CPIO_FS);
-    assert(msg_tag_get_val(tag) >= 0);
-}
 int fs_svr_open(const char *path, int flags, int mode)
 {
     int pid = thread_get_src_pid();
     msg_tag_t tag;
     char *o_path;
+    *((char *)0) = 0;
 
     if (flags & O_RDWR)
     {
@@ -349,4 +342,34 @@ int fs_svr_statfs(const char *path, struct statfs *buf)
 void fs_svr_loop(void)
 {
     rpc_loop();
+}
+static const fs_operations_t ops =
+    {
+        .fs_svr_open = fs_svr_open,
+        .fs_svr_read = fs_svr_read,
+        .fs_svr_write = fs_svr_write,
+        .fs_svr_close = fs_svr_close,
+        .fs_svr_readdir = fs_svr_readdir,
+        .fs_svr_lseek = fs_svr_lseek,
+        .fs_svr_ftruncate = fs_svr_ftruncate,
+        .fs_svr_fstat = fs_svr_fstat,
+        .fs_svr_ioctl = fs_svr_ioctl,
+        // .fs_svr_fcntl = fs_svr_fcntl,
+        .fs_svr_fsync = fs_svr_fsync,
+        .fs_svr_unlink = fs_svr_unlink,
+        .fs_svr_symlink = fs_svr_symlink,
+        .fs_svr_mkdir = fs_svr_mkdir,
+        .fs_svr_rmdir = fs_svr_rmdir,
+        .fs_svr_rename = fs_svr_rename,
+        .fs_svr_stat = fs_svr_stat,
+        .fs_svr_readlink = fs_svr_readlink,
+};
+void fs_svr_init(void)
+{
+    msg_tag_t tag;
+
+    fs_init(&fs, &ops);
+    meta_reg_svr_obj(&fs.svr, FS_PROT);
+    tag = sys_read_info(SYS_PROT, &sys_info, SYS_FLAGS_MAP_CPIO_FS);
+    assert(msg_tag_get_val(tag) >= 0);
 }
