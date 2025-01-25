@@ -80,6 +80,8 @@ add_custom_target(
     ${CMAKE_COMMAND} -E copy nes.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/nes
     COMMAND
     cp nes.elf ${CMAKE_SOURCE_DIR}/build/output/nes.elf
+    COMMAND
+    cp ${CMAKE_CURRENT_SOURCE_DIR}/nes_rom/sm.nes ${CMAKE_SOURCE_DIR}/build/output/cpio/
 )
 
 add_dependencies(nes_dump nes.elf)

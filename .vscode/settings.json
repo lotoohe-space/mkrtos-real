@@ -186,7 +186,10 @@
         "flash.h": "c",
         "blk_drv_cli.h": "c",
         "u_slist.h": "c",
-        "u_share_mem.h": "c"
+        "u_share_mem.h": "c",
+        "hw_block_test.h": "c",
+        "open.h": "c",
+        "appfs_open.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

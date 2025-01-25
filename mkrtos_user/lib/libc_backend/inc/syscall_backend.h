@@ -94,6 +94,7 @@ long be_getdents(long fd, char *buf, size_t size);
 long be_mkdir(const char *path, mode_t mode);
 long be_symlink(const char *src, const char *dst);
 long be_stat(const char *path, void *buf);
+long be_unlink(const char *path);
 int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *ptid, void *tls, pid_t *ctid);
 umword_t be_munmap(void *start, size_t len);
 umword_t be_mmap(void *start,

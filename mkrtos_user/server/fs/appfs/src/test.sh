@@ -1,5 +1,5 @@
 #!/bin/bash
-
-./build/appfs -g test -o out.img
-./build/appfs -t
+set -xe
+./build/appfs -g test -o out.img -s 33554432 -b 4096 -j
+# ./build/appfs -t
 

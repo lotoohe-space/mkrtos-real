@@ -9,6 +9,7 @@ enum appfs_ioctl_cmd_op
 typedef struct appfs_ioctl_arg
 {
     unsigned long addr;
+    unsigned long size;
 } appfs_ioctl_arg_t;
 
 int appfs_open(const char *name, int flags, int mode);

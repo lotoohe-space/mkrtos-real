@@ -17,6 +17,7 @@
 #include "knl_misc.h"
 #include "map.h"
 #include "mm_wrap.h"
+#include "mpu.h"
 #include "printk.h"
 #include "task.h"
 #include "thread.h"
@@ -206,8 +207,9 @@ static void knl_init_2(void)
 }
 INIT_STAGE2(knl_init_2);
 
-void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
+bool_t task_knl_kill(thread_t *kill_thread, bool_t is_knl)
 {
+    bool_t reset_ram = FALSE;
     task_t *task = container_of(kill_thread->task, task_t, kobj);
     if (!is_knl)
     {
@@ -215,21 +217,27 @@ void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
         umword_t status2;
 
         status2 = spinlock_lock(&del_lock);
-        if (stack_len(&kill_thread->fast_ipc_stack)!=0) {
+        if (stack_len(&kill_thread->fast_ipc_stack) != 0)
+        {
             int ret;
             thread_fast_ipc_item_t ipc_item;
 
-            ret = thread_fast_ipc_pop(kill_thread, &ipc_item);
+            ret = thread_fast_ipc_restore(kill_thread);
             if (ret >= 0)
             {
                 // 还原栈和usp TODO: arch相关的
-                kill_thread->task = ipc_item.task_bk;
-                thread_user_pf_restore(kill_thread, ipc_item.usp_backup);
-                pf_t *cur_pf = ((pf_t *)((char *)kill_thread + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
-                cur_pf->regs[5] = (umword_t)(thread_get_bind_task(kill_thread)->mm_space.mm_block);
+                thread_user_pf_restore(kill_thread, (void *)arch_get_user_sp());
+                // umword_t *cur_pf = (umword_t *)(arch_get_user_sp()) - 8;
+                // cur_pf[5] = (umword_t)(thread_get_bind_task(kill_thread)->mm_space.mm_block);
+                // register volatile umword_t r9 asm("r9");
+                // r9 = (umword_t)(thread_get_bind_task(kill_thread)->mm_space.mm_block);
+                mpu_switch_to_task(thread_get_bind_task(kill_thread));
                 ref_counter_dec_and_release(&task->ref_cn, &task->kobj);
+                reset_ram =TRUE;
             }
-        }else{
+        }
+        else
+        {
             thread_suspend(kill_thread);
             kill_thread->ipc_status = THREAD_IPC_ABORT;
         }
@@ -241,6 +249,7 @@ void task_knl_kill(thread_t *kill_thread, bool_t is_knl)
         printk("[knl]: knl panic.\n");
         assert(0);
     }
+    return reset_ram;
 }
 
 static void print_mkrtos_info(void)

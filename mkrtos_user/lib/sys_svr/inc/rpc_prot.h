@@ -53,3 +53,4 @@
 #define BLK_DRV_WRITE ((umword_t)0) //!< 块驱动写
 #define BLK_DRV_READ ((umword_t)1)  //!< 块驱动读
 #define BLK_DRV_MAP ((umword_t)2)   //!< 块驱动对象映射
+#define BLK_DRV_INFO ((umword_t)3)  //!< 获取驱动信息

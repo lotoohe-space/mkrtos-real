@@ -17,9 +17,12 @@ int appfs_init(fs_info_t *fs)
     fs->cb.hw_init_fs_for_block(fs);
     fs_info_t *fs_info = (fs_info_t *)fs->mem_addr;
 
-    ret = fs->cb.hw_read_block(fs, 0, fs_info, MIN(sizeof(fs_info_t), fs->save.block_size));
-
-    *fs = *fs_info;
+    // ret = fs->cb.hw_read_block(fs, 0, fs->buf, fs->save.block_size);
+    // if (ret >= 0)
+    // {
+    //     memcpy(fs, fs->buf, sizeof(fs_info_t));
+    // }
+    fs->save = fs_info->save;
     return ret;
 }
 static int mem_set_bits(uint32_t *buf, int start, int end)
@@ -53,6 +56,47 @@ static int mem_clear_bits(uint32_t *buf, int start, int end)
     }
 
     return 0;
+}
+static int appfs_get_available_block_nr(fs_info_t *info)
+{
+    assert(info);
+    int ret;
+    int j = 0;
+    int block_nr = 0;
+    int total_nr = 0;
+
+    for (int i = info->save.blockinfo_inx; i < (info->save.blockinfo_nr + info->save.blockinfo_inx) && j < info->save.block_nr; i++, j++)
+    {
+        ret = info->cb.hw_read_block(info, i, info->buf, info->save.block_size);
+        if (ret < 0)
+        {
+            return ret;
+        }
+        uint32_t *buf_ptr = (uint32_t *)info->buf;
+        for (int a = 0; a < info->save.block_size / BYPTE_PER_PTR; a++)
+        {
+            for (int m = 0; m < BITS_PER_PTR; m++)
+            {
+                total_nr++;
+                if ((buf_ptr[a] & (1UL << m)))
+                {
+                    block_nr++;
+                }
+                if (total_nr >= info->save.block_nr)
+                {
+                    goto end;
+                }
+            }
+        }
+    }
+end:
+    return block_nr;
+}
+int appfs_get_available_size(fs_info_t *info)
+{
+    assert(info);
+
+    return appfs_get_available_block_nr(info) * info->save.block_size;
 }
 /**
  * 设置块中的某些位为1

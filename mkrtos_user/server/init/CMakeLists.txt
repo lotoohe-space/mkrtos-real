@@ -50,8 +50,6 @@ add_custom_target(
     init_dump ALL
     COMMAND
     ${CMAKE_OBJDUMP} -s -S init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.S
-    # COMMAND
-    # ${CMAKE_READELF} -a init.elf > ${CMAKE_SOURCE_DIR}/build/output/init.txt
     COMMAND
     ${CMAKE_OBJCOPY} -O binary -S init.elf init.bin
     COMMAND
@@ -59,7 +57,7 @@ add_custom_target(
     COMMAND
     ${CMAKE_COMMAND} -E copy init.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/init
     COMMAND
-    ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/src/init.cfg ${CMAKE_SOURCE_DIR}/build/output/cpio/
+    ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/board/${CONFIG_BOARD_NAME}/init.cfg ${CMAKE_SOURCE_DIR}/build/output/cpio/
     COMMAND
     ${CMAKE_COMMAND} -E copy init.elf ${CMAKE_SOURCE_DIR}/build/output/init.elf
 )

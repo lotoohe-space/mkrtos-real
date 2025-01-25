@@ -8,7 +8,7 @@
 #include <sys/fcntl.h>
 #include "appfs.h"
 #include "hw_block_test.h"
-#include "open.h"
+#include "appfs_open.h"
 static fs_info_t fs;
 #define APPFS_FILE_NR 128
 

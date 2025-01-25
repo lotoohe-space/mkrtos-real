@@ -354,7 +354,7 @@ RPC_GENERATION_CALL1(TRUE, fs_t, FS_PROT, FS_UNLINK, unlink,
 int fs_unlink(const char *path)
 {
     obj_handler_t hd;
-    int ret = ns_query(path, &hd, 0x1);
+    int ret = ns_query(path, &hd, 0);
 
     if (ret < 0)
     {

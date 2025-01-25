@@ -21,7 +21,7 @@
 
 #include "mk_snd_drv_impl.h"
 static blk_drv_t snd_drv; //!< 网络驱动的协议
-#define STACK_COM_ITME_SIZE (1024+512)
+#define STACK_COM_ITME_SIZE (1024 + 512)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];
@@ -63,6 +63,10 @@ int blk_drv_read(obj_handler_t obj, int len, int inx)
 int blk_drv_map(obj_handler_t *hd)
 {
     return -1;
+}
+int blk_drv_info(blk_drv_info_t *info)
+{
+    return -ENOSYS;
 }
 int main(int argc, char *argv[])
 {

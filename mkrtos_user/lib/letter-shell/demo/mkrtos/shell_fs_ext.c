@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include "u_sys.h"
+#include "unistd.h"
 int ls(int argc, char *agrv[])
 {
     DIR *dir;
@@ -37,6 +38,19 @@ int ls(int argc, char *agrv[])
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), ls, ls, ls command);
+
+int rm(int argc, char *agrv[])
+{
+    int ret;
+    if (argc < 2)
+    {
+        return -1;
+    }
+
+    ret = unlink(agrv[1]);
+    return ret;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), rm, rm, rm command);
 int cat(int argc, char *argv[])
 {
     if (argc != 2)
@@ -78,7 +92,7 @@ int hex(int argc, char *argv[])
         return errno;
     }
 
-    while ((ret = fread( &c, 1,1,fp)) == 1)
+    while ((ret = fread(&c, 1, 1, fp)) == 1)
     {
         printf("%02x ", c);
         i++;

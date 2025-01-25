@@ -92,7 +92,7 @@ int fs_svr_open(const char *path, int flags, int mode)
     int pid = thread_get_src_pid();
     msg_tag_t tag;
     char *o_path;
-    *((char *)0) = 0;
+    // *((char *)0) = 0;
 
     if (flags & O_RDWR)
     {

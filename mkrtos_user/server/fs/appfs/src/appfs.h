@@ -75,8 +75,12 @@ int appfs_delete_file(fs_info_t *info, const char *name);
 int appfs_file_resize_raw(fs_info_t *info, const dir_info_t *dir_info, int size);
 int appfs_file_resize(fs_info_t *info, const char *name, int size);
 int appfs_arrange_files(fs_info_t *info);
+int appfs_get_available_size(fs_info_t *info);
 int appfs_print_files(fs_info_t *info);
-
+static inline int appfs_get_total_size(fs_info_t *info)
+{
+    return info->save.block_nr * info->save.block_size;
+}
 static inline int appfs_get_file_size(const dir_info_t *info)
 {
     return info->size;

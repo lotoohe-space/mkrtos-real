@@ -1198,20 +1198,20 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
         ipc_msg_t *src_ipc = (void *)old_task->nofity_msg_buf;
         ret = ipc_dat_copy_raw(&cur_task->obj_space, &old_task->obj_space, cur_task->lim,
                                dst_ipc, src_ipc, in_tag, TRUE); // copy数据
-        if (ret >=0 ) {
-            for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
+        // if (ret >=0 ) {
+        for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
+        {
+            if (i < ret)
             {
-                if (i < ret)
-                {
-                    src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
-                    old_task->nofity_map_buf[i] = 0;
-                }
-                else
-                {
-                    src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
-                }
+                src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
+                old_task->nofity_map_buf[i] = 0;
+            }
+            else
+            {
+                src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
             }
         }
+        // }
         mutex_unlock(&old_task->nofity_lock);
         pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
 

@@ -72,7 +72,6 @@ void HardFault_Handler(void)
   printk("%s\n", __FUNCTION__);
   task_knl_kill(thread_get_current(), is_knl);
 }
-
 /**
  * @brief  This function handles Memory Manage exception.
  * @param  None
@@ -84,6 +83,7 @@ void MemManage_Handler(void)
   addr_t fault_addr = (addr_t)(SCB->MMFAR);
   addr_t bus_addr = (addr_t)(SCB->BFAR);
   task_t *cur_task = thread_get_current_task();
+  bool_t reset_r9 = FALSE;
 
   if ((SCB->CFSR & 0x1) || (SCB->CFSR & 0x2))
   {
@@ -93,7 +93,7 @@ void MemManage_Handler(void)
     {
       printk("[semgement fault] task:0x%x, mem_addr:0x%lx bus_addr:0x%lx .\n",
              thread_get_current_task(), fault_addr, bus_addr);
-      task_knl_kill(thread_get_current(), is_knl);
+      goto end;
     }
     return;
   }
@@ -109,7 +109,20 @@ void MemManage_Handler(void)
   {
     printk("Floating point lazy stack error.\n");
   }
-  task_knl_kill(thread_get_current(), is_knl);
+end:
+  reset_r9 = task_knl_kill(thread_get_current(), is_knl);
+  if (reset_r9)
+  {
+    do
+    {
+      __asm__ __volatile__(
+          "mov r9, %0\n\t"
+          :                                                   /* 无输出操作数 */
+          : "r"(thread_get_current_task()->mm_space.mm_block) // 输入操作数，将value的值传递给R0寄存器
+          :                                              // 告诉编译器R9寄存器将被修改
+      );
+    } while (0);
+  }
 }
 
 /**

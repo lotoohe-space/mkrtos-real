@@ -66,6 +66,10 @@ int blk_drv_map(obj_handler_t *hd)
     *hd = emac_get_sema();
     return 0;
 }
+int blk_drv_info(blk_drv_info_t *info)
+{
+    return -ENOSYS;
+}
 int main(int argc, char *argv[])
 {
     obj_handler_t hd;

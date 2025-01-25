@@ -6,4 +6,5 @@
 int blk_drv_write(obj_handler_t obj, int len, int inx);
 int blk_drv_read(obj_handler_t obj, int len, int inx);
 int blk_drv_map(obj_handler_t *hd);
+int blk_drv_info(blk_drv_info_t *info);
 void blk_drv_init(blk_drv_t *ns);

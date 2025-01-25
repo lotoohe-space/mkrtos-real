@@ -130,11 +130,13 @@ int read_files_and_write_appfs(const char *path)
 }
 static char *debug_img_path;
 static int gen_img_size = -1;
+static int gen_img_blk_size = 4096;
+static int slight_mode = 0; //! 瘦模式
 static int appfs_gen_init(void)
 {
     int ret;
 
-    ret = hw_init_block_sim_test(&fs, gen_img_size);
+    ret = hw_init_block_sim_test(&fs, gen_img_size, gen_img_blk_size);
     if (ret < 0)
     {
         return ret;
@@ -152,7 +154,7 @@ int main(int argc, char *argv[])
     int ret = 0;
     // appfs_test_func();
 
-    while ((opt = getopt(argc, argv, "ti:g:o:s:")) != -1)
+    while ((opt = getopt(argc, argv, "jti:g:o:s:b:")) != -1)
     {
         switch (opt)
         {
@@ -160,6 +162,9 @@ int main(int argc, char *argv[])
             printf("test mode.\n");
             appfs_test_func();
             return 0;
+        case 'j':
+            slight_mode = 1;
+            break;
         case 'i':
             printf("input img:%s\n", optarg);
             debug_img_path = optarg;
@@ -176,6 +181,10 @@ int main(int argc, char *argv[])
             gen_img_size = atol(optarg);
             printf("img size is %d.\n", gen_img_size);
             break;
+        case 'b':
+            gen_img_blk_size = atol(optarg);
+            printf("img blk size is %d.\n", gen_img_blk_size);
+            break;
         default:
             printf("Unknown option\n");
             break;
@@ -188,7 +197,7 @@ int main(int argc, char *argv[])
     }
     if (gen_img_size < 0)
     {
-        printf("output img size don't set.");
+        printf("output img size don't set.\n");
         return -1;
     }
     if (output_path == NULL)
@@ -207,7 +216,7 @@ int main(int argc, char *argv[])
         printf("appfs create failed\n");
         return ret;
     }
-    ret = hw_dump_to_file(output_path);
+    ret = hw_dump_to_file(&fs, output_path, slight_mode);
     if (ret < 0)
     {
         printf("appfs dump failed\n");

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ")
 
 #appfs lib
-file(GLOB appfs_src  src/appfs.c src/appfs.h)
+file(GLOB appfs_src  src/appfs.c src/appfs_open.c)
 add_library(
     appfs_lib
     STATIC
@@ -13,6 +13,14 @@ target_include_directories(
     appfs_lib
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc/${ARCH_NAME}
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_drv
+)
+add_dependencies(
+    appfs_lib
+    sys
+    # mk_drv
 )
 
 # appfstiny lib
@@ -26,12 +34,17 @@ target_include_directories(
     appfs_tiny
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    # ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
+    # ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
+    # ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
 )
 
 file(
     GLOB deps  
     heap_stack.c
     main.c
+    hw_block.c
+    fs_rpc.c
 )
 
 add_executable(
@@ -49,6 +62,7 @@ target_link_libraries(
     sys_util
     sys_svr
     appfs_lib
+    mk_drv
     ${GCC_LIB_PATH}/libgcc.a
 )
 target_include_directories(
@@ -56,6 +70,7 @@ target_include_directories(
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
@@ -65,6 +80,7 @@ add_dependencies(
     sys
     sys_util
     appfs_lib
+
 )
 set_target_properties(
     appfs.elf PROPERTIES LINK_FLAGS
@@ -89,7 +105,3 @@ add_custom_target(
 
 add_dependencies(appfs_dump appfs.elf)
 
-execute_process(
-    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/src/ && sh build.sh
-    COMMAND_ECHO STDOUT
-)

@@ -30,6 +30,7 @@ static int fast_ipc_dat_copy(ipc_msg_t *dst_ipc, ipc_msg_t *src_ipc, msg_tag_t t
            MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
     memcpy(dst_ipc->user, src_ipc->user,
            sizeof(dst_ipc->user));
+    return 0;
 }
 static void update_map_buf(void)
 {

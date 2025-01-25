@@ -59,7 +59,8 @@ int blk_drv_cli_map(obj_handler_t dm9000_obj, obj_handler_t *sem_obj)
     obj_handler_t newfd;
 
     newfd = handler_alloc();
-    if (newfd == HANDLER_INVALID) {
+    if (newfd == HANDLER_INVALID)
+    {
         return -ENOENT;
     }
     rpc_obj_handler_t_t rpc_sem_obj = {
@@ -68,10 +69,36 @@ int blk_drv_cli_map(obj_handler_t dm9000_obj, obj_handler_t *sem_obj)
     };
     msg_tag_t tag = blk_drv_t_map_call(dm9000_obj, &rpc_sem_obj);
 
-    if (msg_tag_get_val(tag) < 0) {
+    if (msg_tag_get_val(tag) < 0)
+    {
         handler_free(newfd);
         return msg_tag_get_val(tag);
     }
     *sem_obj = newfd;
+    return msg_tag_get_val(tag);
+}
+RPC_GENERATION_CALL1(TRUE, blk_drv_t, BLK_DRV_PROT, BLK_DRV_INFO, info,
+                     rpc_blk_drv_info_t_t, rpc_blk_drv_info_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, info)
+int blk_drv_cli_info(obj_handler_t obj, blk_drv_info_t *info)
+{
+    assert(info);
+
+    obj_handler_t newfd;
+
+    newfd = handler_alloc();
+    if (newfd == HANDLER_INVALID)
+    {
+        return -ENOENT;
+    }
+    rpc_blk_drv_info_t_t rpc_info;
+
+    msg_tag_t tag = blk_drv_t_info_call(obj, &rpc_info);
+
+    if (msg_tag_get_val(tag) < 0)
+    {
+        handler_free(newfd);
+        return msg_tag_get_val(tag);
+    }
+    *info = rpc_info.data;
     return msg_tag_get_val(tag);
 }

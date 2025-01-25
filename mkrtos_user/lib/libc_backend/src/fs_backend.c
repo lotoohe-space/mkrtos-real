@@ -457,6 +457,10 @@ long be_fstat(int fd, void *_buf)
     }
     return fs_fstat(u_fd.priv_fd, (void *)buf);
 }
+long be_unlink(const char *path)
+{
+    return fs_unlink(path);
+}
 long sys_be_getdents(va_list ap)
 {
     long fd;

@@ -24,6 +24,12 @@ execute_process(
     COMMAND git rev-parse --abbrev-ref HEAD
     OUTPUT_VARIABLE BRANCH
 )
+
+execute_process(
+    COMMAND cd ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/appfs/src/build.sh && sh build.sh
+    COMMAND_ECHO STDOUT
+)
+
 string(STRIP ${DATE} DATE)
 string(STRIP ${TIME} TIME)
 set(code_version ${BRANCH}-${COMMIT} CACHE STRING " " FORCE)

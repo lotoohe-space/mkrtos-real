@@ -12,7 +12,7 @@ add_custom_target(
     COMMAND
     ls  | cpio -H newc -o > ${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio
     COMMAND
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/appfs/src/build/appfs -g ${CMAKE_SOURCE_DIR}/build/output/cpio -o ../appfs.img -s ${APPFS_IMG_SIZE}
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/appfs/src/build/appfs -g ${CMAKE_SOURCE_DIR}/build/output/cpio -o ../appfs.img -s ${APPFS_IMG_SIZE} -b 4096 -j
     COMMAND
     srec_cat -output ${CMAKE_SOURCE_DIR}/build/output/kernel.img -binary
         ${CMAKE_SOURCE_DIR}/build/output/bootstrap -binary -offset 0x0
@@ -28,32 +28,32 @@ add_custom_target(
     ${CMAKE_OBJCOPY}  --change-section-address .text=${CONFIG_SYS_TEXT_ADDR} ${CMAKE_SOURCE_DIR}/build/output/kernel.img.out
 
     #以下命令用于生成binutils链接需要的库
-    COMMAND
-    cd ../../
-    COMMAND
-    rm -f -r usr_lib
-    COMMAND
-    mkdir -p usr_lib
-    COMMAND
-    find mkrtos_user -name "*.a" | xargs cp -t usr_lib
-    COMMAND
-    cd usr_lib
-    COMMAND
-    ${CMAKE_AR} x libmuslc.a 
-    COMMAND
-    ${CMAKE_AR} x liblibc_be.a 
-    COMMAND
-    ${CMAKE_AR} x libsys.a 
-    COMMAND
-    ${CMAKE_AR} x libsys_svr.a 
-    COMMAND
-    ${CMAKE_AR} x libsys_util.a 
-    COMMAND
-    ${CMAKE_AR} x libutil.a 
-    COMMAND
-    ${CMAKE_AR} cr libnewc.a *.obj
-    COMMAND
-    rm *.obj
+    # COMMAND
+    # cd ../../
+    # COMMAND
+    # rm -f -r usr_lib
+    # COMMAND
+    # mkdir -p usr_lib
+    # COMMAND
+    # find mkrtos_user -name "*.a" | xargs cp -t usr_lib
+    # COMMAND
+    # cd usr_lib
+    # COMMAND
+    # ${CMAKE_AR} x libmuslc.a 
+    # COMMAND
+    # ${CMAKE_AR} x liblibc_be.a 
+    # COMMAND
+    # ${CMAKE_AR} x libsys.a 
+    # COMMAND
+    # ${CMAKE_AR} x libsys_svr.a 
+    # COMMAND
+    # ${CMAKE_AR} x libsys_util.a 
+    # COMMAND
+    # ${CMAKE_AR} x libutil.a 
+    # COMMAND
+    # ${CMAKE_AR} cr libnewc.a *.obj
+    # COMMAND
+    # rm *.obj
 )
 add_dependencies(mkrtos_img_dump
     bootstrap_dump

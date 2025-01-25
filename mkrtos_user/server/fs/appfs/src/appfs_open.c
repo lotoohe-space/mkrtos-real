@@ -1,9 +1,8 @@
-#include "open.h"
+#include "appfs_open.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <assert.h>
-#include <pthread.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -224,9 +223,17 @@ int appfs_read(int fd, void *data, int len)
     file->offset += ret;
     return ret;
 }
-
+#ifdef MKRTOS
+#include <u_prot.h>
+#include <u_task.h>
+#include <u_thread.h>
+#include <mk_access.h>
+#endif
 int appfs_ioctl(int fd, unsigned long cmd, unsigned long arg)
 {
+#ifdef MKRTOS
+    pid_t src_pid = thread_get_src_pid();
+#endif
     appfs_file_t *file = appfs_get_file(fd);
     int ret = 0;
 
@@ -242,9 +249,32 @@ int appfs_ioctl(int fd, unsigned long cmd, unsigned long arg)
     {
     case APPFS_IOCTOL_GET_ACCESS_ADDR:
     {
-        appfs_ioctl_arg_t *fs_arg = (void *)arg;
+        appfs_ioctl_arg_t *fs_arg;
+
+#ifdef MKRTOS
+        msg_tag_t tag;
+        appfs_ioctl_arg_t fs_arg_tmp;
+        umword_t cur_pid;
+        tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
+        if (msg_tag_get_val(tag) < 0)
+        {
+            return msg_tag_get_val(tag);
+        }
+        fs_arg = &fs_arg_tmp;
+#else
+        fs_arg = (void *)arg;
+#endif
 
         fs_arg->addr = appfs_get_file_addr(fs, dir_info_cache_list[file->dir_info_fd].info);
+        fs_arg->size = appfs_get_file_size(dir_info_cache_list[file->dir_info_fd].info);
+#ifdef MKRTOS
+        ret = mk_copy_mem_to_task(cur_pid, fs_arg, src_pid,
+                                  (void*)arg, sizeof(appfs_ioctl_arg_t));
+        if (ret < 0)
+        {
+            return ret;
+        }
+#endif
     }
     break;
     default:
@@ -364,7 +394,7 @@ int appfs_stat(int fd, struct stat *st)
         return -EACCES;
     }
     st->st_size = dir_info_cache_list[file->dir_info_fd].info->size;
-    st->st_mode = __S_IFREG;
+    st->st_mode = S_IFREG;
     st->st_nlink = dir_info_cache_list[file->dir_info_fd].info->ref;
     return 0;
 }
@@ -421,6 +451,7 @@ int appfs_remove(const char *name)
 int appfs_readdir(int fd, struct dirent *_dir)
 {
     int ret = -1;
+    // *((char*)(0)) = 0;
     appfs_file_t *file = appfs_get_file(fd);
 
     if (!file || file->used == 0)
