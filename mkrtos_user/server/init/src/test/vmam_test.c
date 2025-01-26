@@ -78,7 +78,6 @@ static void vmm_press_block_test(CuTest *cu)
 #undef TEST_MM_SIZE
 #undef TEST_MEM_CN
 }
-#if IS_ENABLED(CONFIG_MPU_PAGE_FAULT_SUPPORT)
 #define TEST_MEM_CN 30
 static void vmm_press_block_sim_page_fault_test(CuTest *cu)
 {
@@ -88,7 +87,10 @@ static void vmm_press_block_sim_page_fault_test(CuTest *cu)
     msg_tag_t tag;
 
     memset(test_main, 0, sizeof(test_main));
-#define TEST_MM_SIZE (PAGE_SIZE)
+
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, VMA_ADDR_PAGE_FAULT_SIM, 0), 1234, 0, &addr);
+    assert(msg_tag_get_val(tag) < 0);
+#define TEST_MM_SIZE (1024)
     for (i = 0; i < TEST_MEM_CN; i++)
     {
         tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, VMA_ADDR_PAGE_FAULT_SIM, 0), TEST_MM_SIZE, 0, &addr);
@@ -169,7 +171,6 @@ static void vmm_press_block_sim_thread_test(CuTest *cu)
         u_sleep_ms(10000);
     }
 }
-#endif
 
 static CuSuite suite;
 CuSuite *vmm_test_suite(void)
@@ -179,13 +180,13 @@ CuSuite *vmm_test_suite(void)
 #if IS_ENABLED(CONFIG_MMU)
     SUITE_ADD_TEST(&suite, vmm_large_block_test);
 #endif
+#if IS_ENABLED(CONFIG_MPU)
     SUITE_ADD_TEST(&suite, vmm_small_block_test);
     SUITE_ADD_TEST(&suite, vmm_press_block_test);
-#if IS_ENABLED(CONFIG_MPU_PAGE_FAULT_SUPPORT)
+#endif
     SUITE_ADD_TEST(&suite, vmm_press_block_sim_page_fault_test);
     // mpu模拟缺页的内存不能用作栈内存，这是硬件限制导致的！
     // SUITE_ADD_TEST(&suite, vmm_press_block_sim_thread_test);
-#endif
 
     return &suite;
 }

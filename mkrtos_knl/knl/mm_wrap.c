@@ -99,6 +99,20 @@ void mm_limit_free(ram_limit_t *limit, void *mem)
     mem_free(&mem_manage[0], (char *)mem - sizeof(size_t));
     ram_limit_free(limit, size);
 }
+void *mm_alloc(size_t size)
+{
+    void *new_mem = mem_alloc(&mem_manage[0], size);
+
+    return new_mem;
+}
+void mm_free(void *mem)
+{
+    if (!mem)
+    {
+        return;
+    }
+    mem_free(&mem_manage[0], (char *)mem);
+}
 struct mem_heap *mm_get_free_raw(int mem_inx, struct mem_heap *next,
                                  umword_t hope_size, umword_t *ret_addr)
 {

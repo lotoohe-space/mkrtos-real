@@ -147,4 +147,4 @@ int shell_mem_info(int argc, char *argv[])
     printf("sys mem:\ntotal:%dB\nfree:%dB\n", total, free);
     return 0;
 }
-SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), mem, shell_mem_info, mem command);
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), free, shell_mem_info, free command);

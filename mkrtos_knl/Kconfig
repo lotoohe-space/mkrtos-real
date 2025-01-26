@@ -79,19 +79,16 @@ endif
         default 0x10000
 
 
-menuconfig MK_MPU_CFG
+menuconfig MPU
     bool "MKRTOS MPU config"
-    default y
-    if MK_MPU_CFG
+    default n
+    if MPU
         config MPU_VERSION
         int "mpu version"
         default 1
         config MPU_PAGE_FAULT_SUPPORT
         bool "mpu page falut sim support."
         default 0
-        config MPU_PAGE_NUM
-        int "mpu page num."
-        default 32
         config MPU_PAGE_FAULT_REGIONS_NUM
         int "mpu page fualt regions num."
         default 2

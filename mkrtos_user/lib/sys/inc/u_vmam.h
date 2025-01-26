@@ -17,6 +17,7 @@ enum vpage_prot_attrs
 
 #define VMA_ADDR_RESV 0x1           //!< flags 保留内存
 #define VMA_ADDR_PAGE_FAULT_SIM 0x2 //!< page fault模拟，使用mpu模拟，该内存不能被栈使用
+#define VMA_ADDR_PAGE_FAULT_DSCT 0x4 //!< 申请内存时按叶大小申请与映射
 
 typedef union vma_addr
 {

@@ -189,7 +189,8 @@
         "u_share_mem.h": "c",
         "hw_block_test.h": "c",
         "open.h": "c",
-        "appfs_open.h": "c"
+        "appfs_open.h": "c",
+        "mman.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

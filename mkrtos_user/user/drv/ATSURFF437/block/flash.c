@@ -102,14 +102,14 @@ int flash_init(void)
     msg_tag_t tag;
     addr_t vaddr;
 
-    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RW, 0, 0),
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_PAGE_FAULT_SIM, 0),
                        0x400 /*TODO:*/, 0x40023C00, &vaddr);
     if (msg_tag_get_val(tag) < 0)
     {
         return msg_tag_get_val(tag);
     }
 
-    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RW, 0, 0),
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_PAGE_FAULT_SIM, 0),
                        32 * 1024 * 1024 /*TODO:*/, 0x8000000, &vaddr);
     if (msg_tag_get_val(tag) < 0)
     {

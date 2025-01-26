@@ -96,7 +96,7 @@ long be_symlink(const char *src, const char *dst);
 long be_stat(const char *path, void *buf);
 long be_unlink(const char *path);
 int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *ptid, void *tls, pid_t *ctid);
-umword_t be_munmap(void *start, size_t len);
+long be_munmap(void *start, size_t len);
 umword_t be_mmap(void *start,
                  size_t len,
                  long prot,

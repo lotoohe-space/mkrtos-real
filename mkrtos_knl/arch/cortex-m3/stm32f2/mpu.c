@@ -10,7 +10,7 @@
 #include <mpu_armv7.h>
 #include "thread.h"
 #include "task.h"
-#if CONFIG_MK_MPU_CFG
+#if CONFIG_MPU
 static volatile umword_t *MPUCR = (umword_t *)0xE000ED94;
 
 void mpu_init(void)

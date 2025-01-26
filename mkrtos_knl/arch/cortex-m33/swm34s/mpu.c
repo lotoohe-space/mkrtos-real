@@ -12,7 +12,7 @@
 #include <mpu_armv8.h>
 #include "thread.h"
 #include "task.h"
-#if CONFIG_MK_MPU_CFG
+#if CONFIG_MPU
 
 void mpu_init(void)
 {

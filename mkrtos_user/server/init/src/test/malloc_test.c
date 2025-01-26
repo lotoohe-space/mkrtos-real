@@ -53,12 +53,25 @@ static void malloc_test(CuTest *cu)
         // printf("free %d 0x%lx\n", i, mem[i]);
     }
 }
+#include <sys/mman.h>
+static void mmap_test(CuTest *cu)
+{
+#define TEST_MEM_SIZE (4096)
+    for (int i = 0; i < 1000; i++)
+    {
+        void *mem = mmap(0, TEST_MEM_SIZE, PROT_READ | PROT_WRITE | PROT_PFS, MAP_PRIVATE, -1, 0);
+        CuAssert(cu, "mmap failed.\n", mem != NULL);
+        memset(mem, 0, TEST_MEM_SIZE);
+        CuAssert(cu, "munmap failed.\n", munmap(mem, TEST_MEM_SIZE) >= 0);
+    }
+#undef TEST_MEM_SIZE
+}
 static CuSuite suite;
 CuSuite *malloc_test_suite(void)
 {
     CuSuiteInit(&suite);
 
     SUITE_ADD_TEST(&suite, malloc_test);
-
+    SUITE_ADD_TEST(&suite, mmap_test);
     return &suite;
 }

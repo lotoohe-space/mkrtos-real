@@ -18,8 +18,9 @@ enum vpage_prot_attrs
     VPAGE_PROT_IN_KNL = 0x20,  //!< 内核中使用
 };
 
-#define VMA_ADDR_RESV 0x1           //!< flags 保留内存
-#define VMA_ADDR_PAGE_FAULT_SIM 0x2 //!< page fault模拟
+#define VMA_ADDR_RESV 0x1            //!< flags 保留内存
+#define VMA_ADDR_PAGE_FAULT_SIM 0x2  //!< page fault模拟
+#define VMA_ADDR_PAGE_FAULT_DSCT 0x4 //!< 申请内存时按叶大小申请与映射
 
 typedef union vma_addr
 {
@@ -86,8 +87,8 @@ typedef struct vma
         umword_t paddr_raw;
         struct
         {
-            umword_t flags : 12;
-            umword_t paddr : (sizeof(void *) * 8 - 12); //!< 被分配后的节点才使用改数据，表示分配的物理内存。
+            umword_t flags : 2;
+            umword_t paddr : (sizeof(void *) * 8 - 2); //!< 被分配后的节点才使用改数据，表示分配的物理内存。
         };
     };
 } vma_t;
@@ -95,11 +96,11 @@ typedef struct vma
 
 static inline paddr_t vma_node_get_paddr(vma_t *data)
 {
-    return data->paddr << PAGE_SHIFT;
+    return data->paddr << 2;
 }
 static inline void vma_node_set_paddr(vma_t *data, paddr_t addr)
 {
-    data->paddr = addr >> PAGE_SHIFT;
+    data->paddr = addr >> 2;
 }
 static inline bool_t vma_node_get_used(vma_t *data)
 {
@@ -125,7 +126,7 @@ typedef struct region_info
 {
     umword_t start_addr; //!< 内存申请的开始地址
     umword_t size;       //!< 实际申请的内存大小
-#if IS_ENABLED(CONFIG_MK_MPU_CFG)
+#if IS_ENABLED(CONFIG_MPU)
     umword_t block_start_addr; //!< 块申请的开始地址
     umword_t block_size;       //!< 保护的块大小
     umword_t rbar;             //!< mpu保护寄存器信息
@@ -136,22 +137,17 @@ typedef struct region_info
 } region_info_t;
 
 #define MPU_PAGE_FAULT_SUPPORT CONFIG_MPU_PAGE_FAULT_SUPPORT
-#define MPU_PAGE_NUM CONFIG_MPU_PAGE_NUM
 #define MPU_PAGE_FAULT_REGIONS_NUM CONFIG_MPU_PAGE_FAULT_REGIONS_NUM
 
 typedef struct task_vma
 {
     region_info_t pt_regions[CONFIG_REGION_NUM]; //!< mpu内存保护块
 
+    mln_rbtree_t alloc_tree;                                         //!< 分配了那些内存
 #if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT)
-    void *mem_pages[MPU_PAGE_NUM];                                   //!< 模拟内存缺页
-    size_t mem_pages_alloc_size[MPU_PAGE_NUM];                       //!< 红黑树优化支持
-    uint8_t mem_pages_attrs[MPU_PAGE_NUM];                           //!< 内存页的属性
     region_info_t *mem_pages_pt_regions[MPU_PAGE_FAULT_REGIONS_NUM]; //!< 用多少个regions模拟缺页
     int pt_regions_sel;                                              //!< 用于确定下次选用那个region进行映射
 #endif
-
-    spinlock_t lock;
 } task_vma_t;
 #endif
 

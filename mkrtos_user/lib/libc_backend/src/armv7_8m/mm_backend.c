@@ -2,7 +2,6 @@
 #include "syscall_backend.h"
 #include "u_prot.h"
 #include "u_ipc.h"
-
 #include "u_app.h"
 #include "cons_cli.h"
 #include "u_arch.h"
@@ -10,6 +9,8 @@
 #include "u_hd_man.h"
 #include <pthread_impl.h>
 #include <assert.h>
+#include <u_vmam.h>
+
 static int lock_is_init;
 static u_mutex_t lock;
 extern void *app_start_addr;
@@ -94,19 +95,24 @@ static void *mm_page_alloc(int page_nr)
     return NULL;
 }
 
-static void mm_page_free(int st, int nr)
+static int mm_page_free(int st, int nr)
 {
     app_info_t *info = app_info_get(app_start_addr);
     assert(info);
     void *heap_addr = (void *)((umword_t)TASK_RAM_BASE() + info->i.heap_offset - info->i.data_offset);
     size_t max_page_nr = (info->i.heap_size) / PAGE_SIZE;
 
+    if (st + nr >= max_page_nr)
+    {
+        return -EINVAL;
+    }
     u_mutex_lock(&lock);
     for (int i = st; (i < st + nr) && (i < max_page_nr); i++)
     {
         MK_CLR_BIT(mm_bitmap[i / WORD_BITS], i % WORD_BITS);
     }
     u_mutex_unlock(&lock);
+    return 0;
 }
 
 static int _sys_mmap2(void *start, size_t len, int prot, int flags, int fd, off_t _offset, umword_t *addr)
@@ -116,8 +122,44 @@ static int _sys_mmap2(void *start, size_t len, int prot, int flags, int fd, off_
     {
         return -ENOSYS;
     }
-    len = ALIGN(len, PAGE_SIZE);
-    *addr = (umword_t)mm_page_alloc(len / PAGE_SIZE);
+    if (prot & PROT_PFS)
+    {
+        msg_tag_t tag;
+        addr_t ret_addr;
+        uint8_t mk_prot = 0;
+
+        if (prot & PROT_READ)
+        {
+            mk_prot |= VPAGE_PROT_RO;
+        }
+        if (prot & PROT_WRITE)
+        {
+            mk_prot |= VPAGE_PROT_WO;
+        }
+        if (prot & PROT_EXEC)
+        {
+            mk_prot |= VPAGE_PROT_X;
+        }
+        tag = u_vmam_alloc(VMA_PROT,
+                           vma_addr_create(mk_prot,
+                                           VMA_ADDR_PAGE_FAULT_SIM | VMA_ADDR_PAGE_FAULT_DSCT,
+                                           0),
+                           len,
+                           (addr_t)start, &ret_addr);
+        if (msg_tag_get_val(tag) < 0)
+        {
+            return msg_tag_get_val(tag);
+        }
+        *addr = ret_addr;
+    }
+    else
+    {
+        if (len & (PAGE_SIZE - 1))
+        {
+            return -EINVAL;
+        }
+        *addr = (umword_t)mm_page_alloc(len / PAGE_SIZE);
+    }
     if (*addr == 0)
     {
         return -ENOMEM;
@@ -158,15 +200,24 @@ long sys_mmap2(va_list ap)
 
     return be_mmap2(start, len, prot, flags, fd, _offset);
 }
-umword_t be_munmap(void *start, size_t len)
+long be_munmap(void *start, size_t len)
 {
+    msg_tag_t tag;
     app_info_t *info = app_info_get(app_start_addr);
     assert(info);
     void *heap_addr = (void *)((umword_t)TASK_RAM_BASE() + info->i.heap_offset - info->i.data_offset);
 
-    len = ALIGN(len, PAGE_SIZE);
+    if (len & (PAGE_SIZE - 1))
+    {
+        return -EINVAL;
+    }
     // printf("munmap 0x%x, 0x%x.\n", start, len);
-    mm_page_free(((umword_t)(start) - (umword_t)heap_addr) / PAGE_SIZE, len / PAGE_SIZE);
+    tag = u_vmam_free(VMA_PROT, (addr_t)(start), len);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        return mm_page_free(((umword_t)(start) - (umword_t)heap_addr) / PAGE_SIZE, len / PAGE_SIZE);
+    }
+    return 0;
 }
 long sys_munmap(va_list ap)
 {

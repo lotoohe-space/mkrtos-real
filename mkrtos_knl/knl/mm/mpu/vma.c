@@ -12,26 +12,51 @@
 #include <thread.h>
 #include <string.h>
 #include <spinlock.h>
+
+mword_t task_vma_lock(task_vma_t *task_vma)
+{
+    task_t *task;
+    mword_t ret;
+
+    task = container_of(container_of(task_vma, mm_space_t, mem_vma), task_t, mm_space);
+
+    ret = spinlock_lock(&task->kobj.lock);
+    if (ret < 0)
+    {
+        return ret;
+    }
+    return ret;
+}
+void task_vma_unlock(task_vma_t *task_vma, mword_t status)
+{
+    task_t *task;
+    mword_t ret;
+
+    task = container_of(container_of(task_vma, mm_space_t, mem_vma), task_t, mm_space);
+    spinlock_set(&task->kobj.lock, status);
+}
+
 static region_info_t *vma_alloc_pt_region(task_vma_t *vma)
 {
     assert(vma != NULL);
-    mword_t status = spinlock_lock(&vma->lock);
+    mword_t status = task_vma_lock(vma);
     for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         if (vma->pt_regions[i].region_inx < 0)
         {
             vma->pt_regions[i].region_inx = (int16_t)i;
-            spinlock_set(&vma->lock, status);
+            task_vma_unlock(vma, status);
             return &vma->pt_regions[i];
         }
     }
-    spinlock_set(&vma->lock, status);
+    task_vma_unlock(vma, status);
     return NULL;
 }
+#if IS_ENABLED(CONFIG_MPU)
 static region_info_t *vma_find_pt_region(task_vma_t *vma, addr_t addr, size_t size)
 {
     assert(vma);
-    mword_t status = spinlock_lock(&vma->lock);
+    mword_t status = task_vma_lock(vma);
     for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         if (vma->pt_regions[i].region_inx < 0)
@@ -40,19 +65,60 @@ static region_info_t *vma_find_pt_region(task_vma_t *vma, addr_t addr, size_t si
         }
         if (vma->pt_regions[i].start_addr == addr && vma->pt_regions[i].size == size)
         {
-            spinlock_set(&vma->lock, status);
+            task_vma_unlock(vma, status);
             return vma->pt_regions + i;
         }
     }
-    spinlock_set(&vma->lock, status);
+    task_vma_unlock(vma, status);
     return NULL;
 }
 static void vma_free_pt_region(task_vma_t *vma, region_info_t *ri)
 {
-    mword_t status = spinlock_lock(&vma->lock);
+    assert(vma);
+    assert(ri);
+    mword_t status = task_vma_lock(vma);
     memset(ri, 0, sizeof(*ri));
     ri->region_inx = -1;
-    spinlock_set(&vma->lock, status);
+    task_vma_unlock(vma, status);
+}
+static void vma_clean_pt_region(task_vma_t *vma, region_info_t *ri)
+{
+    assert(vma);
+    assert(ri);
+    mword_t status = task_vma_lock(vma);
+    int rg = ri->region_inx;
+    memset(ri, 0, sizeof(*ri));
+    ri->region_inx = rg;
+    task_vma_unlock(vma, status);
+}
+#endif
+
+static mln_rbtree_node_t *vma_node_create(mln_rbtree_t *r_tree, vma_addr_t addr, size_t size, paddr_t paddr)
+{
+    mln_rbtree_node_t *node = NULL;
+    vma_t *data_vma = mm_alloc(sizeof(vma_t));
+
+    if (data_vma == NULL)
+    {
+        return NULL;
+    }
+    data_vma->vaddr = addr;
+    data_vma->size = size;
+    data_vma->paddr_raw = paddr;
+
+    node = mln_rbtree_node_new(r_tree, data_vma);
+
+    if (mln_rbtree_null(node, r_tree))
+    {
+        return NULL;
+    }
+
+    return node;
+}
+static void vma_node_free(mln_rbtree_t *r_tree, mln_rbtree_node_t *node)
+{
+    mm_free(mln_rbtree_node_data_get(node));
+    mln_rbtree_node_free(r_tree, node);
 }
 /**
  * @brief 初始化vma
@@ -62,10 +128,9 @@ static void vma_free_pt_region(task_vma_t *vma, region_info_t *ri)
  */
 int task_vma_init(task_vma_t *vma)
 {
-#if IS_ENABLED(CONFIG_MK_MPU_CFG)
+#if IS_ENABLED(CONFIG_MPU)
     assert(vma != NULL);
 
-    spinlock_init(&vma->lock);
     for (int i = 0; i < CONFIG_REGION_NUM; i++)
     {
         vma->pt_regions[i].region_inx = -1;
@@ -80,11 +145,136 @@ int task_vma_init(task_vma_t *vma)
             assert(vma->mem_pages_pt_regions[i]);
         }
     }
-    // vma->mem_pages_bitamp = 0;
-    memset(vma->mem_pages, 0, sizeof(vma->mem_pages));
 #endif
 #endif
+    rbtree_mm_init(&vma->alloc_tree);
     return 0;
+}
+typedef struct vma_idl_tree_insert_params
+{
+    vaddr_t addr;
+    size_t size;
+} vma_idl_tree_insert_params_t;
+/**
+ * 返回值：
+ * -1 第一个参数小于第二个参数
+ * 0 两个参数相同
+ * 1 第一个参数大于第二个参数
+ */
+static int vma_idl_tree_alloc_cmp_handler(const void *key, const void *data)
+{
+    vma_idl_tree_insert_params_t *key_p = (vma_idl_tree_insert_params_t *)key;
+    vma_t *data_p = (vma_t *)data;
+
+    if (key_p->addr + key_p->size <= vma_addr_get_addr(data_p->vaddr))
+    {
+        return -1;
+    }
+    else if (key_p->addr >= vma_addr_get_addr(data_p->vaddr) &&
+             (key_p->addr + key_p->size) <= vma_addr_get_addr(data_p->vaddr) + data_p->size)
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+static int vma_idl_tree_insert_cmp_handler(const void *key, const void *data)
+{
+    vma_t *key_p = (vma_t *)key;
+    vma_t *data_p = (vma_t *)data;
+
+    if (vma_addr_get_addr(key_p->vaddr) + key_p->size <= vma_addr_get_addr(data_p->vaddr))
+    {
+        return -1;
+    }
+    else if (vma_addr_get_addr(key_p->vaddr) >= vma_addr_get_addr(data_p->vaddr) &&
+             (vma_addr_get_addr(key_p->vaddr) + key_p->size) <= vma_addr_get_addr(data_p->vaddr) + data_p->size)
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+static inline bool_t task_vam_addr_size_check(vma_addr_t vaddr, size_t size)
+{
+#if IS_ENABLED(CONFIG_MPU)
+#if CONFIG_MPU_VERSION == 1 || CONFIG_MPU_VERSION == 2
+    if (vma_addr_get_flags(vaddr) & VMA_ADDR_PAGE_FAULT_DSCT)
+    {
+        // 按照页大小映射
+        if (size & (PAGE_SIZE - 1))
+        {
+            return FALSE;
+        }
+        if (vma_addr_get_addr(vaddr) & (PAGE_SIZE - 1))
+        {
+            return FALSE;
+        }
+    }
+    else
+    {
+        // 否则整页映射，效率更高，但是更加费内存
+        if (!is_power_of_2(size))
+        {
+            return FALSE;
+        }
+#if CONFIG_MPU_VERSION == 1
+        if (vma_addr_get_addr(vaddr) & (size - 1))
+        {
+            return FALSE;
+        }
+#else
+        if (vma_addr_get_addr(vaddr) & (MPU_ALIGN_SIZE - 1))
+        {
+            return FALSE;
+        }
+#endif
+    }
+    return TRUE;
+#else
+#error "CONFIG_MPU_VERSION is error."
+#endif
+#else
+    if (vma_addr_get_addr(vaddr) & (sizeof(void *) - 1))
+    {
+        return FALSE;
+    }
+    return TRUE;
+#endif
+}
+static inline size_t task_vma_get_mem_align_size(vma_addr_t vaddr, size_t size)
+{
+    size_t mem_align_size;
+#if IS_ENABLED(CONFIG_MPU)
+#if CONFIG_MPU_VERSION == 1
+    if (vma_addr_get_flags(vaddr) & VMA_ADDR_PAGE_FAULT_DSCT)
+    {
+        mem_align_size = PAGE_SIZE;
+    }
+    else
+    {
+        mem_align_size = size;
+    }
+#elif CONFIG_MPU_VERSION == 2
+#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
+    if (vma_addr_get_flags(vaddr) & VMA_ADDR_PAGE_FAULT_DSCT)
+    {
+        mem_align_size = PAGE_SIZE;
+    }
+    else
+#endif
+    {
+        mem_align_size = MPU_ALIGN_SIZE;
+    }
+#endif
+#else
+    mem_align_size = sizeof(void *);
+#endif
+    return mem_align_size;
 }
 /**
  * @brief 为task增加内存，需要用到mpu的region
@@ -111,47 +301,27 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
         mm_space);
 
     assert(task_vma != NULL);
-#if IS_ENABLED(CONFIG_MK_MPU_CFG)
-#if CONFIG_MPU_VERSION == 1
-#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
-    if (vma_addr_get_flags(vaddr) & VMA_ADDR_PAGE_FAULT_SIM)
-    {
-        mem_align_size = PAGE_SIZE;
-    }
-    else
-#endif
-    {
-        mem_align_size = size;
-    }
-#elif CONFIG_MPU_VERSION == 2
-#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
-    if (vma_addr_get_flags(vaddr) & VMA_ADDR_PAGE_FAULT_SIM)
-    {
-        mem_align_size = PAGE_SIZE;
-    }
-    else
-#endif
-    {
-        mem_align_size = MPU_ALIGN_SIZE;
-    }
-#endif
-#else
-    mem_align_size = sizeof(void *) * 2;
-#endif
+    mem_align_size = task_vma_get_mem_align_size(vaddr, size);
     if (size & (mem_align_size - 1))
     {
         // 不是MPU_ALIGN_SIZE字节对齐的
         return -EINVAL;
     }
+    vma_addr_t temp_vma_addr = vma_addr_create_raw(vaddr.raw);
+    vma_addr_set_addr(&temp_vma_addr, paddr);
+    if (task_vam_addr_size_check(temp_vma_addr, size) == FALSE)
+    {
+        return -EINVAL;
+    }
     vma_addr = vma_addr_get_addr(vaddr);
     if (vma_addr != 0)
     {
-        printk("vam vaddr must is NULL.\n");
+        printk("vam vaddr must is not NULL.\n");
         // 必须让内核自己分配地址
         ret = -EINVAL;
         goto err_end;
     }
-    mword_t status = spinlock_lock(&task_vma->lock);
+    mword_t status = task_vma_lock(task_vma);
 
     if (paddr == 0)
     {
@@ -170,47 +340,34 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
             ret = -EINVAL;
             goto err_end;
         }
+        // 手动设置了物理内存，必须是保留内存，保留内存自己释放
+        vma_addr_set_flags(&vaddr, vma_addr_get_flags(vaddr) | VMA_ADDR_RESV);
     }
     if (vma_addr == 0)
     {
         ret = -ENOMEM;
         goto err_end;
     }
-#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
     if (vma_addr_get_flags(vaddr) & VMA_ADDR_PAGE_FAULT_SIM)
     {
-        size_t alloc_cn = 0;
-        int i;
+        mln_rbtree_node_t *node;
+        vma_t *node_data;
 
-        for (i = 0; i < MPU_PAGE_NUM; i++)
-        {
-            if (task_vma->mem_pages[i] == NULL) //!< 放到内存页中保存
-            {
-                task_vma->mem_pages[i] = (void *)(vma_addr + alloc_cn * PAGE_SIZE);
-                task_vma->mem_pages_attrs[i] = vma_addr_get_prot(vaddr);
-                if (alloc_cn == 0)
-                {
-                    task_vma->mem_pages_alloc_size[i] = size;
-                }
-                else
-                {
-                    task_vma->mem_pages_alloc_size[i] = 0;
-                }
-                alloc_cn++;
-                if (alloc_cn * PAGE_SIZE >= size)
-                {
-                    break;
-                }
-            }
-        }
-        if (i == MPU_PAGE_NUM)
+        vma_addr_set_addr(&vaddr, vma_addr); // 物理地址和虚拟化地址设置为一样
+        node = vma_node_create(&task_vma->alloc_tree, vaddr, size, vma_addr);
+        if (!node)
         {
             ret = -ENOMEM;
             goto err_end;
         }
+        node_data = mln_rbtree_node_data_get(node);
+
+        vma_node_set_used(node_data);
+        task_vma->alloc_tree.cmp = vma_idl_tree_insert_cmp_handler;
+        mln_rbtree_insert(&task_vma->alloc_tree, node);
     }
+#if IS_ENABLED(CONFIG_MPU)
     else
-#endif
     {
         // 找到一个合适的区域
         region_info_t *ri = NULL;
@@ -241,6 +398,7 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
             mpu_switch_to_task(pt_task);
         }
     }
+#endif
     if (ret_vaddr)
     {
         *ret_vaddr = vma_addr;
@@ -252,7 +410,7 @@ err_end:
         mm_limit_free_align(pt_task->lim, (void *)vma_addr, mem_align_size);
     }
 end:
-    spinlock_set(&task_vma->lock, status);
+    task_vma_unlock(task_vma, status);
     return ret;
 }
 /**
@@ -272,90 +430,111 @@ int task_vma_grant(task_vma_t *src_task_vma, task_vma_t *dst_task_vma,
 {
     return -ENOSYS;
 }
+/**
+ * @brief 完全相等
+ * 返回值：
+ * -1 第一个参数小于第二个参数
+ * 0 两个参数相同
+ * 1 第一个参数大于第二个参数
+ */
+static int vma_idl_tree_eq_cmp_handler(const void *key, const void *data)
+{
+    vma_idl_tree_insert_params_t *key_p = (vma_idl_tree_insert_params_t *)key;
+    vma_t *data_p = (vma_t *)data;
+
+    if (key_p->addr + key_p->size <= vma_addr_get_addr(data_p->vaddr))
+    {
+        return -1;
+    }
+    else if (key_p->addr == vma_addr_get_addr(data_p->vaddr) &&
+             (key_p->addr + key_p->size) == vma_addr_get_addr(data_p->vaddr) + data_p->size)
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+static inline int task_vma_addr_check(vaddr_t addr, size_t size)
+{
+}
 static int task_vma_free_inner(task_vma_t *task_vma, vaddr_t vaddr, size_t size, bool_t is_free_mem)
 {
-    region_info_t *ri = NULL;
     addr_t vma_addr;
     task_t *pt_task;
+    int ret = 0;
     assert(task_vma);
-#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
-    if (vaddr & (PAGE_SIZE - 1))
-    {
-        return -EINVAL;
-    }
-    if ((size & (PAGE_SIZE - 1)))
-    {
-        return -EINVAL;
-    }
-#endif
-    mword_t status = spinlock_lock(&task_vma->lock);
+
+    // if (task_vam_addr_size_check(vaddr, size) == FALSE)
+    // {
+    //     return -EINVAL;
+    // }
+
+    mword_t status = task_vma_lock(task_vma);
 
     pt_task = container_of(
         container_of(task_vma, mm_space_t, mem_vma),
         task_t,
         mm_space);
     vma_addr = vaddr;
+#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 先查看是否在缺页region中，如果是则走模拟流程
+    region_info_t *ri = NULL;
+
     ri = vma_find_pt_region(task_vma, vma_addr, size);
-#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
     for (int i = 0; i < MPU_PAGE_FAULT_REGIONS_NUM; i++)
     {
         if (ri == task_vma->mem_pages_pt_regions[i])
         {
+            vma_clean_pt_region(task_vma, ri);
             ri = NULL;
             break;
         }
     }
-#endif
-    if (!ri)
+    if (ri)
     {
-#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
-        size_t mem_cn = 0;
-        for (int i = 0; i < MPU_PAGE_NUM; i++)
-        {
-            if (task_vma->mem_pages[i] == (void *)(vaddr + mem_cn * PAGE_SIZE))
-            {
-                if (task_vma->mem_pages_alloc_size[i] != 0)
-                {
-                    // 是头部，则释放内存
-                    mm_limit_free_align(pt_task->lim, (void *)vma_addr, PAGE_SIZE);
-                    task_vma->mem_pages_alloc_size[i] = 0;
-                }
-                task_vma->mem_pages[i] = NULL;
-                ri = vma_find_pt_region(task_vma, (addr_t)(vaddr + mem_cn * PAGE_SIZE), PAGE_SIZE);
-                if (ri)
-                {
-                    ri->rbar = 0;
-                    ri->rasr = 0;
-                }
-            }
-            mem_cn++;
-            if (mem_cn * PAGE_SIZE >= size)
-            {
-                goto end;
-            }
-        }
-#endif
-        return -ENOENT;
+        vma_free_pt_region(task_vma, ri);
     }
-    vma_free_pt_region(task_vma, ri);
+    else
+#endif
+    {
+        mln_rbtree_node_t *find_node;
+
+        // 在红黑树中查看内存地址
+        task_vma->alloc_tree.cmp = vma_idl_tree_eq_cmp_handler;
+        find_node = mln_rbtree_search(
+            &task_vma->alloc_tree,
+            &(vma_idl_tree_insert_params_t){
+                .size = size,
+                .addr = vaddr,
+            }); //!< 查找是否存在
+        if (mln_rbtree_null(find_node, &task_vma->alloc_tree))
+        {
+            ret = -ENOENT;
+            goto end;
+        }
+        // mm_trace();
+        mln_rbtree_delete(&task_vma->alloc_tree, find_node);
+        vma_node_free(&task_vma->alloc_tree, find_node);
+        vma_t *vma_data = mln_rbtree_node_data_get(find_node);
+
+        if (vma_addr_get_flags(vma_data->vaddr) & VMA_ADDR_RESV)
+        {
+            // 保留内存不能释放
+            is_free_mem = FALSE;
+        }
+    }
+
     if (is_free_mem)
     {
-#if IS_ENABLED(CONFIG_MK_MPU_CFG)
-#if CONFIG_MPU_VERSION == 1
         mm_limit_free_align(pt_task->lim, (void *)vma_addr, size);
-#elif CONFIG_MPU_VERSION == 2
-        mm_limit_free_align(pt_task->lim, (void *)vma_addr, MPU_ALIGN_SIZE);
-#endif
-#else
-        mm_limit_free_align(pt_task->lim, (void *)vma_addr, sizeof(void *) * 2);
-#endif
     }
 end:
     if (pt_task == thread_get_current_task())
     {
         mpu_switch_to_task(pt_task);
     }
-    spinlock_set(&task_vma->lock, status);
+    task_vma_unlock(task_vma, status);
     return 0;
 }
 /**
@@ -387,6 +566,31 @@ int task_vma_free_pmem(task_vma_t *task_vma, vaddr_t addr, size_t size, bool_t i
     return task_vma_free_inner(task_vma, addr, size, is_free_mem);
 }
 /**
+ * 返回值：
+ * -1 第一个参数小于第二个参数
+ * 0 两个参数相同
+ * 1 第一个参数大于第二个参数
+ */
+static int vma_idl_tree_wrap_cmp_handler(const void *key, const void *data)
+{
+    vma_idl_tree_insert_params_t *key_p = (vma_idl_tree_insert_params_t *)key;
+    vma_t *data_p = (vma_t *)data;
+
+    if (key_p->addr + key_p->size <= vma_addr_get_addr(data_p->vaddr))
+    {
+        return -1;
+    }
+    else if (key_p->addr >= vma_addr_get_addr(data_p->vaddr) &&
+             (key_p->addr + key_p->size) <= vma_addr_get_addr(data_p->vaddr) + data_p->size)
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+/**
  * @brief 缺页的处理流程
  * 1.查找已经分配的表中是否存在
  * 2.分配物理内存
@@ -397,50 +601,85 @@ int task_vma_free_pmem(task_vma_t *task_vma, vaddr_t addr, size_t size, bool_t i
  */
 int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr, void *paddr)
 {
+#if IS_ENABLED(CONFIG_MPU) && IS_ENABLED(MPU_PAGE_FAULT_SUPPORT)
     assert(task_vma);
-    assert((addr & (PAGE_SIZE - 1)) == 0);
     task_t *pt_task;
-    assert(task_vma);
-    int ret = -ENOENT;
+    mln_rbtree_node_t *find_node = NULL;
+    int ret = 0;
+    vma_t *node_data = NULL;
 
     pt_task = container_of(
         container_of(task_vma, mm_space_t, mem_vma),
         task_t,
         mm_space);
 
-#if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT) //!< 缺页模拟
-    mword_t status = spinlock_lock(&task_vma->lock);
-    for (int i = 0; i < MPU_PAGE_NUM; i++)
-    {
-        if (task_vma->mem_pages[i] == NULL)
-        {
-            continue;
-        }
-        if ((umword_t)(task_vma->mem_pages[i]) == addr)
-        {
-            int sel_region = task_vma->pt_regions_sel % MPU_PAGE_FAULT_REGIONS_NUM;
+    mword_t status = task_vma_lock(task_vma);
 
-            mpu_calc_regs(task_vma->mem_pages_pt_regions[sel_region], (umword_t)(task_vma->mem_pages[i]), PAGE_SIZE,
-                          vpage_attrs_to_page_attrs(task_vma->mem_pages_attrs[i]),
-                          0 /*TODO:支持每一个region bit位*/);
-            task_vma->mem_pages_pt_regions[sel_region]->start_addr = addr;
-            task_vma->mem_pages_pt_regions[sel_region]->size = PAGE_SIZE;
-            task_vma->pt_regions_sel++;
-            ret = 0;
-            break;
-        }
+    task_vma->alloc_tree.cmp = vma_idl_tree_wrap_cmp_handler;
+    find_node = mln_rbtree_search(
+        &task_vma->alloc_tree,
+        &(vma_idl_tree_insert_params_t){
+            .size = sizeof(void *), /*最多一次访问4字节，这里按4字节查找即可*/
+            .addr = addr,
+        }); //!< 查找是否存在
+    if (mln_rbtree_null(find_node, &task_vma->alloc_tree))
+    {
+        ret = -ENOENT;
+        goto end;
     }
+    node_data = mln_rbtree_node_data_get(find_node);
+    int sel_region = task_vma->pt_regions_sel % MPU_PAGE_FAULT_REGIONS_NUM;
+    addr_t map_addr;
+    size_t map_size;
+
+    if (vma_addr_get_flags(node_data->vaddr) & VMA_ADDR_PAGE_FAULT_DSCT)
+    {
+        map_addr = ALIGN_DOWN(addr, PAGE_SIZE);
+        map_size = PAGE_SIZE;
+    }
+    else
+    {
+        map_addr = (umword_t)(vma_addr_get_addr(node_data->vaddr));
+        map_size = node_data->size;
+    }
+    mpu_calc_regs(task_vma->mem_pages_pt_regions[sel_region],
+                  map_addr,
+                  map_size,
+                  vpage_attrs_to_page_attrs(vma_addr_get_prot(node_data->vaddr)),
+                  0 /*TODO:支持每一个region bit位*/);
+    task_vma->mem_pages_pt_regions[sel_region]->start_addr = map_addr;
+    task_vma->mem_pages_pt_regions[sel_region]->size = map_size;
+    task_vma->pt_regions_sel++;
     if (pt_task == thread_get_current_task())
     {
         mpu_switch_to_task(pt_task);
     }
-    spinlock_set(&task_vma->lock, status);
+end:
+    task_vma_unlock(task_vma, status);
     return ret;
 #else
-    return -ENOSYS;
+    return -1;
 #endif
 }
+typedef struct vma_clean_params
+{
+    mln_rbtree_t *tree;
+    ram_limit_t *lim;
+} vma_clean_params_t;
+static int rbtree_iterate_handler_delete(mln_rbtree_node_t *node, void *udata)
+{
+    vma_clean_params_t *params = udata;
+    vma_t *vma_data = mln_rbtree_node_data_get(node);
 
+    if (!(vma_addr_get_flags(vma_data->vaddr) & VMA_ADDR_RESV))
+    {
+        mm_limit_free_align(params->lim, (void *)vma_node_get_paddr(vma_data), vma_data->size);
+    }
+
+    mln_rbtree_delete(params->tree, node);
+    vma_node_free(params->tree, node);
+    return 0;
+}
 /**
  * @brief 释放task_vma
  *
@@ -450,29 +689,21 @@ int task_vma_page_fault(task_vma_t *task_vma, vaddr_t addr, void *paddr)
 int task_vma_clean(task_vma_t *task_vma)
 {
     task_t *pt_task;
+    int ret;
 
     pt_task = container_of(
         container_of(task_vma, mm_space_t, mem_vma),
         task_t,
         mm_space);
-    for (int i = 0; i < CONFIG_REGION_NUM; i++)
-    {
-        if (task_vma->pt_regions[i].region_inx >= 0)
-        {
-            task_vma->pt_regions[i].region_inx = -1;
-#if CONFIG_MPU_VERSION == 1
-            mm_limit_free_align(pt_task->lim, (void *)(task_vma->pt_regions[i].start_addr),
-                                task_vma->pt_regions[i].size);
-#elif CONFIG_MPU_VERSION == 2
-            mm_limit_free_align(pt_task->lim, (void *)(task_vma->pt_regions[i].start_addr),
-                                MPU_ALIGN_SIZE);
-#endif
-        }
-    }
+    vma_clean_params_t params = {
+        .lim = pt_task->lim,
+        .tree = &task_vma->alloc_tree,
+    }; // 删除所有的节点
+    ret = mln_rbtree_iterate(&task_vma->alloc_tree, rbtree_iterate_handler_delete, &params);
     return 0;
 }
 
-#if CONFIG_MK_MPU_CFG
+#if IS_ENABLED(CONFIG_MPU)
 #include "mpu.h"
 static bool_t mpu_calc(
     mm_space_t *ms,
@@ -664,6 +895,7 @@ again_alloc:
 #endif
 }
 #else
+#include "mm_wrap.h"
 void *mpu_ram_alloc(mm_space_t *ms, ram_limit_t *r_limit, size_t ram_size, int mem_block)
 {
     void *ram = mm_limit_alloc_raw(mem_block, r_limit, ram_size);

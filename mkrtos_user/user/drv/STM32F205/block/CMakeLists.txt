@@ -1,17 +1,18 @@
 cmake_minimum_required(VERSION 3.13)
 
-file(GLOB_RECURSE deps  
-    *.c 
-    *.S
-    ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/STM32F2xx_StdPeriph_Driver/src/*.c
+file(
+    GLOB deps
+    *.c
 )
+
+
 add_executable(
-    block
+    block.elf
     ${deps}
     ${START_SRC}
 )
 target_link_libraries(
-    block
+    block.elf
     PUBLIC
     -Bstatic
     ${LIBC_NAME}
@@ -23,53 +24,53 @@ target_link_libraries(
     sys
     sys_util
     sys_svr
+    printf
     --no-whole-archive
     ${GCC_LIB_PATH}/libgcc.a
 )
-
 target_include_directories(
-    block
+    block.elf
     PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../mk_drv
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc/${ARCH_NAME}
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util/inc
-    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/libfdt/lib/contrib
 
-    ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/CMSIS/Include
-    ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/CMSIS/Device/ST/STM32F2xx
-    ${CMAKE_SOURCE_DIR}/mkrtos_bsp/STM32/STM32F2xx_StdPeriph_Lib_V1.1.0/Libraries/STM32F2xx_StdPeriph_Driver/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
+    
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/user/drv/lib/mk_block
 )
-
+add_dependencies(
+    block.elf
+    ${START_LIB}
+    sys
+    sys_util
+    mk_char
+    mk_drv
+    printf
+    # mk_block
+)
 set_target_properties(
-    block PROPERTIES LINK_FLAGS
+    block.elf PROPERTIES LINK_FLAGS
     "-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "
     #--no-warn-rwx-segments
 )
 add_custom_target(
     block_dump ALL
     COMMAND
-    ${CMAKE_OBJDUMP} -s -S block > ${CMAKE_SOURCE_DIR}/build/output/block.S
+    ${CMAKE_OBJDUMP} -s -S block.elf > ${CMAKE_SOURCE_DIR}/build/output/block.S
     COMMAND
-    ${CMAKE_READELF} -a block > ${CMAKE_SOURCE_DIR}/build/output/block.txt
+    ${CMAKE_READELF} -a block.elf > ${CMAKE_SOURCE_DIR}/build/output/block.txt
     COMMAND
-    ${CMAKE_OBJCOPY} -O binary -S block block.bin
+    ${CMAKE_OBJCOPY} -O binary -S block.elf block.bin
     COMMAND
-    ${CMAKE_SIZE} block
+    ${CMAKE_SIZE} block.elf
     COMMAND
     ${CMAKE_COMMAND} -E copy block.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/block
     COMMAND
-    cp block ${CMAKE_SOURCE_DIR}/build/output/block
+    cp block.elf ${CMAKE_SOURCE_DIR}/build/output/block.elf
 )
-add_dependencies(block_dump block)
 
-add_dependencies(
-    block
-    fdt
-    sys
-    sys_util
-    sys_svr
-    mk_drv
-)
+add_dependencies(block_dump block.elf)
+ 

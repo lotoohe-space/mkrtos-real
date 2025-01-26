@@ -2,7 +2,7 @@
 #include "mm_space.h"
 #include "task.h"
 
-#if CONFIG_MK_MPU_CFG
+#if CONFIG_MPU
 #if CONFIG_MPU_VERSION == 2
 #define MPU_ALIGN_SIZE 32
 #endif

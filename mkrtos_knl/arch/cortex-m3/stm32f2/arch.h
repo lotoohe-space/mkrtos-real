@@ -38,6 +38,8 @@ typedef struct sp_info
     void *knl_sp;    //!< 内核sp
     mword_t sp_type; //!< 使用的栈类型
 } sp_info_t;
+
+#define flush_all_tlb()
 #define _dmb(ins) asm volatile("dmb" : : : "memory")
 #define _dsb(ins) asm volatile("dsb" : : : "memory")
 #define PAGE_SHIFT CONFIG_PAGE_SHIFT

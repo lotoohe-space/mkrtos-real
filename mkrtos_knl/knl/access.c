@@ -42,20 +42,8 @@ bool_t is_rw_access(task_t *tg_task, void *addr, size_t size, bool_t ignore_null
     {
         return TRUE;
     }
-#if IS_ENABLED(CONFIG_MPU_PAGE_FAULT_SUPPORT)
-    task_vma_t *vma = &tg_task->mm_space.mem_vma;
-    for (int i = 0; i < MPU_PAGE_NUM; i++)
-    {
-        /*TODO:加锁*/
-        if (vma->mem_pages[i] == NULL)
-        {
-            continue;
-        }
-        if (vma->mem_pages[i] == (void *)ALIGN_DOWN((addr_t)addr, PAGE_SIZE) && (vma->mem_pages_attrs[i] & VPAGE_PROT_RW))
-        {
-            return TRUE;
-        }
-    }
+#if IS_ENABLED(CONFIG_MMU)
+/*TODO:*/
 #endif
     return FALSE;
 #else

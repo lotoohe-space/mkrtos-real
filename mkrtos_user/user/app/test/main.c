@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <u_vmam.h>
 #include "fs_test.h"
+#include "mm_test.h"
+#include <u_sleep.h>
 int main(int argc, char *argv[])
 {
     for (int i = 0; i < argc; i++)
@@ -16,5 +18,11 @@ int main(int argc, char *argv[])
     fs_test3();
     fs_test2();
     fs_test();
+    mm_test();
+    mm_test1();
+    // while (1)
+    // {
+    //     u_sleep_ms(1000);
+    // }
     return 0;
 }

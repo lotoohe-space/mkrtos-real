@@ -522,9 +522,7 @@ static void task_release_stage1(kobject_t *kobj)
         }
     }
 
-#if IS_ENABLED(CONFIG_MMU)
     task_vma_clean(&tk->mm_space.mem_vma);
-#endif
 }
 static void task_release_stage2(kobject_t *kobj)
 {
@@ -537,7 +535,7 @@ static void task_release_stage2(kobject_t *kobj)
 #if !IS_ENABLED(CONFIG_MMU)
     if (tk->mm_space.mm_block)
     {
-#if CONFIG_MK_MPU_CFG
+#if CONFIG_MPU
         mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
 #else
         mm_limit_free(tk->lim, tk->mm_space.mm_block);

@@ -227,7 +227,7 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
 #else
         align_size = obj->size;
 
-#if CONFIG_MK_MPU_CFG
+#if CONFIG_MPU
 #if CONFIG_MPU_VERSION == 1
         if (obj->size < (1UL << CONFIG_PAGE_SHIFT) || !is_power_of_2(obj->size))
         {

@@ -58,6 +58,9 @@ extern "C" {
 #define PROT_READ      1
 #define PROT_WRITE     2
 #define PROT_EXEC      4
+#ifdef MKRTOS
+#define PROT_PFS       8 /*enable page fault sim*/
+#endif
 #define PROT_GROWSDOWN 0x01000000
 #define PROT_GROWSUP   0x02000000
 
