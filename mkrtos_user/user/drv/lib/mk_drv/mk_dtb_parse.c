@@ -65,7 +65,7 @@ int dev_regs_map(mk_dev_t *dev, void *fdt)
         reg[1] = fdt32_to_cpu((fdt32_t)reg_raw[i + 1]);
 
         printf("reg:0x%x size:0x%x\n", reg[0], reg[1]);
-        tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, 0),
+        tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, VMA_ADDR_PAGE_FAULT_SIM, 0),
                            reg[1], reg[0], &vaddr);
         if (msg_tag_get_val(tag) < 0)
         {

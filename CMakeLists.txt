@@ -26,7 +26,8 @@ execute_process(
 )
 
 execute_process(
-    COMMAND cd ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/appfs/src/build.sh && sh build.sh
+    COMMAND cd ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/appfs/src
+    COMMAND sh build.sh
     COMMAND_ECHO STDOUT
 )
 

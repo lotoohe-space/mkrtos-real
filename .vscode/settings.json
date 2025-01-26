@@ -193,7 +193,7 @@
         "mman.h": "c"
     },
     "cortex-debug.showRTOS": false,
-    "cortex-debug.variableUseNaturalFormat": true,
+    "cortex-debug.variableUseNaturalFormat": false,
     "C_Cpp.default.systemIncludePath": [""],
     "C_Cpp.default.forcedInclude": ["${workspaceFolder}/build/autoconf.h"]
 }

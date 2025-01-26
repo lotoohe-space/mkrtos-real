@@ -14,21 +14,21 @@ static int drv_iomem_init(void)
 {
     addr_t addr;
     msg_tag_t tag;
-    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, 0),
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, VMA_ADDR_PAGE_FAULT_SIM, 0),
                        XMC_MEM_BASE - PERIPH_BASE, PERIPH_BASE, &addr);
     if (msg_tag_get_val(tag) < 0)
     {
         printf("periph mem alloc failed..\n");
         return -1;
     }
-    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, 0),
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, VMA_ADDR_PAGE_FAULT_SIM, 0),
                        0x4000000, XMC_MEM_BASE, &addr);
     if (msg_tag_get_val(tag) < 0)
     {
         printf("periph mem alloc failed..\n");
         return -1;
     }
-    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, 0),
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, VMA_ADDR_PAGE_FAULT_SIM, 0),
                        0x10000, XMC_REG_BASE, &addr);
     if (msg_tag_get_val(tag) < 0)
     {

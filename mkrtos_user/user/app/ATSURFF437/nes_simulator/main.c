@@ -121,7 +121,7 @@ again:
     }
     msg_tag_t tag;
     addr_t addr;
-    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, 0),
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, VMA_ADDR_PAGE_FAULT_SIM, 0),
                        512, info.display_addr, &addr);
     if (msg_tag_get_val(tag) < 0)
     {

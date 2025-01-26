@@ -82,14 +82,24 @@ void MemManage_Handler(void)
   bool_t is_knl = is_run_knl();
   addr_t fault_addr = (addr_t)(SCB->MMFAR);
   addr_t bus_addr = (addr_t)(SCB->BFAR);
+  SCB->MMFAR = 0;
+  SCB->BFAR = 0;
   task_t *cur_task = thread_get_current_task();
   bool_t reset_r9 = FALSE;
 
-  if ((SCB->CFSR & 0x1) || (SCB->CFSR & 0x2))
+  if (((SCB->CFSR & 0x1) || (SCB->CFSR & 0x2)) && (SCB->CFSR & (1 << 7)))
   {
+    if (SCB->CFSR & 0x1)
+    {
+      SCB->CFSR |= 0x1;
+    }
+    if (SCB->CFSR & 0x2)
+    {
+      SCB->CFSR |= 0x2;
+    }
     // printk("instr || data 0x%x access is error.\n", fault_addr);
     if (task_vma_page_fault(&(thread_get_current_task()->mm_space.mem_vma),
-                            ALIGN_DOWN(fault_addr, PAGE_SIZE), NULL) < 0)
+                            fault_addr, NULL) < 0)
     {
       printk("[semgement fault] task:0x%x, mem_addr:0x%lx bus_addr:0x%lx .\n",
              thread_get_current_task(), fault_addr, bus_addr);
@@ -99,14 +109,17 @@ void MemManage_Handler(void)
   }
   if ((SCB->CFSR & 8))
   {
+    SCB->CFSR |= 8;
     printk("push stack is error.\n");
   }
   if (SCB->CFSR & 16)
   {
+    SCB->CFSR |= 16;
     printk("pop stack is error.\n");
   }
   if (SCB->CFSR & 32)
   {
+    SCB->CFSR |= 32;
     printk("Floating point lazy stack error.\n");
   }
 end:
@@ -119,7 +132,7 @@ end:
           "mov r9, %0\n\t"
           :                                                   /* 无输出操作数 */
           : "r"(thread_get_current_task()->mm_space.mm_block) // 输入操作数，将value的值传递给R0寄存器
-          :                                              // 告诉编译器R9寄存器将被修改
+          :                                                   // 告诉编译器R9寄存器将被修改
       );
     } while (0);
   }

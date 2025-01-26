@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 ")
 
 #appfs lib
 file(GLOB appfs_src  src/appfs.c src/appfs_open.c)
