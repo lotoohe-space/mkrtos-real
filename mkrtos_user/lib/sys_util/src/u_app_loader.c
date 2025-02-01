@@ -20,6 +20,8 @@
 #include "u_env.h"
 #include "u_sys.h"
 
+#include "u_elf32.h"
+
 #include <assert.h>
 #include <string.h>
 #include <elf.h>
@@ -130,10 +132,12 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     {
         return -ENOENT;
     }
-    // for (int i = 0; i < arg_cn; i++)
-    // {
-    //     printf("argv[%d]:%s\n", i, argv[i]);
-    // }
+#if 0
+    for (int i = 0; i < arg_cn; i++)
+    {
+        printf("argv[%d]:%s\n", i, argv[i]);
+    }
+#endif
     int type;
     umword_t addr;
     int ret;
@@ -152,15 +156,26 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     {
         return -ENOENT;
     }
-
+    addr_t entry_addr;
     app_info_t *app = app_info_get((void *)addr);
-
+    addr_t at_base = addr;
     if (app == NULL)
     {
-        printf("app format is error.\n");
-        return -1;
+        ret = elf32_load((umword_t)addr, 0 /*TODO:*/,
+                         &entry_addr, 0, &at_base);
+        if (ret < 0)
+        {
+            printf("app format is error.\n");
+            return -1;
+        }
+        printf("%s addr is [0x%x]\n", name, addr + 0xd8);
+
+        addr = entry_addr + addr;
     }
-    printf("%s addr is [0x%x]\n", name, app);
+    else
+    {
+        printf("%s addr is [0x%x]\n", name, app);
+    }
     umword_t ram_base;
     obj_handler_t hd_task = handler_alloc();
     obj_handler_t hd_thread = handler_alloc();
@@ -193,7 +208,8 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     {
         goto end_del_obj;
     }
-    tag = task_alloc_ram_base(hd_task, app->i.ram_size, &ram_base, mem_block);
+    tag = task_alloc_ram_base(hd_task, app ? app->i.ram_size : 100 * 1024 /*TODO:*/,
+                              &ram_base, mem_block);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
@@ -248,7 +264,15 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     {
         goto end_del_obj;
     }
-    tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + app->i.ram_size));
+    if (app)
+    {
+        tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + app->i.ram_size));
+    }
+    else
+    {
+        /*TODO:*/
+        tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + 100 * 1024 - 2048 - MSG_BUG_LEN));
+    }
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
@@ -262,9 +286,19 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     {
         *pid = hd_task;
     }
-    void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
-    void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
-    printf("stack:0x%x size:%d.\n", sp_addr, app->i.stack_size);
+    void *sp_addr;
+    void *sp_addr_top;
+    if (app)
+    {
+        sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
+        sp_addr_top = (char *)sp_addr + app->i.stack_size;
+        printf("stack:0x%x size:%d.\n", sp_addr, app->i.stack_size);
+    }
+    else
+    {
+        sp_addr = (char *)ram_base;
+        sp_addr_top = (char *)sp_addr + 100 * 1024 - 2048; /*TODO:*/
+    }
     umword_t *usp_top = (umword_t *)((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL);
     uenv_t uenv = {
         .log_hd = cur_env->ns_hd,
@@ -301,6 +335,9 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
 
     app_stack_push_umword(hd_task, &usp_top, (umword_t)app_env);
     app_stack_push_umword(hd_task, &usp_top, 0xfe);
+
+    app_stack_push_umword(hd_task, &usp_top, at_base);
+    app_stack_push_umword(hd_task, &usp_top, (umword_t)AT_BASE);
 
     app_stack_push_umword(hd_task, &usp_top, MK_PAGE_SIZE);
     app_stack_push_umword(hd_task, &usp_top, (umword_t)AT_PAGESZ);

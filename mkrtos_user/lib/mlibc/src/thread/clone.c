@@ -1,7 +1,7 @@
 #include <errno.h>
 #include "pthread_impl.h"
 #include <syscall_backend.h>
-int __clone__(int (*func)(void *), void *stack, int flags, void *arg, ...)
+int __clone(int (*func)(void *), void *stack, int flags, void *arg, ...)
 {
 	pid_t *ptid;
 	void *tls;

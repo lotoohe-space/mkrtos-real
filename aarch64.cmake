@@ -4,7 +4,7 @@ message("========use aarch64.cmake")
 set(CMAKE_C_FLAGS "-O0 -g3 -D=MKRTOS \
 -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -u=_printf_float \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  \
--fno-stack-protector -Wl,--gc-sections \
+-fno-stack-protector -Wl,--gc-section \
 -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)
 

@@ -19,6 +19,7 @@
 #include <u_sema.h>
 #include <u_task.h>
 #include <u_util.h>
+#include <poll.h>
 AUTO_CALL(101)
 void fs_backend_init(void)
 {
@@ -28,6 +29,10 @@ void fs_backend_init(void)
 }
 int be_open(const char *path, int flags, mode_t mode)
 {
+    if (path == NULL)
+    {
+        return -ENOENT;
+    }
     int fd = fs_open(path, flags, mode);
 
     if (fd < 0)
@@ -461,6 +466,60 @@ long be_unlink(const char *path)
 {
     return fs_unlink(path);
 }
+long be_poll(struct pollfd *fds, nfds_t n, int timeout)
+{
+    for (int i = 0; i < n; i++)
+    {
+        if (fds[0].fd >= 3)
+        {
+            /*TODO:暂时只支持TTY*/
+            return -1;
+        }
+        /*FIXME:性能优化*/
+        if (fds[0].events & POLLIN)
+        {
+            char buf;
+            int len;
+            int time = 0;
+
+            if (timeout == -1)
+            {
+                // u_sema_down(SEMA_PROT);
+            again1:
+                len = cons_read(&buf, 0);
+                if (len <= 0)
+                {
+                    u_sleep_ms(1);
+                    goto again1;
+                }
+                return 1;
+            }
+            else
+            {
+            again:
+                len = cons_read(&buf, 0);
+                if (len <= 0)
+                {
+                    u_sleep_ms(1);
+                    time++;
+                    if (time >= timeout)
+                    {
+                        /*timeover*/
+                        return 0;
+                    }
+                    goto again;
+                }
+                else
+                {
+                    fds[0].revents |= POLLIN;
+                    return 1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 long sys_be_getdents(va_list ap)
 {
     long fd;

@@ -8,7 +8,7 @@
 
 #define SHARED
 
-#include "crt_arch.h"
+// #include "crt_arch.h"
 
 #ifndef GETFUNCSYM
 #define GETFUNCSYM(fp, sym, got) do { \
@@ -17,7 +17,11 @@
 	__asm__ __volatile__ ( "" : "+m"(static_func_ptr) : : "memory"); \
 	*(fp) = static_func_ptr; } while(0)
 #endif
-
+#ifdef MKRTOS
+register volatile unsigned long gbase asm("r9");
+extern int __data_start__;
+extern int __text_start__;
+#endif
 hidden void _dlstart_c(size_t *sp, size_t *dynv)
 {
 	size_t i, aux[AUX_CNT], dyn[DYN_CNT];
@@ -129,8 +133,27 @@ hidden void _dlstart_c(size_t *sp, size_t *dynv)
 	rel_size = dyn[DT_RELSZ];
 	for (; rel_size; rel+=2, rel_size-=2*sizeof(size_t)) {
 		if (!IS_RELATIVE(rel[1], 0)) continue;
+		#ifdef MKRTOS
+		unsigned long ts = (unsigned long)&__text_start__;
+		unsigned long ds = (unsigned long)&__data_start__;
+		unsigned long tbase = (unsigned long)base;
+		unsigned long offset = (rel[0]) - ds;
+		unsigned long *pointer = (unsigned long *)((unsigned int)gbase + offset);
+
+		if (*pointer >= ds)
+		{
+			offset = *pointer - ds;
+			*pointer = offset + (unsigned int)gbase;
+		}
+		else
+		{
+			offset = *pointer - ts;
+			*pointer = offset + (unsigned int)tbase;
+		}
+		#else
 		size_t *rel_addr = (void *)(base + rel[0]);
 		*rel_addr += base;
+		#endif
 	}
 
 	rel = (void *)(base+dyn[DT_RELA]);
@@ -158,6 +181,12 @@ hidden void _dlstart_c(size_t *sp, size_t *dynv)
 #endif
 
 	stage2_func dls2;
-	GETFUNCSYM(&dls2, __dls2, base+dyn[DT_PLTGOT]);
+	// GETFUNCSYM(&dls2, __dls2, base+dyn[DT_PLTGOT]);
+	do { 
+		hidden void __dls2(); 
+		void (*static_func_ptr)() = __dls2; 
+		__asm__ __volatile__ ( "" : "+m"(static_func_ptr) : : "memory"); 
+		*(&dls2) = static_func_ptr; 
+	} while(0);
 	dls2((void *)base, sp);
 }

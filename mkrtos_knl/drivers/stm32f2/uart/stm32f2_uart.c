@@ -135,6 +135,20 @@ uart_t *uart_get_global(void)
 #define QUEUE_LEN 129
 static queue_t queue;
 static uint8_t queue_data[QUEUE_LEN];
+static uint32_t last_tick;
+#if 0
+void uart_check_timeover(irq_entry_t *irq)
+{
+    if (last_tick != 0 && (sys_tick_cnt_get() - last_tick > 5))
+    {
+        if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
+        {
+            thread_ready_remote(irq->irq->wait_thread, TRUE);
+        }
+        last_tick = 0;
+    }
+}
+#endif
 void uart_tigger(irq_entry_t *irq)
 {
     if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
@@ -142,12 +156,22 @@ void uart_tigger(irq_entry_t *irq)
         // 清除中断标志位
         USART_ClearITPendingBit(USART1, USART_IT_RXNE);
         q_enqueue(&queue, USART_ReceiveData(USART1));
-
         if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
         {
             thread_ready_remote(irq->irq->wait_thread, TRUE);
         }
+        last_tick = sys_tick_cnt_get();
     }
+    // if (USART_GetITStatus(USART1, USART_IT_IDLE) != RESET)
+    // {
+    //     uint8_t clear;
+
+    //     clear = USART1->SR;
+    //     clear = USART1->DR;
+    //     clear = clear;
+
+    //     USART_ClearITPendingBit(USART1, USART_IT_IDLE); // 清除空闲中断
+    // }
 }
 
 void uart_init(void)
@@ -190,6 +214,7 @@ void uart_init(void)
     USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
     USART_Init(USART1, &USART_InitStructure);
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+    // USART_ITConfig(USART1, USART_IT_IDLE, ENABLE);
 
     USART_Cmd(USART1, ENABLE);
 }

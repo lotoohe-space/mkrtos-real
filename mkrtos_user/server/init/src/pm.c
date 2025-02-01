@@ -233,7 +233,7 @@ int pm_rpc_run_app(const char *path, int flags, char *params, int params_len)
 
     ret = app_load(path, u_get_global_env(), &pid, args, i,
                    NULL, 0, &sem, 0);
-    if (ret > 0)
+    if (ret >= 0)
     {
         if (!(flags & PM_APP_BG_RUN))
         {

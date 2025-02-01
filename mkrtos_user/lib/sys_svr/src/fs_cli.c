@@ -22,6 +22,7 @@ RPC_GENERATION_CALL3(TRUE, fs_t, FS_PROT, FS_OPEN, open,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mode)
 sd_t fs_open(const char *path, int flags, int mode)
 {
+    assert(path);
     obj_handler_t hd;
     int ret = ns_query(path, &hd, 0x1);
 

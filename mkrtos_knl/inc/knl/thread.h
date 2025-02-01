@@ -214,8 +214,8 @@ static inline pf_t *thread_get_pf(thread_t *th)
 static inline thread_t *thread_get_current(void)
 {
     umword_t sp = arch_get_sp();
-    // thread_t *th = (thread_t *)(ALIGN_DOWN(sp, CONFIG_THREAD_BLOCK_SIZE));
-    thread_t *th = (thread_t *)((sp / CONFIG_THREAD_BLOCK_SIZE) * CONFIG_THREAD_BLOCK_SIZE);
+    thread_t *th = (thread_t *)(ALIGN_DOWN(sp, CONFIG_THREAD_BLOCK_SIZE));
+    // thread_t *th = (thread_t *)((sp / CONFIG_THREAD_BLOCK_SIZE) * CONFIG_THREAD_BLOCK_SIZE);
 
     return th;
 }

@@ -260,7 +260,7 @@ char *fake_argv[] = {
     "/mnt/a.out"
 };
 //tcc -nostdinc -nostdlib -c /bin/2.c -o /mnt/2.o
-//ld -e EntryPoint --gc-sections -r -Tu main.o -o a.out -lc -S
+//ld -e EntryPoint --gc-section -r -Tu main.o -o a.out -lc -S
 //ld-new.bin /mnt/1.o -T/bin/1.ld -o /mnt/a.out -r
 int main(int argc0, char **argv0)
 {

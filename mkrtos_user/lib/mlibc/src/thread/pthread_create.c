@@ -265,7 +265,7 @@ static FILE *volatile dummy_file = 0;
 weak_alias(dummy_file, __stdin_used);
 weak_alias(dummy_file, __stdout_used);
 weak_alias(dummy_file, __stderr_used);
-extern int __clone__(int (*func)(void *), void *stack, int flags, void *arg, ...);
+extern int __clone(int (*func)(void *), void *stack, int flags, void *arg, ...);
 static void init_file_lock(FILE *f)
 {
 	if (f && f->lock < 0)
@@ -410,7 +410,7 @@ int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict att
 	__tl_lock();
 	if (!libc.threads_minus_1++)
 		libc.need_locks = 1;
-	ret = __clone__((c11 ? start_c11 : start), stack, flags, args, &new->tid, TP_ADJ(new), &__thread_list_lock);
+	ret = __clone((c11 ? start_c11 : start), stack, flags, args, &new->tid, TP_ADJ(new), &__thread_list_lock);
 
 	/* All clone failures translate to EAGAIN. If explicit scheduling
 	 * was requested, attempt it before unlocking the thread list so

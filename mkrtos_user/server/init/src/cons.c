@@ -41,11 +41,11 @@ static void console_read_func(void)
             {
                 q_enqueue(&cons_obj.r_queue, cons_obj.r_data_buf[i]);
             }
-            pthread_spin_unlock(&cons_obj.r_lock);
             if (sem_th)
             {
                 u_sema_up(sem_th);
             }
+            pthread_spin_unlock(&cons_obj.r_lock);
         }
     }
     handler_free_umap(cons_obj.hd_cons_read);
@@ -88,7 +88,7 @@ int console_write(uint8_t *data, size_t len)
  * @brief 向控制台读取数据
  *
  * @param data
- * @param len
+ * @param len 如果len为0，则返回数据长度。
  * @return int
  */
 int console_read(uint8_t *data, size_t len)
@@ -99,6 +99,10 @@ int console_read(uint8_t *data, size_t len)
     if (src_pid != cons_obj.active_pid)
     {
         return -EACCES;
+    }
+    if (len == 0)
+    {
+        return q_queue_len(&cons_obj.r_queue);
     }
     if (q_queue_len(&cons_obj.r_queue) == 0)
     {

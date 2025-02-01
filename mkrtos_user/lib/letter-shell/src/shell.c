@@ -1461,7 +1461,7 @@ void shellExec(Shell *shell)
                 params_len += strlen(shell->parser.param[i]) + 1;
             }
             //!< 内建命令中未找到，则执行应用
-            if (pm_run_app(shell->parser.param[0], PM_APP_BG_RUN, params, params_len) < 0)
+            if (pm_run_app(shell->parser.param[0], 0/*PM_APP_BG_RUN*/, params, params_len) < 0)
             {
                 shellWriteString(shell, shellText[SHELL_TEXT_CMD_NOT_FOUND]);
             }
