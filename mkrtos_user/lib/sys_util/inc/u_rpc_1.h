@@ -24,7 +24,7 @@
         int off_buf = 0;                                                                                                           \
         int ret = -1;                                                                                                              \
         umword_t op_val = op;                                                                                                      \
-        /*拷贝op*/                                                                                                               \
+        /*拷贝op*/                                                                                                                 \
         rpc_memcpy(msg_ipc->msg_buf, &op_val, sizeof(op_val));                                                                     \
         off += rpc_align(sizeof(op_val), __alignof(op));                                                                           \
                                                                                                                                    \
@@ -45,7 +45,7 @@
         if (msg_tag_get_val(tag) < 0)                                                                                              \
         {                                                                                                                          \
             return tag;                                                                                                            \
-        } /*拷贝返回的数据*/                                                                                                \
+        } /*拷贝返回的数据*/                                                                                                       \
         off = 0;                                                                                                                   \
         RPC_CLI_BUF_TO_MSG_OUT(rpc_type0, cli_type0, var0, dir0, (uint8_t *)msg_ipc->msg_buf, off, tag.msg_buf_len *WORD_BYTES);   \
         return tag;                                                                                                                \
@@ -67,7 +67,7 @@
                                                                                                                    \
         RPC_TYPE_INIT_FUNC_CALL(svr_type0, &var0);                                                                 \
                                                                                                                    \
-        /*取得op*/                                                                                               \
+        /*取得op*/                                                                                                 \
         op_val = *((typeof(op) *)value);                                                                           \
         off += sizeof(typeof(op));                                                                                 \
         off = rpc_align(off, __alignof(typeof(op)));                                                               \
@@ -92,4 +92,10 @@
  *
  */
 #define RPC_GENERATION_OP1(struct_type, prot, op, func_name, cli_type0, svr_type0, dir0, rpc_type0, name0) \
+    short struct_type##_##func_name##_op(struct_type *obj, svr_type0 *name0)
+
+#define RPC_GENERATION_OP_DISPATCH1(struct_type, prot, op, func_name, cli_type0, svr_type0, dir0, rpc_type0, name0) \
+    short struct_type##_##func_name##_op(struct_type *obj, svr_type0 *name0);                                       \
+    RPC_GENERATION_DISPATCH1(struct_type, prot, op, func_name,                                                      \
+                             cli_type0, svr_type0, dir0, rpc_type0, name0)                                          \
     short struct_type##_##func_name##_op(struct_type *obj, svr_type0 *name0)

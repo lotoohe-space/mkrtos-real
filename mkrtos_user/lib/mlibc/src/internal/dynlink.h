@@ -70,7 +70,7 @@ struct fdpic_dummy_loadmap {
 #endif
 
 #ifndef DL_NOMMU_SUPPORT
-#define DL_NOMMU_SUPPORT 0
+#define DL_NOMMU_SUPPORT 1
 #endif
 
 #if !DL_FDPIC

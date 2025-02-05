@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include "u_sleep.h"
-// #include "libc.h"
 #include "lwiperf.h"
 #include "u_prot.h"
 
@@ -16,15 +15,37 @@
 #include <u_sema.h>
 #include <blk_drv_cli.h>
 #include <ns_cli.h>
-umword_t addr;
-umword_t size;
+#include "fs_rpc.h"
+#include "net_rpc.h"
+#include "u_fast_ipc.h"
+static umword_t addr;
+static umword_t size;
 obj_handler_t net_drv_hd;
 
+#define STACK_COM_ITME_SIZE (2 * 1024)
+#define STACK_NUM 4
+ATTR_ALIGN(8)
+static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
+static uint8_t msg_buf_coms[MSG_BUG_LEN];
+static void fast_ipc_init(void)
+{
+    u_fast_ipc_init(stack_coms,
+                    msg_buf_coms, STACK_NUM, STACK_COM_ITME_SIZE);
+}
 int main(int args, char *argv[])
 {
     int ret;
     msg_tag_t tag;
+    obj_handler_t hd;
+
     printf("net startup..\n");
+    fast_ipc_init();
+    ret = rpc_meta_init(THREAD_MAIN, &hd);
+    if (ret < 0)
+    {
+        printf("rpc meta init failed\n");
+        return -1;
+    }
 again:
     ret = ns_query("/eth", &net_drv_hd, 0x1);
     if (ret < 0)
@@ -33,7 +54,9 @@ again:
         goto again;
     }
     cons_write_str("net init..\n");
-    net_init();
+    net_hw_init();
+    net_svr_init();
+    fs_svr_init();
     cons_write_str("net start success..\n");
     ip_addr_t perf_server_ip;
 
@@ -49,13 +72,33 @@ again:
     }
 
     obj_handler_t shm_hd = handler_alloc();
-    assert(shm_hd != HANDLER_INVALID);
+    if (shm_hd == HANDLER_INVALID)
+    {
+        printf("handler alloc failed.\n");
+        return -1;
+    }
     tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
                                    SHARE_MEM_CNT_BUDDY_CNT, 2048);
-    assert(msg_tag_get_prot(tag) >= 0);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        printf("share mem create failed.\n");
+        return -1;
+    }
     tag = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
-    assert(msg_tag_get_prot(tag) >= 0);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        printf("share mem map failed.\n");
+        return -1;
+    }
 
+    ret = ns_register("/net", hd, MOUNT_NODE);
+    if (ret < 0)
+    {
+        printf("ns reg failed.\n");
+        return -1;
+    }
+    cons_write_str("net mount success\n");
+    // fs_svr_loop();
     while (1)
     {
         if (msg_tag_get_prot(u_sema_down(sem_hd)) < 0)

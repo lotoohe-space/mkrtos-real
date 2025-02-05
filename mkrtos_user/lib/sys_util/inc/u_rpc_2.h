@@ -23,7 +23,7 @@
         int off_buf = 0;                                                                                                            \
         int ret = -1;                                                                                                               \
         umword_t op_val = op;                                                                                                       \
-        /*拷贝op*/                                                                                                                \
+        /*拷贝op*/                                                                                                                  \
         rpc_memcpy(msg_ipc->msg_buf, &op_val, sizeof(op_val));                                                                      \
         off += rpc_align(sizeof(op_val), __alignof(op));                                                                            \
                                                                                                                                     \
@@ -46,7 +46,7 @@
         if (msg_tag_get_val(tag) < 0)                                                                                               \
         {                                                                                                                           \
             return tag;                                                                                                             \
-        } /*拷贝返回的数据*/                                                                                                 \
+        } /*拷贝返回的数据*/                                                                                                        \
         off = 0;                                                                                                                    \
         RPC_CLI_BUF_TO_MSG_OUT(rpc_type0, cli_type0, var0, dir0, (uint8_t *)msg_ipc->msg_buf, off, tag.msg_buf_len *WORD_BYTES);    \
         RPC_CLI_BUF_TO_MSG_OUT(rpc_type1, cli_type1, var1, dir1, (uint8_t *)msg_ipc->msg_buf, off, tag.msg_buf_len *WORD_BYTES);    \
@@ -72,7 +72,7 @@
         RPC_SVR_MAP_TO_MSG_IN(rpc_type0, svr_type0, &var0, dir0, map_value, map_off, tag.map_buf_len *WORD_BYTES); \
         RPC_SVR_MAP_TO_MSG_IN(rpc_type1, svr_type1, &var1, dir1, map_value, map_off, tag.map_buf_len *WORD_BYTES); \
                                                                                                                    \
-        /*取得op*/                                                                                               \
+        /*取得op*/                                                                                                 \
         op_val = *((typeof(op) *)value);                                                                           \
         if (op_val != op)                                                                                          \
         {                                                                                                          \
@@ -102,4 +102,13 @@
 #define RPC_GENERATION_OP2(struct_type, prot, op, func_name,             \
                            cli_type0, svr_type0, dir0, rpc_type0, name0, \
                            cli_type1, svr_type1, dir1, rpc_type1, name1) \
+    short struct_type##_##func_name##_op(struct_type *obj, svr_type0 *name0, svr_type1 *name1)
+
+#define RPC_GENERATION_OP_DISPATCH2(struct_type, prot, op, func_name,                           \
+                                    cli_type0, svr_type0, dir0, rpc_type0, name0,               \
+                                    cli_type1, svr_type1, dir1, rpc_type1, name1)               \
+    short struct_type##_##func_name##_op(struct_type *obj, svr_type0 *name0, svr_type1 *name1); \
+    RPC_GENERATION_DISPATCH2(struct_type, prot, op, func_name,                                  \
+                             cli_type0, svr_type0, dir0, rpc_type0, name0,                      \
+                             cli_type1, svr_type1, dir1, rpc_type1, name1)                      \
     short struct_type##_##func_name##_op(struct_type *obj, svr_type0 *name0, svr_type1 *name1)

@@ -22,8 +22,9 @@ typedef struct app_info
             umword_t rel_start;
             umword_t rel_end;
             umword_t text_start;
+            umword_t data_start;
         } i;
-        const char d1[128];
+        // const char d1[128];
     };
     const char dot_text[];
 } app_info_t;

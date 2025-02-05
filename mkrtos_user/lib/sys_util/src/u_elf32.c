@@ -6,6 +6,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+
 static int elf_check(Elf32_Ehdr *ehdr)
 {
     if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG) != 0)
@@ -13,15 +14,14 @@ static int elf_check(Elf32_Ehdr *ehdr)
         return -1;
     }
 
-    // if (ehdr->e_type != ET_EXEC)
-    // {
-    //     return -1;
-    // }
+    if (ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN)
+    {
+        return -1;
+    }
     /*TODO:check arch.*/
 
     return 0;
 }
-
 int elf32_load(umword_t elf_data, size_t size, addr_t *entry_addr, obj_handler_t dst_task, addr_t *base_addr)
 {
     int ret;
@@ -40,15 +40,15 @@ int elf32_load(umword_t elf_data, size_t size, addr_t *entry_addr, obj_handler_t
     addr_t st_addr = 0;
     addr_t end_addr = 0;
 
-    // for (int i = 0; i < elf_header->e_phnum; i++, elf_phdr++)
-    // {
-    //     if (elf_phdr->p_type == PT_LOAD)
-    //     {
-    //         prg_offset = elf_phdr->p_offset;
-    //         *base_addr = elf_phdr->p_offset + elf_data;
-    //         break;
-    //     }
-    // }
+    for (int i = 0; i < elf_header->e_phnum; i++, elf_phdr++)
+    {
+        if (elf_phdr->p_type == PT_LOAD && elf_phdr->p_flags & PF_X)
+        {
+            // prg_offset = elf_phdr->p_offset;
+            *base_addr = elf_phdr->p_offset + elf_data;
+            break;
+        }
+    }
     *entry_addr = elf_header->e_entry ;
 
 #if 0

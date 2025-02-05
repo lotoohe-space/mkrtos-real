@@ -14,9 +14,11 @@ extern "C" {
 #define __NEED_sigset_t
 
 #include <bits/alltypes.h>
-
+#ifdef MKRTOS
+#define FD_SETSIZE 128
+#else
 #define FD_SETSIZE 1024
-
+#endif
 typedef unsigned long fd_mask;
 
 typedef struct {

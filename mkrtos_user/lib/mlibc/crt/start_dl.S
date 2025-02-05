@@ -1,7 +1,7 @@
     .syntax unified
     .section .first
     
-    @ .globl reloc
+    .globl _reloc_so
 
     .align 2
     .globl    _dlstart
@@ -26,6 +26,8 @@ got_end:       	.word     	__got_end__
 rel_start:      .word     	__rel_start__
 rel_end:     .word    __rel_end__
 text_start: .word __text_start__
+data_start: .word __data_start__
+dyn_start: .word __dynamic_start
     .SPACE   128 - (. -  _dlstart)
 
     .align
@@ -48,10 +50,10 @@ LoopCopyDataInit:
     cmp     r2, r3
     bcc     CopyDataInit
 
-    @ mov     r0, r9
-    @ adr     r1, _dlstart
-    @ bic     r1, r1, #1
-    @ bl      _reloc
+    mov     r0, r9
+    adr     r1, _dlstart
+    bic     r1, r1, #1
+    bl      _reloc_so
 
 	@ pop     {r0, r12}
     @ mov     r0, sp
@@ -64,6 +66,7 @@ LoopCopyDataInit:
 	mov a1, sp
 2:	and ip, a1, #-16 
 	mov sp, ip
+    adr     r2, _dlstart
 	bl _dlstart_c
 .weak _DYNAMIC
 .hidden _DYNAMIC

@@ -541,3 +541,11 @@ long sys_be_ftruncate(va_list ap)
 
     return ret;
 }
+int be_fcntl(int fd, int cmd, void *arg)
+{
+    return fs_fcntl(fd, cmd, arg);
+}
+int be_access(const char *filename, int amode)
+{
+    return -ENOSYS;
+}

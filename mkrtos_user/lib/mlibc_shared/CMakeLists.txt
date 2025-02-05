@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -gdwarf-2 -Wl,-T${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds -w -D_XOPEN_SOURCE=700 -Wl,-e,_dlstart -ffunction-sections -fdata-sections ")
-set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS}  -gdwarf-2 -w -D_XOPEN_SOURCE=700 -Wa,-mimplicit-it=thumb -Wl,-e,_dlstart -ffunction-sections -fdata-sections ")
+#-Wl,--no-dynamic-linker  -Wl,-T${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds -Wl,-pie 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -D_XOPEN_SOURCE=700 -Wl,-e,_dlstart ")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -w -D_XOPEN_SOURCE=700 -Wa,-mimplicit-it=thumb -Wl,-e,_dlstart ")
 
 file(GLOB_RECURSE deps
     ../mlibc/src/*.C
@@ -12,10 +12,10 @@ file(GLOB_RECURSE deps
     ../mlibc/crt/heap_stack.c
 )
 # list(ADD_ITEM deps ../mlibc/crt/heap_stack.c)
-list(REMOVE_ITEM deps ../mlibc/crt/crt1.c)
-list(REMOVE_ITEM deps ../mlibc/crt/crt1.S)
-list(REMOVE_ITEM deps ../mlibc/**/arm/*.c)
-list(REMOVE_ITEM deps ../mlibc/**/arm/*.S)
+# list(REMOVE_ITEM deps ../mlibc/crt/crt1.c)
+# list(REMOVE_ITEM deps ../mlibc/crt/crt1.S)
+# list(REMOVE_ITEM deps ../mlibc/**/arm/*.c)
+# list(REMOVE_ITEM deps ../mlibc/**/arm/*.S)
 add_library(
     c 
     SHARED
@@ -32,7 +32,7 @@ target_link_libraries(
     ${GCC_LIB_PATH}/libgcc.a 
 )
 #-z max-page-size=0x0 -z common-page-size=0x0
-set_target_properties(c PROPERTIES LINK_FLAGS "-pie  ")
+set_target_properties(c PROPERTIES LINK_FLAGS "-T${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds -pie -w")
 target_include_directories(
     c
     BEFORE
@@ -54,11 +54,11 @@ target_include_directories(
 add_custom_target(
     c_dump ALL
     COMMAND
-    ${CMAKE_OBJCOPY} -O binary -S libc.so libc.bin
+    ${CMAKE_OBJCOPY}  -O binary -S libc.so libc.bin 
     COMMAND
     ${CMAKE_COMMAND} -E copy libc.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/libc
-    COMMAND
-    cp libc.so ${CMAKE_SOURCE_DIR}/build/output/libc.so
+    # COMMAND
+    # cp libc.so ${CMAKE_SOURCE_DIR}/build/output/libc.so
     # COMMAND
     # cp libc.so ${CMAKE_SOURCE_DIR}/build/output/cpio/libc.so
 )

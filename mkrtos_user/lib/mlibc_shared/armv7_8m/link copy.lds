@@ -1,20 +1,15 @@
 ENTRY(_dlstart)
-/* MEMORY {
-	flatmem : ORIGIN = 0x0, LENGTH = 0xfffffff
-} */
 PHDRS
 {
-    headers      PT_PHDR PHDRS;
-    header_load  PT_LOAD FILEHDR PHDRS;
-    code         PT_LOAD;
-    data         PT_LOAD;
-    dynamic      PT_DYNAMIC;
-    /* interp       PT_INTERP; */
+  headers      PT_PHDR PHDRS;
+  header_load  PT_LOAD PHDRS;
+  code         PT_LOAD;
+  data         PT_LOAD;
+  dynamic      PT_DYNAMIC;
+  interp       PT_INTERP;
 }
 SECTIONS
 {
-    . = 0;
-
     .text : {
         . = ALIGN(4);
         __text_start__ = .;
@@ -43,31 +38,25 @@ SECTIONS
         *(.rodata)
 
         KEEP(*(.eh_frame*))
+
+        . = ALIGN(4);
+        __rel_start__ = .;
+        *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)
+        __rel_end__ = .;
+    }:code
+    .ARM.exidx : {
         . = ALIGN(4);
         __exdix_start = .;
         *(.ARM.exidx* .gnu.linkonce.armexidx.*)
         /* This is used by the startup in order to initialize the .data secion */
         __exdix_end = .;
-        . = ALIGN(4);
-        __rel_start__ = .;
-        *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)
-        __rel_end__ = .;
-    } :code
-    .dynsym : {
-        . = ALIGN(4);
-        *(.dynsym)
-    } :code
-    .dynstr : {
-        . = ALIGN(4);
-        *(.dynstr)
-    } :code
+    }:code
     PROVIDE(__ram_size__ = __bss_end__ - __data_start__);
-    
+
     .got : {
         . = ALIGN(4);
         __data_start__ = .;
         __got_start__ = .;
-        *(.got.plt)
         *(.got)
         __got_end__ = .;
     } :data
@@ -104,20 +93,13 @@ SECTIONS
         _shell_command_start = .;
         KEEP(*(shellCommand))
         _shell_command_end = .;
-
-        /* . = ALIGN(4);
-        __dynamic_start = .;
-         *(.dynamic)
-        __dynamic_end = .; */
     
         . = ALIGN(4);
         /* All data end */
         __data_end__ = .;
-    } :data
-    . = ALIGN(4);
-    __dynamic_start = .;
-    .dynamic : { *(.dynamic) }:dynamic
-    __dynamic_end = .;
+    }:data
+    /* .debug : { *(.debug) }:text */
+    /* .line : { *(.line) }:text */
 
     PROVIDE(__heap_size__ = __heap_end__ - __heap_start__);
     PROVIDE(__stack_size__ = __stack_end__ - __stack_start__);
@@ -142,14 +124,13 @@ SECTIONS
         /* This is used by the startup in order to initialize the .bss secion */
         . = ALIGN(4);
         __bss_end__ = .;
-    } :data
-
-
-    /* .permissions_table : {
+    }:data
+    .dynamic : { *(.dynamic) }:dynamic
+    .permissions_table : {
         . = ALIGN(4);
         __permissions_table_start__ = .;
         KEEP(*(.permissions_table))
         __permissions_table_end__ = .;
-    }:data */
+    }:data
     _end = .;
 }

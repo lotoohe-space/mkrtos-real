@@ -54,3 +54,32 @@
 #define BLK_DRV_READ ((umword_t)1)  //!< 块驱动读
 #define BLK_DRV_MAP ((umword_t)2)   //!< 块驱动对象映射
 #define BLK_DRV_INFO ((umword_t)3)  //!< 获取驱动信息
+
+#define NET_PROT 0x0009
+#define NET_ACCEPT ((umword_t)0)
+#define NET_BIND ((umword_t)1)
+#define NET_SHUTDOWN ((umword_t)2)
+#define NET_GETPEERNAME ((umword_t)3)
+#define NET_GETSOCKNAME ((umword_t)4)
+#define NET_GETSOCKOPT ((umword_t)5)
+#define NET_SETSOCKOPT ((umword_t)6)
+// #define NET_CLOSE ((umword_t)7)
+#define NET_CONNECT ((umword_t)8)
+#define NET_LISTEN ((umword_t)9)
+#define NET_RECV ((umword_t)10)
+// #define READ ((umword_t)11)
+// #define NET_READV ((umword_t)12)
+#define NET_RECVFROM ((umword_t)13)
+// #define NET_RECVMSG ((umword_t)14)
+#define NET_SEND ((umword_t)15)
+// #define NET_SENDMSG ((umword_t)16)
+#define NET_SENDTO ((umword_t)17)
+#define NET_SOCKET ((umword_t)18)
+// #define WRITE ((umword_t)26)
+// #define NET_WRITEV ((umword_t)19)
+// #define NET_SELECT ((umword_t)20)
+// #define POLL ((umword_t)21)
+// #define IOCTL ((umword_t)22)
+// #define FCNTL ((umword_t)23)
+// #define NET_INET_NTOP ((umword_t)24)
+// #define NET_INET_PTON ((umword_t)25)

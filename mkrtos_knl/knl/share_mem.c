@@ -356,7 +356,10 @@ static ssize_t share_mem_map(share_mem_t *obj, vma_addr_t addr, vaddr_t *ret_vad
         return ret;
     }
 #else
-    ret = task_vma_alloc(&task->mm_space.mem_vma, addr, obj->size, (vaddr_t)(obj->mem), ret_vaddr);
+
+    vma_addr_set_flags(&addr, vma_addr_get_flags(addr) | VMA_ADDR_RESV | VMA_ADDR_PAGE_FAULT_SIM); // 设置为保留模式
+    ret = task_vma_alloc(&task->mm_space.mem_vma, addr, obj->size,
+                         (vaddr_t)(obj->mem), ret_vaddr);
     if (ret < 0)
     {
         return ret;

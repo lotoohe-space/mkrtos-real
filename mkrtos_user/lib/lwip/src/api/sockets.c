@@ -57,7 +57,7 @@
 #if LWIP_CHECKSUM_ON_COPY
 #include "lwip/inet_chksum.h"
 #endif
-
+#include <errno.h>
 #if LWIP_COMPAT_SOCKETS == 2 && LWIP_POSIX_SOCKETS_IO_NAMES
 #include <stdarg.h>
 #endif

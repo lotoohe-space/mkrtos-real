@@ -161,16 +161,24 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     addr_t at_base = addr;
     if (app == NULL)
     {
+        addr_t text_addr;
         ret = elf32_load((umword_t)addr, 0 /*TODO:*/,
-                         &entry_addr, 0, &at_base);
+                         &entry_addr, 0, &text_addr);
         if (ret < 0)
         {
             printf("app format is error.\n");
             return -1;
         }
-        printf("%s addr is [0x%x]\n", name, addr + 0xd8);
 
-        addr = entry_addr + addr;
+        addr = entry_addr + text_addr;
+        app = app_info_get((void *)addr);
+        if (app == NULL)
+        {
+            printf("app format is error.\n");
+            return -1;
+        }
+        printf("%s text addr is [0x%x]\n", name, text_addr);
+        printf("entry addr is [0x%x]\n", addr);
     }
     else
     {

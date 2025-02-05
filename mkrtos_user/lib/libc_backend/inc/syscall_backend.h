@@ -5,7 +5,7 @@
 #include <sys/uio.h>
 #include <sys/stat.h>
 #include <time.h>
-
+#include <sys/socket.h>
 #define ARG_1_BE(ap, arg0, type0)       \
     do                                  \
     {                                   \
@@ -103,6 +103,26 @@ umword_t be_mmap(void *start,
                  long flags,
                  long fd,
                  long _offset);
+int be_fcntl(int fd, int cmd, void* arg);
+int be_accept(int s, struct sockaddr *addr, socklen_t *addrlen);
+// net api
+int be_accept(int s, struct sockaddr *addr, socklen_t *addrlen);
+int be_bind(int s, const struct sockaddr *name, socklen_t namelen);
+int be_shutdown(int s, int how);
+int be_getpeername(int s, struct sockaddr *name, socklen_t *namelen);
+int be_getsockname(int s, struct sockaddr *name, socklen_t *namelen);
+int be_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen);
+int be_setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen);
+int be_connect(int s, const struct sockaddr *name, socklen_t namelen);
+int be_listen(int s, int backlog);
+ssize_t be_recv(int s, void *mem, size_t len, int flags);
+ssize_t be_recvfrom(int s, void *mem, size_t len, int flags,
+                    struct sockaddr *from, socklen_t *fromlen);
+ssize_t be_send(int s, const void *dataptr, size_t size, int flags);
+ssize_t be_sendto(int s, const void *dataptr, size_t size, int flags,
+                  const struct sockaddr *to, socklen_t tolen);
+int be_socket(int domain, int type, int protocol);
+// end net api
 long be_clock_gettime(clockid_t clk_id, struct timespec *tp);
 
 long sys_mmap(va_list ap);
