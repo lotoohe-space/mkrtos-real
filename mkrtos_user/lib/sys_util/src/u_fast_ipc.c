@@ -6,8 +6,11 @@
 #include <u_rpc_svr.h>
 #include <u_rpc_buf.h>
 #include <u_hd_man.h>
+#include <rpc_prot.h>
 #include <string.h>
 #include <errno.h>
+
+#define MAGIC_NS_USERPID 0xbabababa
 
 int fast_ipc_setsp(int i, void *stack);
 
@@ -52,6 +55,16 @@ static msg_tag_t process_ipc(int j, umword_t obj, long tag)
     msg = (ipc_msg_t *)(&cons_msg_buf[j * MSG_BUG_LEN]);
     ret_tag = msg_tag_init4(0, 0, 0, -EIO);
     svr_obj = (rpc_svr_obj_t *)obj;
+    if (svr_obj == NULL)
+    {
+        ret_tag = msg_tag_init4(0, 0, 0, -EACCES);
+        goto end;
+    }
+    if (svr_obj == (void *)MAGIC_NS_USERPID)
+    {
+        /*获取ns的user id*/
+        svr_obj = meta_find_svr_obj(NS_PROT);
+    }
     if (svr_obj == NULL)
     {
         ret_tag = msg_tag_init4(0, 0, 0, -EACCES);

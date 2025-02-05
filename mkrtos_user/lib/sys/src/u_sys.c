@@ -64,6 +64,7 @@ msg_tag_t sys_read_info2(obj_handler_t obj, sys_info2_t *info, umword_t flags)
     if (info)
     {
         info->resv_dtbo = r1;
+        info->cpu_usage_cur = r2;
     }
 
     return msg_tag_init(r0);

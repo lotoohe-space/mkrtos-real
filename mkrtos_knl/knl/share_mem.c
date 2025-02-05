@@ -175,6 +175,11 @@ static int share_mem_free_pmem(share_mem_t *obj)
     assert(obj);
     switch (obj->mem_type)
     {
+    case SHARE_MEM_CNT_CMA_CNT:
+#if IS_ENABLED(CONFIG_MMU)
+        /*TODO:support CMA mem.*/
+        return -ENOSYS;
+#endif
     case SHARE_MEM_CNT_BUDDY_CNT:
 #if IS_ENABLED(CONFIG_MMU)
         mm_limit_free_buddy(obj->lim, obj->mem, obj->size);
@@ -182,9 +187,6 @@ static int share_mem_free_pmem(share_mem_t *obj)
         mm_limit_free_align(obj->lim, obj->mem, obj->size);
 #endif
         break;
-    case SHARE_MEM_CNT_CMA_CNT:
-        /*TODO:support CMA mem.*/
-        return -ENOSYS;
     case SHARE_MEM_CNT_DPD:
     {
 #if IS_ENABLED(CONFIG_MMU)
@@ -221,6 +223,11 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
     }
     switch (obj->mem_type)
     {
+    case SHARE_MEM_CNT_CMA_CNT:
+#if IS_ENABLED(CONFIG_MMU)
+        /*TODO:support CMA mem.*/
+        return -ENOSYS;
+#endif
     case SHARE_MEM_CNT_BUDDY_CNT:
 #if IS_ENABLED(CONFIG_MMU)
         obj->mem = mm_limit_alloc_buddy(obj->lim, obj->size);
@@ -256,9 +263,6 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
         }
         memset(obj->mem, 0, obj->size);
         break;
-    case SHARE_MEM_CNT_CMA_CNT:
-        /*TODO:support CMA mem.*/
-        return -ENOSYS;
     case SHARE_MEM_CNT_DPD:
     {
 #if IS_ENABLED(CONFIG_MMU)

@@ -4,6 +4,7 @@
 #include <types.h>
 #include <thread.h>
 #include <util.h>
+#include <atomics.h>
 /**
  * @brief 调度函数
  *
@@ -23,13 +24,21 @@ sp_info_t *schde_to(void *usp, void *ksp, umword_t sp_type)
 
     assert(next_th->magic == THREAD_MAGIC);
 
-    if (sche->sched_reset)
+    thread_t *cur_th = thread_get_current();
+    if (sche->sched_reset == 1)
     {
-        thread_t *cur_th = thread_get_current();
         cur_th->sp.knl_sp = ksp;
         cur_th->sp.user_sp = usp;
         cur_th->sp.sp_type = sp_type;
     }
+    else if (sche->sched_reset == 2)
+    {
+        cur_th->sp.knl_sp = ksp;
+        // cur_th->sp.user_sp = usp;
+        // cur_th->sp.sp_type = sp_type;
+    }
+    atomic_inc(&cur_th->time_count);
+
     sche->sched_reset = 1;
     return &next_th->sp;
 }

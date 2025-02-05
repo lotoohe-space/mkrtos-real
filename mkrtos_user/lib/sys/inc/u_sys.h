@@ -12,6 +12,7 @@ typedef struct sys_info
 typedef struct sys_info2
 {
     umword_t resv_dtbo;
+    umword_t cpu_usage_cur; //!< 当前cpu占用率
 } sys_info2_t;
 
 #define SYS_FLAGS_MAP_CPIO_FS 0x01
@@ -42,4 +43,10 @@ static inline umword_t sys_read_dtbo(void)
 
     sys_read_info2(SYS_PROT, &info, 0);
     return info.resv_dtbo;
+}
+static inline umword_t sys_read_cpu_usage(void)
+{
+    sys_info2_t info;
+    sys_read_info2(SYS_PROT, &info, 0);
+    return info.cpu_usage_cur;
 }

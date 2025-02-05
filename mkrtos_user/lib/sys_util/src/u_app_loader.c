@@ -140,7 +140,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
 #endif
     int type;
     umword_t addr;
-    int ret;
+    int ret = 0;
 
 #if IS_ENABLED(CONFIG_CPIO_SUPPORT)
     ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL, &type, &addr);

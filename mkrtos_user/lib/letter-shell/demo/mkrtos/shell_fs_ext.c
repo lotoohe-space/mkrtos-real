@@ -148,3 +148,14 @@ int shell_mem_info(int argc, char *argv[])
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), free, shell_mem_info, free command);
+
+int shell_sys_info(int argc, char *argv[])
+{
+    size_t total;
+    size_t free;
+
+    printf("sys:\n");
+    printf("\tcpu usage:%2.1f\n", sys_read_cpu_usage() / 10.0f);
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), sys, shell_sys_info, sys command);

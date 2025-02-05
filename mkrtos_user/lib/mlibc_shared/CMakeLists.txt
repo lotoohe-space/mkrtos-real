@@ -55,8 +55,8 @@ add_custom_target(
     c_dump ALL
     COMMAND
     ${CMAKE_OBJCOPY}  -O binary -S libc.so libc.bin 
-    COMMAND
-    ${CMAKE_COMMAND} -E copy libc.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/libc
+    # COMMAND
+    # ${CMAKE_COMMAND} -E copy libc.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/libc
     # COMMAND
     # cp libc.so ${CMAKE_SOURCE_DIR}/build/output/libc.so
     # COMMAND

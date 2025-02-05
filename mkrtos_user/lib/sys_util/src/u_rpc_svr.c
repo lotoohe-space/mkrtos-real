@@ -48,6 +48,10 @@ static rpc_svr_obj_t *meta_svr_find(meta_t *meta, umword_t prot)
     pthread_spin_unlock(&meta->lock);
     return NULL;
 }
+rpc_svr_obj_t *meta_find_svr_obj(umword_t prot)
+{
+    return meta_svr_find(&meta_obj, prot);
+}
 void meta_unreg_svr_obj_raw(meta_t *meta, umword_t prot)
 {
     pthread_spin_lock(&meta->lock);
@@ -82,6 +86,7 @@ int meta_reg_svr_obj_raw(meta_t *meta, rpc_svr_obj_t *svr_obj, umword_t prot)
     pthread_spin_unlock(&meta->lock);
     return i < META_PROT_NR;
 }
+
 int meta_reg_svr_obj(rpc_svr_obj_t *svr_obj, umword_t prot)
 {
     return meta_reg_svr_obj_raw(&meta_obj, svr_obj, prot);
@@ -185,14 +190,18 @@ void rpc_loop(void)
             continue;
         }
         svr_obj = (rpc_svr_obj_t *)obj;
-        if (svr_obj->dispatch)
+        if (svr_obj != NULL && svr_obj->dispatch)
         {
             tag = svr_obj->dispatch(svr_obj, tag, msg);
+        }
+        else
+        {
+            tag = msg_tag_init4(0, 0, 0, -ENOSYS);
         }
         thread_ipc_reply(tag, ipc_timeout_create2(0, 0));
     }
 }
-
+#if 0
 #define RPC_MTD_TH_STACK_SIZE (1024 + 256)
 typedef struct mtd_params
 {
@@ -342,3 +351,4 @@ int rpc_mtd_loop(void)
     }
     return 0;
 }
+#endif

@@ -36,6 +36,9 @@
 #if IS_ENABLED(CONFIG_SMP)
 #include <ipi.h>
 #endif
+#if IS_ENABLED(CONFIG_MPU)
+#include <mpu.h>
+#endif
 
 #define TAG "[thread]"
 enum thread_op
@@ -362,9 +365,9 @@ bool_t thread_sched(bool_t is_sche)
     assert(th->magic == THREAD_MAGIC);
     if (next_sche == &th->sche)
     {
+        atomic_inc(&th->time_count);
         //!< 线程没有发生变化，则不用切换
         cpulock_set(status);
-
         return FALSE;
     }
     if (is_sche)
@@ -1156,6 +1159,180 @@ end:
 #endif
     return ret;
 }
+msg_tag_t thread_fast_ipc_call(thread_t *to_th, entry_frame_t *f, umword_t user_id)
+{
+    task_t *cur_task = thread_get_current_task();
+    thread_t *cur_th = thread_get_current();
+    msg_tag_t in_tag = msg_tag_init(f->regs[0]);
+    int ret;
+    // 1.需要切换的资源有r9，task，和用户栈
+    // 2.在对方进程中被杀死，需要还原当前线程的状态，并返回一个错误
+    // 3.多线程访问时，服务端提供一个小的用户线程栈，然后内核到用户部分为临界区域，在服务端重新分配用户栈用，使用新的用户栈。
+    // 4.fastipc嵌套访问会有问题，内核必须要提供一个软件上的调用栈。
+    // 在嵌套调用时，如果在其它进程中挂掉，如果是当前线程则需要还原
+    task_t *to_task = thread_get_bind_task(to_th);
+
+    if (to_task->nofity_point == NULL)
+    {
+        printk("task:0x%x, notify point is not set.\n", to_task);
+        return msg_tag_init4(0, 0, 0, -EIO);
+    }
+_to_unlock:
+    if (GET_LSB(*to_task->nofity_bitmap, to_task->nofity_bitmap_len) == GET_LSB((~0ULL), to_task->nofity_bitmap_len))
+    {
+        thread_sched(TRUE); /*TODO:应该挂起，并在释放时唤醒*/
+        preemption();
+        goto _to_unlock;
+    }
+    mutex_lock(&to_task->nofity_lock);
+    if (GET_LSB(*to_task->nofity_bitmap, to_task->nofity_bitmap_len) == GET_LSB((~0ULL), to_task->nofity_bitmap_len))
+    {
+        mutex_unlock(&to_task->nofity_lock);
+        thread_sched(TRUE); /*TODO:应该挂起，并在释放时唤醒*/
+        preemption();
+        goto _to_unlock;
+    }
+    umword_t cpu_status = cpulock_lock();
+    ref_counter_inc((&to_task->ref_cn));
+    //!< 执行目标线程时用的是当前线程的资源，这里还需要备份当前线程的上下文。
+    ret = thread_fast_ipc_save(cur_th, to_task, (void *)(to_task->nofity_stack - 4 * 8 /*FIXME:改成宏*/)); //!< 备份栈和usp
+    if (ret >= 0)
+    {
+        ipc_msg_t *dst_ipc = (void *)to_task->nofity_msg_buf;
+        ipc_msg_t *src_ipc = (void *)cur_th->msg.msg;
+        ret = ipc_dat_copy_raw(&to_task->obj_space, &cur_task->obj_space, to_task->lim,
+                               dst_ipc, src_ipc, in_tag, FALSE);
+        if (ret >= 0)
+        {
+            dst_ipc->user[2] = task_pid_get(cur_task);                       // 设置pid
+            slist_add(&to_task->nofity_theads_head, &cur_th->fast_ipc_node); // 添加到链表中，用于进程关闭时进行释放
+            pf_s_t *usr_stask_point = (void *)arch_get_user_sp();
+
+            if (thread_is_knl(cur_th))
+            {
+                // 如果是内核线程则全部重新设置
+                thread_set_user_pf_noset_knl_sp(cur_th, to_task->nofity_point,
+                                   (void *)to_task->nofity_stack, (void *)to_task->mm_space.mm_block);
+                usr_stask_point->rg0[0] = in_tag.raw;
+                usr_stask_point->rg0[1] = user_id;
+                usr_stask_point->rg0[2] = f->regs[2];
+                usr_stask_point->rg0[3] = f->regs[3];
+
+                scheduler_get_current()->sched_reset = 2;
+            }
+            else
+            {
+                usr_stask_point->r12 = 0x12121212;
+                usr_stask_point->xpsr = 0x01000000L;
+                usr_stask_point->lr = (umword_t)NULL; //!< 线程退出时调用的函数
+                usr_stask_point->pc = (umword_t)(to_task->nofity_point) | 0x1;
+
+                //! 获得内核栈栈顶
+                pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
+                // 重新设置r9寄存器
+                cur_pf->regs[5] = (umword_t)(to_task->mm_space.mm_block);
+
+                //! 寄存器传参数
+                f->regs[0] = in_tag.raw;
+                f->regs[1] = user_id;
+                f->regs[2] = f->regs[2];
+                f->regs[3] = f->regs[3];
+            }
+            // 切换mpu
+            mpu_switch_to_task(to_task);
+            cpulock_set(cpu_status);
+            if (thread_is_knl(cur_th))
+            {
+                // 内核线程则立刻进行调度
+                arch_to_sche();
+                preemption();
+            }
+            return in_tag;
+        }
+        else
+        {
+            ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
+            mutex_unlock(&to_task->nofity_lock);
+        }
+    }
+    else
+    {
+        ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
+        mutex_unlock(&to_task->nofity_lock);
+    }
+    cpulock_set(cpu_status);
+
+    return msg_tag_init4(0, 0, 0, ret);
+}
+msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
+{
+    task_t *cur_task = thread_get_current_task();
+    thread_t *cur_th = thread_get_current();
+    msg_tag_t in_tag = msg_tag_init(f->regs[0]);
+    task_t *old_task = thread_get_bind_task(cur_th);
+    int ret;
+
+    *(cur_task->nofity_bitmap) &= ~(1 << MIN(f->regs[2], cur_task->nofity_bitmap_len)); //!< 解锁bitmap
+    slist_del(&cur_th->fast_ipc_node);                                                  // 从链表中删除
+
+    ret = thread_fast_ipc_restore(cur_th); // 还原栈和usp
+    if (ret < 0)
+    {
+        mutex_unlock(&old_task->nofity_lock);
+        return msg_tag_init4(0, 0, 0, ret);
+    }
+    umword_t cpu_status = cpulock_lock();
+
+    cur_task = thread_get_current_task();
+    ipc_msg_t *dst_ipc = (void *)cur_th->msg.msg;
+    ipc_msg_t *src_ipc = (void *)old_task->nofity_msg_buf;
+    ret = ipc_dat_copy_raw(&cur_task->obj_space, &old_task->obj_space, cur_task->lim,
+                           dst_ipc, src_ipc, in_tag, TRUE); // copy数据
+    // if (ret >=0 ) {
+    for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
+    {
+        if (i < ret)
+        {
+            src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
+            old_task->nofity_map_buf[i] = 0;
+        }
+        else
+        {
+            src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
+        }
+    }
+    // }
+    mutex_unlock(&old_task->nofity_lock);
+    if (thread_is_knl(cur_th))
+    {
+        //! 吧r4-r11留出来
+        // memcpy((char *)cur_th->sp.knl_sp - 4 * 8 /*FIXME:*/, (char *)cur_th->sp.knl_sp, 4 * 8);
+        // memset(cur_th->sp.knl_sp, 0, 4 * 8);
+        // cur_th->sp.knl_sp = (char *)cur_th->sp.knl_sp - 4 * 8;
+        cur_th->sp.user_sp = 0x0;
+        cur_th->sp.sp_type = 0xfffffff9;
+        scheduler_get_current()->sched_reset = 3;
+    }
+    else
+    {
+        pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
+
+        cur_pf->regs[5] = (umword_t)(cur_task->mm_space.mm_block); // 更新r9寄存器
+    }
+    mpu_switch_to_task(cur_task); // 切换mpu
+    ref_counter_dec_and_release(&old_task->ref_cn, &old_task->kobj);
+    if (ret < 0)
+    {
+        in_tag = msg_tag_init4(0, 0, 0, ret);
+    }
+    cpulock_set(cpu_status);
+    if (thread_is_knl(cur_th))
+    {
+        arch_to_sche();
+        preemption();
+    }
+    return in_tag;
+}
 /**
  * @brief 执行ipc
  *
@@ -1178,134 +1355,12 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
     {
     case IPC_FAST_REPLAY:
     {
-        msg_tag_t in_tag = msg_tag_init(f->regs[0]);
-        task_t *old_task = thread_get_bind_task(cur_th);
-
-       
-        *(cur_task->nofity_bitmap) &= ~(1 << MIN(f->regs[2], cur_task->nofity_bitmap_len)); //!< 解锁bitmap
-        slist_del(&cur_th->fast_ipc_node);//从链表中删除
-
-        ret = thread_fast_ipc_restore(cur_th); // 还原栈和usp
-        if (ret < 0)
-        {
-            mutex_unlock(&old_task->nofity_lock);
-            return msg_tag_init4(0, 0, 0, ret);
-        }
-        umword_t cpu_status = cpulock_lock();
-
-        task_t *cur_task = thread_get_current_task();
-        ipc_msg_t *dst_ipc = (void *)cur_th->msg.msg;
-        ipc_msg_t *src_ipc = (void *)old_task->nofity_msg_buf;
-        ret = ipc_dat_copy_raw(&cur_task->obj_space, &old_task->obj_space, cur_task->lim,
-                               dst_ipc, src_ipc, in_tag, TRUE); // copy数据
-        // if (ret >=0 ) {
-        for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
-        {
-            if (i < ret)
-            {
-                src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
-                old_task->nofity_map_buf[i] = 0;
-            }
-            else
-            {
-                src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
-            }
-        }
-        // }
-        mutex_unlock(&old_task->nofity_lock);
-        pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
-
-        cur_pf->regs[5] = (umword_t)(cur_task->mm_space.mm_block); //更新r9寄存器
-        extern void mpu_switch_to_task(struct task * tk);
-        mpu_switch_to_task(cur_task);//切换mpu
-        ref_counter_dec_and_release(&old_task->ref_cn, &old_task->kobj);
-        if (ret < 0)
-        {
-            in_tag = msg_tag_init4(0, 0, 0, ret);
-        }
-        cpulock_set(cpu_status);
-        return in_tag;
+        return thread_fast_ipc_replay(f);
     }
     break;
     case IPC_FAST_CALL:
     {
-        msg_tag_t in_tag = msg_tag_init(f->regs[0]);
-        // 1.需要切换的资源有r9，task，和用户栈
-        // 2.在对方进程中被杀死，需要还原当前线程的状态，并返回一个错误
-        // 3.多线程访问时，服务端提供一个小的用户线程栈，然后内核到用户部分为临界区域，在服务端重新分配用户栈用，使用新的用户栈。
-        // 4.fastipc嵌套访问会有问题，内核必须要提供一个软件上的调用栈。
-        // 在嵌套调用时，如果在其它进程中挂掉，如果是当前线程则需要还原
-        task_t *to_task = thread_get_bind_task(to_th);
-
-        if (to_task->nofity_point == NULL)
-        {
-            printk("task:0x%x, notify point is not set.\n", to_task);
-            return msg_tag_init4(0, 0, 0, -EIO);
-        }
-    _to_unlock:
-        if (GET_LSB(*to_task->nofity_bitmap, to_task->nofity_bitmap_len) == GET_LSB((~0ULL), to_task->nofity_bitmap_len))
-        {
-            thread_sched(TRUE); /*TODO:应该挂起，并在释放时唤醒*/
-            preemption();
-            goto _to_unlock;
-        }
-        mutex_lock(&to_task->nofity_lock);
-        if (GET_LSB(*to_task->nofity_bitmap, to_task->nofity_bitmap_len) == GET_LSB((~0ULL), to_task->nofity_bitmap_len))
-        {
-            mutex_unlock(&to_task->nofity_lock);
-            thread_sched(TRUE); /*TODO:应该挂起，并在释放时唤醒*/
-            preemption();
-            goto _to_unlock;
-        }
-        umword_t cpu_status = cpulock_lock();
-        ref_counter_inc((&to_task->ref_cn));
-        //!< 执行目标线程时用的是当前线程的资源，这里还需要备份当前线程的上下文。
-        ret = thread_fast_ipc_save(cur_th, to_task, (void *)(to_task->nofity_stack - 4 * 8)); //!< 备份栈和usp
-        if (ret >= 0)
-        {
-            ipc_msg_t *dst_ipc = (void *)to_task->nofity_msg_buf;
-            ipc_msg_t *src_ipc = (void *)cur_th->msg.msg;
-            ret = ipc_dat_copy_raw(&to_task->obj_space, &cur_task->obj_space, to_task->lim,
-                                   dst_ipc, src_ipc, in_tag, FALSE);
-            if (ret >= 0)
-            {
-                dst_ipc->user[2] = task_pid_get(cur_task); // 设置pid
-
-                slist_add(&to_task->nofity_theads_head, &cur_th->fast_ipc_node);
-
-                pf_s_t *usr_stask_point = (void *)arch_get_user_sp();
-
-                usr_stask_point->r12 = 0x12121212;
-                usr_stask_point->xpsr = 0x01000000L;
-                usr_stask_point->lr = (umword_t)NULL; //!< 线程退出时调用的函数
-                usr_stask_point->pc = (umword_t)(to_task->nofity_point) | 0x1;
-
-                pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1; //!< 获得内核栈栈顶
-                cur_pf->regs[5] = (umword_t)(to_task->mm_space.mm_block);                     // 重新设置r9寄存器
-
-                //! 寄存器传参数
-                f->regs[0] = in_tag.raw;
-                f->regs[1] = user_id;
-                f->regs[2] = f->regs[2];
-                f->regs[3] = f->regs[3];
-
-                extern void mpu_switch_to_task(struct task * tk);
-                mpu_switch_to_task(to_task);
-                return in_tag;
-            }
-            else
-            {
-                ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
-                mutex_unlock(&to_task->nofity_lock);
-            }
-        }
-        else
-        {
-            ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
-            mutex_unlock(&to_task->nofity_lock);
-        }
-        cpulock_set(cpu_status);
-        return msg_tag_init4(0, 0, 0, ret);
+        return thread_fast_ipc_call(to_th, f, user_id);
     }
     break;
     case IPC_CALL:

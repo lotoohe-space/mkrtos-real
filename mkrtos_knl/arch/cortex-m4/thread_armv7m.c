@@ -60,6 +60,21 @@ void thread_user_pf_set(thread_t *cur_th, void *pc, void *user_sp, void *ram)
     cur_th->sp.user_sp = cur_pf;
     cur_th->sp.sp_type = 0xfffffffd;
 }
+void thread_set_user_pf_noset_knl_sp(thread_t *cur_th, void *pc, void *user_sp, void *ram)
+{
+    umword_t usp = ((umword_t)(user_sp) & ~0x7UL);
+
+    pf_t *cur_pf = (pf_t *)(usp)-1; // thread_get_pf(cur_th);
+
+    cur_pf->pf_s.xpsr = 0x01000000L;
+    cur_pf->pf_s.lr = (umword_t)NULL; //!< 线程退出时调用的函数
+    cur_pf->pf_s.pc = (umword_t)pc | 0x1;
+    cur_pf->regs[5] = (umword_t)ram;
+
+    // cur_th->sp.knl_sp = ((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE - 8);
+    cur_th->sp.user_sp = cur_pf;
+    cur_th->sp.sp_type = 0xfffffffd;
+}
 void thread_user_pf_restore(thread_t *cur_th, void *user_sp)
 {
     cur_th->sp.knl_sp = ((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE - 8);

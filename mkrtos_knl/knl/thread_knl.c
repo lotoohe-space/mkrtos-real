@@ -23,6 +23,7 @@
 #include "thread.h"
 #include "thread_task_arch.h"
 #include "types.h"
+#include "prot.h"
 #include <assert.h>
 #if IS_ENABLED(CONFIG_KNL_TEST)
 #include <knl_test.h>
@@ -39,13 +40,15 @@
 #include <appfs_tiny.h>
 #endif
 #include <boot_info.h>
+#include "pre_cpu.h"
 
 static uint8_t knl_msg_buf[CONFIG_CPU][THREAD_MSG_BUG_LEN];
 static task_t knl_task;
 static thread_t *init_thread;
 static task_t *init_task;
-
+static thread_t *knl_thread[CONFIG_CPU];
 static slist_head_t del_task_head;
+static umword_t cpu_usage[CONFIG_CPU];
 static spinlock_t del_lock;
 
 static void knl_main(void)
@@ -69,6 +72,7 @@ static void knl_main(void)
             spinlock_set(&del_lock, status2);
             continue;
         }
+        // 在这里删除进程
         slist_foreach_not_next(pos, &del_task_head, del_node)
         {
             task_t *next = slist_next_entry(pos, &del_task_head, del_node);
@@ -86,12 +90,27 @@ static void knl_main(void)
 
                     if (thread_get_ipc_state(init_thread) != THREAD_IPC_ABORT)
                     {
+#if 0
                         int ret = thread_ipc_call(init_thread, msg_tag_init4(0, 3, 0, 0x0005 /*PM_PROT*/),
                                                   &tag, ipc_timeout_create2(3000, 3000), &user_id, TRUE);
 
                         if (ret < 0)
                         {
                             printk("%s:%d ret:%d\n", __func__, __LINE__, ret);
+                        }
+#endif
+#define PM_PROT 0x0005
+
+#define MAGIC_NS_USERPID 0xbabababa
+                        entry_frame_t f;
+                        f.regs[0] = msg_tag_init4(0, 3, 0, PM_PROT).raw;
+                        f.regs[1] = 0;
+                        f.regs[2] = 0x2222; /*传递两个参数，没有用到，暂时用不上*/
+                        f.regs[3] = 0x3333;
+                        tag = thread_fast_ipc_call(init_thread, &f, MAGIC_NS_USERPID);
+                        if (msg_tag_get_val(tag) < 0)
+                        {
+                            printk("init thread comm failed, ret:%d\n", __func__, __LINE__, msg_tag_get_val(tag));
                         }
                     }
                 }
@@ -102,29 +121,67 @@ static void knl_main(void)
         spinlock_set(&del_lock, status2);
     }
 }
+static inline uint32_t thread_knl_get_current_run_nr(void)
+{
+    if (knl_thread[arch_get_current_cpu_id()] == NULL)
+    {
+        return 0;
+    }
+    return atomic_read(&knl_thread[arch_get_current_cpu_id()]->time_count);
+}
+
+static uint32_t cpu_usage_last_tick_val[CONFIG_CPU];
+/**
+ * 计算cpu占用率
+ */
+void thread_calc_cpu_usage(void)
+{
+    uint8_t cur_cpu_id = arch_get_current_cpu_id();
+    if (sys_tick_cnt_get() % 1000 == 0)
+    {
+        cpu_usage[cur_cpu_id] = 1000 - ((thread_knl_get_current_run_nr() - cpu_usage_last_tick_val[cur_cpu_id]));
+        cpu_usage_last_tick_val[cur_cpu_id] = thread_knl_get_current_run_nr();
+        // printk("%d\n", cpu_usage[arch_get_current_cpu_id()]);
+    }
+}
+uint16_t cpu_get_current_usage(void)
+{
+    return (uint16_t)cpu_usage[arch_get_current_cpu_id()];
+}
 /**
  * 初始化内核线程
  * 初始化内核任务
  */
 void knl_init_1(void)
 {
-    thread_t *knl_thread;
+    thread_t *knl_th;
 
-    knl_thread = thread_get_current();
-
-    thread_init(knl_thread, &root_factory_get()->limit, FALSE);
+    knl_thread[arch_get_current_cpu_id()] = thread_get_current();
+    knl_th = knl_thread[arch_get_current_cpu_id()];
+    thread_init(knl_th, &root_factory_get()->limit, FALSE);
     task_init(&knl_task, &root_factory_get()->limit, TRUE);
     task_knl_init(&knl_task);
     kobject_set_name(&knl_task.kobj, "tk_knl");
-    thread_knl_pf_set(knl_thread, knl_main);
-    thread_bind(knl_thread, &knl_task.kobj);
-    kobject_set_name(&knl_thread->kobj, "th_knl");
-    thread_set_msg_buf(knl_thread, knl_msg_buf[arch_get_current_cpu_id()],
+    thread_knl_pf_set(knl_th, knl_main);
+    thread_bind(knl_th, &knl_task.kobj);
+    kobject_set_name(&knl_th->kobj, "th_knl");
+    thread_set_msg_buf(knl_th, knl_msg_buf[arch_get_current_cpu_id()],
                        knl_msg_buf[arch_get_current_cpu_id()]);
-    knl_thread->cpu = arch_get_current_cpu_id();
-    thread_ready(knl_thread, FALSE);
+    knl_th->cpu = arch_get_current_cpu_id();
+    thread_ready(knl_th, FALSE);
 }
 INIT_STAGE1(knl_init_1);
+
+/**
+ * 是否是内核线程
+ */
+bool_t thread_is_knl(thread_t *thread)
+{
+    if (thread == knl_thread[arch_get_current_cpu_id()])
+        return TRUE;
+    else
+        return FALSE;
+}
 
 /**
  * 初始化init线程
@@ -233,7 +290,7 @@ bool_t task_knl_kill(thread_t *kill_thread, bool_t is_knl)
                 // r9 = (umword_t)(thread_get_bind_task(kill_thread)->mm_space.mm_block);
                 mpu_switch_to_task(thread_get_bind_task(kill_thread));
                 ref_counter_dec_and_release(&task->ref_cn, &task->kobj);
-                reset_ram =TRUE;
+                reset_ram = TRUE;
             }
         }
         else

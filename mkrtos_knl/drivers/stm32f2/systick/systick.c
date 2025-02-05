@@ -3,6 +3,7 @@
 #include "thread.h"
 #include "futex.h"
 #include "irq.h"
+#include "thread_knl.h"
 static umword_t sys_tick_cnt;
 
 umword_t sys_tick_cnt_get(void)
@@ -17,8 +18,9 @@ void SysTick_Handler(void)
     sys_tick_cnt++;
     thread_timeout_check(1);
     futex_timeout_times_tick();
-    #if 0
+    thread_calc_cpu_usage();
+#if 0
     extern void uart_check_timeover(irq_entry_t * irq);
     uart_check_timeover(irq_get(LOG_INTR_NO));
-    #endif
+#endif
 }

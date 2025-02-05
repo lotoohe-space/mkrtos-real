@@ -26,6 +26,7 @@
 #include <globals.h>
 #include <task.h>
 #include <thread.h>
+#include <thread_knl.h>
 
 typedef struct sys
 {
@@ -97,6 +98,7 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
 #else
         f->regs[1] = 0;
 #endif
+        f->regs[2] = cpu_get_current_usage();
         tag = msg_tag_init4(0, 0, 0, ret);
         break;
     }
