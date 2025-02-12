@@ -32,7 +32,7 @@ typedef struct scheduler
     slist_head_t prio_list[PRIO_MAX];
     umword_t bitmap[PRIO_MAX / WORD_BITS];
     sched_t *cur_sche;
-    int max_prio;
+    int max_prio; //<!当前优先级最大的队列号
 } scheduler_t;
 
 scheduler_t *scheduler_get_current(void);

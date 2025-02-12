@@ -115,7 +115,14 @@ typedef struct thread_fast_ipc_item
     void *usp_backup;   //!< 备份用户栈，用于快速通信
     void *msg_buf;
 } thread_fast_ipc_item_t;
-#define THREAD_FAST_IPC_ITEM_NUM 4
+#define THREAD_FAST_IPC_ITEM_NUM 8
+
+typedef struct thread_fast_ipc_com
+{
+    thread_fast_ipc_item_t fast_ipc_stack_data[THREAD_FAST_IPC_ITEM_NUM]; //!< 栈数据，用于通信栈备份
+    stack_t fast_ipc_stack;                                               //!< fast ipc stack
+    slist_head_t fast_ipc_node;                                           //!< 用于加入到task中去。
+} thread_fast_ipc_com_t;
 
 #define THREAD_MAGIC 0xdeadead //!< 用于栈溢出检测
 typedef struct thread
@@ -150,9 +157,7 @@ typedef struct thread
     enum thread_state status;         //!< 线程状态
     enum thread_ipc_state ipc_status; //!< ipc状态
 
-    thread_fast_ipc_item_t fast_ipc_stack_data[THREAD_FAST_IPC_ITEM_NUM]; //!< 栈数据，用于通信栈备份
-    stack_t fast_ipc_stack;                                               //!< fast ipc stack
-    slist_head_t fast_ipc_node;                                           //!< 用于加入到task中去。
+    thread_fast_ipc_com_t *com; //!< fast ipc通信，这里用指针是为了减少thread block大小
 
     umword_t magic; //!< maigc
 } thread_t;
@@ -230,7 +235,7 @@ static inline int thread_fast_ipc_save(thread_t *th, task_t *tk, void *usp)
         .usp_backup = (void *)arch_get_user_sp(),
         .msg_buf = th->msg.msg,
     };
-    ret = stack_push(&th->fast_ipc_stack, &item);
+    ret = stack_push(&th->com->fast_ipc_stack, &item);
     if (ret < 0)
     {
         return ret;
@@ -245,7 +250,7 @@ static inline int thread_fast_ipc_restore(thread_t *th)
     assert(th);
     thread_fast_ipc_item_t item;
 
-    ret = stack_pop(&th->fast_ipc_stack, &item);
+    ret = stack_pop(&th->com->fast_ipc_stack, &item);
     if (ret < 0)
     {
         return ret;
@@ -261,7 +266,7 @@ static inline int thread_fast_ipc_pop(thread_t *th, thread_fast_ipc_item_t *item
     assert(th);
     assert(item);
 
-    ret = stack_pop(&th->fast_ipc_stack, item);
+    ret = stack_pop(&th->com->fast_ipc_stack, item);
 
     return ret;
 }

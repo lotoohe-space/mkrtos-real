@@ -47,6 +47,7 @@ static int new_rom_get(const char *path)
     new_rom_size = appfs_arg.size;
     return 0;
 }
+bool_t print_fps = FALSE;
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -60,6 +61,10 @@ int main(int argc, char *argv[])
     {
         printf("rom don't finded.\n");
         return -1;
+    }
+    if (argc >= 3)
+    {
+        print_fps = TRUE;
     }
     // thread_run(-1, 4);
     printf("nes init..\n");

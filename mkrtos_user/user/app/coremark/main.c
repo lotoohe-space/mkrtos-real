@@ -12,7 +12,7 @@ int main(int args, char *argv[])
 {
     extern int core_mark(int argc, char *argv[]) ;
 
-#if 1
+#if 0
     thread_run(-1, 3);
 #endif
     core_mark(args, argv);

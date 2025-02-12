@@ -47,7 +47,7 @@ int net_accept(sd_t s, struct sockaddr *addr, socklen_t *addrlen)
     obj_handler_t hd = mk_sd_init_raw(s).hd;
     int fd = mk_sd_init_raw(s).fd;
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
     rpc_socketaddr_t_t rpc_addr = {
         .data = *addr,
@@ -80,7 +80,7 @@ int net_bind(int s, const struct sockaddr *name, socklen_t namelen)
     obj_handler_t hd = mk_sd_init_raw(s).hd;
     int fd = mk_sd_init_raw(s).fd;
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
     rpc_socketaddr_t_t rpc_addr = {
         .data = *name,
@@ -101,7 +101,7 @@ int net_shutdown(int s, int how)
     obj_handler_t hd = mk_sd_init_raw(s).hd;
     int fd = mk_sd_init_raw(s).fd;
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
     rpc_int_t rpc_how = {
         .data = how,
@@ -128,7 +128,7 @@ int net_getpeername(int s, struct sockaddr *name, socklen_t *namelen)
     obj_handler_t hd = mk_sd_init_raw(s).hd;
     int fd = mk_sd_init_raw(s).fd;
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
     rpc_socketaddr_t_t rpc_name = {
         .data = *name,
@@ -164,7 +164,7 @@ int net_getsockname(int s, struct sockaddr *name, socklen_t *namelen)
     obj_handler_t hd = mk_sd_init_raw(s).hd;
     int fd = mk_sd_init_raw(s).fd;
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
     rpc_socketaddr_t_t rpc_name = {
         .data = *name,
@@ -203,7 +203,7 @@ int net_getsockopt(int s, int level, int optname, void *optval, socklen_t *optle
     int fd = mk_sd_init_raw(s).fd;
 
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
     rpc_int_t rpc_level = {
         .data = level,
@@ -245,7 +245,7 @@ int net_setsockopt(int s, int level, int optname, const void *optval, socklen_t 
     int fd = mk_sd_init_raw(s).fd;
 
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
     rpc_int_t rpc_level = {
         .data = level,
@@ -282,7 +282,7 @@ int net_connect(int s, const struct sockaddr *name, socklen_t namelen)
     obj_handler_t hd = mk_sd_init_raw(s).hd;
     int fd = mk_sd_init_raw(s).fd;
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
     rpc_socketaddr_t_t rpc_name = {
         .data = *name,
@@ -303,7 +303,7 @@ int net_listen(int s, int backlog)
     obj_handler_t hd = mk_sd_init_raw(s).hd;
     int fd = mk_sd_init_raw(s).fd;
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
     rpc_int_t rpc_backlog = {
         .data = backlog,
@@ -328,7 +328,7 @@ int net_recv(int s, void *mem, size_t len, int flags)
     int fd = mk_sd_init_raw(s).fd;
 
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
 
     rpc_int_t rpc_flags = {
@@ -383,7 +383,7 @@ int net_recvfrom(int s, void *mem, size_t len, int flags,
     int fd = mk_sd_init_raw(s).fd;
 
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
 
     rpc_int_t rpc_flags = {
@@ -442,7 +442,7 @@ int net_send(int s, const void *dataptr, size_t size, int flags)
     int fd = mk_sd_init_raw(s).fd;
 
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
 
     rpc_int_t rpc_flags = {
@@ -498,7 +498,7 @@ int net_sendto(int s, const void *dataptr, size_t size, int flags,
     int fd = mk_sd_init_raw(s).fd;
 
     rpc_int_t rpc_s = {
-        .data = s,
+        .data = fd,
     };
 
     rpc_int_t rpc_flags = {
@@ -573,5 +573,9 @@ int net_socket(int domain, int type, int protocol)
     msg_tag_t tag;
 
     tag = net_t_socket_call(hd, &rpc_domain, &rpc_type, &rpc_protocol);
-    return msg_tag_get_val(tag);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        return msg_tag_get_val(tag);
+    }
+    return mk_sd_init2(hd, msg_tag_get_val(tag)).raw;
 }

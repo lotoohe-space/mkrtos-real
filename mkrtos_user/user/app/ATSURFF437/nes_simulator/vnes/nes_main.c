@@ -11,6 +11,7 @@
 #include <sys/ioctl.h>
 #include "ns_cli.h"
 #include "u_sleep.h"
+#include "unistd.h"
 #include <u_hd_man.h>
 #include <u_task.h>
 #include <u_factory.h>
@@ -442,9 +443,9 @@ void nes_emulate_frame(void)
 	u8 nes_frame = 0;
 	int jump_frame_cnt = 0;
 
-	st_tick = sys_read_tick();
 	while (1)
 	{
+		st_tick = sys_read_tick();
 		// printf("%d\r\n",framecnt);
 		// LINES 0-239
 		PPU_start_frame();
@@ -521,8 +522,19 @@ void nes_emulate_frame(void)
 			nes_frame = 0;
 		}
 #endif
-#if 0
-		printf("fps:%d\n", 1000 / ((sys_read_tick() - st_tick) / framecnt));
+#if 1
+		extern bool_t print_fps;
+		int32_t used_tick = sys_read_tick() - st_tick;
+
+		// if (1000 / 60 >= used_tick)
+		// {
+		// 	usleep((1000 / 60 - used_tick) * 1000);
+		// }
+		used_tick = sys_read_tick() - st_tick;
+		if (print_fps)
+		{
+			printf("fps:%d\n", 1000 / used_tick);
+		}
 #endif
 	}
 }

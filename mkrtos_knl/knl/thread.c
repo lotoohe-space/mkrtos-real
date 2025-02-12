@@ -120,19 +120,24 @@ INIT_KOBJ_MEM(thread_mem_init);
  */
 void thread_init(thread_t *th, ram_limit_t *lim, umword_t flags)
 {
+    assert(th);
+    assert(th->com);
+    assert(lim);
     kobject_init(&th->kobj, THREAD_TYPE);
     sched_init(&th->sche);
     slist_init(&th->futex_node);
     slist_init(&th->wait_send_head);
-    slist_init(&th->fast_ipc_node);
     spinlock_init(&th->recv_lock);
     spinlock_init(&th->send_lock);
     ref_counter_init(&th->ref);
     ref_counter_inc(&th->ref);
     thread_arch_init(th, flags);
-    stack_init(&th->fast_ipc_stack, &th->fast_ipc_stack_data,
-               ARRARY_LEN(th->fast_ipc_stack_data),
-               sizeof(th->fast_ipc_stack_data[0]));
+
+    slist_init(&th->com->fast_ipc_node);
+    stack_init(&th->com->fast_ipc_stack, &th->com->fast_ipc_stack_data,
+               ARRARY_LEN(th->com->fast_ipc_stack_data),
+               sizeof(th->com->fast_ipc_stack_data[0]));
+
     th->cpu = arch_get_current_cpu_id();
     th->lim = lim;
     th->kobj.invoke_func = thread_syscall;
@@ -365,7 +370,6 @@ bool_t thread_sched(bool_t is_sche)
     assert(th->magic == THREAD_MAGIC);
     if (next_sche == &th->sche)
     {
-        atomic_inc(&th->time_count);
         //!< 线程没有发生变化，则不用切换
         cpulock_set(status);
         return FALSE;
@@ -482,8 +486,15 @@ thread_t *thread_create(ram_limit_t *ram, umword_t flags)
     {
         return NULL;
     }
-    // assert(((mword_t)th & (~(CONFIG_THREAD_BLOCK_SIZE - 1))) == 0);
     memset(th, 0, CONFIG_THREAD_BLOCK_SIZE);
+    th->com = mm_limit_alloc(ram, sizeof(*th->com));
+    if (!th->com)
+    {
+        mm_limit_free(ram, th);
+        return NULL;
+    }
+    // assert(((mword_t)th & (~(CONFIG_THREAD_BLOCK_SIZE - 1))) == 0);
+    memset(th->com, 0, sizeof(*th->com));
     thread_init(th, ram, flags);
     printk("create thread 0x%x\n", th);
     return th;
@@ -1205,14 +1216,14 @@ _to_unlock:
         if (ret >= 0)
         {
             dst_ipc->user[2] = task_pid_get(cur_task);                       // 设置pid
-            slist_add(&to_task->nofity_theads_head, &cur_th->fast_ipc_node); // 添加到链表中，用于进程关闭时进行释放
+            slist_add(&to_task->nofity_theads_head, &cur_th->com->fast_ipc_node); // 添加到链表中，用于进程关闭时进行释放
             pf_s_t *usr_stask_point = (void *)arch_get_user_sp();
 
             if (thread_is_knl(cur_th))
             {
                 // 如果是内核线程则全部重新设置
                 thread_set_user_pf_noset_knl_sp(cur_th, to_task->nofity_point,
-                                   (void *)to_task->nofity_stack, (void *)to_task->mm_space.mm_block);
+                                                (void *)to_task->nofity_stack, (void *)to_task->mm_space.mm_block);
                 usr_stask_point->rg0[0] = in_tag.raw;
                 usr_stask_point->rg0[1] = user_id;
                 usr_stask_point->rg0[2] = f->regs[2];
@@ -1273,7 +1284,7 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
     int ret;
 
     *(cur_task->nofity_bitmap) &= ~(1 << MIN(f->regs[2], cur_task->nofity_bitmap_len)); //!< 解锁bitmap
-    slist_del(&cur_th->fast_ipc_node);                                                  // 从链表中删除
+    slist_del(&cur_th->com->fast_ipc_node);                                             // 从链表中删除
 
     ret = thread_fast_ipc_restore(cur_th); // 还原栈和usp
     if (ret < 0)

@@ -22,7 +22,7 @@
 #include <errno.h>
 #include "at_surf_f437_board_emac.h"
 static blk_drv_t net_drv; //!< 网络驱动的协议
-#define STACK_COM_ITME_SIZE (1024+512)
+#define STACK_COM_ITME_SIZE (2048)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];
@@ -56,7 +56,12 @@ int blk_drv_read(obj_handler_t obj, int len, int inx)
     umword_t size = 0;
     msg_tag_t tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
     uint32_t _err;
-
+    if (msg_tag_get_val(tag) < 0)
+    {
+        handler_free_umap(obj);
+        printf("net read error.\n");
+        return msg_tag_get_val(tag);
+    }
     ret = emac_read_packet((uint8_t *)addr, size);
     handler_free_umap(obj);
     return ret;

@@ -503,9 +503,9 @@ static void task_release_stage1(kobject_t *kobj)
     thread_t *restore_th;
     thread_fast_ipc_item_t ipc_item;
 
-    slist_foreach(restore_th, &tk->nofity_theads_head, fast_ipc_node)
+    slist_foreach(restore_th->com, &tk->nofity_theads_head, fast_ipc_node)
     {
-        ret = thread_fast_ipc_pop(restore_th, &ipc_item);
+        ret = thread_fast_ipc_pop(restore_th, &ipc_item);/*TODO:这里有问题*/
         if (ret >= 0)
         {
             // 还原栈和usp TODO: arch相关的

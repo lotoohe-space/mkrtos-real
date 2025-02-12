@@ -2,6 +2,7 @@
 #include "arch.h"
 #include "thread.h"
 #include "futex.h"
+#include "thread_knl.h"
 static umword_t sys_tick_cnt;
 
 umword_t sys_tick_cnt_get(void)
@@ -16,4 +17,5 @@ void SysTick_Handler(void)
     sys_tick_cnt++;
     thread_timeout_check(1);
     futex_timeout_times_tick();
+    thread_calc_cpu_usage();
 }

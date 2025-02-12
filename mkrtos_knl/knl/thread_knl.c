@@ -43,6 +43,7 @@
 #include "pre_cpu.h"
 
 static uint8_t knl_msg_buf[CONFIG_CPU][THREAD_MSG_BUG_LEN];
+static thread_fast_ipc_com_t knl_th_ipc_com;
 static task_t knl_task;
 static thread_t *init_thread;
 static task_t *init_task;
@@ -158,6 +159,7 @@ void knl_init_1(void)
 
     knl_thread[arch_get_current_cpu_id()] = thread_get_current();
     knl_th = knl_thread[arch_get_current_cpu_id()];
+    knl_th->com = &knl_th_ipc_com;
     thread_init(knl_th, &root_factory_get()->limit, FALSE);
     task_init(&knl_task, &root_factory_get()->limit, TRUE);
     task_knl_init(&knl_task);
@@ -257,7 +259,7 @@ static void knl_init_2(void)
             assert(obj_map_root(kobj, &init_task->obj_space, &root_factory_get()->limit, vpage_create3(KOBJ_ALL_RIGHTS, 0, i)));
         }
     }
-    init_thread->sche.prio = 15;
+    init_thread->sche.prio = 3;
     init_task->pid = 0;
     thread_ready(init_thread, FALSE);
 #endif
@@ -274,7 +276,7 @@ bool_t task_knl_kill(thread_t *kill_thread, bool_t is_knl)
         umword_t status2;
 
         status2 = spinlock_lock(&del_lock);
-        if (stack_len(&kill_thread->fast_ipc_stack) != 0)
+        if (stack_len(&kill_thread->com->fast_ipc_stack) != 0)
         {
             int ret;
             thread_fast_ipc_item_t ipc_item;

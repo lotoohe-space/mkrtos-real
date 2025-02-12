@@ -464,7 +464,7 @@ static void share_mem_release_stage2(kobject_t *kobj)
 {
     share_mem_t *sm = container_of(kobj, share_mem_t, kobj);
 
-    assert(dlist_is_empty(&sm->task_head));
+    assert(dlist_is_empty(&sm->task_head));//TODO:有bug
 
 #if IS_ENABLED(CONFIG_MMU)
     share_mem_free_pmem(sm);

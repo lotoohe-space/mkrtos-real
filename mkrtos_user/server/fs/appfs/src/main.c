@@ -1,5 +1,6 @@
 #include "appfs.h"
 #include "hw_block_sim.h"
+#include "libgen.h"
 #include "test.h"
 #include <dirent.h>
 #include <errno.h>
@@ -14,6 +15,51 @@
 static fs_info_t fs;
 static char *pack_path;
 static char *output_path;
+
+// 比较函数，用于 qsort 排序
+int compare(const void *a, const void *b)
+{
+    return strcmp(*(const char **)a, *(const char **)b);
+}
+static char **file_get_all_sort(const char *file_path, int *ret_size)
+{
+    DIR *dir;
+    struct dirent *entry;
+    char **filenames = NULL;
+    int count = 0;
+
+    assert(ret_size);
+    // 打开目录
+    dir = opendir(file_path);
+    if (dir == NULL)
+    {
+        perror("opendir");
+        exit(EXIT_FAILURE);
+        return NULL;
+    }
+
+    // 读取目录中的文件
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (entry->d_type == DT_REG)
+        { // 只处理普通文件
+            char full_path[1024];
+            snprintf(full_path, sizeof(full_path), "%s/%s", file_path, entry->d_name);
+            filenames = realloc(filenames, (count + 1) * sizeof(char *));
+            filenames[count] = strdup(full_path);
+            count++;
+        }
+    }
+
+    // 关闭目录
+    closedir(dir);
+
+    // 对文件名进行排序
+    qsort(filenames, count, sizeof(char *), compare);
+
+    *ret_size = count;
+    return filenames;
+}
 
 static int read_file_all(const char *file_path, void **ret_ptr)
 {
@@ -61,57 +107,43 @@ static int read_file_all(const char *file_path, void **ret_ptr)
 
 int read_files_and_write_appfs(const char *path)
 {
-    DIR *dir;
-    struct dirent *entry;
     struct stat info;
     int ret;
     long total_size = 0;
+    int files_count;
+    char **files = file_get_all_sort(path, &files_count);
 
-    // 打开目录
-    dir = opendir(path);
-    if (dir == NULL)
+    if (files == NULL)
     {
-        perror("opendir");
-        return errno;
+        return -ENOENT;
     }
-
-    // 读取目录中的每一个条目
-    while ((entry = readdir(dir)) != NULL)
+    for (int i = 0; i < files_count; i++)
     {
-        // 忽略"."和".."目录
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-        {
-            continue;
-        }
-
-        // 构建完整的文件路径
-        char full_path[1024];
-        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
-
         // 获取文件信息
-        if (stat(full_path, &info) != 0)
+        if (stat(files[i], &info) != 0)
         {
-            printf("pack fail:%s\n", full_path);
+            printf("pack fail:%s\n", files[i]);
             continue;
         }
+        char *file_name = basename(files[i]);
 
         if (S_ISREG(info.st_mode))
         {
-            printf("%s %fMB\n", full_path, (float)info.st_size / 1024.0f / 1024.0f);
-            ret = appfs_create_file(&fs, entry->d_name, info.st_size);
+            printf("%s %fMB\n", files[i], (float)info.st_size / 1024.0f / 1024.0f);
+            ret = appfs_create_file(&fs, file_name, info.st_size);
             if (ret < 0)
             {
                 printf("create file error.\n");
                 return -1;
             }
             void *file_ptr;
-            ret = read_file_all(full_path, &file_ptr);
+            ret = read_file_all(files[i], &file_ptr);
             if (ret < 0)
             {
                 printf("read file error.\n");
                 return ret;
             }
-            ret = appfs_write_file(&fs, entry->d_name, file_ptr, info.st_size, 0);
+            ret = appfs_write_file(&fs, file_name, file_ptr, info.st_size, 0);
             if (ret < 0)
             {
                 free(file_ptr);
@@ -122,9 +154,6 @@ int read_files_and_write_appfs(const char *path)
             total_size += info.st_size;
         }
     }
-
-    // 关闭目录
-    closedir(dir);
     printf("file total size:%fMB\n", ((float)total_size / 1024.0f / 1024.0f));
     return 0;
 }

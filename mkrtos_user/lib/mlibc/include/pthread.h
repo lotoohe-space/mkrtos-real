@@ -80,6 +80,7 @@ extern "C" {
 #include <u_types.h>
 
 obj_handler_t pthread_hd_get(pthread_t th);
+size_t pthread_struct_size(void);
 int pthread_create(pthread_t *__restrict, const pthread_attr_t *__restrict, void *(*)(void *), void *__restrict);
 int pthread_detach(pthread_t);
 _Noreturn void pthread_exit(void *);

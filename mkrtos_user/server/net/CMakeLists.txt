@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-file(GLOB_RECURSE deps src/*.c src/*.S)
+file(GLOB deps src/*.c src/*.S src/test/*.c)
 
 add_executable(net.elf
     ${deps}
@@ -29,6 +29,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/lwip/src/include
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/lwip/src/include/lwip/apps
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/net/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/net/src/test
 )
 set_target_properties(net.elf PROPERTIES LINK_FLAGS
 "-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker  "
@@ -40,7 +41,7 @@ add_custom_target(
     COMMAND
     ${CMAKE_OBJCOPY} -O binary -S net.elf net.bin
     COMMAND
-    ${CMAKE_COMMAND} -E copy net.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/net
+    ${CMAKE_COMMAND} -E copy net.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/a_net
     COMMAND
     ${CMAKE_COMMAND} -E copy net.elf ${CMAKE_SOURCE_DIR}/build/output/net.elf
 )

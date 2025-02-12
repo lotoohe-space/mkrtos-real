@@ -77,7 +77,7 @@ add_custom_target(
     COMMAND
     ${CMAKE_SIZE} nes.elf
     COMMAND
-    ${CMAKE_COMMAND} -E copy nes.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/nes
+    ${CMAKE_COMMAND} -E copy nes.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/a_nes
     COMMAND
     cp nes.elf ${CMAKE_SOURCE_DIR}/build/output/nes.elf
     COMMAND

@@ -19,7 +19,7 @@ static ATTR_ALIGN(8) uint8_t com_stack[FAST_IPC_MAIN_STACK_SIZE];
 static uint8_t cons_msg_buf_main[MSG_BUG_LEN + CONFIG_THREAD_MAP_BUF_LEN * WORD_BYTES];
 static umword_t *cons_map_buf = (umword_t *)(cons_msg_buf_main + MSG_BUG_LEN);
 static volatile umword_t cons_stack_bitmap;
-
+static uint8_t fake_pthread[256/*FIXME:*/];
 static int stack_array_nr;
 static size_t stack_item_size;
 static uint8_t *cons_stack;
@@ -131,6 +131,7 @@ int u_fast_ipc_init(uint8_t *stack_array, uint8_t *msg_buf_array, int stack_msgb
         cons_map_buf[i] = vpage_create_raw3(0, 0, handler_alloc()).raw;
         msg->map_buf[i] = cons_map_buf[i];
     }
+    msg->user[0] = (umword_t)((char *)fake_pthread + sizeof(fake_pthread));
 
     tag = task_set_com_point(TASK_THIS, &fast_ipc_com_point, (addr_t)com_stack,
                              sizeof(com_stack), (void *)(&cons_stack_bitmap),

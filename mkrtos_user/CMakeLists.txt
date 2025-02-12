@@ -8,18 +8,18 @@ if (${CONFIG_ARCH} STREQUAL "cortex-m3" OR
     # -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
     -fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
-    -z max-page-size=0x4 -z common-page-size=0x4 \
+   \
     " )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
     -fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
-    -z max-page-size=0x4 -z common-page-size=0x \
+  \
     " )
     set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} \
     -fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
-    -z max-page-size=0x4 -z common-page-size=0x4  \
+    \
     " )
-    #-Ttext-segment=0x0
-    set(CORTEX_M_LINK_FLAGS "-pie -z max-page-size=0x4 -z common-page-size=0x4  ")
+    #-Ttext-segment=0x0  -z max-page-size=0x4 -z common-page-size=0x4 
+    set(CORTEX_M_LINK_FLAGS "-pie ")
     set(LIBC_NAME "muslc")
     set(ARCH_NAME "armv7_8m")
 

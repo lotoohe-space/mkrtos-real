@@ -79,7 +79,7 @@ add_custom_target(
     COMMAND
     ${CMAKE_SIZE} eth.elf
     COMMAND
-    ${CMAKE_COMMAND} -E copy eth.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/eth
+    ${CMAKE_COMMAND} -E copy eth.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/a_eth
     COMMAND
     cp eth.elf ${CMAKE_SOURCE_DIR}/build/output/eth.elf
 )

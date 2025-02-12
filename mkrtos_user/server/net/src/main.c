@@ -22,13 +22,19 @@ static umword_t addr;
 static umword_t size;
 obj_handler_t net_drv_hd;
 
-#define STACK_COM_ITME_SIZE (2 * 1024)
+#define STACK_COM_ITME_SIZE (2 * 1024 + 512 /*sizeof(struct pthread) + TP_OFFSET*/)
 #define STACK_NUM 4
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
-static uint8_t msg_buf_coms[MSG_BUG_LEN];
+static uint8_t msg_buf_coms[MSG_BUG_LEN * STACK_NUM];
 static void fast_ipc_init(void)
 {
+    // ipc_msg_t *ipc_msg = (ipc_msg_t *)msg_buf_coms;
+
+    // for (int i = 0; i < STACK_NUM; i++)
+    // {
+    //     ipc_msg->user[0] = (umword_t)(stack_coms + (i * STACK_COM_ITME_SIZE) + 2 * 1024);
+    // }
     u_fast_ipc_init(stack_coms,
                     msg_buf_coms, STACK_NUM, STACK_COM_ITME_SIZE);
 }
@@ -98,7 +104,7 @@ again:
         return -1;
     }
     cons_write_str("net mount success\n");
-    // fs_svr_loop();
+    net_test();
     while (1)
     {
         if (msg_tag_get_prot(u_sema_down(sem_hd)) < 0)
