@@ -18,15 +18,18 @@
 #include "hw_block.h"
 #include "appfs_open.h"
 #include "u_sleep.h"
+#include "u_hd_man.h"
 #define STACK_COM_ITME_SIZE (2 * 1024)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];
-
+static obj_handler_t com_th_obj;
 static fs_info_t fs_obj;
 void fast_ipc_init(void)
 {
-    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
+    com_th_obj = handler_alloc();
+    assert(com_th_obj != HANDLER_INVALID);
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
 }
 int main(int argc, char *argv[])
 {

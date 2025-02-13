@@ -160,7 +160,6 @@ static void thread_release_stage1_impl(thread_t *th)
     if (th->status == THREAD_READY)
     {
         thread_suspend(th);
-        preemption();
     }
     th->ipc_status = THREAD_IPC_ABORT;
     thread_sleep_del(th); //!< 从休眠中删除

@@ -23,7 +23,7 @@ typedef struct ipc_msg
         {
             umword_t msg_buf[CONFIG_THREAD_IPC_MSG_LEN];
             umword_t map_buf[CONFIG_THREAD_MAP_BUF_LEN];
-            umword_t user[CONFIG_THREAD_USER_BUF_LEN]; // 0 pthread使用 1驱动使用 2 ipc通信时存储目标的pid
+            umword_t user[CONFIG_THREAD_USER_BUF_LEN]; // 0 pthread使用 1驱动使用 2 ipc通信时存储目标的pid 3虚拟化或者用户自定义
         };
         uint8_t data[MSG_BUG_LEN];
     };

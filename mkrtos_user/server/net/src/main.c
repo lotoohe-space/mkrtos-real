@@ -1,43 +1,42 @@
 
 #include "cons_cli.h"
-#include "netconf.h"
-#include <unistd.h>
-#include <stdio.h>
-#include <assert.h>
-#include "u_sleep.h"
 #include "lwiperf.h"
+#include "netconf.h"
 #include "u_prot.h"
+#include "u_sleep.h"
+#include <assert.h>
+#include <stdio.h>
+#include <unistd.h>
 
-#include <u_hd_man.h>
-#include <u_task.h>
-#include <u_factory.h>
-#include <u_share_mem.h>
-#include <u_sema.h>
-#include <blk_drv_cli.h>
-#include <ns_cli.h>
 #include "fs_rpc.h"
 #include "net_rpc.h"
-#include "u_fast_ipc.h"
 #include "net_test.h"
+#include "u_fast_ipc.h"
+#include <blk_drv_cli.h>
+#include <ns_cli.h>
+#include <u_factory.h>
+#include <u_hd_man.h>
+#include <u_sema.h>
+#include <u_share_mem.h>
+#include <u_task.h>
 static umword_t addr;
 static umword_t size;
 obj_handler_t net_drv_hd;
 
 #define STACK_COM_ITME_SIZE (2 * 1024 + 512 /*sizeof(struct pthread) + TP_OFFSET*/)
-#define STACK_NUM 4
+#define STACK_NUM           4
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
 static uint8_t msg_buf_coms[MSG_BUG_LEN * STACK_NUM];
+static obj_handler_t com_th_obj[STACK_NUM];
 static void fast_ipc_init(void)
 {
-    // ipc_msg_t *ipc_msg = (ipc_msg_t *)msg_buf_coms;
-
-    // for (int i = 0; i < STACK_NUM; i++)
-    // {
-    //     ipc_msg->user[0] = (umword_t)(stack_coms + (i * STACK_COM_ITME_SIZE) + 2 * 1024);
-    // }
+    for (int i = 0; i < STACK_NUM; i++) {
+        com_th_obj[i] = handler_alloc();
+        assert(com_th_obj[i] != HANDLER_INVALID);
+    }
     u_fast_ipc_init(stack_coms,
-                    msg_buf_coms, STACK_NUM, STACK_COM_ITME_SIZE);
+                    msg_buf_coms, STACK_NUM, STACK_COM_ITME_SIZE, com_th_obj);
 }
 int main(int args, char *argv[])
 {
@@ -48,15 +47,13 @@ int main(int args, char *argv[])
     printf("net startup..\n");
     fast_ipc_init();
     ret = rpc_meta_init(THREAD_MAIN, &hd);
-    if (ret < 0)
-    {
+    if (ret < 0) {
         printf("rpc meta init failed\n");
         return -1;
     }
 again:
     ret = ns_query("/eth", &net_drv_hd, 0x1);
-    if (ret < 0)
-    {
+    if (ret < 0) {
         u_sleep_ms(50);
         goto again;
     }
@@ -72,50 +69,42 @@ again:
 
     obj_handler_t sem_hd;
 
-    if (blk_drv_cli_map(net_drv_hd, &sem_hd) < 0)
-    {
+    if (blk_drv_cli_map(net_drv_hd, &sem_hd) < 0) {
         printf("net drv sem map error.\n");
         return -1;
     }
 
     obj_handler_t shm_hd = handler_alloc();
-    if (shm_hd == HANDLER_INVALID)
-    {
+    if (shm_hd == HANDLER_INVALID) {
         printf("handler alloc failed.\n");
         return -1;
     }
     tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
                                    SHARE_MEM_CNT_BUDDY_CNT, 2048);
-    if (msg_tag_get_val(tag) < 0)
-    {
+    if (msg_tag_get_val(tag) < 0) {
         printf("share mem create failed.\n");
         return -1;
     }
     tag = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
-    if (msg_tag_get_val(tag) < 0)
-    {
+    if (msg_tag_get_val(tag) < 0) {
         printf("share mem map failed.\n");
         return -1;
     }
 
     ret = ns_register("/net", hd, MOUNT_NODE);
-    if (ret < 0)
-    {
+    if (ret < 0) {
         printf("ns reg failed.\n");
         return -1;
     }
     cons_write_str("net mount success\n");
     net_test();
-    while (1)
-    {
-        if (msg_tag_get_prot(u_sema_down(sem_hd, 0, NULL)) < 0)
-        {
+    while (1) {
+        if (msg_tag_get_prot(u_sema_down(sem_hd, 0, NULL)) < 0) {
             printf("error.\n");
         }
         int ret = blk_drv_cli_read(net_drv_hd, shm_hd, 0, 0);
 
-        if (ret > 0)
-        {
+        if (ret > 0) {
             lwip_pkt_handle_raw((uint8_t *)addr, ret);
         }
     }

@@ -20,14 +20,19 @@
 #include <u_fast_ipc.h>
 
 #include "mk_snd_drv_impl.h"
+#include "u_hd_man.h"
 static blk_drv_t snd_drv; //!< 网络驱动的协议
-#define STACK_COM_ITME_SIZE (1024 + 512)
+#define STACK_COM_ITME_SIZE (2048)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];
+static obj_handler_t com_th_obj;
+
 void fast_ipc_init(void)
 {
-    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
+    com_th_obj = handler_alloc();
+    assert(com_th_obj != HANDLER_INVALID);
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
 }
 int blk_drv_write(obj_handler_t obj, int len, int inx)
 {

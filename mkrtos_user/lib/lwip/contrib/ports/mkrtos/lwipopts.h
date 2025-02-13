@@ -42,7 +42,7 @@
 #define MEMP_NUM_TCP_PCB_LISTEN 4 // MEMP_NUM_TCP_PCB_LISTEN:能够监听的TCP连接数量
 #define MEMP_NUM_TCP_SEG 64       // MEMP_NUM_TCP_SEG:最多同时在队列中的TCP段数量
 #define MEMP_NUM_SYS_TIMEOUT 4    // MEMP_NUM_SYS_TIMEOUT:能够同时激活的timeout个数
-
+#define LWIP_NETCONN_SEM_PER_THREAD 0
 // pbuf选项
 #define PBUF_POOL_SIZE 32     // PBUF_POOL_SIZE:pbuf内存池个数
 #define PBUF_POOL_BUFSIZE 1600 // PBUF_POOL_BUFSIZE:每个pbuf内存池大小

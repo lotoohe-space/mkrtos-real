@@ -137,7 +137,7 @@ int console_read(uint8_t *data, size_t len)
  * @brief 激活控制台为发送者进程
  *
  */
-void console_active(pid_t pid, obj_handler_t sem)
+void console_active(mk_pid_t pid, obj_handler_t sem)
 {
     cons_obj.active_pid = pid;
     if (sem)

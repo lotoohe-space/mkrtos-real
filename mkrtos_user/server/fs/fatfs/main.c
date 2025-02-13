@@ -1,22 +1,29 @@
-#include "u_log.h"
-#include "ns_cli.h"
-#include "u_rpc_svr.h"
-#include "u_prot.h"
-#include "u_env.h"
 #include "cons_cli.h"
 #include "fs_rpc.h"
+#include "ns_cli.h"
+#include "u_env.h"
+#include "u_hd_man.h"
+#include "u_log.h"
+#include "u_prot.h"
+#include "u_rpc_svr.h"
+#include <assert.h>
 #include <ff.h>
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
+#include "u_hd_man.h"
 #include <u_fast_ipc.h>
+
 #define STACK_COM_ITME_SIZE (2048)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];
+static obj_handler_t com_th_obj;
+
 void fast_ipc_init(void)
 {
-    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
+    com_th_obj = handler_alloc();
+    assert(com_th_obj != HANDLER_INVALID);
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
 }
 
 static FATFS fs;
@@ -35,20 +42,15 @@ int main(int args, char *argv[])
 
     FRESULT res = f_mount(&fs, "0:", 1);
 
-    if (res != FR_OK)
-    {
+    if (res != FR_OK) {
         assert(sizeof(fs.win) >= FF_MAX_SS);
         res = f_mkfs("0:", &defopt, (void *)(fs.win), FF_MAX_SS); // 第三个参数可以设置成NULL，默认使用heap memory
-        if (res != FR_OK)
-        {
+        if (res != FR_OK) {
             cons_write_str("f_mkfs err.\n");
             exit(-1);
-        }
-        else
-        {
+        } else {
             res = f_mount(&fs, "0:", 1);
-            if (res != FR_OK)
-            {
+            if (res != FR_OK) {
                 cons_write_str("f_mount err.\n");
                 exit(-1);
             }

@@ -11,15 +11,20 @@
 #include <u_env.h>
 #include <pthread.h>
 #include <u_fast_ipc.h>
-#define STACK_COM_ITME_SIZE (1024+512)
+
+#include "u_hd_man.h"
+#define STACK_COM_ITME_SIZE (2048)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];
+static obj_handler_t com_th_obj;
+
 void fast_ipc_init(void)
 {
-    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
+    com_th_obj = handler_alloc();
+    assert(com_th_obj != HANDLER_INVALID);
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
 }
-
 void *test_func(void *arg)
 {
     msg_tag_t tag;

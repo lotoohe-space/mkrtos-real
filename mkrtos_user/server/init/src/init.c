@@ -8,39 +8,41 @@
  * @copyright Copyright (c) 2023
  *
  */
-#include "u_log.h"
-#include "u_prot.h"
-#include "u_factory.h"
-#include "u_thread.h"
-#include "u_task.h"
-#include "u_sleep.h"
-#include "u_ipc.h"
-#include "u_hd_man.h"
-#include "u_irq_sender.h"
-#include "u_app_loader.h"
-#include "u_rpc_svr.h"
-#include "pm.h"
 #include "cons.h"
-#include "test/test.h"
-#include "u_rpc_svr.h"
 #include "namespace.h"
 #include "ns_svr.h"
-#include "syscall_backend.h"
 #include "parse_cfg.h"
+#include "pm.h"
+#include "syscall_backend.h"
+#include "test/test.h"
+#include "u_app_loader.h"
+#include "u_factory.h"
+#include "u_hd_man.h"
+#include "u_ipc.h"
+#include "u_irq_sender.h"
+#include "u_log.h"
+#include "u_prot.h"
+#include "u_rpc_svr.h"
+#include "u_sleep.h"
+#include "u_task.h"
+#include "u_thread.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <u_fast_ipc.h>
 
-#define DEFAULT_INIT_CFG "init.cfg"
-
-#define STACK_COM_ITME_SIZE (3 * 1024)
+#define DEFAULT_INIT_CFG    "init.cfg"
+#define STACK_COM_ITME_SIZE (2 * 1024)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];
+static obj_handler_t com_th_obj;
+
 void fast_ipc_init(void)
 {
-    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE);
+    com_th_obj = handler_alloc();
+    assert(com_th_obj != HANDLER_INVALID);
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
 }
 int main(int argc, char *args[])
 {
@@ -70,9 +72,8 @@ int main(int argc, char *args[])
 
     ret = parse_cfg(DEFAULT_INIT_CFG, env);
     printf("run app num is %d.\n", ret);
-    // namespace_loop();
-    while (1)
-    {
+    // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, THREAD_MAIN));
+    while (1) {
         u_sleep_ms((umword_t)(-1));
     }
     return 0;
