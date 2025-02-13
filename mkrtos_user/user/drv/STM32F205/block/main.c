@@ -122,6 +122,7 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-        rpc_loop();
+        // rpc_loop();
+        u_sleep_ms((umword_t)(-1));
     }
 }

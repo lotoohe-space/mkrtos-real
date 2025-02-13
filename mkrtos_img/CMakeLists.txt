@@ -59,14 +59,11 @@ add_dependencies(mkrtos_img_dump
     bootstrap_dump
     mkrtos_dump
     init_dump
-    nes_dump
-    # app_dump
     shell_dump
-    # fatfs_dump
     appfs_dump
     vi_dump
     tst_dump
-    eth_dump
-    net_dump
-    # tcc_dump
+    # eth_dump
+    # nes_dump
+    # net_dump
 )

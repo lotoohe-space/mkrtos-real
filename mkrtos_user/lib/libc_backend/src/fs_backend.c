@@ -129,7 +129,7 @@ static int be_tty_read(char *buf, long size)
         }
         else if (len == 0)
         {
-            u_sema_down(SEMA_PROT);
+            u_sema_down(SEMA_PROT, 0/*TODO:*/, NULL);
             continue;
         }
         r_len += len;
@@ -235,7 +235,7 @@ long be_readv(long fd, const struct iovec *iov, long iovcnt)
                 }
                 else if (read_cn == 0)
                 {
-                    u_sema_down(SEMA_PROT);
+                    u_sema_down(SEMA_PROT, 0, NULL);
                     cons_write_str(".\n");
                     goto again_read;
                 }

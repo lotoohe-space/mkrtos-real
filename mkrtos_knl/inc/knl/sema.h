@@ -16,15 +16,15 @@ typedef sema_t mutex_t;
 
 void sema_init(sema_t *obj, int cnt, int max);
 void sema_up(sema_t *obj);
-void sema_down(sema_t *obj);
+umword_t sema_down(sema_t *obj, umword_t ticks);
 
 static inline void mutex_init(mutex_t *lock)
 {
     sema_init(lock, 1, 1);
 }
-static inline void mutex_lock(mutex_t *lock)
+static inline void mutex_lock(mutex_t *lock, umword_t ticks)
 {
-    sema_down(lock);
+    sema_down(lock, ticks);
 }
 static inline void mutex_unlock(mutex_t *lock)
 {

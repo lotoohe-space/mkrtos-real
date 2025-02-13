@@ -36,7 +36,7 @@ rpc_svr_obj_t *meta_find_svr_obj(umword_t prot);
 int meta_reg_svr_obj(rpc_svr_obj_t *svr_obj, umword_t prot);
 int meta_reg_svr_obj_raw(meta_t *meta, rpc_svr_obj_t *svr_obj, umword_t prot);
 int rpc_creaite_bind_ipc(obj_handler_t th, void *obj, obj_handler_t *ipc_hd);
-void rpc_loop(void);
 #if 0
+void rpc_loop(void);
 int rpc_mtd_loop(void);
 #endif

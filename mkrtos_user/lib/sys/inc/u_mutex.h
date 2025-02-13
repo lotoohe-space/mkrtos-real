@@ -8,5 +8,5 @@ typedef struct u_mutex
 } u_mutex_t;
 
 int u_mutex_init(u_mutex_t *lock, obj_handler_t sema_hd);
-void u_mutex_lock(u_mutex_t *lock);
+void u_mutex_lock(u_mutex_t *lock, umword_t timeout, umword_t *remain_times);
 void u_mutex_unlock(u_mutex_t *lock);

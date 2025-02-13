@@ -17,6 +17,7 @@
 #include "appfs.h"
 #include "hw_block.h"
 #include "appfs_open.h"
+#include "u_sleep.h"
 #define STACK_COM_ITME_SIZE (2 * 1024)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
@@ -78,7 +79,12 @@ int main(int argc, char *argv[])
     fs_svr_init();
     ns_register(mount_path, hd, MOUNT_NODE);
     cons_write_str("appfs mount success\n");
-
+#if 0
     fs_svr_loop();
+#endif
+    while (1)
+    {
+        u_sleep_ms((umword_t)(-1));
+    }
     return 0;
 }

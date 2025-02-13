@@ -21,7 +21,7 @@ int u_sema_test(void)
     assert(msg_tag_get_val(tag) >= 0);
 
     u_sema_up(sema_hd);
-    u_sema_down(sema_hd);
+    u_sema_down(sema_hd, 0, NULL);
 
     handler_free_umap(sema_hd);
     return 0;
@@ -55,7 +55,7 @@ static void *thread_th2(void *arg)
     while (1)
     {
         printf("sema_down start\n");
-        u_sema_down(sema_hd2);
+        u_sema_down(sema_hd2, 0, NULL);
         u_sleep_ms(50);
         printf("sema_down end\n");
         if (j == TEST_CN)
@@ -73,7 +73,7 @@ static void *thread_th3(void *arg)
     while (1)
     {
         printf("sema_down2 start\n");
-        u_sema_down(sema_hd2);
+        u_sema_down(sema_hd2, 0, NULL);
         u_sleep_ms(50);
         printf("sema_down2 end\n");
         if (j == TEST_CN)

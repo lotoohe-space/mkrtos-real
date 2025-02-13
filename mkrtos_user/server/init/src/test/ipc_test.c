@@ -1,3 +1,4 @@
+#if 0
 #include "u_log.h"
 #include "u_prot.h"
 #include "u_factory.h"
@@ -229,3 +230,4 @@ CuSuite *ipc_test_suite(void)
 
     return &suite;
 }
+#endif

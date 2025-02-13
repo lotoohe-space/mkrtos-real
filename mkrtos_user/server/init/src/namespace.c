@@ -556,13 +556,13 @@ int namespace_query(const char *path, obj_handler_t *hd)
     ns_unlock();
     return ret_inx;
 }
-
+#if 0
 void namespace_loop(void)
 {
     rpc_loop();
     // rpc_mtd_loop();
 }
-
+#endif
 int fs_svr_mkdir(char *path)
 {
     int ret = ns_reg(path, 0, DIR_NODE);

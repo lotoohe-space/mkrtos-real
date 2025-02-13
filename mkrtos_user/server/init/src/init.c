@@ -34,7 +34,7 @@
 
 #define DEFAULT_INIT_CFG "init.cfg"
 
-#define STACK_COM_ITME_SIZE (3*1024)
+#define STACK_COM_ITME_SIZE (3 * 1024)
 ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];
@@ -70,6 +70,10 @@ int main(int argc, char *args[])
 
     ret = parse_cfg(DEFAULT_INIT_CFG, env);
     printf("run app num is %d.\n", ret);
-    namespace_loop();
+    // namespace_loop();
+    while (1)
+    {
+        u_sleep_ms((umword_t)(-1));
+    }
     return 0;
 }

@@ -10,6 +10,7 @@
 #include "init.h"
 #include "ref.h"
 #include "slist.h"
+#include "sleep.h"
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <slab.h>
 static slab_t *sema_slab;
@@ -65,8 +66,8 @@ void sema_up(sema_t *obj)
         slist_del(first_wait_node);
         if (ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj) != 1)
         {
-
-            thread_ready_remote(first_wait->thread, FALSE);
+            // thread_ready_remote(first_wait->thread, FALSE);
+            thread_sleep_del_and_wakeup(first_wait->thread);
         }
         if (obj->cnt < obj->max_cnt)
         {
@@ -77,12 +78,14 @@ void sema_up(sema_t *obj)
     spinlock_set(&obj->lock, status);
     preemption();
 }
-void sema_down(sema_t *obj)
+umword_t sema_down(sema_t *obj, umword_t ticks)
 {
     assert(obj);
     thread_t *th = thread_get_current();
     umword_t status;
+    umword_t remain_sleep = 0;
     sema_wait_item_t wait_item;
+
 again:
     status = spinlock_lock(&obj->lock);
     if (obj->cnt == 0)
@@ -90,7 +93,8 @@ again:
         sema_wait_item_init(&wait_item, th);
         ref_counter_inc(&th->ref);
         slist_add_append(&obj->suspend_head, &wait_item.node);
-        thread_suspend_sw(th, FALSE);
+        // thread_suspend_sw(th, FALSE);
+        remain_sleep = thread_sleep(ticks);
         spinlock_set(&obj->lock, status);
         preemption();
         goto again;
@@ -102,6 +106,7 @@ again:
         // printk("down sema cnt:%d max:%d.\n", obj->cnt, obj->max_cnt);
     }
     spinlock_set(&obj->lock, status);
+    return remain_sleep;
 }
 
 static void sema_syscall(kobject_t *kobj, syscall_prot_t sys_p,
@@ -126,7 +131,10 @@ static void sema_syscall(kobject_t *kobj, syscall_prot_t sys_p,
     break;
     case SEMA_DOWN:
     {
-        sema_down(sema);
+        umword_t ret;
+
+        ret = sema_down(sema, f->regs[0]);
+        f->regs[1] = ret;
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     }

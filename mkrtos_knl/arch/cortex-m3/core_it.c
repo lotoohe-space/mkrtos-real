@@ -104,7 +104,7 @@ void MemManage_Handler(void)
     }
     // printk("instr || data 0x%x access is error.\n", fault_addr);
     if (task_vma_page_fault(&(thread_get_current_task()->mm_space.mem_vma),
-                            fault_addr, NULL) < 0)
+                            fault_addr & (~(sizeof(void *) - 1)), NULL) < 0)
     {
       printk("[semgement fault] task:0x%x, mem_addr:0x%lx bus_addr:0x%lx .\n",
              thread_get_current_task(), fault_addr, bus_addr);

@@ -33,6 +33,7 @@
 #include "thread_task_arch.h"
 #include "types.h"
 #include "sema.h"
+#include "sleep.h"
 #if IS_ENABLED(CONFIG_SMP)
 #include <ipi.h>
 #endif
@@ -51,6 +52,7 @@ enum thread_op
     YIELD,
     DO_IPC = 6, //!< 与ipc对象中的额IPC_DO一致
     SET_EXEC,   //!< 设置异常处理
+    SLEEP,
 };
 enum IPC_TYPE
 {
@@ -67,7 +69,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
 static bool_t thread_put(kobject_t *kobj);
 static void thread_release_stage1(kobject_t *kobj);
 static void thread_release_stage2(kobject_t *kobj);
-
+#if 0
 typedef struct thread_wait_entry
 {
     slist_head_t node;
@@ -84,7 +86,6 @@ static inline void thread_wait_entry_init(thread_wait_entry_t *entry,
     entry->th = th;
     entry->times = times;
 }
-
 static PER_CPU(slist_head_t, wait_send_queue);
 static PER_CPU(slist_head_t, wait_recv_queue);
 
@@ -96,8 +97,8 @@ static void thread_timeout_init(void)
         slist_init(pre_cpu_get_var_cpu(i, (&wait_recv_queue)));
     }
 }
-
 INIT_KOBJ(thread_timeout_init);
+#endif
 
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <buddy.h>
@@ -126,9 +127,11 @@ void thread_init(thread_t *th, ram_limit_t *lim, umword_t flags)
     kobject_init(&th->kobj, THREAD_TYPE);
     sched_init(&th->sche);
     slist_init(&th->futex_node);
+#if 0
     slist_init(&th->wait_send_head);
     spinlock_init(&th->recv_lock);
     spinlock_init(&th->send_lock);
+#endif
     ref_counter_init(&th->ref);
     ref_counter_inc(&th->ref);
     thread_arch_init(th, flags);
@@ -157,8 +160,11 @@ static void thread_release_stage1_impl(thread_t *th)
     if (th->status == THREAD_READY)
     {
         thread_suspend(th);
+        preemption();
     }
     th->ipc_status = THREAD_IPC_ABORT;
+    thread_sleep_del(th); //!< 从休眠中删除
+#if 0
     thread_wait_entry_t *pos;
 
     slist_foreach_not_next(
@@ -202,6 +208,7 @@ static void thread_release_stage1_impl(thread_t *th)
         }
         pos2 = next;
     }
+#endif
     thread_unbind(th);
 }
 #if IS_ENABLED(CONFIG_SMP)
@@ -499,7 +506,7 @@ thread_t *thread_create(ram_limit_t *ram, umword_t flags)
     printk("create thread 0x%x\n", th);
     return th;
 }
-
+#if 0
 /**
  * @brief 线程超时检查
  *
@@ -668,6 +675,8 @@ void thread_timeout_del_recv_remote(thread_t *th, bool_t is_sche)
     thread_ready(th, is_sche); //!< 直接唤醒接受者
 #endif
 }
+#endif
+
 static int ipc_dat_copy_raw(obj_space_t *dst_obj, obj_space_t *src_obj, ram_limit_t *lim,
                             ipc_msg_t *dst_ipc, ipc_msg_t *src_ipc, msg_tag_t tag, int is_reply)
 {
@@ -706,6 +715,7 @@ static int ipc_dat_copy_raw(obj_space_t *dst_obj, obj_space_t *src_obj, ram_limi
            MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
     return i;
 }
+#if 0
 /**
  * @brief ipc传输时的数据拷贝
  *
@@ -1170,6 +1180,7 @@ end:
 #endif
     return ret;
 }
+#endif
 msg_tag_t thread_fast_ipc_call(thread_t *to_th, entry_frame_t *f, umword_t user_id)
 {
     task_t *cur_task = thread_get_current_task();
@@ -1195,7 +1206,7 @@ _to_unlock:
         preemption();
         goto _to_unlock;
     }
-    mutex_lock(&to_task->nofity_lock);
+    mutex_lock(&to_task->nofity_lock, 0);
     if (GET_LSB(*to_task->nofity_bitmap, to_task->nofity_bitmap_len) == GET_LSB((~0ULL), to_task->nofity_bitmap_len))
     {
         mutex_unlock(&to_task->nofity_lock);
@@ -1215,7 +1226,7 @@ _to_unlock:
                                dst_ipc, src_ipc, in_tag, FALSE);
         if (ret >= 0)
         {
-            dst_ipc->user[2] = task_pid_get(cur_task);                       // 设置pid
+            dst_ipc->user[2] = task_pid_get(cur_task);                            // 设置pid
             slist_add(&to_task->nofity_theads_head, &cur_th->com->fast_ipc_node); // 添加到链表中，用于进程关闭时进行释放
             pf_s_t *usr_stask_point = (void *)arch_get_user_sp();
 
@@ -1374,6 +1385,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
         return thread_fast_ipc_call(to_th, f, user_id);
     }
     break;
+#if 0
     case IPC_CALL:
     {
         msg_tag_t in_tag = msg_tag_init(f->regs[0]);
@@ -1424,6 +1436,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
         ret = thread_ipc_call(to_th, in_tag, NULL, ipc_tm_out, NULL, FALSE);
         return msg_tag_init4(0, 0, 0, ret);
     }
+#endif
     default:
         ret = -ENOSYS;
         break;
@@ -1647,6 +1660,17 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
         ref_counter_inc(&((thread_t *)th_kobj)->ref);
         task->exec_th = th_kobj;
         tag = msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
+    case SLEEP:
+    {
+        int ret;
+        umword_t status;
+
+        status = cpulock_lock();
+        ret = thread_sleep(f->regs[0]);
+        cpulock_set(status);
+        tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
     }

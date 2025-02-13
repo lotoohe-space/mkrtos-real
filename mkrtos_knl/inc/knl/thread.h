@@ -144,14 +144,14 @@ typedef struct thread
     bool_t is_vcpu;      //!< 是否是vcpu
 
     msg_buf_t msg; //!< 每个线程独有的消息缓存区
-
+#if 0
     slist_head_t wait_send_head; //!< 等待头，那些节点等待给当前线程发送数据
     spinlock_t recv_lock;        //!< 当前线程接收消息时锁住
     spinlock_t send_lock;        //!< 当前线程发送消息时锁住
     bool_t has_wait_send_th;     //!< 有线程等待给当前线程发送消息
-
     thread_t *last_send_th; //!< 当前线程上次接收到谁的数据
     kobject_t *ipc_kobj;    //!< 发送者放到一个ipc对象中
+#endif
     umword_t user_id;       //!< 接收到的user_id
 
     enum thread_state status;         //!< 线程状态

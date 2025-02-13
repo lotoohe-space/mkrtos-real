@@ -13,6 +13,7 @@
 #include "u_futex.h"
 #include <assert.h>
 #include <limits.h>
+#include "u_sleep.h"
 #include <pthread.h>
 #include <time.h>
 #include <unistd.h>
@@ -61,8 +62,10 @@ void be_exit(long exit_code)
         task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); //!< 删除当前task，以及申请得所有对象
         a_crash();                                                                 //!< 强制退出
     }
-    while (1) {
-        thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
+    while (1)
+    {
+        // thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
+        u_sleep_ms((umword_t)-1);
     }
 }
 
@@ -74,4 +77,3 @@ long sys_exit(va_list ap)
     be_exit(exit_code);
     return 0;
 }
-

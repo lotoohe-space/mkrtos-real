@@ -137,6 +137,7 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
     printf("[pm] watch pid:%d, sig hd:%d.\n", src_pid, sig_rcv_hd);
     return 0;
 }
+#if IS_ENABLED(CONFIG_USING_SIG)
 /**
  * @brief pm给task的信号线程发送消息
  *
@@ -175,6 +176,7 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
         pos = next;
     }
 }
+#endif
 /**
  * @brief 杀死某个进程
  *
@@ -195,7 +197,9 @@ int pm_rpc_kill_task(int pid, int flags)
 
     ns_node_del_by_pid(pid, flags);          //!< 从ns中删除
     pm_del_watch_by_pid(&pm, pid);           //!< 从watch中删除
+#if IS_ENABLED(CONFIG_USING_SIG)
     pm_send_sig_to_task(&pm, pid, KILL_SIG); //!< 给watch者发送sig
+#endif
     // handler_del_umap(pid);
     printf("[pm] kill pid:%d.\n", pid);
     return 0;

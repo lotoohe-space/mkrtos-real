@@ -28,7 +28,7 @@ RPC_TYPE_DEF_ALL(timeval_t)
 RPC_TYPE_DEF_ALL(pollfd_t)
 RPC_TYPE_DEF_ALL(nfds_t)
 
-RPC_GENERATION_CALL3(TRUE, net_t, NET_PROT, NET_ACCEPT, accept,
+RPC_GENERATION_CALL3(net_t, NET_PROT, NET_ACCEPT, accept,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_socketaddr_t_t, rpc_socketaddr_t_t, RPC_DIR_INOUT, RPC_TYPE_DATA, addr,
                      rpc_socklen_t_t, rpc_socklen_t_t, RPC_DIR_INOUT, RPC_TYPE_DATA, addrlen)
@@ -66,7 +66,7 @@ int net_accept(sd_t s, struct sockaddr *addr, socklen_t *addrlen)
     *addrlen = rpc_addrlen.data;
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL3(TRUE, net_t, NET_PROT, NET_BIND, bind,
+RPC_GENERATION_CALL3(net_t, NET_PROT, NET_BIND, bind,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_socketaddr_t_t, rpc_socketaddr_t_t, RPC_DIR_INOUT, RPC_TYPE_DATA, addr,
                      rpc_socklen_t_t, rpc_socklen_t_t, RPC_DIR_IN, RPC_TYPE_DATA, namelen)
@@ -93,7 +93,7 @@ int net_bind(int s, const struct sockaddr *name, socklen_t namelen)
     tag = net_t_bind_call(hd, &rpc_s, &rpc_addr, &rpc_addrlen);
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL2(TRUE, net_t, NET_PROT, NET_SHUTDOWN, shutdown,
+RPC_GENERATION_CALL2(net_t, NET_PROT, NET_SHUTDOWN, shutdown,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, how)
 int net_shutdown(int s, int how)
@@ -111,7 +111,7 @@ int net_shutdown(int s, int how)
     tag = net_t_shutdown_call(hd, &rpc_s, &rpc_how);
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL3(TRUE, net_t, NET_PROT, NET_GETPEERNAME, getpeername,
+RPC_GENERATION_CALL3(net_t, NET_PROT, NET_GETPEERNAME, getpeername,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_socketaddr_t_t, rpc_socketaddr_t_t, RPC_DIR_INOUT, RPC_TYPE_DATA, addr,
                      rpc_socklen_t_t, rpc_socklen_t_t, RPC_DIR_INOUT, RPC_TYPE_DATA, namelen)
@@ -147,7 +147,7 @@ int net_getpeername(int s, struct sockaddr *name, socklen_t *namelen)
     *namelen = rpc_namelen.data;
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL3(TRUE, net_t, NET_PROT, NET_GETSOCKNAME, getsockname,
+RPC_GENERATION_CALL3(net_t, NET_PROT, NET_GETSOCKNAME, getsockname,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_socketaddr_t_t, rpc_socketaddr_t_t, RPC_DIR_INOUT, RPC_TYPE_DATA, name,
                      rpc_socklen_t_t, rpc_socklen_t_t, RPC_DIR_INOUT, RPC_TYPE_DATA, namelen)
@@ -183,7 +183,7 @@ int net_getsockname(int s, struct sockaddr *name, socklen_t *namelen)
     *namelen = rpc_namelen.data;
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL5(TRUE, net_t, NET_PROT, NET_GETSOCKOPT, getsockopt,
+RPC_GENERATION_CALL5(net_t, NET_PROT, NET_GETSOCKOPT, getsockopt,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, level,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, optname,
@@ -229,7 +229,7 @@ int net_getsockopt(int s, int level, int optname, void *optval, socklen_t *optle
     // memcpy(optval, &rpc_buf.data[0], MIN(*optlen, rpc_buf.data));
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL5(TRUE, net_t, NET_PROT, NET_SETSOCKOPT, setsockopt,
+RPC_GENERATION_CALL5(net_t, NET_PROT, NET_SETSOCKOPT, setsockopt,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, level,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, optname,
@@ -269,7 +269,7 @@ int net_setsockopt(int s, int level, int optname, const void *optval, socklen_t 
     }
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL3(TRUE, net_t, NET_PROT, NET_CONNECT, connect,
+RPC_GENERATION_CALL3(net_t, NET_PROT, NET_CONNECT, connect,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_socketaddr_t_t, rpc_socketaddr_t_t, RPC_DIR_IN, RPC_TYPE_DATA, name,
                      rpc_socklen_t_t, rpc_socklen_t_t, RPC_DIR_IN, RPC_TYPE_DATA, namelen)
@@ -295,7 +295,7 @@ int net_connect(int s, const struct sockaddr *name, socklen_t namelen)
     tag = net_t_connect_call(hd, &rpc_s, &rpc_name, &rpc_namelen);
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL2(TRUE, net_t, NET_PROT, NET_LISTEN, listen,
+RPC_GENERATION_CALL2(net_t, NET_PROT, NET_LISTEN, listen,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, backlog)
 int net_listen(int s, int backlog)
@@ -313,7 +313,7 @@ int net_listen(int s, int backlog)
     tag = net_t_listen_call(hd, &rpc_s, &rpc_backlog);
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL4(TRUE, net_t, NET_PROT, NET_RECV, recv,
+RPC_GENERATION_CALL4(net_t, NET_PROT, NET_RECV, recv,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_ref_array_uint32_t_uint8_t_128_t, rpc_array_uint32_t_uint8_t_128_t, RPC_DIR_IN, RPC_TYPE_DATA, mem,
                      rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, len,
@@ -365,7 +365,7 @@ int net_recv(int s, void *mem, size_t len, int flags)
 
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL6(TRUE, net_t, NET_PROT, NET_RECVFROM, recvfrom,
+RPC_GENERATION_CALL6(net_t, NET_PROT, NET_RECVFROM, recvfrom,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_ref_array_uint32_t_uint8_t_128_t, rpc_array_uint32_t_uint8_t_128_t, RPC_DIR_INOUT, RPC_TYPE_DATA, mem,
                      rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, len,
@@ -427,7 +427,7 @@ int net_recvfrom(int s, void *mem, size_t len, int flags,
 
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL4(TRUE, net_t, NET_PROT, NET_SEND, send,
+RPC_GENERATION_CALL4(net_t, NET_PROT, NET_SEND, send,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_ref_array_uint32_t_uint8_t_128_t, rpc_array_uint32_t_uint8_t_128_t, RPC_DIR_IN, RPC_TYPE_DATA, mem,
                      rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size,
@@ -480,7 +480,7 @@ int net_send(int s, const void *dataptr, size_t size, int flags)
 
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL6(TRUE, net_t, NET_PROT, NET_SENDTO, sendto,
+RPC_GENERATION_CALL6(net_t, NET_PROT, NET_SENDTO, sendto,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_ref_array_uint32_t_uint8_t_128_t, rpc_array_uint32_t_uint8_t_128_t, RPC_DIR_IN, RPC_TYPE_DATA, mem,
                      rpc_size_t_t, rpc_size_t_t, RPC_DIR_IN, RPC_TYPE_DATA, size,
@@ -540,7 +540,7 @@ int net_sendto(int s, const void *dataptr, size_t size, int flags,
 
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL3(TRUE, net_t, NET_PROT, NET_SOCKET, socket,
+RPC_GENERATION_CALL3(net_t, NET_PROT, NET_SOCKET, socket,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, type,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, protocol)

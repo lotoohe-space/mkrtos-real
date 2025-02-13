@@ -447,7 +447,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     {
         task_t *cur_task = thread_get_current_task();
 
-        mutex_lock(&cur_task->nofity_lock);
+        mutex_lock(&cur_task->nofity_lock, 0);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;

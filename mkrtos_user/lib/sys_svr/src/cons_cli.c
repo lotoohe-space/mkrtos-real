@@ -8,13 +8,13 @@
 #include "u_rpc_svr.h"
 #include <u_env.h>
 
-RPC_GENERATION_CALL1(TRUE, cons_t, CONS_PROT, CONS_WRITE, write,
+RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_WRITE, write,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, data)
-RPC_GENERATION_CALL2(TRUE, cons_t, CONS_PROT, CONS_READ, read,
+RPC_GENERATION_CALL2(cons_t, CONS_PROT, CONS_READ, read,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_OUT, RPC_TYPE_DATA, data,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 
-RPC_GENERATION_CALL1(TRUE, cons_t, CONS_PROT, CONS_ACTIVE, active,
+RPC_GENERATION_CALL1(cons_t, CONS_PROT, CONS_ACTIVE, active,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
 
 int cons_write(const uint8_t *data, int len)

@@ -11,7 +11,7 @@
  * @brief 该宏用于生成一个客户端的调用函数（传递一个参数）
  *
  */
-#define RPC_GENERATION_CALL1(is_fast, struct_type, prot, op, func_name, cli_type0, svr_type0, dir0, rpc_type0, name0)              \
+#define RPC_GENERATION_CALL1(struct_type, prot, op, func_name, cli_type0, svr_type0, dir0, rpc_type0, name0)              \
     msg_tag_t struct_type##_##func_name##_call(obj_handler_t hd, cli_type0 *var0)                                                  \
     {                                                                                                                              \
         void *buf;                                                                                                                 \
@@ -32,16 +32,8 @@
         PRC_CLI_FILL_MAP_BUF(rpc_type0, cli_type0, var0, dir0, (uint8_t *)msg_ipc->map_buf, off_buf);                              \
         /*msg_tag_t tag = dispatch_test(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), 0), msg_ipc);*/ \
         msg_tag_t tag;                                                                                                             \
-        if (is_fast)                                                                                                               \
-        {                                                                                                                          \
-            tag = thread_ipc_fast_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), prot),           \
-                                       hd, 1111, 2222, 3333);                                                                      \
-        }                                                                                                                          \
-        else                                                                                                                       \
-        {                                                                                                                          \
-            tag = thread_ipc_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), prot), hd,            \
-                                  ipc_timeout_create2(0, 0));                                                                      \
-        }                                                                                                                          \
+        tag = thread_ipc_fast_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), prot),           \
+                                    hd, 1111, 2222, 3333);                                                                      \
         if (msg_tag_get_val(tag) < 0)                                                                                              \
         {                                                                                                                          \
             return tag;                                                                                                            \

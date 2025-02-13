@@ -117,10 +117,12 @@ int fs_svr_statfs(const char *path, struct statfs *buf)
 {
     return -ENOSYS;
 }
+#if 0
 void fs_svr_loop(void)
 {
     rpc_loop();
 }
+#endif
 static const fs_operations_t ops =
     {
         .fs_svr_open = fs_svr_open,

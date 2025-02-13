@@ -164,6 +164,7 @@ int rpc_meta_init(obj_handler_t th, obj_handler_t *ret_ipc_hd)
 {
     return rpc_creaite_bind_ipc(th, &meta_obj.svr, ret_ipc_hd);
 }
+#if 0
 /**
  * @brief RPC循环处理消息
  *
@@ -201,7 +202,6 @@ void rpc_loop(void)
         thread_ipc_reply(tag, ipc_timeout_create2(0, 0));
     }
 }
-#if 0
 #define RPC_MTD_TH_STACK_SIZE (1024 + 256)
 typedef struct mtd_params
 {

@@ -15,13 +15,16 @@ static void RunAllTests(void)
 		exit(1);
 	}
 	CuSuiteInit(&suite);
-
+#if 0
 	CuSuiteAddSuite(&suite, ipc_test_suite());
+#endif
 	CuSuiteAddSuite(&suite, ulog_test_suite());
 	CuSuiteAddSuite(&suite, printf_test_suite());
 	CuSuiteAddSuite(&suite, vmm_test_suite());
 	CuSuiteAddSuite(&suite, sharem_mem_test_suite());
+#if 0
 	CuSuiteAddSuite(&suite, map_test_suite());
+#endif
 	CuSuiteAddSuite(&suite, thread_base_test_suite());
 	CuSuiteAddSuite(&suite, sema_test_suite());
 	CuSuiteAddSuite(&suite, pthread_base_test_suite());

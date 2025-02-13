@@ -66,11 +66,13 @@ static inline msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
 }
 msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj);
 msg_tag_t thread_set_exec(obj_handler_t obj, obj_handler_t exec_th);
-
+#if 0
 msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj, obj_handler_t ipc_obj);
 msg_tag_t thread_ipc_reply(msg_tag_t in_tag, ipc_timeout_t timeout);
 msg_tag_t thread_ipc_send(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
 msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
+#endif
+msg_tag_t thread_sleep(umword_t ticks);
 msg_tag_t thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj, umword_t arg0, umword_t arg1, umword_t arg2);
 msg_tag_t thread_ipc_fast_replay(msg_tag_t in_tag, obj_handler_t target_obj, int unlock_bitmap);
 

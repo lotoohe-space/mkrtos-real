@@ -50,7 +50,7 @@ static void *mm_page_alloc(int page_nr)
         u_mutex_init(&lock, handler_alloc());
         lock_is_init = 1;
     }
-    u_mutex_lock(&lock);
+    u_mutex_lock(&lock, 0, NULL);
     for (umword_t i = 0; i < ROUND_UP(max_page_nr, WORD_BITS); i++)
     {
         if (mm_bitmap[i] != (umword_t)(-1))
@@ -106,7 +106,7 @@ static int mm_page_free(int st, int nr)
     {
         return -EINVAL;
     }
-    u_mutex_lock(&lock);
+    u_mutex_lock(&lock, 0, NULL);
     for (int i = st; (i < st + nr) && (i < max_page_nr); i++)
     {
         MK_CLR_BIT(mm_bitmap[i / WORD_BITS], i % WORD_BITS);

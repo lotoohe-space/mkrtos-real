@@ -11,7 +11,7 @@
 #include <string.h>
 #include <assert.h>
 
-RPC_GENERATION_CALL4(TRUE, pm_t, PM_PROT, PM_RUN_APP, run_app,
+RPC_GENERATION_CALL4(pm_t, PM_PROT, PM_RUN_APP, run_app,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
@@ -38,7 +38,7 @@ int pm_run_app(const char *path, int flags, uint8_t *params, int params_len)
     return msg_tag_get_val(tag);
 }
 
-RPC_GENERATION_CALL2(TRUE, pm_t, PM_PROT, PM_KILL_TASK, kill_task,
+RPC_GENERATION_CALL2(pm_t, PM_PROT, PM_KILL_TASK, kill_task,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
 
@@ -54,7 +54,7 @@ int pm_kill_task(int pid, int flags)
 
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL3(TRUE, pm_t, PM_PROT, PM_WATCH_PID, watch_pid,
+RPC_GENERATION_CALL3(pm_t, PM_PROT, PM_WATCH_PID, watch_pid,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, sig_hd,
                      rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
@@ -74,7 +74,7 @@ int pm_watch_pid(obj_handler_t sig_hd, pid_t pid, int flags)
 
     return msg_tag_get_val(tag);
 }
-RPC_GENERATION_CALL5(TRUE, pm_t, PM_PROT, PM_COPY_DATA, copy_data,
+RPC_GENERATION_CALL5(pm_t, PM_PROT, PM_COPY_DATA, copy_data,
                      rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, src_pid,
                      rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, dst_pid,
                      rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, src_addr,

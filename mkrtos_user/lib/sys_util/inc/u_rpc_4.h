@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#define RPC_GENERATION_CALL4(is_fast, struct_type, prot, op, func_name,                                                              \
+#define RPC_GENERATION_CALL4(struct_type, prot, op, func_name,                                                              \
                              cli_type0, svr_type0, dir0, rpc_type0, name0,                                                           \
                              cli_type1, svr_type1, dir1, rpc_type1, name1,                                                           \
                              cli_type2, svr_type2, dir2, rpc_type2, name2,                                                           \
@@ -39,16 +39,8 @@
         PRC_CLI_FILL_MAP_BUF(rpc_type3, cli_type3, var3, dir3, (uint8_t *)msg_ipc->map_buf, off_buf);                                \
         /*msg_tag_t tag = dispatch_test(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), 0), msg_ipc); */  \
         msg_tag_t tag;                                                                                                               \
-        if (is_fast)                                                                                                                 \
-        {                                                                                                                            \
-            tag = thread_ipc_fast_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), prot),             \
-                                       hd, 1111, 2222, 3333);                                                                        \
-        }                                                                                                                            \
-        else                                                                                                                         \
-        {                                                                                                                            \
-            tag = thread_ipc_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), prot), hd,              \
-                                  ipc_timeout_create2(0, 0));                                                                        \
-        }                                                                                                                            \
+        tag = thread_ipc_fast_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), prot),             \
+                                    hd, 1111, 2222, 3333);                                                                        \
         if (msg_tag_get_val(tag) < 0)                                                                                                \
         {                                                                                                                            \
             return tag;                                                                                                              \

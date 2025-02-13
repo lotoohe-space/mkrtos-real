@@ -18,6 +18,7 @@
 #include "fs_rpc.h"
 #include "net_rpc.h"
 #include "u_fast_ipc.h"
+#include "net_test.h"
 static umword_t addr;
 static umword_t size;
 obj_handler_t net_drv_hd;
@@ -107,7 +108,7 @@ again:
     net_test();
     while (1)
     {
-        if (msg_tag_get_prot(u_sema_down(sem_hd)) < 0)
+        if (msg_tag_get_prot(u_sema_down(sem_hd, 0, NULL)) < 0)
         {
             printf("error.\n");
         }
