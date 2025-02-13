@@ -2,7 +2,7 @@
 
 #include <spinlock.h>
 #include <slist.h>
-
+#include <kobject.h>
 typedef struct sema
 {
     kobject_t kobj;            //!< 内核对象节点

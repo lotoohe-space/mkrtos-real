@@ -44,7 +44,6 @@ void thread_check_timeout(void)
         pos, (slist_head_t *)&wait_list,
         node)
     {
-        assert(pos->th->status == THREAD_SUSPEND);
         thread_wait_entry_t *next = slist_next_entry(
             pos, (slist_head_t *)wait_list,
             node);
@@ -53,6 +52,7 @@ void thread_check_timeout(void)
             pos->times--;
             if (pos->times == 0)
             {
+                assert(pos->th->status == THREAD_SUSPEND);
                 thread_ready(pos->th, TRUE);
                 slist_del(&pos->node);
             }
