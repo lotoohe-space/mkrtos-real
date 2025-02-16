@@ -23,7 +23,7 @@ static umword_t addr;
 static umword_t size;
 obj_handler_t net_drv_hd;
 
-#define STACK_COM_ITME_SIZE (2 * 1024 + 512 /*sizeof(struct pthread) + TP_OFFSET*/)
+#define STACK_COM_ITME_SIZE (2 * 1024/*sizeof(struct pthread) + TP_OFFSET*/)
 #define STACK_NUM           4
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
@@ -43,7 +43,8 @@ int main(int args, char *argv[])
     int ret;
     msg_tag_t tag;
     obj_handler_t hd;
-
+    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_net");
+    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_net");
     printf("net startup..\n");
     fast_ipc_init();
     ret = rpc_meta_init(THREAD_MAIN, &hd);
@@ -97,12 +98,14 @@ again:
         return -1;
     }
     cons_write_str("net mount success\n");
-    net_test();
+    // net_test();
     while (1) {
         if (msg_tag_get_prot(u_sema_down(sem_hd, 0, NULL)) < 0) {
             printf("error.\n");
         }
+      //  printf("start read.\n");
         int ret = blk_drv_cli_read(net_drv_hd, shm_hd, 0, 0);
+      //  printf("end read.\n");
 
         if (ret > 0) {
             lwip_pkt_handle_raw((uint8_t *)addr, ret);

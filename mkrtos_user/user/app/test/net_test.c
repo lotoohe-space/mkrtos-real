@@ -58,21 +58,20 @@ static int tcp_server(void)
 
     printf("Client connected!\n");
 
-    // 发送数据
-    const char *message = "Hello from server!";
-    send(client_socket, message, strlen(message), 0);
-
-    // 接收数据
-    memset(buffer, 0, BUFFER_SIZE);
-    ssize_t bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
-    if (bytes_received < 0)
+    while (1)
     {
-        perror("recv failed");
-        close(server_socket);
-        exit(EXIT_FAILURE);
+        ssize_t bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
+        if (bytes_received < 0)
+        {
+            perror("recv failed");
+            close(server_socket);
+            exit(EXIT_FAILURE);
+        }
+        #if 0
+        printf("svr recv: %s, len:%d\n", buffer, bytes_received);
+        #endif
+        send(client_socket, buffer, bytes_received, 0);
     }
-
-    printf("Received message from client: %s\n", buffer);
 
     // 关闭套接字
     close(client_socket);
@@ -102,7 +101,7 @@ static int tcp_client(void)
     // 设置服务器地址
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr("192.168.3.10"); // 使用本机IP地址
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // 使用本机IP地址
     server_addr.sin_port = htons(PORT);
 
     // 连接到服务器
@@ -115,21 +114,26 @@ static int tcp_client(void)
 
     printf("Connected to server!\n");
 
-    // 发送数据
-    const char *message = "Hello from client!";
-    send(server_socket, message, strlen(message), 0);
-
-    // 接收数据
-    memset(buffer, 0, BUFFER_SIZE);
-    ssize_t bytes_received = recv(server_socket, buffer, BUFFER_SIZE - 1, 0);
-    if (bytes_received < 0)
+    while (1)
     {
-        perror("recv failed");
-        close(server_socket);
-        exit(EXIT_FAILURE);
-    }
+        // 发送数据
+        const char *message = "Hello from client!";
+        send(server_socket, message, strlen(message), 0);
 
-    printf("Received message from server: %s\n", buffer);
+        // 接收数据
+        memset(buffer, 0, BUFFER_SIZE);
+        ssize_t bytes_received = recv(server_socket, buffer, BUFFER_SIZE - 1, 0);
+        if (bytes_received < 0)
+        {
+            perror("recv failed");
+            close(server_socket);
+            exit(EXIT_FAILURE);
+        }
+        #if 0
+        printf("client recv: %s, len:%d\n", buffer, bytes_received);
+        #endif
+        usleep(1000);
+    }
 
     // 关闭套接字
     close(server_socket);

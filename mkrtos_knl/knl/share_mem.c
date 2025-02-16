@@ -20,6 +20,7 @@
 #include "mpu.h"
 #include "init.h"
 #include "dlist.h"
+#include "printk.h"
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <slab.h>
 static slab_t *share_mem_slab;
@@ -261,6 +262,7 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
         {
             return -ENOMEM;
         }
+        printk("share mem:[0x%x 0x%x]\n", obj->mem, (char *)obj->mem + obj->size);
         memset(obj->mem, 0, obj->size);
         break;
     case SHARE_MEM_CNT_DPD:
@@ -464,7 +466,7 @@ static void share_mem_release_stage2(kobject_t *kobj)
 {
     share_mem_t *sm = container_of(kobj, share_mem_t, kobj);
 
-    assert(dlist_is_empty(&sm->task_head));//TODO:有bug
+    assert(dlist_is_empty(&sm->task_head)); // TODO:有bug
 
 #if IS_ENABLED(CONFIG_MMU)
     share_mem_free_pmem(sm);

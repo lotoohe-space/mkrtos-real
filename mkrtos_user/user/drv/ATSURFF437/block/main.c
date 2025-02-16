@@ -127,6 +127,6 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-        rpc_loop();
+        u_sleep_ms(0);
     }
 }

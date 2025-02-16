@@ -15,7 +15,8 @@
 static slab_t *sema_slab;
 #endif
 
-enum SEMA_OP {
+enum SEMA_OP
+{
     SEMA_UP,
     SEMA_DOWN,
 };
@@ -28,7 +29,8 @@ static void sema_mem_init(void)
 #endif
 }
 INIT_KOBJ_MEM(sema_mem_init);
-typedef struct sema_wait_item {
+typedef struct sema_wait_item
+{
     slist_head_t node;
     thread_t *thread;
 } sema_wait_item_t;
@@ -45,29 +47,47 @@ void sema_up(sema_t *obj)
     umword_t status;
 
     status = spinlock_lock(&obj->lock);
-    if (slist_is_empty(&obj->suspend_head)) {
-        if (obj->cnt < obj->max_cnt) {
+    if (slist_is_empty(&obj->suspend_head))
+    {
+        if (obj->cnt < obj->max_cnt)
+        {
             obj->cnt++;
         }
         // printk("up0 sema cnt:%d max:%d.\n", obj->cnt, obj->max_cnt);
-    } else {
+    }
+    else
+    {
         slist_head_t *first_wait_node;
         sema_wait_item_t *first_wait;
 
         first_wait_node = slist_first(&obj->suspend_head);
         first_wait = container_of(first_wait_node, sema_wait_item_t, node);
-        slist_del(first_wait_node);
-        if (ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj) != 1) {
-            // thread_ready_remote(first_wait->thread, FALSE);
-            thread_sleep_del_and_wakeup(first_wait->thread);
+        // assert(first_wait->thread->status == THREAD_SUSPEND);
+        if (thread_get_status(first_wait->thread) == THREAD_SUSPEND)
+        {
+            slist_del(first_wait_node);
+            if (ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj) != 1)
+            {
+                // thread_ready_remote(first_wait->thread, FALSE);
+                thread_sleep_del_and_wakeup(first_wait->thread);
+            }
         }
-        if (obj->cnt < obj->max_cnt) {
+        else
+        {
+            // 超时退出，但是切出来的时候切到了唤醒线程中，所以这里不是suspend状态。
+            thread_sleep_del(first_wait->thread);
+        }
+        if (obj->cnt < obj->max_cnt)
+        {
             obj->cnt++;
         }
         // printk("up1 sema cnt:%d max:%d.\n", obj->cnt, obj->max_cnt);
     }
     spinlock_set(&obj->lock, status);
-    preemption();
+    if (cpulock_get_status())
+    {
+        preemption();
+    }
 }
 umword_t sema_down(sema_t *obj, umword_t ticks)
 {
@@ -79,25 +99,31 @@ umword_t sema_down(sema_t *obj, umword_t ticks)
 
 again:
     status = spinlock_lock(&obj->lock);
-    if (obj->cnt == 0) {
+    if (obj->cnt == 0)
+    {
         sema_wait_item_init(&wait_item, th);
         ref_counter_inc(&th->ref);
         slist_add_append(&obj->suspend_head, &wait_item.node);
         remain_sleep = thread_sleep(ticks);
-        if (remain_sleep == 0 && ticks != 0) {
+        if (remain_sleep == 0 && ticks != 0)
+        {
             // 超时退出的，直接从列表中删除
             assert(slist_in_list(&wait_item.node));
             slist_del(&wait_item.node);
             ref_counter_dec(&th->ref);
         }
-        if (!(remain_sleep == 0 && ticks != 0)) {
+        else
+        {
             spinlock_set(&obj->lock, status);
-            if (cpulock_get_status()) {
+            if (cpulock_get_status())
+            {
                 preemption();
             }
             goto again;
         }
-    } else {
+    }
+    else
+    {
         assert(obj->cnt > 0);
         obj->cnt--;
         // printk("down sema cnt:%d max:%d.\n", obj->cnt, obj->max_cnt);
@@ -113,16 +139,21 @@ static void sema_syscall(kobject_t *kobj, syscall_prot_t sys_p,
     msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
     task_t *task = thread_get_current_task();
 
-    if (sys_p.prot != SEMA_PROT) {
+    if (sys_p.prot != SEMA_PROT)
+    {
         f->regs[0] = msg_tag_init4(0, 0, 0, -EPROTO).raw;
         return;
     }
-    switch (sys_p.op) {
-    case SEMA_UP: {
+    switch (sys_p.op)
+    {
+    case SEMA_UP:
+    {
         sema_up(sema);
         tag = msg_tag_init4(0, 0, 0, 0);
-    } break;
-    case SEMA_DOWN: {
+    }
+    break;
+    case SEMA_DOWN:
+    {
         umword_t ret;
 
         ret = sema_down(sema, f->regs[0]);
@@ -142,7 +173,8 @@ static sema_t *sema_create(ram_limit_t *lim, umword_t cnt, umword_t max)
 #else
     kobj = mm_limit_alloc(lim, sizeof(sema_t));
 #endif
-    if (!kobj) {
+    if (!kobj)
+    {
         return NULL;
     }
     sema_init(kobj, cnt, max);
@@ -166,10 +198,12 @@ static void sema_release_stage1(kobject_t *kobj)
         first_wait_node = slist_first(&obj->suspend_head);
         first_wait = container_of(first_wait_node, sema_wait_item_t, node);
         slist_del(first_wait_node);
-        if (ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj) != 1) {
+        if (ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj) != 1)
+        {
             thread_ready_remote(first_wait->thread, FALSE);
         }
-        if (obj->cnt < obj->max_cnt) {
+        if (obj->cnt < obj->max_cnt)
+        {
             obj->cnt++;
         }
     }
@@ -188,13 +222,16 @@ static void sema_release_stage2(kobject_t *kobj)
 
 void sema_init(sema_t *obj, int cnt, int max)
 {
-    if (max <= 0) {
+    if (max <= 0)
+    {
         max = 1;
     }
-    if (cnt < 0) {
+    if (cnt < 0)
+    {
         cnt = 0;
     }
-    if (cnt > max) {
+    if (cnt > max)
+    {
         cnt = max;
     }
     obj->cnt = cnt;
@@ -213,7 +250,8 @@ static kobject_t *sema_func(ram_limit_t *lim, umword_t arg0, umword_t arg1,
                             umword_t arg2, umword_t arg3)
 {
     sema_t *sema = sema_create(lim, arg0, arg1);
-    if (!sema) {
+    if (!sema)
+    {
         return NULL;
     }
     return &sema->kobj;

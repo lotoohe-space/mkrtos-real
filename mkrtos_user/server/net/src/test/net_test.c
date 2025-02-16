@@ -101,7 +101,7 @@ static int tcp_client(void)
     // 设置服务器地址
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr("192.168.3.10"); // 使用本机IP地址
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // 使用本机IP地址
     server_addr.sin_port = htons(PORT);
 
     // 连接到服务器

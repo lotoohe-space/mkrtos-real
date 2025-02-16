@@ -102,6 +102,9 @@ struct sockaddr_in6 {
 
 struct sockaddr {
   u8_t        sa_len;
+#ifdef MKRTOS
+	unsigned char is_null;
+#endif
   sa_family_t sa_family;
   char        sa_data[14];
 };

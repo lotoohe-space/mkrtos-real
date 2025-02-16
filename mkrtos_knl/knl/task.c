@@ -432,6 +432,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         tag_task->nofity_bitmap_len = (f->regs[4]);
         tag_task->nofity_msg_buf = (addr_t)f->regs[5];
         tag_task->nofity_map_buf = (umword_t *)((addr_t)f->regs[5] + THREAD_MSG_BUG_LEN);
+        sema_init(&tag_task->notify_sema, tag_task->nofity_bitmap_len, tag_task->nofity_bitmap_len);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
@@ -578,7 +579,7 @@ task_t *task_create(ram_limit_t *lim, int is_knl)
         return NULL;
     }
     task_init(tk, lim, is_knl);
-    // printk("create task is 0x%x\n", tk);
+    printk("create task is 0x%x\n", tk);
     return tk;
 }
 

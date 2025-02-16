@@ -93,6 +93,6 @@ int main(int argc, char *argv[])
     meta_reg_svr_obj(&snd_drv.svr, BLK_DRV_PROT);
     while (1)
     {
-        rpc_loop();
+        u_sleep_ms(0);
     }
 }

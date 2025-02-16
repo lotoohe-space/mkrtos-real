@@ -105,7 +105,7 @@ msg_tag_t facotry_create_share_mem(obj_handler_t obj, vpage_t vpage, share_mem_t
 
     return tag;
 }
-msg_tag_t facotry_create_sema(obj_handler_t obj, vpage_t vpage, int cnt, uint32_t max)
+msg_tag_t facotry_create_sema(obj_handler_t obj, vpage_t vpage, int cnt, int max)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 

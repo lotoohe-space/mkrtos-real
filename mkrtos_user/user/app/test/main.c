@@ -10,8 +10,11 @@
 #include "mm_test.h"
 #include <u_sleep.h>
 #include "net_test.h"
+#include "u_task.h"
 int main(int argc, char *argv[])
 {
+    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_tst");
+    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_tst");
     for (int i = 0; i < argc; i++)
     {
         printf("argv[%d]: %s\n", i, argv[i]);

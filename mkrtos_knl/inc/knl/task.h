@@ -32,6 +32,7 @@ typedef struct task
     void *nofity_point;  //!< commint point func.
     addr_t nofity_stack; //!< nofity_point_stack.
     mutex_t nofity_lock;
+    sema_t notify_sema;    //!< sema
     addr_t nofity_msg_buf; //!<
     umword_t *nofity_map_buf;
     umword_t *nofity_bitmap; //!<

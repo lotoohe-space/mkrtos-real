@@ -64,7 +64,7 @@ int net_accept(sd_t s, struct sockaddr *addr, socklen_t *addrlen)
     }
     *addr = rpc_addr.data;
     *addrlen = rpc_addrlen.data;
-    return msg_tag_get_val(tag);
+    return mk_sd_init2(hd, msg_tag_get_val(tag)).raw;
 }
 RPC_GENERATION_CALL3(net_t, NET_PROT, NET_BIND, bind,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
@@ -345,7 +345,7 @@ int net_recv(int s, void *mem, size_t len, int flags)
             .data = mem + rlen,
             // .len = MIN(len, sizeof(rpc_mem.data)),
         };
-        r_once_len = MIN(sizeof(rpc_mem.data), len - rlen);
+        r_once_len = MIN(128, len - rlen);
         rpc_mem.len = r_once_len;
         rpc_size_t_t rpc_len = {
             .data = r_once_len,
@@ -363,7 +363,7 @@ int net_recv(int s, void *mem, size_t len, int flags)
         }
     }
 
-    return msg_tag_get_val(tag);
+    return rlen;
 }
 RPC_GENERATION_CALL6(net_t, NET_PROT, NET_RECVFROM, recvfrom,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
@@ -375,7 +375,7 @@ RPC_GENERATION_CALL6(net_t, NET_PROT, NET_RECVFROM, recvfrom,
 int net_recvfrom(int s, void *mem, size_t len, int flags,
                  struct sockaddr *from, socklen_t *fromlen)
 {
-    if (mem == NULL || from == NULL || fromlen == NULL)
+    if (mem == NULL)
     {
         return -EINVAL;
     }
@@ -390,12 +390,20 @@ int net_recvfrom(int s, void *mem, size_t len, int flags,
         .data = flags,
     };
 
-    rpc_socketaddr_t_t rpc_form = {
-        .data = *from,
-    };
-    rpc_socklen_t_t rpc_fromlen = {
-        .data = *fromlen,
-    };
+    rpc_socketaddr_t_t rpc_form = {};
+    if (from)
+    {
+        rpc_form.data = *from;
+    }
+    else
+    {
+        rpc_form.data.is_null = 1;
+    }
+    rpc_socklen_t_t rpc_fromlen = {};
+    if (fromlen)
+    {
+        rpc_fromlen.data = *fromlen;
+    }
     msg_tag_t tag;
 
     int rlen = 0;
@@ -407,7 +415,7 @@ int net_recvfrom(int s, void *mem, size_t len, int flags,
             .data = mem + rlen,
             // .len = MIN(len, sizeof(rpc_mem.data)),
         };
-        r_once_len = MIN(sizeof(rpc_mem.data), len - rlen);
+        r_once_len = MIN(128, len - rlen);
         rpc_mem.len = r_once_len;
         rpc_size_t_t rpc_len = {
             .data = r_once_len,
@@ -425,7 +433,7 @@ int net_recvfrom(int s, void *mem, size_t len, int flags,
         }
     }
 
-    return msg_tag_get_val(tag);
+    return rlen;
 }
 RPC_GENERATION_CALL4(net_t, NET_PROT, NET_SEND, send,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
@@ -460,7 +468,7 @@ int net_send(int s, const void *dataptr, size_t size, int flags)
             .data = (void *)dataptr + rlen,
             // .len = MIN(len, sizeof(rpc_mem.data)),
         };
-        w_once_len = MIN(sizeof(rpc_mem.data), size - rlen);
+        w_once_len = MIN(128, size - rlen);
         rpc_mem.len = w_once_len;
         rpc_size_t_t rpc_len = {
             .data = w_once_len,
@@ -478,7 +486,7 @@ int net_send(int s, const void *dataptr, size_t size, int flags)
         }
     }
 
-    return msg_tag_get_val(tag);
+    return rlen;
 }
 RPC_GENERATION_CALL6(net_t, NET_PROT, NET_SENDTO, sendto,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,
@@ -490,7 +498,7 @@ RPC_GENERATION_CALL6(net_t, NET_PROT, NET_SENDTO, sendto,
 int net_sendto(int s, const void *dataptr, size_t size, int flags,
                const struct sockaddr *to, socklen_t tolen)
 {
-    if (dataptr == NULL || to == NULL)
+    if (dataptr == NULL)
     {
         return -EINVAL;
     }
@@ -504,9 +512,15 @@ int net_sendto(int s, const void *dataptr, size_t size, int flags,
     rpc_int_t rpc_flags = {
         .data = flags,
     };
-    rpc_socketaddr_t_t rpc_to = {
-        .data = *to,
-    };
+    rpc_socketaddr_t_t rpc_to = {};
+    if (to)
+    {
+        rpc_to.data = *to;
+    }
+    else
+    {
+        rpc_to.data.is_null = 1;
+    }
     rpc_socklen_t_t rpc_tolen = {
         .data = tolen,
     };
@@ -520,7 +534,7 @@ int net_sendto(int s, const void *dataptr, size_t size, int flags,
             .data = (void *)(dataptr + rlen),
             // .len = MIN(len, sizeof(rpc_mem.data)),
         };
-        w_once_len = MIN(sizeof(rpc_mem.data), size - rlen);
+        w_once_len = MIN(128, size - rlen);
         rpc_mem.len = w_once_len;
         rpc_size_t_t rpc_len = {
             .data = w_once_len,
@@ -538,7 +552,7 @@ int net_sendto(int s, const void *dataptr, size_t size, int flags,
         }
     }
 
-    return msg_tag_get_val(tag);
+    return rlen;
 }
 RPC_GENERATION_CALL3(net_t, NET_PROT, NET_SOCKET, socket,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, s,

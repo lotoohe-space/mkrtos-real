@@ -53,8 +53,8 @@ void thread_check_timeout(void)
             if (pos->times == 0)
             {
                 assert(pos->th->status == THREAD_SUSPEND);
-                thread_ready(pos->th, TRUE);
                 slist_del(&pos->node);
+                thread_ready(pos->th, TRUE);
             }
         } // !< 如果是0，则一直休眠
         pos = next;
@@ -74,7 +74,7 @@ thread_wait_entry_t *thread_sleep_del(thread_t *th)
         pos, (slist_head_t *)&wait_list,
         node)
     {
-        assert(pos->th->status == THREAD_SUSPEND);
+        // assert(pos->th->status == THREAD_SUSPEND);
         thread_wait_entry_t *next = slist_next_entry(
             pos, (slist_head_t *)wait_list,
             node);
@@ -119,6 +119,5 @@ umword_t thread_sleep(umword_t tick)
     thread_suspend(cur_th);
     spinlock_set(&lock, status);
     preemption();
-
     return entry.times;
 }

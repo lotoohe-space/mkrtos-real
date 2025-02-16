@@ -50,6 +50,6 @@ int main(int argc, char *argv[])
     ns_register("/pin", hd, FILE_NODE);
     while (1)
     {
-        fs_svr_loop();
+        u_sleep_ms(0);
     }
 }

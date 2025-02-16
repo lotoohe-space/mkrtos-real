@@ -369,6 +369,7 @@ struct linger {
 struct sockaddr {
 #ifdef MKRTOS
 	unsigned char sa_len;
+	unsigned char is_null;
 #endif
 	sa_family_t sa_family;
 	char sa_data[14];

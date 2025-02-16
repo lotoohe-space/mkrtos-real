@@ -432,6 +432,7 @@ void thread_ready_remote(thread_t *th, bool_t is_sche)
  */
 void thread_ready(thread_t *th, bool_t is_sche)
 {
+    assert(th);
     bool_t ret;
     umword_t status = cpulock_lock();
 
@@ -1198,22 +1199,12 @@ msg_tag_t thread_fast_ipc_call(thread_t *to_th, entry_frame_t *f, umword_t user_
         printk("task:0x%x, notify point is not set.\n", to_task);
         return msg_tag_init4(0, 0, 0, -EIO);
     }
-_to_unlock:
-    if (GET_LSB(*to_task->nofity_bitmap, to_task->nofity_bitmap_len) == GET_LSB((~0ULL), to_task->nofity_bitmap_len))
-    {
-        thread_sched(TRUE); /*TODO:应该挂起，并在释放时唤醒*/
-        preemption();
-        goto _to_unlock;
-    }
+    sema_down(&to_task->notify_sema, 0);
     mutex_lock(&to_task->nofity_lock, 0);
-    if (GET_LSB(*to_task->nofity_bitmap, to_task->nofity_bitmap_len) == GET_LSB((~0ULL), to_task->nofity_bitmap_len))
-    {
-        mutex_unlock(&to_task->nofity_lock);
-        thread_sched(TRUE); /*TODO:应该挂起，并在释放时唤醒*/
-        preemption();
-        goto _to_unlock;
-    }
     umword_t cpu_status = cpulock_lock();
+    assert(cur_th->magic == THREAD_MAGIC);
+
+    to_task = thread_get_bind_task(to_th);
     ref_counter_inc((&to_task->ref_cn));
     //!< 执行目标线程时用的是当前线程的资源，这里还需要备份当前线程的上下文。
     ret = thread_fast_ipc_save(cur_th, to_task, (void *)(to_task->nofity_stack - 4 * 8 /*FIXME:改成宏*/)); //!< 备份栈和usp
@@ -1252,6 +1243,7 @@ _to_unlock:
                 pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
                 // 重新设置r9寄存器
                 cur_pf->regs[5] = (umword_t)(to_task->mm_space.mm_block);
+                cur_th->sp.user_sp = cur_pf;
 
                 //! 寄存器传参数
                 f->regs[0] = in_tag.raw;
@@ -1274,12 +1266,14 @@ _to_unlock:
         {
             ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
             mutex_unlock(&to_task->nofity_lock);
+            sema_up(&to_task->notify_sema);
         }
     }
     else
     {
         ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
         mutex_unlock(&to_task->nofity_lock);
+        sema_up(&to_task->notify_sema);
     }
     cpulock_set(cpu_status);
 
@@ -1293,6 +1287,7 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
     task_t *old_task = thread_get_bind_task(cur_th);
     int ret;
 
+    assert(cur_th->magic == THREAD_MAGIC);
     *(cur_task->nofity_bitmap) &= ~(1 << MIN(f->regs[2], cur_task->nofity_bitmap_len)); //!< 解锁bitmap
     slist_del(&cur_th->com->fast_ipc_node);                                             // 从链表中删除
 
@@ -1347,6 +1342,7 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
         in_tag = msg_tag_init4(0, 0, 0, ret);
     }
     cpulock_set(cpu_status);
+    sema_up(&old_task->notify_sema);
     if (thread_is_knl(cur_th))
     {
         arch_to_sche();

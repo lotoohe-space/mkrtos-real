@@ -24,6 +24,7 @@ int u_mutex_init(u_mutex_t *lock, obj_handler_t sema_hd)
     {
         return msg_tag_get_val(tag);
     }
+    lock->obj = sema_hd;
     return 0;
 }
 void u_mutex_lock(u_mutex_t *lock, umword_t timeout, umword_t *remain_times)

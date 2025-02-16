@@ -29,7 +29,7 @@
 - [ ] toybox support
 - [ ] ota support
 - [ ] lvgl support
-- [ ] modubs support
+- [ ] modbus support
 
 #### must low prio
 - [ ] AT proctol support

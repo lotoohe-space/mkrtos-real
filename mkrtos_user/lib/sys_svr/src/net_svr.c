@@ -192,7 +192,26 @@ RPC_GENERATION_OP_DISPATCH6(net_t, NET_PROT, NET_RECVFROM, recvfrom,
     {
         return -ENOSYS;
     }
-    ret = obj->op->recvfrom(s->data, mem->data, len->data, flags->data, &from->data, &fromlen->data);
+    socketaddr_t *p_from;
+    socklen_t *p_fromlen;
+
+    if (from->data.is_null == 1)
+    {
+        p_from = NULL;
+    }
+    else
+    {
+        p_from = &from->data;
+    }
+    if (!p_from)
+    {
+        p_fromlen = NULL;
+    }
+    else
+    {
+        p_fromlen = &fromlen->data;
+    }
+    ret = obj->op->recvfrom(s->data, mem->data, len->data, flags->data, p_from, p_fromlen);
     return ret;
 }
 // ssize_t (*recvmsg)(int s, struct msghdr *message, int flags);
@@ -257,7 +276,17 @@ RPC_GENERATION_OP_DISPATCH6(net_t, NET_PROT, NET_SENDTO, sendto,
     {
         return -ENOSYS;
     }
-    ret = obj->op->sendto(s->data, mem->data, size->data, flags->data, &to->data, tolen->data);
+    socketaddr_t *p_to;
+
+    if (to->data.is_null == 1)
+    {
+        p_to = NULL;
+    }
+    else
+    {
+        p_to = &to->data;
+    }
+    ret = obj->op->sendto(s->data, mem->data, size->data, flags->data, p_to, tolen->data);
     return ret;
 }
 // int (*socket)(int domain, int type, int protocol);
