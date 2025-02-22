@@ -439,6 +439,7 @@ int appfs_remove(const char *name)
     dir_info_fd = dir_info_cache_get(file);
     if (dir_info_cache_list[dir_info_fd].ref == 1)
     {
+        // 只有ref为1才能删除
         ret = appfs_delete_file(fs, name);
         if (ret < 0)
         {

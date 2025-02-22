@@ -65,9 +65,13 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 
 	memcpy((void *)send_shm_addr, p->payload, p->len);
 	// printf("start write.\n");
-	ret = blk_drv_cli_write(net_drv_hd, send_shm_hd, p->len, 0);
-	// printf("start end.\n");
-	return ret >= 0 ? ERR_OK : ERR_IF;
+	if (net_drv_hd != HANDLER_INVALID) {
+		ret = blk_drv_cli_write(net_drv_hd, send_shm_hd, p->len, 0);
+		// printf("start end.\n");
+		return ret >= 0 ? ERR_OK : ERR_IF;
+	} else {
+		return ERR_IF;
+	}
 }
 
 err_t ethernetif_input_raw(struct netif *netif, uint8_t *data, int len)

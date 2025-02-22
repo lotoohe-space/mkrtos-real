@@ -21,7 +21,7 @@
 #include <u_task.h>
 static umword_t addr;
 static umword_t size;
-obj_handler_t net_drv_hd;
+obj_handler_t net_drv_hd = HANDLER_INVALID;
 
 #define STACK_COM_ITME_SIZE (2 * 1024/*sizeof(struct pthread) + TP_OFFSET*/)
 #define STACK_NUM           4
@@ -43,6 +43,9 @@ int main(int args, char *argv[])
     int ret;
     msg_tag_t tag;
     obj_handler_t hd;
+    obj_handler_t sem_hd;
+    obj_handler_t shm_hd;
+    int count_net_link =0 ;
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_net");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_net");
     printf("net startup..\n");
@@ -56,7 +59,10 @@ again:
     ret = ns_query("/eth", &net_drv_hd, 0x1);
     if (ret < 0) {
         u_sleep_ms(50);
-        goto again;
+        count_net_link++;
+        if (count_net_link < 20) {
+            goto again;
+        }
     }
     cons_write_str("net init..\n");
     net_hw_init();
@@ -68,28 +74,28 @@ again:
     IP_ADDR4(&perf_server_ip, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
     lwiperf_start_tcp_server(&perf_server_ip, 9527, NULL, NULL);
 
-    obj_handler_t sem_hd;
+    if (net_drv_hd != HANDLER_INVALID) {
+        if (blk_drv_cli_map(net_drv_hd, &sem_hd) < 0) {
+            printf("net drv sem map error.\n");
+            return -1;
+        }
 
-    if (blk_drv_cli_map(net_drv_hd, &sem_hd) < 0) {
-        printf("net drv sem map error.\n");
-        return -1;
-    }
-
-    obj_handler_t shm_hd = handler_alloc();
-    if (shm_hd == HANDLER_INVALID) {
-        printf("handler alloc failed.\n");
-        return -1;
-    }
-    tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
-                                   SHARE_MEM_CNT_BUDDY_CNT, 2048);
-    if (msg_tag_get_val(tag) < 0) {
-        printf("share mem create failed.\n");
-        return -1;
-    }
-    tag = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
-    if (msg_tag_get_val(tag) < 0) {
-        printf("share mem map failed.\n");
-        return -1;
+        shm_hd = handler_alloc();
+        if (shm_hd == HANDLER_INVALID) {
+            printf("handler alloc failed.\n");
+            return -1;
+        }
+        tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+                                    SHARE_MEM_CNT_BUDDY_CNT, 2048);
+        if (msg_tag_get_val(tag) < 0) {
+            printf("share mem create failed.\n");
+            return -1;
+        }
+        tag = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
+        if (msg_tag_get_val(tag) < 0) {
+            printf("share mem map failed.\n");
+            return -1;
+        }
     }
 
     ret = ns_register("/net", hd, MOUNT_NODE);
@@ -100,15 +106,16 @@ again:
     cons_write_str("net mount success\n");
     // net_test();
     while (1) {
-        if (msg_tag_get_prot(u_sema_down(sem_hd, 0, NULL)) < 0) {
-            printf("error.\n");
-        }
-      //  printf("start read.\n");
-        int ret = blk_drv_cli_read(net_drv_hd, shm_hd, 0, 0);
-      //  printf("end read.\n");
+        int ret;
 
-        if (ret > 0) {
-            lwip_pkt_handle_raw((uint8_t *)addr, ret);
+        if (net_drv_hd != HANDLER_INVALID) {
+            if (msg_tag_get_prot(u_sema_down(sem_hd, 0, NULL)) < 0) {
+                printf("error.\n");
+            }
+            ret = blk_drv_cli_read(net_drv_hd, shm_hd, 0, 0);
+            if (ret > 0) {
+                lwip_pkt_handle_raw((uint8_t *)addr, ret);
+            }
         }
     }
     return 0;
