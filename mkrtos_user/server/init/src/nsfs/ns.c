@@ -2,7 +2,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <assert.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 #include "ns.h"
 
@@ -13,7 +13,6 @@
 
 static ns_node_t root_node = {
     .type = NODE_TYPE_DUMMY,
-    .svr_hd = HANDLER_INVALID, //!< 根节点是虚拟节点
 };
 /**
  * 从路径中copy名字
@@ -42,7 +41,7 @@ static ns_node_t *ns_node_find_sub(ns_node_t *tree, const char *name)
     {
         return NULL;
     }
-    ns_node_t *cur = tree->next;
+    ns_node_t *cur = tree->sub;
 
     while (cur)
     {
@@ -71,7 +70,7 @@ int ns_nodes_count(ns_node_t *tree)
 }
 static int ns_node_del(ns_node_t *tree, ns_node_t *del_node)
 {
-    ns_node_t *tmp = tree->next;
+    ns_node_t *tmp = tree->sub;
     ns_node_t *pre = NULL;
 
     while (tmp)
@@ -81,7 +80,8 @@ static int ns_node_del(ns_node_t *tree, ns_node_t *del_node)
             if (pre == NULL)
             {
                 // 删除第一个节点
-                tree->next = tmp->next;
+                tree->sub = tmp->next;
+                return 0;
             }
             else
             {
@@ -113,7 +113,7 @@ ns_node_t *ns_node_get_inx(ns_node_t *tree, int inx)
     assert(tree);
     assert(tree->type == NODE_TYPE_DUMMY);
     int nr = 0;
-    ns_node_t *cur = tree->next;
+    ns_node_t *cur = tree->sub;
 
     while (cur)
     {
@@ -130,7 +130,7 @@ ns_node_t *ns_node_get_inx(ns_node_t *tree, int inx)
  * 查找节点，如果是dummy节点，则一直循环查找。
  * 如果是svr节点，则立刻终止查找，然后返回当前节点，以及截断的位置
  */
-ns_node_t *ns_node_find(ns_node_t **pnode, const char *path, int *ret, int *cur_inx)
+ns_node_t *ns_node_find(ns_node_t **pnode, const char *path, int *ret, int *svr_inx, int *p_inx)
 {
     assert(ret);
     assert(path);
@@ -179,7 +179,11 @@ ns_node_t *ns_node_find(ns_node_t **pnode, const char *path, int *ret, int *cur_
             }
             else if (t_node->type == NODE_TYPE_SVR)
             {
-                find_node_cut_inx = i;
+                find_node_cut_inx = i + len + 1;
+                if (path[find_node_cut_inx] == '/')
+                {
+                    find_node_cut_inx++;
+                }
                 // 找到服务节点，那直接返回，服务节点不会有子节点。
                 cur_node = t_node;
                 goto end;
@@ -193,6 +197,10 @@ ns_node_t *ns_node_find(ns_node_t **pnode, const char *path, int *ret, int *cur_
             }
             cur_node = NULL;
         }
+        if (p_inx)
+        {
+            *p_inx = i;
+        }
         if (path[i] == '/')
         {
             i++;
@@ -200,7 +208,7 @@ ns_node_t *ns_node_find(ns_node_t **pnode, const char *path, int *ret, int *cur_
         i += len;
     }
 end:
-    *cur_inx = find_node_cut_inx;
+    *svr_inx = find_node_cut_inx;
     *ret = 0;
     return cur_node;
 }
@@ -214,13 +222,13 @@ int ns_delnode(const char *path)
     int ret;
     int cur_inx;
 
-    cur_node = ns_node_find(NULL, path, &ret, &cur_inx);
+    cur_node = ns_node_find(NULL, path, &ret, &cur_inx, NULL);
     if (cur_node == NULL)
     {
         printf("ns node not find.\n");
         return -ENOENT;
     }
-    if (cur_node == NULL || path[cur_inx + 1] != '\0')
+    if (cur_node == NULL)
     {
         printf("ns path is error.\n");
         // 未找到，节点不是dummy节点，路径不是结尾处 则直接退出
@@ -254,8 +262,8 @@ ns_node_t *ns_node_find_full_dir(const char *path, int *ret, int *cur_inx)
     assert(cur_inx);
     ns_node_t *dir_node;
 
-    dir_node = ns_node_find(NULL, path, ret, cur_inx);
-    if (dir_node == NULL || dir_node->type != NODE_TYPE_DUMMY || cur_inx != 0)
+    dir_node = ns_node_find(NULL, path, ret, cur_inx, NULL);
+    if (dir_node == NULL || dir_node->type != NODE_TYPE_DUMMY || *cur_inx != 0)
     {
         printf("ns node not find or path error.\n");
         // 未找到，节点不是dummy节点，路径不是结尾处 则直接退出
@@ -275,8 +283,26 @@ ns_node_t *ns_node_find_full_file(const char *path, int *ret, int *cur_inx)
     assert(cur_inx);
     ns_node_t *dir_node;
 
-    dir_node = ns_node_find(NULL, path, ret, cur_inx);
-    if (dir_node == NULL || dir_node->type != NODE_TYPE_SVR || path[*cur_inx + 1] != '\0')
+    dir_node = ns_node_find(NULL, path, ret, cur_inx, NULL);
+    if (dir_node == NULL || dir_node->type != NODE_TYPE_SVR || path[*cur_inx] != '\0')
+    {
+        printf("ns node not find or path error.\n");
+        // 未找到，节点不是 svr 节点，路径不是结尾处 则直接退出
+        *ret = -ENOENT;
+        return NULL;
+    }
+
+    return dir_node;
+}
+ns_node_t *ns_node_find_svr_file(const char *path, int *ret, int *cur_inx)
+{
+    assert(path);
+    assert(ret);
+    assert(cur_inx);
+    ns_node_t *dir_node;
+
+    dir_node = ns_node_find(NULL, path, ret, cur_inx, NULL);
+    if (dir_node == NULL || dir_node->type != NODE_TYPE_SVR)
     {
         printf("ns node not find or path error.\n");
         // 未找到，节点不是 svr 节点，路径不是结尾处 则直接退出
@@ -297,15 +323,16 @@ int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type)
     ns_node_t *cur_node;
     int ret;
     int cur_inx;
+    int p_inx;
     char name[NS_NODE_NAME_LEN];
 
-    cur_node = ns_node_find(&dir_node, path, &ret, &cur_inx);
-    if (dir_node == NULL)
+    cur_node = ns_node_find(&dir_node, path, &ret, &cur_inx, &p_inx);
+    if (dir_node == NULL || dir_node->type != NODE_TYPE_DUMMY || (cur_node != NULL && cur_node->type == NODE_TYPE_SVR))
     {
         return -ENOENT;
     }
     // 获得节点的名字
-    int name_len = ns_node_strcpy(name, path + cur_inx + 1, NS_NODE_NAME_LEN);
+    int name_len = ns_node_strcpy(name, path + p_inx + 1, NS_NODE_NAME_LEN);
 
     new_node = node_create(name, NODE_TYPE_DUMMY);
     if (new_node == NULL)
@@ -313,8 +340,8 @@ int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type)
         return -ENOMEM;
     }
     // 加到目录的链表中
-    new_node->next = dir_node->next;
-    dir_node->next = new_node;
+    new_node->next = dir_node->sub;
+    dir_node->sub = new_node;
     new_node->type = type;
     new_node->parent = dir_node;
     if (type == NODE_TYPE_SVR)

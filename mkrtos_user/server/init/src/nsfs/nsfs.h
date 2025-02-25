@@ -1,6 +1,7 @@
 #pragma once
 #include <fcntl.h>
 #include <dirent.h>
+#include "ns.h"
 int fs_ns_open(const char *name, int flags, int mode);
 int fs_ns_write(int fd, void *data, int len);
 int fs_ns_read(int fd, void *data, int len);

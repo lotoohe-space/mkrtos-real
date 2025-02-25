@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include "ns.h"
+
 #define DIR_INFO_CACHE_NR 32
 
 typedef struct dir_info_cache
@@ -20,6 +21,10 @@ typedef struct dir_info_cache
 static dir_info_cache_t dir_info_cache_list[DIR_INFO_CACHE_NR];
 static int dir_info_cache_get(ns_node_t *info)
 {
+    if (info == NULL)
+    {
+        return -EINVAL;
+    }
     for (int i = 0; i < DIR_INFO_CACHE_NR; i++)
     {
         if (dir_info_cache_list[i].info == NULL)
@@ -136,7 +141,7 @@ int fs_ns_open(const char *name, int flags, int mode)
     enum fs_ns_type type;
 
     // 路径必须'/'卡头
-    if (name[0] == '\0' || name[1] != '/')
+    if (name[0] == '\0' || name[0] != '/')
     {
         printf("nsfs path is error.\n");
         return -EINVAL;
@@ -223,11 +228,11 @@ int fs_ns_lseek(int fd, int offset, unsigned long whence)
         {
             return -ENOENT;
         }
-        if (file->tmp_fd != -1)
+        if (file->tmp_fd >= 0)
         {
             dir_info_cache_put(dir_info_cache_list[file->tmp_fd].info);
         }
-        dir_info_cache_get(new_dir_info);
+        file->tmp_fd = dir_info_cache_get(new_dir_info);
     }
     file->offset = new_offs;
 
@@ -245,12 +250,9 @@ int fs_ns_stat(int fd, struct stat *st)
     {
         return -ENOENT;
     }
-    if (file->type != FS_NS_FILE_TYPE)
-    {
-        return -EACCES;
-    }
+    memset(st, 0, sizeof(*st));
     st->st_size = 0;
-    st->st_mode = S_IFREG;
+    st->st_mode = file->type == FS_NS_FILE_TYPE ? S_IFREG : S_IFDIR;
     st->st_nlink = dir_info_cache_list[file->dir_info_fd].info->ref;
     return 0;
 }
@@ -261,7 +263,7 @@ int fs_ns_close(int fd)
     {
         return -ENOENT;
     }
-    if (file->tmp_fd != -1)
+    if (file->tmp_fd >= 0)
     {
         dir_info_cache_put(dir_info_cache_list[file->tmp_fd].info);
     }
@@ -293,6 +295,7 @@ int fs_ns_rmdir(const char *name)
         ret = ns_delnode(name);
         if (ret < 0)
         {
+            dir_info_cache_put(file);
             return ret;
         }
     }
@@ -353,6 +356,10 @@ int fs_ns_readdir(int fd, struct dirent *_dir)
         }
         file->tmp_fd = ret;
     }
+    else if (file->tmp_fd == -2)
+    {
+        return -ENOENT;
+    }
     ns_node_t *node_info;
 
     node_info = dir_info_cache_list[file->tmp_fd].info;
@@ -362,19 +369,17 @@ int fs_ns_readdir(int fd, struct dirent *_dir)
     _dir->d_name[sizeof(_dir->d_name) - 1] = 0;
 
     ns_node_t *next_dir_info = ns_node_get_next(dir_info_cache_list[file->dir_info_fd].info, node_info);
-    if (next_dir_info == NULL)
-    {
-        return -ENOENT;
-    }
     dir_info_cache_put(node_info);
     ret = dir_info_cache_get(next_dir_info);
-    if (ret < 0)
+    if (ret >= 0)
     {
-        return ret;
+        file->tmp_fd = ret;
+        file->offset++;
     }
-
-    file->tmp_fd = ret;
-    file->offset++;
+    else
+    {
+        file->tmp_fd = -2; // -2代表结束遍历
+    }
     return sizeof(*_dir);
 }
 int fs_ns_mkdir(char *path)
