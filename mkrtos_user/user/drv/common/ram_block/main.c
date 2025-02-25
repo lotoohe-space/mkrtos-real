@@ -16,6 +16,7 @@
 #include <sys/mman.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <string.h>
 #include "u_hd_man.h"
 #include "u_vmam.h"
 #define STACK_COM_ITME_SIZE (1024 + 512)
@@ -34,7 +35,7 @@ static void fast_ipc_init(void)
 static blk_drv_t blk_drv;
 static uint8_t *blk_data;
 static int blk_nr;
-static int blk_size;
+static size_t blk_size;
 
 int blk_drv_write(obj_handler_t obj, int len, int inx)
 {
@@ -98,7 +99,7 @@ int blk_drv_info(blk_drv_info_t *info)
 {
     info->blk_nr = blk_nr;
     info->blk_size = blk_size;
-    info->blk_start_addr = blk_data;
+    info->blk_start_addr = (umword_t)blk_data;
     return 0;
 }
 
@@ -153,7 +154,7 @@ int main(int argc, char *argv[])
     blk_drv_init(&blk_drv);
     ret = rpc_meta_init(THREAD_MAIN, &hd);
     assert(ret >= 0);
-    ns_register(dev_path, hd, FILE_NODE);
+    ns_register(dev_path, hd, 0);
     meta_reg_svr_obj(&blk_drv.svr, BLK_DRV_PROT);
 
     while (1)

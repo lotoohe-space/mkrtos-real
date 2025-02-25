@@ -15,7 +15,10 @@ umword_t sys_tick_cnt_get(void)
 void SysTick_Handler(void)
 {
     // 进行上下文切换
-    thread_sched(TRUE);
+    if (!thread_sched(TRUE))
+    {
+        atomic_inc(&thread_get_current()->time_count);
+    }
     sys_tick_cnt++;
 #if 0
     thread_timeout_check(1);

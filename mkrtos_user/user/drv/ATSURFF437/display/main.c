@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     assert(ret >= 0);
     fs_svr_init();
     // mkdir("/dev", 0777);
-    ns_register("/display", hd, FILE_NODE);
+    ns_register("/display", hd, 0);
     while (1)
     {
         u_sleep_ms(0);

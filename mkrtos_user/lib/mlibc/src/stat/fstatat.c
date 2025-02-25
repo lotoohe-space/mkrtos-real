@@ -117,12 +117,16 @@ static int fstatat_kstat(int fd, const char *restrict path, struct stat *restric
 	if (ret) return ret;
 
 	*st = (struct stat){
+		#ifndef MKRTOS
 		.st_dev = kst.st_dev,
+		#endif
 		.st_ino = kst.st_ino,
 		.st_mode = kst.st_mode,
 		.st_nlink = kst.st_nlink,
+		#ifndef MKRTOS
 		.st_uid = kst.st_uid,
 		.st_gid = kst.st_gid,
+		#endif
 		.st_rdev = kst.st_rdev,
 		.st_size = kst.st_size,
 		.st_blksize = kst.st_blksize,

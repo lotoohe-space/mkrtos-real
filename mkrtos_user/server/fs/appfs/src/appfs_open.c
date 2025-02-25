@@ -228,6 +228,7 @@ int appfs_read(int fd, void *data, int len)
 #include <u_task.h>
 #include <u_thread.h>
 #include <mk_access.h>
+#include "kstat.h"
 #endif
 int appfs_ioctl(int fd, unsigned long cmd, unsigned long arg)
 {
@@ -269,7 +270,7 @@ int appfs_ioctl(int fd, unsigned long cmd, unsigned long arg)
         fs_arg->size = appfs_get_file_size(dir_info_cache_list[file->dir_info_fd].info);
 #ifdef MKRTOS
         ret = mk_copy_mem_to_task(cur_pid, fs_arg, src_pid,
-                                  (void*)arg, sizeof(appfs_ioctl_arg_t));
+                                  (void *)arg, sizeof(appfs_ioctl_arg_t));
         if (ret < 0)
         {
             return ret;
@@ -381,7 +382,7 @@ int appfs_truncate(int fd, off_t length)
     ret = appfs_file_resize_raw(fs, dir_info_cache_list[file->dir_info_fd].info, length);
     return ret;
 }
-int appfs_stat(int fd, struct stat *st)
+int appfs_fstat(int fd, struct stat *st)
 {
     appfs_file_t *file = appfs_get_file(fd);
 
@@ -398,6 +399,28 @@ int appfs_stat(int fd, struct stat *st)
     st->st_nlink = dir_info_cache_list[file->dir_info_fd].info->ref;
     return 0;
 }
+int appfs_stat(const char *path, struct kstat *st)
+{
+    const dir_info_t *file;
+
+    if (path[0] == '\0' || (path[0] == '/' && path[1] == '\0'))
+    {
+        st->st_size = 0;
+        st->st_mode = S_IFDIR;
+        st->st_nlink = 0;
+        return 0;
+    }
+    file = appfs_find_file_by_name(fs, path);
+    if (file == NULL)
+    {
+        return -ENOENT;
+    }
+    st->st_size = file->size;
+    st->st_mode = S_IFREG;
+    st->st_nlink = file->ref;
+    return 0;
+}
+
 int appfs_close(int fd)
 {
     appfs_file_t *file = appfs_get_file(fd);

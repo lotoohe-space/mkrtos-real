@@ -195,7 +195,7 @@ int pm_rpc_kill_task(int pid, int flags)
         return -EINVAL;
     }
 
-    ns_node_del_by_pid(pid, flags);          //!< 从ns中删除
+    // ns_node_del_by_pid(pid, flags); TODO:         //!< 从ns中删除
     pm_del_watch_by_pid(&pm, pid);           //!< 从watch中删除
 #if IS_ENABLED(CONFIG_USING_SIG)
     pm_send_sig_to_task(&pm, pid, KILL_SIG); //!< 给watch者发送sig

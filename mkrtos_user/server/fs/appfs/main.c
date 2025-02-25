@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     ret = rpc_meta_init(THREAD_MAIN, &hd);
     assert(ret >= 0);
     fs_svr_init();
-    ns_register(mount_path, hd, MOUNT_NODE);
+    ns_register(mount_path, hd, 0);
     cons_write_str("appfs mount success\n");
 #if 0
     fs_svr_loop();

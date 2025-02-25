@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include "ns.h"
-
+#include "kstat.h"
 #define DIR_INFO_CACHE_NR 32
 
 typedef struct dir_info_cache
@@ -242,7 +242,7 @@ int fs_ns_truncate(int fd, off_t length)
 {
     return -ENOSYS;
 }
-int fs_ns_stat(int fd, struct stat *st)
+int fs_ns_fstat(int fd, struct kstat *st)
 {
     fs_ns_file_t *file = fs_ns_get_file(fd);
 
@@ -254,6 +254,29 @@ int fs_ns_stat(int fd, struct stat *st)
     st->st_size = 0;
     st->st_mode = file->type == FS_NS_FILE_TYPE ? S_IFREG : S_IFDIR;
     st->st_nlink = dir_info_cache_list[file->dir_info_fd].info->ref;
+    return 0;
+}
+int fs_ns_stat(const char *path, struct kstat *st)
+{
+    memset(st, 0, sizeof(*st));
+
+    ns_node_t *file;
+    int ret;
+    int cur_inx;
+
+    file = ns_node_find_full_dir(path, &ret, &cur_inx);
+    if (file == NULL)
+    {
+        file = ns_node_find_full_file(path, &ret, &cur_inx);
+        if (file == NULL)
+        {
+            return -ENOENT;
+        }
+    }
+
+    st->st_size = 0;
+    st->st_mode = file->type != NODE_TYPE_DUMMY ? S_IFREG : S_IFDIR;
+    st->st_nlink = file->ref;
     return 0;
 }
 int fs_ns_close(int fd)

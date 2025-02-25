@@ -60,6 +60,7 @@ static int path_name_cp(char *dst, const char *src, int src_inx, int *cp_len, in
 }
 /**
  * 相对路径转绝对路径
+ * TODO: new_path可能溢出，增加长度限制
  * @param cur_path 基路径
  * @param path 相对路径
  * @param new_path 输出的路径

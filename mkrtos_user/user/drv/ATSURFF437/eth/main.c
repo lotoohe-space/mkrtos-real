@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     assert(ret >= 0);
     // fs_svr_init();
     // mkdir("/dev", 0777);
-    ns_register("/eth", hd, FILE_NODE);
+    ns_register("/eth", hd, 0);
     meta_reg_svr_obj(&net_drv.svr, BLK_DRV_PROT);
     while (1)
     {

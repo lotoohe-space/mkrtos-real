@@ -69,6 +69,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_svr/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/sys_util/inc
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/util/inc
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
@@ -99,6 +100,8 @@ add_custom_target(
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
     COMMAND
     cp appfs.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/appfs
+    COMMAND
+    cp appfs.elf ${CMAKE_SOURCE_DIR}/build/output/
 )
 
 add_dependencies(appfs_dump appfs.elf)

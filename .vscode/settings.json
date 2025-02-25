@@ -195,10 +195,14 @@
         "socket.h": "c",
         "net_svr.h": "c",
         "inet.h": "c",
-        "u_malloc.h": "c"
+        "u_malloc.h": "c",
+        "nsfs.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,
     "C_Cpp.default.systemIncludePath": [""],
-    "C_Cpp.default.forcedInclude": ["${workspaceFolder}/build/autoconf.h"]
+    "C_Cpp.default.forcedInclude": [
+        "${workspaceFolder}/build/autoconf.h"
+    ],
+    "C_Cpp.errorSquiggles": "disabled"
 }

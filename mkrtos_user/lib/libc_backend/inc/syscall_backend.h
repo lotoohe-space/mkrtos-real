@@ -103,7 +103,8 @@ umword_t be_mmap(void *start,
                  long flags,
                  long fd,
                  long _offset);
-int be_fcntl(int fd, int cmd, void* arg);
+int be_fcntl(int fd, int cmd, void *arg);
+long be_chdir(const char *path);
 int be_accept(int s, struct sockaddr *addr, socklen_t *addrlen);
 // net api
 int be_accept(int s, struct sockaddr *addr, socklen_t *addrlen);

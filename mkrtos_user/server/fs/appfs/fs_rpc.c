@@ -67,7 +67,7 @@ int fs_svr_fstat(int fd, void *_stat)
 {
     int ret;
 
-    ret = appfs_stat(fd, _stat);
+    ret = appfs_fstat(fd, _stat);
     return ret;
 }
 int fs_svr_ioctl(int fd, int req, void *arg)
@@ -106,7 +106,7 @@ int fs_svr_rename(char *oldname, char *newname)
 }
 int fs_svr_stat(const char *path, void *_buf)
 {
-    return -ENOSYS;
+    return appfs_stat(path, _buf);
 }
 ssize_t fs_svr_readlink(const char *path, char *buf, size_t bufsize)
 {

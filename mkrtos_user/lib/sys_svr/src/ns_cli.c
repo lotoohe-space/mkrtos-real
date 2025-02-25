@@ -5,6 +5,7 @@
 #include "u_env.h"
 #include "u_prot.h"
 #include "u_hd_man.h"
+#include "u_path.h"
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -12,7 +13,7 @@
 #define NS_CLI_CACHE_NR 8 //!< 一个客户端最多可以请求8个服务
 typedef struct ns_cli_entry
 {
-    char path[NAMESPACE_PATH_LEN];
+    char path[NS_NODE_NAME_LEN];
     obj_handler_t hd;
 } ns_cli_entry_t;
 
@@ -77,7 +78,7 @@ RPC_GENERATION_CALL2(ns_t, NS_PROT, NS_QUERY_OP, query,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_INOUT, RPC_TYPE_BUF, cli_hd)
 
-int ns_register(const char *path, obj_handler_t svr_hd, enum node_type type)
+int ns_register(const char *path, obj_handler_t svr_hd, int flags)
 {
     assert(path);
 
@@ -89,7 +90,7 @@ int ns_register(const char *path, obj_handler_t svr_hd, enum node_type type)
         .data = svr_hd,
     };
     rpc_int_t rpc_type = {
-        .data = type,
+        .data = flags,
     };
 
     msg_tag_t tag = ns_t_register_call(u_get_global_env()->ns_hd, &rpc_path, &rpc_svr_hd, &rpc_type);
@@ -102,6 +103,12 @@ int ns_query(const char *path, obj_handler_t *svr_hd, int flags)
     assert(path);
     assert(svr_hd);
 
+    if (u_is_root_path(path))
+    {
+        // 根路径直接返回服务路径就行了
+        *svr_hd = u_get_global_env()->ns_hd;
+        return 0;
+    }
     obj_handler_t newfd;
 
     newfd = find_hd(path, &inx);
@@ -134,6 +141,7 @@ int ns_query(const char *path, obj_handler_t *svr_hd, int flags)
         handler_free(newfd);
         return msg_tag_get_val(tag);
     }
+#if 0
     if (flags & 0x1)
     {
         if (msg_tag_get_val(tag) != strlen(path))
@@ -143,6 +151,7 @@ int ns_query(const char *path, obj_handler_t *svr_hd, int flags)
             return -ENOENT;
         }
     }
+#endif
     if (reg_hd(path, newfd, msg_tag_get_val(tag)) == FALSE)
     {
         printf("The client service cache is full.\n");

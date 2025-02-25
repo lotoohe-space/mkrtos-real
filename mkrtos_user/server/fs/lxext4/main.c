@@ -20,7 +20,7 @@ int main(int argv, char *args[])
     ret = rpc_meta_init(THREAD_MAIN, &hd);
     assert(ret >= 0);
     fs_svr_init();
-    ns_register("/vfs_test", hd, MOUNT_NODE);
+    ns_register("/vfs_test", hd, 0);
     printf("cpiofs mount success\n");
 
     fs_svr_loop();

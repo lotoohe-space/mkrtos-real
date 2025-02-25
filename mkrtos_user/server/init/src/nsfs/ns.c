@@ -17,6 +17,11 @@
 static ns_node_t root_node = {
     .type = NODE_TYPE_DUMMY,
 };
+
+void ns_root_node_init(obj_handler_t hd)
+{
+    root_node.svr_hd = hd;
+}
 /**
  * 从路径中copy名字
  */
@@ -169,6 +174,7 @@ ns_node_t *ns_node_find(ns_node_t **pnode, const char *path, int *ret, int *svr_
         name[MIN(NS_NODE_NAME_LEN - 1, len)] = 0;
         if (len == 0)
         {
+            // find_node_cut_inx++;
             goto end;
         }
         // 查找子节点
@@ -272,7 +278,9 @@ ns_node_t *ns_node_find_full_dir(const char *path, int *ret, int *cur_inx)
     dir_node = ns_node_find(NULL, path, ret, cur_inx, NULL);
     if (dir_node == NULL || dir_node->type != NODE_TYPE_DUMMY || *cur_inx != 0)
     {
+#if 0
         printf("ns node not find or path error.\n");
+#endif
         // 未找到，节点不是dummy节点，路径不是结尾处 则直接退出
         *ret = -ENOENT;
         return NULL;
@@ -293,13 +301,19 @@ ns_node_t *ns_node_find_full_file(const char *path, int *ret, int *cur_inx)
     dir_node = ns_node_find(NULL, path, ret, cur_inx, NULL);
     if (dir_node == NULL || dir_node->type != NODE_TYPE_SVR || path[*cur_inx] != '\0')
     {
+#if 0
         printf("ns node not find or path error.\n");
+#endif
         // 未找到，节点不是 svr 节点，路径不是结尾处 则直接退出
         *ret = -ENOENT;
         return NULL;
     }
 
     return dir_node;
+}
+static inline int is_root_node(ns_node_t *node)
+{
+    return node == &root_node;
 }
 ns_node_t *ns_node_find_svr_file(const char *path, int *ret, int *cur_inx)
 {
@@ -309,15 +323,38 @@ ns_node_t *ns_node_find_svr_file(const char *path, int *ret, int *cur_inx)
     ns_node_t *dir_node;
 
     dir_node = ns_node_find(NULL, path, ret, cur_inx, NULL);
+    if (is_root_node(dir_node))
+    {
+        (*cur_inx)++;
+        return dir_node;
+    }
     if (dir_node == NULL || dir_node->type != NODE_TYPE_SVR)
     {
+#if 0
         printf("ns node not find or path error.\n");
+#endif
         // 未找到，节点不是 svr 节点，路径不是结尾处 则直接退出
         *ret = -ENOENT;
         return NULL;
     }
 
     return dir_node;
+}
+int ns_find_svr_obj(const char *path, obj_handler_t *svr_hd)
+{
+    assert(path);
+    assert(svr_hd);
+    ns_node_t *svr_node;
+    int ret;
+    int cur_inx;
+
+    svr_node = ns_node_find_svr_file(path, &ret, &cur_inx);
+    if (svr_node == NULL || ret < 0)
+    {
+        return -ENOENT;
+    }
+    *svr_hd = svr_node->svr_hd;
+    return cur_inx;
 }
 /**
  * 创建一个节点

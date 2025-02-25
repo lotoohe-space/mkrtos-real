@@ -20,6 +20,8 @@
 #include <u_task.h>
 #include <u_util.h>
 #include <poll.h>
+#include <u_path.h>
+#include "kstat.h"
 AUTO_CALL(101)
 void fs_backend_init(void)
 {
@@ -27,14 +29,20 @@ void fs_backend_init(void)
     assert(fd_map_alloc(0, 1, FD_TTY) >= 0);
     assert(fd_map_alloc(0, 2, FD_TTY) >= 0);
 }
+#define FS_PATH_LEN 64
+static char cur_path[FS_PATH_LEN] = "/";
 int be_open(const char *path, int flags, mode_t mode)
 {
+    int fd;
+
     if (path == NULL)
     {
         return -ENOENT;
     }
-    int fd = fs_open(path, flags, mode);
+    char new_path[FS_PATH_LEN]; // FIXME:动态申请
+    u_rel_path_to_abs(cur_path, path, new_path);
 
+    fd = fs_open(new_path, flags, mode);
     if (fd < 0)
     {
         return fd;
@@ -129,7 +137,7 @@ static int be_tty_read(char *buf, long size)
         }
         else if (len == 0)
         {
-            u_sema_down(SEMA_PROT, 0/*TODO:*/, NULL);
+            u_sema_down(SEMA_PROT, 0 /*TODO:*/, NULL);
             continue;
         }
         r_len += len;
@@ -411,11 +419,17 @@ long sys_be_lseek(va_list ap)
 }
 long be_mkdir(const char *path, mode_t mode)
 {
-    return fs_mkdir((char *)path);
+    char new_path[FS_PATH_LEN]; // FIXME:动态申请
+    u_rel_path_to_abs(cur_path, path, new_path);
+    return fs_mkdir((char *)new_path);
 }
 long be_symlink(const char *src, const char *dst)
 {
-    return fs_symlink(src, dst);
+    char new_src_path[FS_PATH_LEN]; // FIXME:动态申请
+    char new_dst_path[FS_PATH_LEN]; // FIXME:动态申请
+    u_rel_path_to_abs(cur_path, src, new_src_path);
+    u_rel_path_to_abs(cur_path, dst, new_dst_path);
+    return fs_symlink(new_src_path, new_dst_path);
 }
 long be_getdents(long fd, char *buf, size_t size)
 {
@@ -448,7 +462,9 @@ long be_getdents(long fd, char *buf, size_t size)
 long be_stat(const char *path, void *_buf)
 {
     struct kstat *buf = _buf;
-    return fs_stat((char *)path, buf);
+    char new_src_path[FS_PATH_LEN]; // FIXME:动态申请
+    u_rel_path_to_abs(cur_path, path, new_src_path);
+    return fs_stat((char *)new_src_path, buf);
 }
 long be_fstat(int fd, void *_buf)
 {
@@ -464,7 +480,9 @@ long be_fstat(int fd, void *_buf)
 }
 long be_unlink(const char *path)
 {
-    return fs_unlink(path);
+    char new_src_path[FS_PATH_LEN]; // FIXME:动态申请
+    u_rel_path_to_abs(cur_path, path, new_src_path);
+    return fs_unlink(new_src_path);
 }
 long be_poll(struct pollfd *fds, nfds_t n, int timeout)
 {
@@ -547,5 +565,27 @@ int be_fcntl(int fd, int cmd, void *arg)
 }
 int be_access(const char *filename, int amode)
 {
+    // char new_src_path[FS_PATH_LEN]; // FIXME:动态申请
+    // u_rel_path_to_abs(cur_path, path, new_src_path);
     return -ENOSYS;
+}
+long be_chdir(const char *path)
+{
+    int ret;
+    struct kstat buf;
+    char new_src_path[FS_PATH_LEN]; // FIXME:动态申请
+    u_rel_path_to_abs(cur_path, path, new_src_path);
+
+    ret = fs_stat((char *)new_src_path, &buf);
+    if (ret < 0)
+    {
+        return ret;
+    }
+    if (!S_ISDIR(buf.st_mode))
+    {
+        return -ENOTDIR;
+    }
+    strncpy(cur_path, new_src_path, FS_PATH_LEN);
+    cur_path[FS_PATH_LEN - 1] = '\0';
+    return ret;
 }

@@ -40,6 +40,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/cutest
 
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/init/src
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/server/init/src/nsfs
 )
 set_target_properties(init.elf PROPERTIES LINK_FLAGS
 "-T ${CMAKE_CURRENT_LIST_DIR}/${ARCH_NAME}/link.lds ${CORTEX_M_LINK_FLAGS} --gc-section  -no-dynamic-linker "

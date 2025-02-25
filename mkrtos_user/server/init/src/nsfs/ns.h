@@ -2,22 +2,24 @@
 
 #include <assert.h>
 #include <stdint.h>
-
+#ifdef MKRTOS
+#include <ns_types.h>
+#endif
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
-#define NS_NODE_NAME_LEN 32
 #ifndef MKRTOS
 typedef unsigned long obj_handler_t;
 #define HANDLER_INVALID ((obj_handler_t)(-1))
-#else
-#include <u_types.h>
-#endif
+
+#define NS_NODE_NAME_LEN 32
+
 typedef enum node_type
 {
     NODE_TYPE_DUMMY, //!< 虚拟节点，可以有子节点
     NODE_TYPE_SVR,   //!< 服务节点，不能有子节点
+    NODE_TYPE_ROOT,  //!< ROOT节点
 } node_type_t;
 
 typedef struct ns_node
@@ -26,14 +28,18 @@ typedef struct ns_node
     node_type_t type;            //!< 节点类型
     struct ns_node *parent;      //!< 父节点
     struct ns_node *next;        //!< 下一个
-    union
-    {
+    // union
+    // {
         struct ns_node *sub;  //!< 子树
         obj_handler_t svr_hd; //!< 服务节点
-    };
+    // };
     int ref; //!< 引用计数
 } ns_node_t;
+#else
+#include <u_types.h>
+#endif
 
+void ns_root_node_init(obj_handler_t hd);
 ns_node_t *ns_node_find(ns_node_t **pnode, const char *path, int *ret, int *svr_inx, int *p_inx);
 ns_node_t *ns_node_find_full_dir(const char *path, int *ret, int *cur_inx);
 ns_node_t *ns_node_find_full_file(const char *path, int *ret, int *cur_inx);
@@ -52,3 +58,4 @@ static inline ns_node_t *ns_node_get_first(ns_node_t *tree_node)
     assert(tree_node);
     return tree_node->sub;
 }
+int ns_find_svr_obj(const char *path, obj_handler_t *svr_hd);

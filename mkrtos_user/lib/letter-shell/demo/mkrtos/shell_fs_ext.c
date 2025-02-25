@@ -13,28 +13,55 @@
 #include <errno.h>
 #include "u_sys.h"
 #include "unistd.h"
+#include "u_malloc.h"
 int ls(int argc, char *agrv[])
 {
     DIR *dir;
     struct dirent *ptr;
     int i;
+    char *path;
+    char *in_path;
+    int ret;
+
     if (argc < 2)
     {
-        return -1;
+        in_path = ".";
+    }
+    else
+    {
+        in_path = agrv[1];
     }
 
-    dir = opendir(agrv[1]);
+    path = u_malloc(PAGE_SIZE);
+    if (path == NULL)
+    {
+        return -ENOMEM;
+    }
+    strcpy(path, in_path);
+    dir = opendir(in_path);
     if (!dir)
     {
+        u_free(path);
         return 0;
     }
     while ((ptr = readdir(dir)) != NULL)
     {
         struct stat st = {0};
-        stat(ptr->d_name, &st);
-        printf("%s\t\t\t%dB\n", ptr->d_name, st.st_size);
+        strcat(path, "/");
+        strcat(path, ptr->d_name);
+        ret = stat(path, &st);
+        // if (ret >= 0)
+        // {
+        printf("%s\t\t\t%dB\n", path, st.st_size);
+        // }
+        // else
+        // {
+        //     printf("error:%d\n", ret);
+        // }
+        strcpy(path, in_path);
     }
     closedir(dir);
+    u_free(path);
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), ls, ls, ls command);
@@ -51,6 +78,18 @@ int rm(int argc, char *agrv[])
     return ret;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), rm, rm, rm command);
+int cd(int argc, char *agrv[])
+{
+    int ret;
+    if (argc < 2)
+    {
+        return -1;
+    }
+
+    ret = chdir(agrv[1]);
+    return ret;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), cd, cd, cd command);
 int cat(int argc, char *argv[])
 {
     if (argc != 2)

@@ -1,3 +1,4 @@
+#pragma once
 struct kstat {
 	long st_dev;
 	int __st_dev_padding;

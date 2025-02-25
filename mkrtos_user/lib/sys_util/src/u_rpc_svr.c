@@ -102,7 +102,9 @@ static msg_tag_t rpc_meta_t_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, 
 
     if (msg_tag_get_prot(in_tag) == META_PROT)
     {
-        cons_write_str("unknow prot.\n");
+#if 0
+        cons_write_str("unknow prot.\n"); //FIXME:
+#endif
         return msg_tag_init4(0, 0, 0, -EPROTO);
     }
     else
@@ -112,8 +114,9 @@ static msg_tag_t rpc_meta_t_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, 
 
         if (svr_obj == NULL)
         {
-            cons_write_str("unknow prot.\n");
-
+#if 0
+        cons_write_str("unknow prot.\n"); //FIXME:
+#endif
             return msg_tag_init4(0, 0, 0, -EPROTO);
         }
         if (svr_obj->dispatch == NULL)
