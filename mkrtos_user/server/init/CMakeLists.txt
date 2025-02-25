@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-file(GLOB deps src/*.c src/*.S src/test/*.c)
+file(GLOB deps src/*.c src/*.S src/test/*.c src/nsfs/ns.c src/nsfs/nsfs.c)
 file(GLOB arch_src src/test/${ARCH_NAME}/*.c src/test/${ARCH_NAME}/*.S)
 
 if (NOT $ENV{MKRTOS_TEST_MODE} STREQUAL "normal")

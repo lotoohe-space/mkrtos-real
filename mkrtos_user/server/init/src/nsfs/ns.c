@@ -5,7 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ns.h"
-
+#ifdef MKRTOS
+#include <u_hd_man.h>
+#include <u_malloc.h>
+#endif
 // 其他进程可以注册节点进来，并且可以注册子节点进来，子节点可以注册更多的子节点进来。
 // 可以注册两种节点DUMMY和SVR节点
 // 只有DUMMY节点里面可以注册SVR节点
@@ -98,7 +101,11 @@ static ns_node_t *node_create(const char *name, node_type_t type)
 {
     ns_node_t *tmp;
 
+#ifdef MKRTOS
+    tmp = u_calloc(sizeof(ns_node_t), 1);
+#else
     tmp = calloc(sizeof(ns_node_t), 1);
+#endif
     if (!tmp)
     {
         return NULL;

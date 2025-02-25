@@ -8,11 +8,12 @@
 #endif
 
 #define NS_NODE_NAME_LEN 32
-
+#ifndef MKRTOS
 typedef unsigned long obj_handler_t;
-
 #define HANDLER_INVALID ((obj_handler_t)(-1))
-
+#else
+#include <u_types.h>
+#endif
 typedef enum node_type
 {
     NODE_TYPE_DUMMY, //!< 虚拟节点，可以有子节点

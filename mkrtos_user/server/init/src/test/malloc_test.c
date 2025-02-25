@@ -66,6 +66,17 @@ static void mmap_test(CuTest *cu)
     }
 #undef TEST_MEM_SIZE
 }
+#include "u_malloc.h"
+static void u_alloc_test(CuTest *cu)
+{
+    for (int i = 0; i < 1000; i++)
+    {
+        void *mem = u_malloc(1024);
+        CuAssert(cu, "u_malloc failed.\n", mem != NULL);
+        memset(mem, 0, 1024);
+        u_free(mem);
+    }
+}
 static CuSuite suite;
 CuSuite *malloc_test_suite(void)
 {
@@ -73,5 +84,6 @@ CuSuite *malloc_test_suite(void)
 
     SUITE_ADD_TEST(&suite, malloc_test);
     SUITE_ADD_TEST(&suite, mmap_test);
+    SUITE_ADD_TEST(&suite, u_alloc_test);
     return &suite;
 }

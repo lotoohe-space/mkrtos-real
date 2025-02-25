@@ -122,6 +122,7 @@ static int _sys_mmap2(void *start, size_t len, int prot, int flags, int fd, off_
     {
         return -ENOSYS;
     }
+    len = ALIGN(len, MK_PAGE_SIZE);
     if (prot & PROT_PFS)
     {
         msg_tag_t tag;
@@ -154,10 +155,10 @@ static int _sys_mmap2(void *start, size_t len, int prot, int flags, int fd, off_
     }
     else
     {
-        if (len & (PAGE_SIZE - 1))
-        {
-            return -EINVAL;
-        }
+        // if (len & (PAGE_SIZE - 1))
+        // {
+        //     return -EINVAL;
+        // }
         *addr = (umword_t)mm_page_alloc(len / PAGE_SIZE);
     }
     if (*addr == 0)

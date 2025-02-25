@@ -194,7 +194,8 @@
         "sockets.h": "c",
         "socket.h": "c",
         "net_svr.h": "c",
-        "inet.h": "c"
+        "inet.h": "c",
+        "u_malloc.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,
