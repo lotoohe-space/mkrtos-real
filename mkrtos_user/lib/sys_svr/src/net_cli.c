@@ -566,7 +566,7 @@ int net_socket(int domain, int type, int protocol)
     {
     case AF_INET:
     case AF_INET6:
-        ret = ns_query("/net" /*FIXME:更改为宏*/, &hd, 1);
+        ret = ns_query_svr("/sys/net" /*FIXME:更改为宏*/, &hd, 1);
         break;
     default:
         return -ENOSYS;

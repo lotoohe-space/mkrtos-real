@@ -58,15 +58,17 @@ int main(int args, char *argv[])
         return -1;
     }
 again:
-    ret = ns_query("/eth", &net_drv_hd, 0x1);
+    ret = ns_query_svr("/eth", &net_drv_hd, 0x1);
     if (ret < 0)
     {
+        // 0代表根节点
         u_sleep_ms(50);
         count_net_link++;
         if (count_net_link < 20)
         {
             goto again;
         }
+        net_drv_hd = HANDLER_INVALID;
     }
     cons_write_str("net init..\n");
     net_hw_init();
@@ -107,7 +109,7 @@ again:
         }
     }
 
-    ret = ns_register("/net", hd, 0);
+    ret = ns_register("/sys/net", hd, 0);
     if (ret < 0)
     {
         printf("ns reg failed.\n");

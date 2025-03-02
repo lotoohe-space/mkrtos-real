@@ -110,6 +110,7 @@ int ns_register(const char *path, obj_handler_t svr_hd, int flags)
 
     return msg_tag_get_val(tag);
 }
+
 int ns_query(const char *path, obj_handler_t *svr_hd, int flags)
 {
     int inx = 0;
@@ -182,4 +183,19 @@ next:
     }
     *svr_hd = newfd;
     return msg_tag_get_val(tag);
+}
+int ns_query_svr(const char *path, obj_handler_t *svr_hd, int flags)
+{
+    int ret;
+
+    ret = ns_query(path, svr_hd, flags);
+    if (ret < 0)
+    {
+        return ret;
+    }
+    if (ret != strlen(path))
+    {
+        return -ENOENT;
+    }
+    return 0;
 }

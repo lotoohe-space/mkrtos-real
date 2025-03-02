@@ -557,7 +557,7 @@ int nes_sound_open(int samples_per_sync, int sample_rate)
 	int ret;
 	msg_tag_t tag;
 again:
-	ret = ns_query("/snd", &snd_drv_hd, 0x1);
+	ret = ns_query_svr("/snd", &snd_drv_hd, 0x1);
 	if (ret < 0)
 	{
 		u_sleep_ms(50);

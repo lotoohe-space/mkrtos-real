@@ -105,7 +105,7 @@ int hw_init_block(fs_info_t *fs, const char *dev_path)
     fs->cb.hw_write_and_erase_block = hw_write_and_erase_block;
 
 again:
-    ret = ns_query(dev_path, &blk_drv_hd, 0x1);
+    ret = ns_query_svr(dev_path, &blk_drv_hd, 0x1);
     if (ret < 0)
     {
         u_sleep_ms(50);

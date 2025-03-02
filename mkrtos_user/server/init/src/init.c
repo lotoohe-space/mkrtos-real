@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <u_fast_ipc.h>
-
+#include "nsfs.h"
 #define DEFAULT_INIT_CFG "init.cfg"
 
 #define STACK_COM_ITME_SIZE (2 * 1024 /*sizeof(struct pthread) + TP_OFFSET*/)
@@ -67,6 +67,8 @@ int main(int argc, char *args[])
     console_init();
     parse_cfg_init();
 
+    fs_ns_mkdir("/dev");
+    fs_ns_mkdir("/sys");
 #if defined(MKRTOS_TEST_MODE)
     printf("test_main..\n");
     test_main();
