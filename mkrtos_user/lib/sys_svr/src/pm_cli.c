@@ -38,11 +38,12 @@ int pm_run_app(const char *path, int flags, uint8_t *params, int params_len)
     return msg_tag_get_val(tag);
 }
 
-RPC_GENERATION_CALL2(pm_t, PM_PROT, PM_KILL_TASK, kill_task,
+RPC_GENERATION_CALL3(pm_t, PM_PROT, PM_KILL_TASK, kill_task,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,
-                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
+                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
+                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, exit_code)
 
-int pm_kill_task(int pid, int flags)
+int pm_kill_task(int pid, int flags, int exit_code)
 {
     rpc_int_t rpc_pid = {
         .data = pid,
@@ -50,7 +51,10 @@ int pm_kill_task(int pid, int flags)
     rpc_int_t rpc_flags = {
         .data = flags,
     };
-    msg_tag_t tag = pm_t_kill_task_call(u_get_global_env()->ns_hd, &rpc_pid, &rpc_flags);
+    rpc_int_t rpc_exit_code = {
+        .data = exit_code,
+    };
+    msg_tag_t tag = pm_t_kill_task_call(u_get_global_env()->ns_hd, &rpc_pid, &rpc_flags, &rpc_exit_code);
 
     return msg_tag_get_val(tag);
 }
@@ -74,6 +78,7 @@ int pm_watch_pid(obj_handler_t sig_hd, pid_t pid, int flags)
 
     return msg_tag_get_val(tag);
 }
+
 RPC_GENERATION_CALL5(pm_t, PM_PROT, PM_COPY_DATA, copy_data,
                      rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, src_pid,
                      rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, dst_pid,
@@ -99,6 +104,22 @@ int pm_copy_data(pid_t src_pid, pid_t dst_pid, addr_t src_addr, addr_t dst_addr,
     };
     msg_tag_t tag = pm_t_copy_data_call(u_get_global_env()->ns_hd, &rpc_src_pid, &rpc_dst_pid,
                                         &rpc_src_addr, &rpc_dst_addr, &rpc_len);
+
+    return msg_tag_get_val(tag);
+}
+RPC_GENERATION_CALL2(pm_t, PM_PROT, PM_WATCH_PID, del_watch_pid,
+                     rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,
+                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
+int pm_del_watch_pid(pid_t pid, int flags)
+{
+    rpc_umword_t_t rpc_pid = {
+        .data = pid,
+    };
+    rpc_int_t rpc_flags = {
+        .data = flags,
+    };
+
+    msg_tag_t tag = pm_t_del_watch_pid_call(u_get_global_env()->ns_hd, &rpc_pid, &rpc_flags);
 
     return msg_tag_get_val(tag);
 }

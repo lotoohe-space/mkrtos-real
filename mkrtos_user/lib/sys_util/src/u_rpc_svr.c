@@ -92,9 +92,13 @@ int meta_reg_svr_obj(rpc_svr_obj_t *svr_obj, umword_t prot)
     return meta_reg_svr_obj_raw(&meta_obj, svr_obj, prot);
 }
 AUTO_CALL(101)
-static void meta_obj_init(void)
+void meta_obj_init(void)
 {
-    rpc_svr_obj_init(&meta_obj.svr, rpc_meta_t_dispatch, META_PROT);
+    if (!meta_obj.svr.dispatch)
+    {
+        // 防止重复初始化
+        rpc_svr_obj_init(&meta_obj.svr, rpc_meta_t_dispatch, META_PROT);
+    }
 }
 static msg_tag_t rpc_meta_t_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg)
 {
@@ -137,7 +141,7 @@ static msg_tag_t rpc_meta_t_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, 
  * @param ret_ipc_hd
  * @return int
  */
-int rpc_creaite_bind_ipc(obj_handler_t th, void *obj, obj_handler_t *ret_ipc_hd)
+int rpc_creaite_bind_ipc(obj_handler_t tk, void *obj, obj_handler_t *ret_ipc_hd)
 {
     obj_handler_t ipc_hd;
     msg_tag_t tag;
@@ -154,7 +158,7 @@ int rpc_creaite_bind_ipc(obj_handler_t th, void *obj, obj_handler_t *ret_ipc_hd)
     {
         return msg_tag_get_val(tag);
     }
-    tag = ipc_bind(ipc_hd, th, (umword_t)obj);
+    tag = ipc_bind(ipc_hd, tk, (umword_t)obj);
     if (msg_tag_get_val(tag) < 0)
     {
         handler_free_umap(ipc_hd);
@@ -163,9 +167,23 @@ int rpc_creaite_bind_ipc(obj_handler_t th, void *obj, obj_handler_t *ret_ipc_hd)
     *ret_ipc_hd = ipc_hd;
     return 0;
 }
-int rpc_meta_init(obj_handler_t th, obj_handler_t *ret_ipc_hd)
+int rpc_meta_init(obj_handler_t tk_hd, obj_handler_t *ret_ipc_hd)
 {
-    return rpc_creaite_bind_ipc(th, &meta_obj.svr, ret_ipc_hd);
+    int ret;
+
+    if (meta_obj.is_init)
+    {
+        *ret_ipc_hd = meta_obj.hd_meta;
+        return 0;
+    }
+    ret = rpc_creaite_bind_ipc(tk_hd, &meta_obj.svr, ret_ipc_hd);
+    if (ret < 0)
+    {
+        return ret;
+    }
+    meta_obj.hd_meta = *ret_ipc_hd;
+    meta_obj.is_init = TRUE;
+    return 0;
 }
 #if 0
 /**

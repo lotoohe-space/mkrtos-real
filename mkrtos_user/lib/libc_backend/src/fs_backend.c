@@ -589,3 +589,9 @@ long be_chdir(const char *path)
     cur_path[FS_PATH_LEN - 1] = '\0';
     return ret;
 }
+long be_getcwd(char *path, size_t size)
+{
+    strncpy(path, cur_path, size);
+    path[size - 1] = '\0';
+    return strlen(path);
+}

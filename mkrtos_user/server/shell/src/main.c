@@ -15,12 +15,13 @@
 #include "u_hd_man.h"
 #define STACK_COM_ITME_SIZE (2048)
 ATTR_ALIGN(8)
-uint8_t stack_coms[STACK_COM_ITME_SIZE];
-uint8_t msg_buf_coms[MSG_BUG_LEN];
+static uint8_t stack_coms[STACK_COM_ITME_SIZE];
+static uint8_t msg_buf_coms[MSG_BUG_LEN];
 static obj_handler_t com_th_obj;
 
-void fast_ipc_init(void)
+void ipc_init(void)
 {
+    printf("sh ipc init.\n");
     com_th_obj = handler_alloc();
     assert(com_th_obj != HANDLER_INVALID);
     u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
@@ -61,7 +62,6 @@ int main(int argc, char *args[])
 {
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_sh");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_sh");
-    fast_ipc_init();
 #if 0
     thread_run(-1, 3);
 #endif

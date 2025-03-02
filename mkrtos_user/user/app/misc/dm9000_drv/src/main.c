@@ -66,7 +66,7 @@ int main(int argc, char *args[])
 
     net_drv_init(&net_drv);
 
-    ret = rpc_meta_init(THREAD_MAIN, &hd);
+    ret = rpc_meta_init(TASK_THIS, &hd);
     assert(ret >= 0);
     meta_reg_svr_obj(&net_drv.svr, BLK_DRV_PROT);
 

@@ -21,6 +21,7 @@
 #include "init.h"
 #include "dlist.h"
 #include "printk.h"
+#include "ref.h"
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <slab.h>
 static slab_t *share_mem_slab;
@@ -60,6 +61,7 @@ typedef struct share_mem
     dlist_head_t task_head;    //!< 哪些任务使用了该共享内存
     share_mem_type_t mem_type; //!< 内存类型
     ram_limit_t *lim;          //!< 内存限额
+    ref_counter_t ref;         //!< 引用计数
 } share_mem_t;
 
 enum share_mem_op
@@ -67,24 +69,26 @@ enum share_mem_op
     SHARE_MEM_MAP,
     SHARE_MEM_UNMAP,
 };
-
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+/**
+ * 初始化共享内存对象的内存分配器
+ */
 static void share_mem_slab_init(void)
 {
-#if IS_ENABLED(CONFIG_BUDDY_SLAB)
     share_mem_slab = slab_create(sizeof(share_mem_t), "share_mem");
     assert(share_mem_slab);
     share_mem_task_node_slab = slab_create(sizeof(share_mem_task_node_t), "share_mem_task_node");
     sizeof(share_mem_task_node_slab);
-#endif
 }
 INIT_KOBJ_MEM(share_mem_slab_init);
+#endif
 /**
  * @brief  共享内存解除映射
  *
  * @param sm
  * @return int
  */
-static void *share_mem_unmap_task(share_mem_t *sm)
+static void *share_mem_unmap_task(share_mem_t *sm, task_t *tk)
 {
     vaddr_t vaddr = 0;
     share_mem_task_node_t *pos;
@@ -94,7 +98,6 @@ static void *share_mem_unmap_task(share_mem_t *sm)
     {
         return NULL;
     }
-    task_t *tk = thread_get_current_task();
     dlist_foreach(&sm->task_head, pos, share_mem_task_node_t, node)
     {
         if (pos->task == tk)
@@ -382,6 +385,19 @@ static int share_mem_unmap(share_mem_t *obj, vaddr_t vaddr)
     task_vma_free_pmem(&task->mm_space.mem_vma, vaddr, obj->size, FALSE);
     return 0;
 }
+static void share_mem_unmap_op(task_t *tk, share_mem_t *sm)
+{
+    vaddr_t addr;
+
+    // 从记录中删除
+    addr = (vaddr_t)share_mem_unmap_task(sm, tk);
+    if (addr)
+    {
+        share_mem_unmap(sm, addr);
+        ref_counter_dec_and_release(&tk->ref_cn, &tk->kobj);
+        ref_counter_dec_and_release(&sm->ref, &sm->kobj);
+    }
+}
 static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
     ssize_t ret;
@@ -419,6 +435,7 @@ static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             ret = -EAGAIN;
             goto end;
         }
+        ref_counter_inc(&sm->ref);
         f->regs[1] = (umword_t)ret_vaddr;
         f->regs[2] = sm->size;
     end:
@@ -427,15 +444,7 @@ static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     break;
     case SHARE_MEM_UNMAP:
     {
-        vaddr_t addr;
-
-        // 从记录中删除
-        addr = (vaddr_t)share_mem_unmap_task(sm);
-        if (addr)
-        {
-            share_mem_unmap(sm, addr);
-            ref_counter_dec_and_release(&task->ref_cn, &task->kobj);
-        }
+        share_mem_unmap_op(task, sm);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
@@ -447,15 +456,8 @@ static void share_mem_obj_unmap(obj_space_t *obj_space, kobject_t *kobj)
 {
     task_t *task = container_of(obj_space, task_t, obj_space);
     share_mem_t *sm = container_of(kobj, share_mem_t, kobj);
-    vaddr_t addr;
 
-    // 从记录中删除
-    addr = (vaddr_t)share_mem_unmap_task(sm);
-    if (addr)
-    {
-        share_mem_unmap(sm, addr);
-        ref_counter_dec_and_release(&task->ref_cn, &task->kobj);
-    }
+    share_mem_unmap_op(task, sm);
 }
 static void share_mem_release_stage1(kobject_t *kobj)
 {
@@ -466,7 +468,7 @@ static void share_mem_release_stage2(kobject_t *kobj)
 {
     share_mem_t *sm = container_of(kobj, share_mem_t, kobj);
 
-    assert(dlist_is_empty(&sm->task_head)); // TODO:有bug
+    assert(dlist_is_empty(&sm->task_head)); // TODO:有bug，释放这个对象的时候这个链表可能不为空，应该给对象增加引用计数
 
 #if IS_ENABLED(CONFIG_MMU)
     share_mem_free_pmem(sm);
@@ -477,6 +479,12 @@ static void share_mem_release_stage2(kobject_t *kobj)
 #endif
     printk("share mem 0x%x free.\n", sm);
 }
+bool_t share_mem_put(kobject_t *kobj)
+{
+    share_mem_t *sm = container_of(kobj, share_mem_t, kobj);
+
+    return ref_counter_dec(&sm->ref) == 1;
+}
 /**
  * @brief share_mem init.
  *
@@ -486,11 +494,14 @@ static void share_mem_release_stage2(kobject_t *kobj)
 static void share_mem_init(share_mem_t *sm, umword_t max)
 {
     kobject_init(&sm->kobj, SHARE_MEM_TYPE);
+    ref_counter_init(&sm->ref);
+    ref_counter_inc(&sm->ref);
     sm->size = max;
     sm->kobj.invoke_func = share_mem_syscall;
     sm->kobj.unmap_func = share_mem_obj_unmap;
     sm->kobj.stage_1_func = share_mem_release_stage1;
     sm->kobj.stage_2_func = share_mem_release_stage2;
+    sm->kobj.put_func = share_mem_put;
 }
 /**
  * @brief 创建共享内存对象

@@ -127,6 +127,11 @@ static __attribute__((optimize(0))) void fast_ipc_com_point(msg_tag_t tag, umwor
     fast_ipc_dat_copy((void *)&cons_msg_buf[i * MSG_BUG_LEN], (void *)cons_msg_buf_main, tag);
     fast_ipc_goto_process(fast_ipc_setsp(i, &cons_stack[(i + 1) * stack_item_size - 8]), tag.raw, arg0, arg1, arg2);
 }
+static bool_t is_init;
+bool_t u_fast_ipc_is_init(void)
+{
+    return is_init;
+}
 int u_fast_ipc_init(uint8_t *stack_array, uint8_t *msg_buf_array, int stack_msgbuf_array_num, size_t stack_size, obj_handler_t *threads_obj)
 {
     msg_tag_t tag;
@@ -157,5 +162,6 @@ int u_fast_ipc_init(uint8_t *stack_array, uint8_t *msg_buf_array, int stack_msgb
     {
         return msg_tag_get_val(tag);
     }
+    is_init = TRUE;
     return msg_tag_get_val(tag);
 }

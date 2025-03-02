@@ -57,10 +57,6 @@ set_target_properties(
 add_custom_target(
     fatfs_dump ALL
     COMMAND
-    ${CMAKE_OBJDUMP} -s -S fatfs.elf > ${CMAKE_SOURCE_DIR}/build/output/fatfs.S
-    COMMAND
-    ${CMAKE_READELF} -a fatfs.elf > ${CMAKE_SOURCE_DIR}/build/output/fatfs.txt
-    COMMAND
     ${CMAKE_OBJCOPY} -O binary -S fatfs.elf fatfs.bin
     COMMAND
     ${CMAKE_SIZE} fatfs.elf
@@ -68,8 +64,8 @@ add_custom_target(
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
     COMMAND
     cp fatfs.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/fatfs
-    # COMMAND
-    # cp fatfs.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/fatfs.elf
+    COMMAND
+    cp fatfs.elf ${CMAKE_SOURCE_DIR}/build/output/fatfs.elf
 )
 
 add_dependencies(fatfs_dump fatfs.elf)

@@ -77,7 +77,7 @@ char *u_rel_path_to_abs(const char *cur_path, const char *path, char *new_path)
             strcat(new_path, "/");
             t_len += 1;
         }
-        t_len = strlen(cur_path);
+        t_len += strlen(cur_path);
     }
     for (int i = 0; path[i];)
     {

@@ -1,19 +1,19 @@
-#include "shell.h"
 #include "cons_cli.h"
 #include "pm_cli.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <stddef.h>
-#include <string.h>
-#include <sys/time.h>
-#include <pthread.h>
-#include <sys/stat.h>
-#include <errno.h>
+#include "shell.h"
+#include "u_malloc.h"
 #include "u_sys.h"
 #include "unistd.h"
-#include "u_malloc.h"
+#include <dirent.h>
+#include <errno.h>
+#include <pthread.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <unistd.h>
 int ls(int argc, char *agrv[])
 {
     DIR *dir;
@@ -25,7 +25,7 @@ int ls(int argc, char *agrv[])
 
     if (argc < 2)
     {
-        in_path = ".";
+        in_path = "";
     }
     else
     {
@@ -90,6 +90,16 @@ int cd(int argc, char *agrv[])
     return ret;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), cd, cd, cd command);
+int pwd(int argc, char *agrv[])
+{
+    char *pwd;
+    char path[64];
+
+    pwd = getcwd(path, sizeof(path));
+    printf("%s\n", pwd);
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), pwd, pwd, pwd command);
 int cat(int argc, char *argv[])
 {
     if (argc != 2)
@@ -154,7 +164,7 @@ int kill(int argc, char *argv[])
     }
     int pid = atoi(argv[1]);
 
-    return pm_kill_task(pid, PM_KILL_TASK_ALL);
+    return pm_kill_task(pid, PM_KILL_TASK_ALL, 0);
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), kill, kill, kill command);
 
@@ -168,7 +178,37 @@ int shell_symlink(int argc, char *argv[])
     return symlink(argv[1], argv[2]);
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), symlink, shell_symlink, symlink command);
+#include <unistd.h>
+#include <fcntl.h>
+int shell_touch(int argc, char *argv[])
+{
+    if (argc < 2)
+    {
+        return -1;
+    }
+    int fd;
 
+    fd = open(argv[1], O_CREAT, 0777);
+    if (fd < 0)
+    {
+        return fd;
+    }
+    close(fd);
+    return fd;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), touch, shell_touch, touch command);
+int shell_mkdir(int argc, char *argv[])
+{
+    if (argc < 2)
+    {
+        return -1;
+    }
+    int ret;
+
+    ret = mkdir(argv[1], 0777);
+    return ret;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), mkdir, shell_mkdir, mkdir command);
 int shell_reboot(int argc, char *argv[])
 {
     printf("sys reboot.\n");

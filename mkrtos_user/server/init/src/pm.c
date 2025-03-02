@@ -19,6 +19,9 @@
 #include "u_sig.h"
 #include "pm.h"
 #include "parse_cfg.h"
+#include "u_malloc.h"
+#include "nsfs.h"
+#include "sig_cli.h"
 #include <errno.h>
 #include <malloc.h>
 #include <stdio.h>
@@ -95,7 +98,7 @@ void pm_del_watch_by_pid(pm_t *pm, pid_t pid)
         {
             slist_del(&pos->node);
             handler_free_umap(pos->sig_hd);
-            free(pos);
+            u_free(pos);
         }
         pos = next;
     }
@@ -120,7 +123,7 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
         handler_free_umap(sig_rcv_hd);
         return -EEXIST;
     }
-    watch_entry_t *entry = (watch_entry_t *)malloc(sizeof(watch_entry_t));
+    watch_entry_t *entry = (watch_entry_t *)u_malloc(sizeof(watch_entry_t));
 
     if (!entry)
     {
@@ -161,17 +164,14 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
         {
             if (sig_val == KILL_SIG)
             {
-                ipc->msg_buf[0] = PM_SIG_NOTIFY;
-                ipc->msg_buf[1] = sig_val;
-                ipc->msg_buf[2] = pid;
+                int ret;
 
-                thread_ipc_call(msg_tag_init4(0, 3, 0, PM_SIG_PROT), pos->sig_hd,
-                                ipc_timeout_create2(0, 0));
+                ret = sig_kill(pos->sig_hd, sig_val, pid);
             }
             slist_del(&pos->node);
             handler_free_umap(pos->sig_hd);   //!< 删除信号通知的ipc
             handler_del_umap(pos->watch_pid); //!< 删除被watch的进程
-            free(pos);
+            u_free(pos);
         }
         pos = next;
     }
@@ -184,24 +184,32 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
  * @param flags
  * @return int
  */
-int pm_rpc_kill_task(int pid, int flags)
+int pm_rpc_kill_task(int pid, int flags, int exit_code)
 {
+    pid_t src_pid = thread_get_src_pid();
+
     if (pid == TASK_THIS)
     {
+        printf("not kill init task.\n");
         return -EINVAL;
     }
     if (pm_pid_is_task(pid) == FALSE)
     {
+        printf("pid is error.\n");
         return -EINVAL;
     }
 
     // ns_node_del_by_pid(pid, flags); TODO:         //!< 从ns中删除
-    pm_del_watch_by_pid(&pm, pid);           //!< 从watch中删除
+    pm_del_watch_by_pid(&pm, pid); //!< 从watch中删除
 #if IS_ENABLED(CONFIG_USING_SIG)
     pm_send_sig_to_task(&pm, pid, KILL_SIG); //!< 给watch者发送sig
 #endif
-    // handler_del_umap(pid);
-    printf("[pm] kill pid:%d.\n", pid);
+    if (src_pid != pid)
+    {
+        // 发起者自己删除
+        handler_del_umap(pid);
+    }
+    printf("[pm] kill pid:%d code:%d.\n", pid, exit_code);
     return 0;
 }
 /**

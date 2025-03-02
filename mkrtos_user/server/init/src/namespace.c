@@ -20,7 +20,6 @@
 #include <sys/types.h>
 #include <u_types.h>
 
-#include "file_desc.h"
 #include "fs_svr.h"
 #include "ns_svr.h"
 #include "ns_types.h"
@@ -34,28 +33,28 @@ static fs_t ns_fs;
 
 static obj_handler_t ns_hd;
 
-int fs_svr_open(const char *path, int flags, int mode)
+static int fs_svr_open(const char *path, int flags, int mode)
 {
     return fs_ns_open(path, flags, mode);
 }
 
-int fs_svr_readdir(int fd, dirent_t *dir)
+static int fs_svr_readdir(int fd, dirent_t *dir)
 {
     return fs_ns_readdir(fd, dir);
 }
-void fs_svr_close(int fd)
+static void fs_svr_close(int fd)
 {
     fs_ns_close(fd);
 }
-int fs_svr_unlink(const char *path)
+static int fs_svr_unlink(const char *path)
 {
     return -ENOSYS;
 }
-int fs_svr_mkdir(char *path)
+static int fs_svr_mkdir(char *path)
 {
     return fs_ns_mkdir(path);
 }
-int fs_svr_stat(const char *path, void *_buf)
+static int fs_svr_stat(const char *path, void *_buf)
 {
     struct kstat *buf = (struct kstat *)_buf;
     int ret;
@@ -70,13 +69,14 @@ int fs_svr_stat(const char *path, void *_buf)
  * @param dst
  * @return int
  */
-int fs_svr_symlink(const char *src, const char *dst)
+static int fs_svr_symlink(const char *src, const char *dst)
 {
     return -ENOSYS;
 }
 
 /**
  * @brief 注册一个obj
+ * 如果节点，但是服务是无效的，则删除它
  *
  * @param path 注册的路径
  * @param hd 注册的hd
@@ -86,7 +86,21 @@ int namespace_register(const char *path, obj_handler_t hd, int type)
 {
     int ret;
 
+again:
     ret = ns_mknode(path, hd, NODE_TYPE_SVR);
+    if (ret == -EEXIST)
+    {
+        //  如果已经存在，则检查是否有效，否则删除它
+        obj_handler_t old_hd;
+        msg_tag_t tag;
+        int obj_type;
+
+        ret = ns_find_svr_obj(path, &old_hd); // 这个函数里面会自动删除
+        if (ret < 0)
+        {
+            return ret;
+        }
+    }
     return ret;
 }
 /**
@@ -103,7 +117,9 @@ int namespace_query(const char *path, obj_handler_t *hd)
     ret = ns_find_svr_obj(path, hd);
     return ret;
 }
-
+/**
+ * 文件操作
+ */
 static const fs_operations_t ops =
     {
         .fs_svr_mkdir = fs_svr_mkdir,
@@ -114,6 +130,9 @@ static const fs_operations_t ops =
         .fs_svr_open = fs_svr_open,
         .fs_svr_stat = fs_svr_stat,
 };
+/**
+ * 初始化namespace
+ */
 void namespace_init(obj_handler_t ipc_hd)
 {
     ns_init(&ns);

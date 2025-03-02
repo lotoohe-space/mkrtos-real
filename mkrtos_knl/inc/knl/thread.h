@@ -122,6 +122,7 @@ typedef struct thread_fast_ipc_com
     thread_fast_ipc_item_t fast_ipc_stack_data[THREAD_FAST_IPC_ITEM_NUM]; //!< 栈数据，用于通信栈备份
     stack_t fast_ipc_stack;                                               //!< fast ipc stack
     slist_head_t fast_ipc_node;                                           //!< 用于加入到task中去。
+    thread_t *th;
 } thread_fast_ipc_com_t;
 
 #define THREAD_MAGIC 0xdeadead //!< 用于栈溢出检测
@@ -301,4 +302,4 @@ int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag,
 bool_t thread_is_knl(thread_t *thread);
 
 msg_tag_t thread_fast_ipc_replay(entry_frame_t *f);
-msg_tag_t thread_fast_ipc_call(thread_t *to_th, entry_frame_t *f, umword_t user_id);
+msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_id);

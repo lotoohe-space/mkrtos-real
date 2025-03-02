@@ -81,10 +81,11 @@ static void libc_start_init(void)
 {
 	_init();
 	extern void *app_start_addr;
-    unsigned long start_addr = ((unsigned long)app_start_addr) & (~3UL);
-	
+	unsigned long start_addr = ((unsigned long)app_start_addr) & (~3UL);
+
 	uintptr_t a = (uintptr_t)&__init_array_start;
-	for (; a < (uintptr_t)&__init_array_end; a += sizeof(void (*)())) {
+	for (; a < (uintptr_t)&__init_array_end; a += sizeof(void (*)()))
+	{
 		((void (*)(void))((uintptr_t)(*((unsigned long *)a)) + start_addr | 0x1UL))();
 	}
 }
@@ -104,7 +105,7 @@ int __libc_start_main(int (*main)(int, char **, char **), int argc, char **argv,
 	 * persisting for the entire process lifetime. */
 	__init_libc(envp, argv[0]);
 #ifdef CONFIG_USING_SIG
-    sig_init();
+	sig_init();
 #endif
 	/* Barrier against hoisting application code or anything using ssp
 	 * or thread pointer prior to its initialization above. */
@@ -140,11 +141,14 @@ int __libc_start_main_init(int (*main)(int, char **, char **), int argc, char **
 			: "memory");
 	return stage2(main, argc, argv);
 }
-
+weak void ipc_init(void)
+{
+}
 static int libc_start_main_stage2(int (*main)(int, char **, char **), int argc, char **argv)
 {
 	char **envp = argv + argc + 1;
 	fs_backend_init();
+	ipc_init();
 	__libc_start_init();
 
 	/* Pass control to the application */

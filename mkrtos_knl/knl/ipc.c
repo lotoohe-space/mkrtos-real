@@ -52,13 +52,13 @@ static void ipc_obj_slab_init(void)
 }
 INIT_KOBJ_MEM(ipc_obj_slab_init);
 
-int ipc_bind(ipc_t *ipc, obj_handler_t th_hd, umword_t user_id, thread_t *th_kobj)
+int ipc_bind(ipc_t *ipc, obj_handler_t tk_hd, umword_t user_id, task_t *tk_kobj)
 {
     int ret = -EINVAL;
     task_t *cur_task = thread_get_current_task();
 
     /*TODO:原子操作，绑定其他线程不一定是当前线程*/
-    if (ipc->svr_th == NULL)
+    if (ipc->svr_tk == NULL)
     {
         mword_t status = spinlock_lock(&cur_task->kobj.lock); //!< 锁住当前的task
 
@@ -66,24 +66,23 @@ int ipc_bind(ipc_t *ipc, obj_handler_t th_hd, umword_t user_id, thread_t *th_kob
         {
             return -EACCES;
         }
-        ref_counter_inc(&cur_task->ref_cn); //!< task引用计数+1
-        thread_t *recv_kobj;
+        task_t *recv_kobj;
 
-        if (!th_kobj)
+        if (!tk_kobj)
         {
-            recv_kobj = (thread_t *)obj_space_lookup_kobj_cmp_type(&cur_task->obj_space, th_hd, THREAD_TYPE);
+            recv_kobj = (task_t *)obj_space_lookup_kobj_cmp_type(&cur_task->obj_space, tk_hd, TASK_TYPE);
         }
         else
         {
-            recv_kobj = th_kobj;
+            recv_kobj = tk_kobj;
         }
         if (!recv_kobj)
         {
             ret = -ENOENT;
             goto end_bind;
         }
-        ref_counter_inc(&recv_kobj->ref); //!< 绑定后线程的引用计数+1，防止被删除
-        ipc->svr_th = recv_kobj;
+        ref_counter_inc(&recv_kobj->ref_cn); //!< 绑定后线程的引用计数+1，防止被删除
+        ipc->svr_tk = recv_kobj;
         ipc->user_id = user_id;
         ipc_wait_bind_entry_t *pos;
 
@@ -99,7 +98,7 @@ int ipc_bind(ipc_t *ipc, obj_handler_t th_hd, umword_t user_id, thread_t *th_kob
     end_bind:
         //!< 先解锁，然后在给task的引用计数-1
         spinlock_set(&cur_task->kobj.lock, status);
-        ref_counter_dec_and_release(&cur_task->ref_cn, &cur_task->kobj);
+        // ref_counter_dec_and_release(&cur_task->ref_cn, &cur_task->kobj);
     }
     else
     {
@@ -147,13 +146,13 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     case IPC_DO:
     {
         //!< 如果是ipc协议，则当成一个ipc处理
-        if (ipc->svr_th == th)
+        if (ipc->svr_tk == cur_task)
         {
             tag = msg_tag_init4(0, 0, 0, -ECANCELED);
             break;
         }
     again:
-        if (ipc->svr_th == NULL)
+        if (ipc->svr_tk == NULL)
         {
             ipc_wait_bind_entry_t entry = {
                 .th = th,
@@ -176,7 +175,7 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
         }
         else
         {
-            tag = thread_do_ipc(&ipc->svr_th->kobj, f, ipc->user_id);
+            tag = thread_do_ipc(&ipc->svr_tk->kobj, f, ipc->user_id);
         }
     }
     break;
@@ -198,10 +197,10 @@ static void ipc_release_stage1(kobject_t *kobj)
         pos->th->ipc_status == THREAD_IPC_ABORT;
         thread_ready_remote(pos->th, TRUE);
     }
-    if (ipc->svr_th)
+    if (ipc->svr_tk)
     {
-        ref_counter_dec_and_release(&ipc->svr_th->ref, &ipc->svr_th->kobj);
-        ipc->svr_th = NULL;
+        ref_counter_dec_and_release(&ipc->svr_tk->ref_cn, &ipc->svr_tk->kobj);
+        ipc->svr_tk = NULL;
     }
 }
 static void ipc_release_stage2(kobject_t *kobj)

@@ -1,12 +1,12 @@
 /**
  * @file u_sig.c
  * @author ATShining (1358745329@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-08-27
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 #include <u_thread_util.h>
 #include <u_util.h>
@@ -17,14 +17,17 @@
 #include <pm_cli.h>
 #include <rpc_prot.h>
 #include <assert.h>
-
+#include <errno.h>
+#include "u_fast_ipc.h"
+#include "u_hd_man.h"
+#include "u_rpc_svr.h"
+#include "sig_svr.h"
 #ifdef CONFIG_USING_SIG
 
+static sig_t sig_obj;
+
 static sig_call_back sig_cb_func;
-static ATTR_ALIGN(8) uint8_t sig_stack[CONFIG_SIG_THREAD_STACK_SIZE];
-static uint8_t sig_msg_buf[MSG_BUG_LEN];
-static obj_handler_t sig_th;
-static obj_handler_t sig_ipc;
+static obj_handler_t sig_ipc = HANDLER_INVALID;
 static uint8_t sig_init_flags;
 
 int pm_sig_watch(pid_t pid, int flags)
@@ -33,54 +36,40 @@ int pm_sig_watch(pid_t pid, int flags)
 
     return ret;
 }
-
+int pm_sig_del_watch(pid_t pid, int flags)
+{
+    return pm_del_watch_pid(pid, flags);
+}
 void pm_sig_func_set(sig_call_back sig_func)
 {
     sig_cb_func = sig_func;
 }
 
-/**
- * @brief 信号的回调函数
- *
- */
-static void sig_func(void)
+static int kill(int flags, int pid)
 {
-    assert(rpc_creaite_bind_ipc(sig_th, NULL, &sig_ipc) >= 0);
+    int ret = -EINVAL;
 
-    while (1)
+    if (sig_cb_func)
     {
-        msg_tag_t tag = thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
-        if (msg_tag_get_val(tag) < 0)
-        {
-            continue;
-        }
-        int ret = 0;
-        ipc_msg_t *ipc = (ipc_msg_t *)sig_msg_buf;
-
-        switch (ipc->msg_buf[0])
-        {
-        case PM_SIG_NOTIFY:
-            if (sig_cb_func)
-            {
-                ret = sig_cb_func(ipc->msg_buf[2], ipc->msg_buf[1]);
-                tag = msg_tag_init4(0, 0, 0, ret);
-            }
-            break;
-        }
-        thread_ipc_reply(tag, ipc_timeout_create2(0, 0));
+        ret = sig_cb_func(pid, flags);
     }
-    while (1)
-    {
-        u_sleep_ms(1000);
-    }
+    return ret;
 }
+static const sig_op_t sig_op = {
+    .kill = kill,
+    .to_kill = NULL,
+};
 void sig_init(void)
 {
     if (sig_init_flags)
     {
         return;
     }
-    u_thread_create(&sig_th, (char *)sig_stack + sizeof(sig_stack), sig_msg_buf, sig_func);
-    u_thread_run(sig_th, CONFIG_SIG_THREAD_PRIO);
+    rpc_meta_init(TASK_THIS, &sig_ipc);
+    // 注册到队列中去
+    sig_svr_obj_init(&sig_obj);
+    sig_obj.op = &sig_op;
+    meta_obj_init();
+    meta_reg_svr_obj(&sig_obj.svr_obj, SIG_PORT);
 }
 #endif

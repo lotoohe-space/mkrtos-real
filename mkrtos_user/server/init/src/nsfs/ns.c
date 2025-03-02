@@ -8,6 +8,7 @@
 #ifdef MKRTOS
 #include <u_hd_man.h>
 #include <u_malloc.h>
+#include <u_task.h>
 #endif
 // 其他进程可以注册节点进来，并且可以注册子节点进来，子节点可以注册更多的子节点进来。
 // 可以注册两种节点DUMMY和SVR节点
@@ -262,7 +263,11 @@ int ns_delnode(const char *path)
 #endif
     }
     cur_node->parent->ref--;
+#ifdef MKRTOS
+    u_free(cur_node);
+#else
     free(cur_node);
+#endif
     return ret;
 }
 /**
@@ -321,8 +326,9 @@ ns_node_t *ns_node_find_svr_file(const char *path, int *ret, int *cur_inx)
     assert(ret);
     assert(cur_inx);
     ns_node_t *dir_node;
+    ns_node_t *parent_node;
 
-    dir_node = ns_node_find(NULL, path, ret, cur_inx, NULL);
+    dir_node = ns_node_find(&parent_node, path, ret, cur_inx, NULL);
     if (is_root_node(dir_node))
     {
         (*cur_inx)++;
@@ -333,6 +339,14 @@ ns_node_t *ns_node_find_svr_file(const char *path, int *ret, int *cur_inx)
 #if 0
         printf("ns node not find or path error.\n");
 #endif
+        if (is_root_node(parent_node))
+        {
+            return parent_node;
+        }
+        if ((parent_node->type == NODE_TYPE_DUMMY && (dir_node == NULL || dir_node->type == NODE_TYPE_DUMMY)))
+        {
+            return &root_node;
+        }
         // 未找到，节点不是 svr 节点，路径不是结尾处 则直接退出
         *ret = -ENOENT;
         return NULL;
@@ -353,6 +367,17 @@ int ns_find_svr_obj(const char *path, obj_handler_t *svr_hd)
     {
         return -ENOENT;
     }
+#ifdef MKRTOS
+    msg_tag_t tag;
+
+    tag = task_obj_valid(TASK_THIS, svr_node->svr_hd, NULL);
+    if (msg_tag_get_val(tag) < 0 || msg_tag_get_val(tag) == 0)
+    {
+        // 节点不存在，直接退出，删除节点
+        ret = ns_delnode(path);
+        return ret;
+    }
+#endif
     *svr_hd = svr_node->svr_hd;
     return cur_inx;
 }
@@ -373,6 +398,10 @@ int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type)
     cur_node = ns_node_find(&dir_node, path, &ret, &cur_inx, &p_inx);
     if (dir_node == NULL || dir_node->type != NODE_TYPE_DUMMY || (cur_node != NULL && cur_node->type == NODE_TYPE_SVR))
     {
+        if (cur_node != NULL && cur_node->type == NODE_TYPE_SVR)
+        {
+            return -EEXIST;
+        }
         return -ENOENT;
     }
     // 获得节点的名字

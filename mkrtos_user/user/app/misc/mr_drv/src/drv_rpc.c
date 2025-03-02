@@ -11,7 +11,7 @@ obj_handler_t drv_svr_init(void)
     int ret;
 
     drv_init(&drv);
-    ret = rpc_creaite_bind_ipc(THREAD_MAIN, &drv, &ipc_hd);
+    ret = rpc_creaite_bind_ipc(TASK_THIS, &drv, &ipc_hd);
     assert(ret >= 0);
 
     return ipc_hd;

@@ -501,12 +501,14 @@ static void task_release_stage1(kobject_t *kobj)
     obj_unmap_all(&tk->obj_space, &kobj_list);
     kobj_del_list_to_do(&kobj_list);
 
-    thread_t *restore_th;
+    thread_fast_ipc_com_t *restore_th_com;
     thread_fast_ipc_item_t ipc_item;
 
-    slist_foreach(restore_th->com, &tk->nofity_theads_head, fast_ipc_node)
+    slist_foreach(restore_th_com, &tk->nofity_theads_head, fast_ipc_node)
     {
-        ret = thread_fast_ipc_pop(restore_th, &ipc_item);/*TODO:这里有问题*/
+        thread_t *restore_th = restore_th_com->th;
+
+        ret = thread_fast_ipc_pop(restore_th, &ipc_item); /*TODO:这里有问题*/
         if (ret >= 0)
         {
             // 还原栈和usp TODO: arch相关的

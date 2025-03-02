@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    ret = rpc_meta_init(THREAD_MAIN, &hd);
+    ret = rpc_meta_init(TASK_THIS, &hd);
     assert(ret >= 0);
     fs_svr_init();
     ns_register(mount_path, hd, 0);

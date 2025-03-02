@@ -31,27 +31,29 @@
 #include <string.h>
 #include <u_fast_ipc.h>
 
-#define DEFAULT_INIT_CFG    "init.cfg"
-#define STACK_COM_ITME_SIZE (2 * 1024)
-ATTR_ALIGN(8)
-uint8_t stack_coms[STACK_COM_ITME_SIZE];
-uint8_t msg_buf_coms[MSG_BUG_LEN];
-static obj_handler_t com_th_obj;
+#define DEFAULT_INIT_CFG "init.cfg"
 
-void fast_ipc_init(void)
+#define STACK_COM_ITME_SIZE (2 * 1024 /*sizeof(struct pthread) + TP_OFFSET*/)
+#define STACK_NUM 2
+ATTR_ALIGN(8)
+static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
+static uint8_t msg_buf_coms[MSG_BUG_LEN * STACK_NUM];
+static obj_handler_t com_th_obj[STACK_NUM];
+static void fast_ipc_init(void)
 {
-    com_th_obj = handler_alloc();
-    assert(com_th_obj != HANDLER_INVALID);
-    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
+    for (int i = 0; i < STACK_NUM; i++)
+    {
+        com_th_obj[i] = handler_alloc();
+        assert(com_th_obj[i] != HANDLER_INVALID);
+    }
+    u_fast_ipc_init(stack_coms,
+                    msg_buf_coms, STACK_NUM, STACK_COM_ITME_SIZE, com_th_obj);
 }
 int main(int argc, char *args[])
 {
     int ret;
     uenv_t *env;
 
-#if 0
-    thread_run(-1, 4);
-#endif
     fast_ipc_init();
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_init");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_init");
@@ -59,7 +61,7 @@ int main(int argc, char *args[])
     ulog_write_str(LOG_PROT, "init..\n");
     u_env_default_init();
     env = u_get_global_env();
-    rpc_meta_init(THREAD_MAIN, &env->ns_hd);
+    rpc_meta_init(TASK_THIS, &env->ns_hd);
     namespace_init(env->ns_hd);
     pm_init();
     console_init();
@@ -73,7 +75,8 @@ int main(int argc, char *args[])
     ret = parse_cfg(DEFAULT_INIT_CFG, env);
     printf("run app num is %d.\n", ret);
     // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, THREAD_MAIN));
-    while (1) {
+    while (1)
+    {
         u_sleep_ms((umword_t)(-1));
     }
     return 0;

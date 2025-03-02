@@ -196,7 +196,10 @@
         "net_svr.h": "c",
         "inet.h": "c",
         "u_malloc.h": "c",
-        "nsfs.h": "c"
+        "nsfs.h": "c",
+        "fs_svr.h": "c",
+        "sig_cli.h": "c",
+        "sig_svr.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

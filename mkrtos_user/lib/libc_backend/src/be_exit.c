@@ -58,7 +58,7 @@ void be_exit(long exit_code)
         /*TODO:删除其它东西*/
 
         task_get_pid(TASK_THIS, &pid);
-        pm_kill_task(pid, KILL_SIG);
+        pm_kill_task(pid, KILL_SIG, exit_code);
         task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, TASK_THIS)); //!< 删除当前task，以及申请得所有对象
         a_crash();                                                                 //!< 强制退出
     }

@@ -68,6 +68,19 @@ static bool_t reg_hd(const char *path, obj_handler_t hd, int split_inx)
     }
     return FALSE;
 }
+static void del_hd(obj_handler_t hd)
+{
+    int i = 0;
+    int empty = -1;
+    for (i = 0; i < NS_CLI_CACHE_NR; i++)
+    {
+        if (ns_cli_cache.cache[i].path[0] != 0 && ns_cli_cache.cache[i].hd == hd)
+        {
+            ns_cli_cache.cache[i].path[0] = 0;
+            ns_cli_cache.cache[i].hd = 0;
+        }
+    }
+}
 
 RPC_GENERATION_CALL3(ns_t, NS_PROT, NS_REGISTER_OP, register,
                      rpc_ref_array_uint32_t_uint8_t_32_t, rpc_array_uint32_t_uint8_t_32_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
@@ -114,10 +127,19 @@ int ns_query(const char *path, obj_handler_t *svr_hd, int flags)
     newfd = find_hd(path, &inx);
     if (newfd != HANDLER_INVALID)
     {
+        msg_tag_t tag;
+
+        tag = task_obj_valid(TASK_THIS, newfd, NULL);
+        if (msg_tag_get_val(tag) < 0 || msg_tag_get_val(tag) == 0)
+        {
+            // 从缓存中删除
+            del_hd(newfd);
+            goto next;
+        }
         *svr_hd = newfd;
         return inx;
     }
-
+next:
     newfd = handler_alloc();
 
     if (newfd == HANDLER_INVALID)

@@ -108,7 +108,7 @@ static void knl_main(void)
                         f.regs[1] = 0;
                         f.regs[2] = 0x2222; /*传递两个参数，没有用到，暂时用不上*/
                         f.regs[3] = 0x3333;
-                        tag = thread_fast_ipc_call(init_thread, &f, MAGIC_NS_USERPID);
+                        tag = thread_fast_ipc_call(init_task, &f, MAGIC_NS_USERPID);
                         if (msg_tag_get_val(tag) < 0)
                         {
                             printk("init thread comm failed, ret:%d\n", __func__, __LINE__, msg_tag_get_val(tag));

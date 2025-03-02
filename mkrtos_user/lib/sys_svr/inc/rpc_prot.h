@@ -40,6 +40,8 @@
 #define PM_KILL_TASK ((umword_t)1) //!< 删除进程
 #define PM_WATCH_PID ((umword_t)2) //!< watch pid
 #define PM_COPY_DATA ((umword_t)3) //!< copy 进程数据
+#define PM_DEL_WATCH_PID ((umword_t)4) //!< watch pid
+
 
 #define CONS_PROT 0x0006          //!< console协议
 #define CONS_WRITE ((umword_t)0)  //!< console删除
@@ -83,3 +85,7 @@
 // #define FCNTL ((umword_t)23)
 // #define NET_INET_NTOP ((umword_t)24)
 // #define NET_INET_PTON ((umword_t)25)
+
+#define SIG_PORT 0x000A
+#define SIG_KILL ((umword_t)0x0001)
+#define SIG_TOKILL ((umword_t)0x0002)

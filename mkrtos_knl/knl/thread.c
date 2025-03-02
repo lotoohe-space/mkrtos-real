@@ -140,6 +140,7 @@ void thread_init(thread_t *th, ram_limit_t *lim, umword_t flags)
     stack_init(&th->com->fast_ipc_stack, &th->com->fast_ipc_stack_data,
                ARRARY_LEN(th->com->fast_ipc_stack_data),
                sizeof(th->com->fast_ipc_stack_data[0]));
+    th->com->th = th;
 
     th->cpu = arch_get_current_cpu_id();
     th->lim = lim;
@@ -1181,7 +1182,7 @@ end:
     return ret;
 }
 #endif
-msg_tag_t thread_fast_ipc_call(thread_t *to_th, entry_frame_t *f, umword_t user_id)
+msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_id)
 {
     task_t *cur_task = thread_get_current_task();
     thread_t *cur_th = thread_get_current();
@@ -1192,7 +1193,6 @@ msg_tag_t thread_fast_ipc_call(thread_t *to_th, entry_frame_t *f, umword_t user_
     // 3.多线程访问时，服务端提供一个小的用户线程栈，然后内核到用户部分为临界区域，在服务端重新分配用户栈用，使用新的用户栈。
     // 4.fastipc嵌套访问会有问题，内核必须要提供一个软件上的调用栈。
     // 在嵌套调用时，如果在其它进程中挂掉，如果是当前线程则需要还原
-    task_t *to_task = thread_get_bind_task(to_th);
 
     if (to_task->nofity_point == NULL)
     {
@@ -1204,7 +1204,7 @@ msg_tag_t thread_fast_ipc_call(thread_t *to_th, entry_frame_t *f, umword_t user_
     umword_t cpu_status = cpulock_lock();
     assert(cur_th->magic == THREAD_MAGIC);
 
-    to_task = thread_get_bind_task(to_th);
+    // to_task = thread_get_bind_task(to_th);FIXME:
     ref_counter_inc((&to_task->ref_cn));
     //!< 执行目标线程时用的是当前线程的资源，这里还需要备份当前线程的上下文。
     ret = thread_fast_ipc_save(cur_th, to_task, (void *)(to_task->nofity_stack - 4 * 8 /*FIXME:改成宏*/)); //!< 备份栈和usp
@@ -1363,7 +1363,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
     assert(kobj);
     task_t *cur_task = thread_get_current_task();
     thread_t *cur_th = thread_get_current();
-    thread_t *to_th = (thread_t *)kobj;
+    task_t *to_tk = (task_t *)kobj;
     umword_t ipc_type = f->regs[1];
     obj_handler_t th_hd = 0;
     int ret = -EINVAL;
@@ -1377,7 +1377,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
     break;
     case IPC_FAST_CALL:
     {
-        return thread_fast_ipc_call(to_th, f, user_id);
+        return thread_fast_ipc_call(to_tk, f, user_id);
     }
     break;
 #if 0
@@ -1640,7 +1640,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
     break;
     case DO_IPC:
     {
-        tag = thread_do_ipc(kobj, f, 0);
+        tag = thread_do_ipc(&thread_get_task(container_of(kobj, thread_t, kobj))->kobj, f, 0);
     }
     break;
     case SET_EXEC:
