@@ -13,41 +13,66 @@
 #include <string.h>
 #include "kstat.h"
 #include "appfs_open.h"
+
 static fs_t fs;
+
+static int fs_sig_call_back(pid_t pid, umword_t sig_val)
+{
+    switch (sig_val)
+    {
+    case KILL_SIG:
+        appfs_task_free(pid);
+        break;
+    }
+    return 0;
+}
 
 int fs_svr_open(const char *path, int flags, int mode)
 {
     int fd;
+    pid_t pid = thread_get_src_pid();
 
     fd = appfs_open(path, flags, mode);
+
+    if (fd >= 0)
+    {
+#ifdef CONFIG_USING_SIG
+        int w_ret = pm_sig_watch(pid, 0 /*TODO:现在只有kill */);
+        if (w_ret < 0)
+        {
+            printf("pm wath pid %d err.\n", w_ret);
+        }
+#endif
+    }
+
     return fd;
 }
 
 int fs_svr_read(int fd, void *buf, size_t len)
 {
-   int ret;
+    int ret;
 
-   ret = appfs_read(fd, buf, len);
+    ret = appfs_read(fd, buf, len);
 
-   return ret;
+    return ret;
 }
 int fs_svr_write(int fd, void *buf, size_t len)
 {
-   int ret;
+    int ret;
 
-   ret = appfs_write(fd, buf, len);
-   return ret;
+    ret = appfs_write(fd, buf, len);
+    return ret;
 }
 void fs_svr_close(int fd)
 {
-  appfs_close(fd);
+    appfs_close(fd);
 }
 int fs_svr_readdir(int fd, dirent_t *dir)
 {
-   int ret;
+    int ret;
 
-   ret = appfs_readdir(fd, dir);
-   return ret;
+    ret = appfs_readdir(fd, dir);
+    return ret;
 }
 int fs_svr_lseek(int fd, int offs, int whence)
 {
@@ -146,7 +171,9 @@ static const fs_operations_t ops =
 };
 void fs_svr_init(void)
 {
-
     fs_init(&fs, &ops);
     meta_reg_svr_obj(&fs.svr, FS_PROT);
+#ifdef CONFIG_USING_SIG
+    pm_sig_func_set(fs_sig_call_back);
+#endif
 }

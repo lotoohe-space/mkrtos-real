@@ -13,10 +13,11 @@
 * [ ] 内核信号量支持优先级反转
 * [ ] FPU完善支持，目前版本偶发压栈错误
 * [ ] console 支持自动切换前后台
-* [X] 重构路径管理（nsfs）
+* [x] 重构路径管理（nsfs）
 * [ ] 线程占用率统计
 * [x] 去除原来的ipc机制（使用fastipc机制），并单独实现sleep接口，目前的ipc有概率卡死问题
 * [ ] 几大组件稳定性测试
+* [ ] dup, dup2等接口支持
 * [ ] fastipc FPU支持
 ### mid prio
 * [x] net server support

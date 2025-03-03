@@ -22,4 +22,5 @@ add_subdirectory(printf)
 add_subdirectory(lwip)
 add_subdirectory(cJSON)
 add_subdirectory(cutest)
+add_subdirectory(fd)
 

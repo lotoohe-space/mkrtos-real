@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include "appfs.h"
 #include "kstat.h"
+#include <u_types.h>
 enum appfs_ioctl_cmd_op
 {
     APPFS_IOCTOL_GET_ACCESS_ADDR,
@@ -13,6 +14,7 @@ typedef struct appfs_ioctl_arg
     unsigned long size;
 } appfs_ioctl_arg_t;
 
+void appfs_task_free(int pid);
 int appfs_open(const char *name, int flags, int mode);
 int appfs_write(int fd, void *data, int len);
 int appfs_read(int fd, void *data, int len);

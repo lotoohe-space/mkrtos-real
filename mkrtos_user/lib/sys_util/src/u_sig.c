@@ -40,9 +40,12 @@ int pm_sig_del_watch(pid_t pid, int flags)
 {
     return pm_del_watch_pid(pid, flags);
 }
-void pm_sig_func_set(sig_call_back sig_func)
+sig_call_back pm_sig_func_set(sig_call_back sig_func)
 {
+    sig_call_back tmp = sig_cb_func;
+
     sig_cb_func = sig_func;
+    return tmp;
 }
 
 static int kill(int flags, int pid)

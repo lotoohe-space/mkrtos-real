@@ -199,7 +199,9 @@
         "nsfs.h": "c",
         "fs_svr.h": "c",
         "sig_cli.h": "c",
-        "sig_svr.h": "c"
+        "sig_svr.h": "c",
+        "pm.h": "c",
+        "u_sig.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

@@ -11,17 +11,20 @@ syscall_exit:
 	svc 1
 	b .
 
-
 /**
 * void syscall_ret_user(int ret_val);
 * @brief 回到用户模式
 */
 .type syscall_ret_user, %function
 syscall_ret_user:
-	//存放返回值
-
 	//还原msp的值
 	mrs		r0, msp
+#ifdef MKRTOS_USE_FPU
+	// 如果支持浮点，则要把惰性浮点得位置留查出来
+	TST lr, #0x10
+	IT eq
+	addeq r0,r0,#0x48
+#endif
 	add		r0, #0x20
 	ldmfd	r0!,{r4-r11}
 	msr		msp,r0
@@ -38,7 +41,7 @@ syscall_ret_user:
 .global SVC_Handler
 .type SVC_Handler, %function
 SVC_Handler:
-CPSID   I
+	CPSID   I
 	TST.W LR, #4
 	ITE EQ
  	MRSEQ R1, MSP
@@ -52,9 +55,6 @@ CPSID   I
 	cmp r2,#1
 	beq TO_USER
 	cmp r2,#2
-//  beq enter_fchannel
-//	cmp r2,#3
-//	beq exit_fchannel
 	b TO_END
 TO_USER:
 	B syscall_ret_user
@@ -65,7 +65,7 @@ SYS_CALL:
 	//放入之前的栈地址
 	mrs r1,CONTROL
 
-	push {r0,r1,r2,lr}
+	push {r0-r2,lr}
     //svc 128
 	mov r1, r7
 	//获得需要调用的syscall函数的地址
@@ -75,6 +75,12 @@ SYS_CALL:
 	stmfd sp!,{r4-r11}
 	//压入到用户栈中
 	//stmfd r0,{r4-r11}
+#ifdef MKRTOS_USE_FPU
+	// 如果支持浮点，则里则要把惰性浮点得位置留查出来
+	TST lr, #0x10
+	IT eq
+	subeq sp,sp,#0x48
+#endif
 	//取出PSR PC LR R12 R3 R2 R1 R0
 	ldmfd r0,{r4-r11}
 	//压入到内核栈中
@@ -91,13 +97,13 @@ SYS_CALL:
 	str		r3, [r0, #28]
 
 	//重新设置control
-    mrs     r0, CONTROL
-    bic     r0, r0, #0x03
-    msr     CONTROL, r0
+    mrs     r1, CONTROL
+    bic     r1, r1, #0x03
+    msr     CONTROL, r1
 
     dsb
     isb
-    orr     lr, lr, #0x18
+    orr     lr, lr, #0x08
     bic		lr, lr, #0x04
 	CPSIE I
     bx      lr
@@ -105,4 +111,3 @@ SYS_CALL:
 TO_END:
 CPSIE I
 	bx	lr
-

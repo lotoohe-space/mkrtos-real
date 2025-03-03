@@ -1182,6 +1182,10 @@ end:
     return ret;
 }
 #endif
+/**
+ *  快速ipc call
+ * FIXME:以下代码是arch相关的，需要整理
+ **/
 msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_id)
 {
     task_t *cur_task = thread_get_current_task();

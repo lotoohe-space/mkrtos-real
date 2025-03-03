@@ -35,7 +35,7 @@ RPC_GENERATION_OP2(sig_t, SIG_PORT, SIG_TOKILL, to_kill,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, resv)
 {
-    if (!obj->op->kill)
+    if (!obj->op->to_kill)
     {
         return -ENOSYS;
     }

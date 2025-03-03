@@ -17,12 +17,10 @@ syscall_exit:
 */
 .type syscall_ret_user, %function
 syscall_ret_user:
-	//存放返回值
-
 	//还原msp的值
 	mrs		r0, msp
 #ifdef MKRTOS_USE_FPU
-	// 如果支持浮点，则里则要把惰性浮点得位置留查出来
+	// 如果支持浮点，则要把惰性浮点得位置留查出来
 	TST lr, #0x10
 	IT eq
 	addeq r0,r0,#0x48
@@ -57,9 +55,6 @@ SVC_Handler:
 	cmp r2,#1
 	beq TO_USER
 	cmp r2,#2
-//  beq enter_fchannel
-//	cmp r2,#3
-//	beq exit_fchannel
 	b TO_END
 TO_USER:
 	B syscall_ret_user

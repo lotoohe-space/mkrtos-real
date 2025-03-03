@@ -10,7 +10,9 @@
 #include <unistd.h>
 #include <dirent.h>
 #include "appfs.h"
-
+#ifdef MKRTOS
+#include <u_thread.h>
+#endif
 static fs_info_t *fs;
 
 #define DIR_INFO_CACHE_NR 32
@@ -78,16 +80,27 @@ typedef struct appfs_file
     uint8_t flags;        //!< 文件操作的flags
     int offset;           //!< 文件操作的偏移
     enum appfs_type type; //!< 类型
-    uint8_t used;
-    // int pid;               //!< 属于哪个进程
-    // pthread_mutex_t mutex; //!< 锁
+    uint8_t used;         //!< 使用中
+    int pid;              //!< 属于哪个进程
 } appfs_file_t;
 
 static appfs_file_t appfs_files[DIR_INFO_NR];
 
 static appfs_file_t *appfs_get_file(int fd);
 
-static int appfs_file_alloc(const dir_info_t *file, int flags, enum appfs_type type)
+void appfs_task_free(int pid)
+{
+    for (int i = 0; i < DIR_INFO_NR; i++)
+    {
+        if (appfs_files[i].dir_info_fd != -1)
+        {
+            appfs_close(i);
+            printf("free fd:%d\n", i);
+        }
+    }
+}
+
+static int appfs_file_alloc(const dir_info_t *file, int flags, enum appfs_type type, int pid)
 {
     int dir_info_fd = -1;
 
@@ -108,11 +121,10 @@ static int appfs_file_alloc(const dir_info_t *file, int flags, enum appfs_type t
             // 不存在则增加一个新的
             appfs_files[i].dir_info_fd = dir_info_fd;
             appfs_files[i].flags = flags;
-            // appfs_files[i].pid = pid;
+            appfs_files[i].pid = pid;
             appfs_files[i].offset = 0;
             appfs_files[i].type = type;
             appfs_files[i].used = 1;
-            // pthread_mutex_init(&appfs_files[i].mutex, NULL);
             return i;
         }
     }
@@ -134,6 +146,11 @@ static appfs_file_t *appfs_get_file(int fd)
 
 int appfs_open(const char *name, int flags, int mode)
 {
+#ifdef MKRTOS
+    int pid = thread_get_src_pid();
+#else
+    int pid = 0;
+#endif
     int ret;
     const dir_info_t *file;
     int fd;
@@ -163,7 +180,7 @@ int appfs_open(const char *name, int flags, int mode)
         {
             return -ENOENT;
         }
-        fd = appfs_file_alloc(file, flags, type);
+        fd = appfs_file_alloc(file, flags, type, pid);
         if (fd < 0)
         {
             return fd;
@@ -171,7 +188,7 @@ int appfs_open(const char *name, int flags, int mode)
     }
     else if (type == APPFS_DIR_TYPE)
     {
-        fd = appfs_file_alloc(NULL, flags, type);
+        fd = appfs_file_alloc(NULL, flags, type, pid);
         if (fd < 0)
         {
             return fd;
@@ -233,7 +250,7 @@ int appfs_read(int fd, void *data, int len)
 int appfs_ioctl(int fd, unsigned long cmd, unsigned long arg)
 {
 #ifdef MKRTOS
-    pid_t src_pid = thread_get_src_pid();
+    int src_pid = thread_get_src_pid();
 #endif
     appfs_file_t *file = appfs_get_file(fd);
     int ret = 0;
@@ -440,7 +457,7 @@ int appfs_close(int fd)
         }
     }
     file->dir_info_fd = -1;
-    // file->pid = -1;
+    file->pid = -1;
     file->flags = 0;
     file->offset = 0;
     file->used = 0;

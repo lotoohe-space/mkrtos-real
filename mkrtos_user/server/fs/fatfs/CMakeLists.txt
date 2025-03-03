@@ -26,6 +26,7 @@ target_link_libraries(
     sys
     sys_util
     sys_svr
+    fd
     # stm32f1_bsp
     ${GCC_LIB_PATH}/libgcc.a
 )
@@ -41,12 +42,15 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/stm32f1_bsp/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/stm32f1_bsp/core_inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/fatfs/ext_disk_drv
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/fd
 )
 add_dependencies(
     fatfs.elf
     ${START_LIB}
     sys
     sys_util
+    fd
     # stm32f1_bsp
 )
 set_target_properties(

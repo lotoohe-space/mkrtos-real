@@ -170,7 +170,7 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
             }
             slist_del(&pos->node);
             handler_free_umap(pos->sig_hd);   //!< 删除信号通知的ipc
-            handler_del_umap(pos->watch_pid); //!< 删除被watch的进程
+            handler_free_umap(pos->watch_pid); //!< 删除被watch的进程
             u_free(pos);
         }
         pos = next;
