@@ -8,13 +8,17 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Wno-builtin-declaration-mismatch \
 ")
 
-message(编译参数：${CMAKE_C_FLAGS})
+# message(编译参数：${CMAKE_C_FLAGS})
+
+# cortex-m 系列处理器采用相同的内核arch
+if(${CONFIG_ARCH} MATCHES "cortex-m")
+    set(CONFIG_ARCH "cortex-m")
+endif()
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/knl/mm
 )
 add_subdirectory(arch)
-add_subdirectory(drivers)
 add_subdirectory(knl)
 add_subdirectory(lib)
 add_subdirectory(test)
@@ -31,12 +35,10 @@ target_link_libraries(
     knl
     arch
     lib
-    drv
     test
     --no-whole-archive
 )
 add_dependencies(mkrtos.elf arch)
-add_dependencies(mkrtos.elf drv)
 add_dependencies(mkrtos.elf knl)
 add_dependencies(mkrtos.elf lib)
 add_dependencies(mkrtos.elf test)
@@ -63,8 +65,6 @@ add_custom_target(
     COMMAND
     ${CMAKE_COMMAND} -E copy  mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/mkrtos.elf
     COMMAND
-    ${CMAKE_OBJDUMP} -s -S mkrtos.elf > ${CMAKE_SOURCE_DIR}/build/output/mkrtos.S
-    COMMAND
     ${CMAKE_SIZE} mkrtos.elf
 )
 if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
@@ -80,6 +80,5 @@ add_dependencies(mkrtos_dump mkrtos.elf)
 add_dependencies(mkrtos_dump knl)
 add_dependencies(mkrtos_dump arch)
 add_dependencies(mkrtos_dump lib)
-add_dependencies(mkrtos_dump drv) 
 
 

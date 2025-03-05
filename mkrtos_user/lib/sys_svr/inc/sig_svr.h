@@ -14,7 +14,7 @@ typedef struct sig_op
 typedef struct sig
 {
     rpc_svr_obj_t svr_obj;
-    sig_op_t *op;
+    const sig_op_t *op;
 } sig_t;
 
 void sig_svr_obj_init(sig_t *sig);

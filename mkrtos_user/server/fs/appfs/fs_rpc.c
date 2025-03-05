@@ -16,6 +16,7 @@
 
 static fs_t fs;
 
+#ifdef CONFIG_USING_SIG
 static int fs_sig_call_back(pid_t pid, umword_t sig_val)
 {
     switch (sig_val)
@@ -26,7 +27,7 @@ static int fs_sig_call_back(pid_t pid, umword_t sig_val)
     }
     return 0;
 }
-
+#endif
 int fs_svr_open(const char *path, int flags, int mode)
 {
     int fd;

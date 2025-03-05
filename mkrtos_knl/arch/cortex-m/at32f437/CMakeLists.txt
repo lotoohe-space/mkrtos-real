@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 
-file(GLOB deps **/*.s *.s **/*.C *.c)
+file(GLOB deps **/*.s *.s **/*.C *.c uart/at32f437_uart.c)
 
 file(GLOB bsp_src ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/drivers/src/*.c)
 list(APPEND deps ${bsp_src})
@@ -17,6 +17,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/lib
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/drv
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/knl
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/core_support
     ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/device_support

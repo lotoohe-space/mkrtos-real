@@ -8,6 +8,7 @@
 #include <u_sleep.h>
 #include <u_vmam.h>
 #include <unistd.h>
+#include <stdlib.h>
 int main(int argc, char *argv[])
 {
     int fd;
