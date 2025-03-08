@@ -17,7 +17,7 @@ int main(int argv, char *args[])
     int ret;
     printf("args[0]:%s\n", args[0]);
 
-    ret = rpc_meta_init(TASK_THIS, &hd);
+    ret = rpc_meta_init_def(TASK_THIS, &hd);
     assert(ret >= 0);
     fs_svr_init();
     ns_register("/vfs_test", hd, 0);

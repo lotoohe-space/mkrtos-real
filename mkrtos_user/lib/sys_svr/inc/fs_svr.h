@@ -4,7 +4,8 @@
 #include "u_rpc_svr.h"
 #include "u_types.h"
 
-typedef struct fs_operations {
+typedef struct fs_operations
+{
     int (*fs_svr_open)(const char *path, int flags, int mode);
     int (*fs_svr_read)(int fd, void *buf, size_t len);
     int (*fs_svr_write)(int fd, void *buf, size_t len);
@@ -24,11 +25,13 @@ typedef struct fs_operations {
     int (*fs_svr_stat)(const char *path, void *buf);
     ssize_t (*fs_svr_readlink)(const char *path, char *buf, size_t bufsize);
     int (*fs_svr_statfs)(const char *path, struct statfs *buf);
-    //select
-    //poll
+    int (*fs_svr_poll)(/*struct pollfd*/ void *fds, unsigned long n, int timeout);
+    // select
+    // poll
 } fs_operations_t;
 
-typedef struct fs {
+typedef struct fs
+{
     rpc_svr_obj_t svr;
     const fs_operations_t *op;
 } fs_t;

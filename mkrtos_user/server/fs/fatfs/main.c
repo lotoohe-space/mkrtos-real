@@ -36,7 +36,7 @@ int main(int args, char *argv[])
     int ret;
     fast_ipc_init();
 
-    ret = rpc_meta_init(TASK_THIS, &hd);
+    ret = rpc_meta_init_def(TASK_THIS, &hd);
     assert(ret >= 0);
     fs_svr_init();
     ns_register("/mnt", hd, 0);

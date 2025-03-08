@@ -343,6 +343,11 @@ ns_node_t *ns_node_find_svr_file(const char *path, int *ret, int *cur_inx)
         {
             return parent_node;
         }
+        if (!parent_node)
+        {
+            *ret = -ENOENT;
+            return NULL;
+        }
         if ((parent_node->type == NODE_TYPE_DUMMY && (dir_node == NULL || dir_node->type == NODE_TYPE_DUMMY)))
         {
             return &root_node;

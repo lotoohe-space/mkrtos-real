@@ -201,7 +201,14 @@
         "sig_cli.h": "c",
         "sig_svr.h": "c",
         "pm.h": "c",
-        "u_sig.h": "c"
+        "u_sig.h": "c",
+        "ns.h": "c",
+        "termios.h": "c",
+        "u_queue.h": "c",
+        "cons.h": "c",
+        "*.def": "c",
+        "poll.h": "c",
+        "u_rpc_1.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

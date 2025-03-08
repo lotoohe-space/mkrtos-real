@@ -20,7 +20,7 @@ int appfs_write(int fd, void *data, int len);
 int appfs_read(int fd, void *data, int len);
 int appfs_ioctl(int fd, unsigned long cmd, unsigned long arg);
 int appfs_lseek(int fd, int offset, unsigned long whence);
-int appfs_fstat(int fd, struct stat *st);
+int appfs_fstat(int fd, struct kstat *st);
 int appfs_stat(const char *path, struct kstat *st);
 int appfs_close(int fd);
 int appfs_remove(const char *name);

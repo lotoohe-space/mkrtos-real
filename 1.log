@@ -1,0 +1,309 @@
+请输入板卡名字，使用默认板卡：
+netduino2
+[       0]: ==============================sys flash layer info============================
+[       0]: [0]	[0x8000000 0x8001fff]	bootstrap 8192B
+[       0]: [1]	[0x8002000 0x8003fff]	dtbo 8192B
+[       0]: [2]	[0x8004000 0x801ffff]	kernel 114688B
+[       0]: [3]	[0x8020000 0x87fffff]	bootfs 8257536B
+[       0]: =======================================================================
+[       0]: ==============================sys flash info============================
+[       0]: [0]	[0x8000000 0x87fffff] 8388608B
+[       0]: =======================================================================
+[       0]: ==============================sys mem info============================
+[       0]: [0]	[0x20000000 0x21ffffff] 33554432B
+[       0]: =======================================================================
+[       0]: init dts parsing.
+[       0]: fdt_size:414
+[       0]: 0xd00dfeed 0x11
+[       0]: total mem size:33545896.
+[       0]: sema init cnt:1 max:1.
+[       0]th_knl: ================
+[       0]th_knl: start heap:0x20002154.
+[       0]th_knl: l heap:0x20002154.
+[       0]th_knl: end heap:0x21ffffe8.
+[       0]th_knl: 0 [0x20002154-] 33545856B
+[       0]th_knl: mem total size:33545876.
+[       0]th_knl: ================
+[       0]th_knl: create thread 0x20002800
+[       0]th_knl: sema init cnt:1 max:1.
+[       0]th_knl: create task is 0x20002200
+[       0]th_knl: init task text is 0x80ec000.
+[       0]th_knl: task alloc [0x20004000 - 0x2000c197]
+[       0]th_knl: mkrtos init done..
+[       0]th_knl: mkrtos running..
+[       0]th_knl: sys freq:120000000
+[       0]th_knl:  _____ ______   ___  __    ________  _________  ________  ________      
+[       0]th_knl: |\   _ \  _   \|\  \|\  \ |\   __  \|\___   ___\\   __  \|\   ____\     
+[       0]th_knl: \ \  \\\__\ \  \ \  \/  /|\ \  \|\  \|___ \  \_\ \  \|\  \ \  \___|_    
+[       0]th_knl:  \ \  \\|__| \  \ \   ___  \ \   _  _\   \ \  \ \ \  \\\  \ \_____  \   
+[       0]th_knl:   \ \  \    \ \  \ \  \\ \  \ \  \\  \|   \ \  \ \ \  \\\  \|____|\  \  
+[       0]th_knl:    \ \__\    \ \__\ \__\\ \__\ \__\\ _\    \ \__\ \ \_______\____\_\  \ 
+[       0]th_knl:     \|__|     \|__|\|__| \|__|\|__|\|__|    \|__|  \|_______|\_________\
+[       0]th_knl:                                                             \|_________|
+[       0]th_knl: Complie Time:Mar  8 2025 22:49:37
+[       7]: sema init cnt:1 max:1.
+stack 0x200055c0 1800
+stack 0x20006dc0 1800
+[      17]: sema init cnt:2 max:2.
+init..
+[      20]th_init: sema init cnt:1 max:1.
+[      27]th_init: sema init cnt:1 max:1.
+[      28]th_init: sema init cnt:0 max:1.
+[      29]th_init: create thread 0x2000d800
+cons init...
+cmd_line:block /dev/block
+parse_cfg args[0] = block
+parse_cfg args[1] = /dev/block
+parse_cfg cmd_params_num:2
+block addr is [0x804e000]
+[      41]th_init: sema init cnt:1 max:1.
+[      41]th_init: create task is 0x2000ede4
+[      42]th_init: create thread 0x2000f800
+[      43]th_init: sema init cnt:0 max:1.
+[      44]th_init: task alloc [0x20011000 - 0x2001523b]
+stack:0x200119f0 size:1536.
+app_load 1 cp_args:0x20011fd0
+app_load 1 cp_args:0x20011fc4
+app_load 2 cp_args:0x20011fc4
+app_load 2 cp_args:0x20011fd0
+pid:26 stack:0x20011f90
+cmd_line:appfs -m /bin -d /dev/block
+parse_cfg args[0] = appfs
+parse_cfg args[1] = -m
+parse_cfg args[2] = /bin
+parse_cfg args[3] = -d
+parse[      59]: sema init cnt:0 max:1.
+_cfg args[4] = /dev/block
+parse_cfg cmd_params_num:5
+appfs addr is [0x803a000]
+[      64]th_init: sema init cnt:1 max:1.
+[      64]th_init: create task is 0x2000f194
+[      66]th_init: create thread 0x20015800
+[      68]th_init: sema init cnt:0 max:1.
+[      70]th_init: task alloc [0x20017000 - 0x2001c43b]
+stack:0x20018610 size:2048.
+app_load 1 cp_args:0x20018df0
+app_load 1 cp_args:0x20018dec
+app_load 1 cp_args:0x20018de4
+app_load 1 cp_args:0x20018de0
+app_load 1 cp_args:0x20018dd4
+app_load 2 cp_args:0x20018dd4
+app_load 2 cp_args:0x2tty i0018de0
+app_load 2 cp_args:0x20018de4
+app_nit...
+load 2 cp_args:0x20018dec
+app_load 2 cp_args:0x20018df0
+pid:27 stack:0x20018d90
+[      89]: sema init cnt:1 max:1.
+cmd_line:sh
+parse_cfg args[0] = sh
+parse_cfg cmd_params_num:1
+sh addr is [0x805b000]
+[      96]th_init: sema init cnt:1 max:1.
+[      96]th_init: create task is 0x200100d8
+[      99]th_init: create thread 0x2001c800
+[      99]th_init: sema init cnt:0 max:1.
+tty init...
+[     102]th_init: task alloc [0x2001e000 - 0x20026d5f]
+tty init...
+stack:0x200229f0 size:2048.
+tty init...
+tty app_load 1 cp_args:0x200231d4
+app_l[     109]: sema init cnt:0 max:1.
+init...
+oad 2 cp_args:0x200231d4
+pid:29 stack:0x200231tty init...
+a0
+run app num is 3.
+tty init...
+[     127]: sema init cnt:1 max:1.
+[     129]: sema init cnt:0 max:1.
+block init..
+tty init...
+stack 0x20012000 800tty init...
+tty init...
+
+[     145]th_blk: sema init cnt:1 max:1.
+tty init...
+tty init...
+tty init...
+[     152]: sema init cnt:1 max:1.
+register [/dev/block] success.
+tty init..args[0]:appfs.
+
+tty init...
+args[1]:-m
+args[2]:/bin
+args[3]:-d
+sh ipc init.
+args[4]:/dev/block
+stack 0x20018e38 800stack 0x200231
+[     185]th_appf: sema init cnt:1 max:1.
+f0 800
+[     188]: sema init cnt:1 max:1.
+mount patty init...
+th:/bintty in
+it...
+tty init...
+args[0]:shflash mem_addr:0x8020000 blk_size:
+0x1000 blk_nr:0x7e0
+[     208]th_appf: share mem:[0x20028000 0x20029000]
+
+block_buf addrmkrtos:0x20028000
+:/$ register [/bin] success.
+[     300]th_knl: knl main run..
+
+mkrtos:/$ 
+mkrtos:/$ 
+mkrtos:/$ fatfs
+pm run fatfs.
+fatfs addr is [0x80d7000]
+[    3891]th_shel: sema init cnt:1 max:1.
+[    3891]th_shel: create task is 0x20016a90
+[    3892]th_shel: create thread 0x20029800
+[    3893]th_shel: sema init cnt:0 max:1.
+[    3894]th_shel: task alloc [0x20030000 - 0x200551f7]
+stack:0x200306a0 size:2048.
+app_load 1 cp_args:0x20030e80
+app_load 2 cp_args:0x20030e80
+pid:38 stack:0x20030e50
+[pm] watch pid:38, sig hd:37[    3932]: sema init cnt:0 max:1.
+.
+tty init...
+[    3973]: sema init cnt:1 max:1.
+tty init...
+tty init...
+tty init...
+tty init...
+tty init...
+stack 0x20030f38 800
+[    4002]: sema init cnt:1 max:1.
+[    4003]: sema init cnt:1 max:1.
+register [/mnt] success.
+[    6110]: futex_unmap:664
+[    6110]: sema 0x20016268 free.
+[    6110]: sema 0x20015768 free.
+[    6110]: sema 0x20015704 free.
+[    6110]: sema 0x20010f08 free.
+[    6110]: release thread 0x20029800, name:
+[    6110]: release tk 20016a90, name is:
+watch_pid:38 pid:38
+[pm] kill pid:38 code:0.
+
+mkrtos:/$ 
+mkrtos:/$ 
+mkrtos:/$ 
+mkrtos:/$ ls
+/mnt			0B
+/bin			0B
+/sys			0B
+/dev			0B
+Return: 0, 0x00000000
+
+mkrtos:/$ cd mnt
+Return: -2, 0xfffffffe
+
+mkrtos:/$ 
+mkrtos:/$ ls
+/bin			0B
+/sys			0B
+/dev			0B
+Return: 0, 0x00000000
+
+mkrtos:/$ fatfs &
+pm run fatfs.
+params[1]: &
+fatfs addr is [0x80d7000]
+[   13777]th_shel: sema init cnt:1 max:1.
+[   13777]th_shel: create task is 0x2001c454
+[   13778]th_shel: create thread 0x2002a000
+[   13779]th_shel: sema init cnt:0 max:1.
+[   13780]th_shel: task alloc [0x20030000 - 0x200551f7]
+stack:0x200306a0 size:2048.
+app_load 1 cp_args:0x20030e80
+app_load 1 cp_args:0x20030e7c
+app_load 2 cp_args:0x20030e7c
+app_load 2 cp_args:0x20030e80
+pid:45 stack:0x20030e48
+[   13788]: sema init cnt:0 max:1.
+
+mkrtostty init...
+[   13799]: sema init cnt:1 max:1.
+:tty init...
+/$ tty init...
+tty init...
+tty init...
+tty init...
+stack 0x20030f38 800
+[   13818]: sema init cnt:1 max:1.
+[   13819]: sema init cnt:1 max:1.
+register [/mnt] success.
+
+mkrtos:/$ ls
+/mnt			0B
+/bin			0B
+/sys			0B
+/dev			0B
+Return: 0, 0x00000000
+
+mkrtos:/$ s ls
+/mnt			0B
+/bin			0B
+/sys			0B
+/dev			0B
+Return: 0, 0x00000000
+
+mkrtos:/$ vi /mnt/1.txt
+pm run vi.
+params[1]: /mnt/1.txt
+vi addr is [0x8081000]
+[   25484]th_shel: sema init cnt:1 max:1.
+[   25484]th_shel: create task is 0x20027ca4
+[   25485]th_shel: create thread 0x2002b800
+[   25486]th_shel: sema init cnt:0 max:1.
+[   25487]th_shel: task alloc [0x20058000 - 0x2007ba67]
+stack:0x20078480 size:3072.
+app_load 1 cp_args:0x20079064
+app_load 1 cp_args:0x20079058
+app_load 2 cp_args:0x20079058
+app_load 2 cp_args:0x20079064
+pid:54 stack:0x20079028
+[pm] watch pid:54, sig hd:53.
+[   25618]: sema init cnt:0 max:1.
+tty init...
+[   25625]: sema init cnt:1 max:1.
+tty init...
+tty init...
+tty init...
+tty init...
+tty init...
+vi running..
+[?1049h[H[J[2;1H~[3;1H~[4;1H~[5;1H~[6;1H~[7;1H~[8;1H~[9;1H~[10;1H~[11;1H~[12;1H~[13;1H~[14;1H~[15;1H~[16;1H~[17;1H~[18;1H~[19;1H~[20;1H~[21;1H~[22;1H~[23;1H~[1;1H[24;1H[K- /mnt/1.txt 1/1 100%[1;1H[1;1H[24;1H[KI /mnt/1.txt 1/1 100%[1;1H[1;1Hi[1;2H[24;1H[KI /mnt/1.txt [Modified] 1/1 100%[1;2H[1;2Hn[1;3H[1;3Ht[1;4H[1;5H[1;5Hm[1;6H[1;6Ha[1;7H[1;7Hi[1;8H[1;8Hn[1;9H[1;9H([1;10H[1;10Hv[1;11H[1;11Ho[1;12H[1;12Hi[1;13H[1;13Hd[1;14H[1;14H)[1;15H[2;1H [2;1H[24;1H[KI /mnt/1.txt [Modified] 2/2 100%[2;1H[2;1H{[2;2H[3;1H [3;1H[24;1H[KI /mnt/1.txt [Modified] 3/3 100%[3;1H[3;1Hr[3;2H[3;2He[3;3H[3;2H [3;2H[3;1H [3;1H[3;5H[3;5Hr[3;6H[3;6He[3;7H[3;7Ht[3;8H[3;8Hu[3;9H[3;9Hr[3;10H[3;10Hn[3;11H[3;12H[3;12H0[3;13H[3;13H;[3;14H[4;1H [4;1H[24;1H[KI /mnt/1.txt [Modified] 4/4 100%[4;1H[4;1H}[4;2H[4;2H:[4;3H[4;2H [4;2H[4;1H[24;1H[K- /mnt/1.txt [Modified] 4/4 100%[4;1H[24;1H[K:wq[pm] watch pid:54, sig hd:57.
+[4;1H[4;1H[24;1H[K'/mnt/1.txt' 4L, 30C[4;1H[24;1H[K[?1049lwatch_pid:54 pid:54
+
+watch_pid:54 pid:54mkrtos
+:/$ [pm] kill pid:54 code:0.
+[   37135]: futex_unmap:664
+[   37135]: sema 0x20016b90 free.
+[   37135]: sema 0x20016b2c free.
+[   37135]: sema 0x20016740 free.
+[   37135]: release thread 0x2002b800, name:
+[   37135]: release tk 20027ca4, name is:
+ca  cd mnt
+Return: 0, 0x00000000
+
+mkrtos:/$ ls
+[pm] watch pid:29, sig hd:58.
+/1.txt			0B
+Return: 0, 0x00000000
+
+mkrtos:/$ cat 1.txt
+pm wath pid -17 err.
+int main(void)
+{
+	return 0;
+}
+Return: 0, 0x00000000
+
+mkrtos:/$ QEMU: Terminated
+

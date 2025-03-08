@@ -92,12 +92,16 @@ int meta_reg_svr_obj(rpc_svr_obj_t *svr_obj, umword_t prot)
     return meta_reg_svr_obj_raw(&meta_obj, svr_obj, prot);
 }
 AUTO_CALL(101)
-void meta_obj_init(void)
+void meta_obj_init_def(void)
 {
-    if (!meta_obj.svr.dispatch)
+    meta_obj_init(&meta_obj);
+}
+void meta_obj_init(meta_t *meta)
+{
+    if (!meta->svr.dispatch)
     {
         // 防止重复初始化
-        rpc_svr_obj_init(&meta_obj.svr, rpc_meta_t_dispatch, META_PROT);
+        rpc_svr_obj_init(&meta->svr, rpc_meta_t_dispatch, META_PROT);
     }
 }
 static msg_tag_t rpc_meta_t_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg)
@@ -132,7 +136,28 @@ static msg_tag_t rpc_meta_t_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, 
         return msg;
     }
 }
+int rpc_meta_init_def(obj_handler_t tk_hd, obj_handler_t *ret_ipc_hd)
+{
+    return rpc_meta_init(&meta_obj, tk_hd, ret_ipc_hd);
+}
+int rpc_meta_init(meta_t *meta_obj, obj_handler_t tk_hd, obj_handler_t *ret_ipc_hd)
+{
+    int ret;
 
+    if (meta_obj->is_init)
+    {
+        *ret_ipc_hd = meta_obj->hd_meta;
+        return 0;
+    }
+    ret = rpc_creaite_bind_ipc(tk_hd, &meta_obj->svr, ret_ipc_hd);
+    if (ret < 0)
+    {
+        return ret;
+    }
+    meta_obj->hd_meta = *ret_ipc_hd;
+    meta_obj->is_init = TRUE;
+    return 0;
+}
 /**
  * @brief 绑定IPC
  *
@@ -167,209 +192,3 @@ int rpc_creaite_bind_ipc(obj_handler_t tk, void *obj, obj_handler_t *ret_ipc_hd)
     *ret_ipc_hd = ipc_hd;
     return 0;
 }
-int rpc_meta_init(obj_handler_t tk_hd, obj_handler_t *ret_ipc_hd)
-{
-    int ret;
-
-    if (meta_obj.is_init)
-    {
-        *ret_ipc_hd = meta_obj.hd_meta;
-        return 0;
-    }
-    ret = rpc_creaite_bind_ipc(tk_hd, &meta_obj.svr, ret_ipc_hd);
-    if (ret < 0)
-    {
-        return ret;
-    }
-    meta_obj.hd_meta = *ret_ipc_hd;
-    meta_obj.is_init = TRUE;
-    return 0;
-}
-#if 0
-/**
- * @brief RPC循环处理消息
- *
- * @param ipc_hd
- * @param svr_obj
- * @param dispatch
- */
-void rpc_loop(void)
-{
-    umword_t obj = 0;
-    msg_tag_t tag;
-    umword_t buf;
-    ipc_msg_t *msg;
-    rpc_svr_obj_t *svr_obj;
-
-    thread_msg_buf_get(-1, &buf, NULL);
-    msg = (ipc_msg_t *)buf;
-    while (1)
-    {
-        rpc_hd_alloc();
-        tag = thread_ipc_wait(ipc_timeout_create2(0, 0), &obj, -1);
-        if (msg_tag_get_val(tag) < 0)
-        {
-            continue;
-        }
-        svr_obj = (rpc_svr_obj_t *)obj;
-        if (svr_obj != NULL && svr_obj->dispatch)
-        {
-            tag = svr_obj->dispatch(svr_obj, tag, msg);
-        }
-        else
-        {
-            tag = msg_tag_init4(0, 0, 0, -ENOSYS);
-        }
-        thread_ipc_reply(tag, ipc_timeout_create2(0, 0));
-    }
-}
-#define RPC_MTD_TH_STACK_SIZE (1024 + 256)
-typedef struct mtd_params
-{
-    rpc_svr_obj_t *obj;
-    void *stack;
-    int is_del;
-    msg_tag_t in_tag;
-    obj_handler_t ipc_obj;
-    obj_handler_t th_obj;
-    slist_head_t node;
-} mtd_params_t;
-static slist_head_t th_head;
-static pthread_spinlock_t lock;
-static void rpc_mtc_thread(void *arg)
-{
-    rpc_svr_obj_t *svr_obj;
-    msg_tag_t tag;
-    ipc_msg_t *msg;
-    mtd_params_t *params = (mtd_params_t *)arg;
-
-    thread_msg_buf_get(-1, (umword_t *)(&msg), NULL);
-    svr_obj = (rpc_svr_obj_t *)params->obj;
-    if (svr_obj->dispatch)
-    {
-        tag = svr_obj->dispatch(svr_obj, params->in_tag, msg);
-    }
-    thread_ipc_send(tag, params->ipc_obj, ipc_timeout_create2(0, 0));
-    params->is_del = 1;
-    while (1)
-    {
-        u_sleep_ms(1000);
-    }
-}
-static void check_release_stack_mem(void)
-{
-    mtd_params_t *pos;
-
-    pthread_spin_lock(&lock);
-    slist_foreach_not_next(pos, &th_head, node)
-    {
-        mtd_params_t *next = slist_next_entry(pos, &th_head, node);
-
-        if (pos->is_del == 1)
-        {
-            slist_del(&pos->node);
-            // void *stack = (void *)((char *)pos - (RPC_MTD_TH_STACK_SIZE + MSG_BUG_LEN));
-            handler_del_umap(pos->ipc_obj);
-            u_thread_del(pos->th_obj);
-            free(pos->stack);
-        }
-        pos = next;
-    }
-    pthread_spin_unlock(&lock);
-}
-extern void __pthread_new_thread_entry__(void);
-int rpc_mtd_loop(void)
-{
-    umword_t obj = 0;
-    msg_tag_t tag;
-    umword_t buf;
-    obj_handler_t ipc_hd;
-    uint8_t *main_msg_buf;
-
-    thread_msg_buf_get(-1, (umword_t *)(&main_msg_buf), NULL);
-    slist_init(&th_head);
-    while (1)
-    {
-        rpc_hd_alloc();
-        check_release_stack_mem();
-        ipc_hd = handler_alloc();
-        if (ipc_hd == HANDLER_INVALID)
-        {
-            // cons_write_str("mtd alloc is fial.\n");
-            // u_sleep_ms(1000);
-            continue;
-        }
-        tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(0, 0, ipc_hd));
-        if (msg_tag_get_val(tag) < 0)
-        {
-            // cons_write_str("mtd factory ipc fail.\n");
-            handler_free(ipc_hd);
-            // u_sleep_ms(1000);
-            continue;
-        }
-
-        tag = thread_ipc_wait(ipc_timeout_create2(1000, 1000), &obj, ipc_hd);
-        if (msg_tag_get_val(tag) < 0)
-        {
-            handler_free_umap(ipc_hd);
-            continue;
-        }
-    again_create:;
-        obj_handler_t th_obj;
-        void *stack;
-
-        stack = memalign(sizeof(void *) * 2,
-                         RPC_MTD_TH_STACK_SIZE + MSG_BUG_LEN + sizeof(mtd_params_t));
-        if (!stack)
-        {
-            // cons_write_str("mtd no stack mem.\n");
-            check_release_stack_mem();
-            // u_sleep_ms(1000);
-            goto again_create;
-        }
-        uint8_t *msg_buf = (uint8_t *)stack + RPC_MTD_TH_STACK_SIZE;
-
-        int ret_val;
-        umword_t *stack_tmp = (umword_t *)((uint8_t *)stack + RPC_MTD_TH_STACK_SIZE);
-        mtd_params_t *params = (mtd_params_t *)((char *)stack + RPC_MTD_TH_STACK_SIZE + MSG_BUG_LEN);
-
-        // 设置调用参数等
-        *(--stack_tmp) = (umword_t)(params);
-        *(--stack_tmp) = (umword_t)0; // 保留
-        *(--stack_tmp) = (umword_t)rpc_mtc_thread;
-
-        //
-        params->in_tag = tag;
-        params->ipc_obj = ipc_hd;
-        params->obj = (rpc_svr_obj_t *)obj;
-        params->stack = stack;
-        params->is_del = 0;
-
-        slist_init(&params->node);
-        pthread_spin_lock(&lock);
-        slist_add(&th_head, &params->node);
-        pthread_spin_unlock(&lock);
-    again_th_create:
-        ret_val = u_thread_create(&params->th_obj,
-                                  (char *)stack_tmp,
-                                  (char *)stack + RPC_MTD_TH_STACK_SIZE,
-                                  (void (*)(void))__pthread_new_thread_entry__);
-
-        if (ret_val < 0)
-        {
-            // cons_write_str("mtd no mem.\n");
-            check_release_stack_mem();
-            // u_sleep_ms(1000);
-            goto again_th_create;
-        }
-        memcpy(msg_buf, main_msg_buf, MSG_BUG_LEN - IPC_USER_SIZE);
-        ipc_msg_t *msg = (ipc_msg_t *)msg_buf;
-
-        msg->user[2] = thread_get_src_pid();
-        u_thread_run(params->th_obj, 2);
-
-        // thread_ipc_reply(tag, ipc_timeout_create2(0, 0));
-    }
-    return 0;
-}
-#endif

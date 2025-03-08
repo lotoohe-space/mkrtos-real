@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     dtb_parse_init();
 
     blk_drv_init(&snd_drv);
-    ret = rpc_meta_init(TASK_THIS, &hd);
+    ret = rpc_meta_init_def(TASK_THIS, &hd);
     assert(ret >= 0);
     ns_register("/snd", hd, 0);
     meta_reg_svr_obj(&snd_drv.svr, BLK_DRV_PROT);

@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     dtb_parse_init();
 
     blk_drv_init(&net_drv);
-    ret = rpc_meta_init(TASK_THIS, &hd);
+    ret = rpc_meta_init_def(TASK_THIS, &hd);
     assert(ret >= 0);
     // fs_svr_init();
     // mkdir("/dev", 0777);

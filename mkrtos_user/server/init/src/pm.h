@@ -17,3 +17,4 @@ static inline obj_handler_t pm_hd2pid(pid_t _pid)
 {
     return (obj_handler_t)_pid;
 }
+int pm_rpc_copy_data(pid_t src_pid, pid_t dst_pid, umword_t src_addr, umword_t dst_addr, size_t len);

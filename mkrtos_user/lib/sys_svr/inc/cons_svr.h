@@ -12,7 +12,7 @@ typedef struct cons
     rpc_svr_obj_t svr;
     queue_t r_queue;
     uint8_t r_data[CONS_WRITE_BUF_SIZE];
-    pthread_spinlock_t r_lock;
+    // pthread_spinlock_t r_lock;
     // pthread_mutex_t w_lock;
     pid_t active_pid;
     obj_handler_t hd_cons_read;

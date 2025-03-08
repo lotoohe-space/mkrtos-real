@@ -15,6 +15,9 @@
 #include "stdarg.h"
 #include "shell_ext.h"
 #include "fs_types.h"
+#include "u_sig.h"
+#include <termios.h>
+#include <unistd.h>
 #if SHELL_USING_CMD_EXPORT == 1
 /**
  * @brief 默认用户
@@ -234,7 +237,7 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
         else if (cmd->attr.attrs.type <= SHELL_TYPE_KEY)
         {
             cmd->data.key.desc += start_addr;
-            cmd->data.key.function = (void*)(int (*)())((unsigned long)cmd->data.key.function + start_addr | 0x1);
+            cmd->data.key.function = (void *)(int (*)())((unsigned long)cmd->data.key.function + start_addr | 0x1);
         }
     }
 #endif
@@ -1454,6 +1457,7 @@ void shellExec(Shell *shell)
         {
             uint8_t params[FS_RPC_BUF_LEN];
             int params_len = 0;
+            int pid;
 
             for (int i = 1; i < shell->parser.paramCount; i++)
             {
@@ -1461,9 +1465,30 @@ void shellExec(Shell *shell)
                 params_len += strlen(shell->parser.param[i]) + 1;
             }
             //!< 内建命令中未找到，则执行应用
-            if (pm_run_app(shell->parser.param[0], PM_APP_BG_RUN/*PM_APP_BG_RUN*/, params, params_len) < 0)
+            pid = pm_run_app(shell->parser.param[0], 0 /*PM_APP_BG_RUN*/, params, params_len);
+            if (pid < 0)
             {
                 shellWriteString(shell, shellText[SHELL_TEXT_CMD_NOT_FOUND]);
+            }
+            else
+            {
+                pid_t cur_pid;
+
+                if (strcmp(shell->parser.param[shell->parser.paramCount - 1], "&") != 0)
+                {
+                    shell->parser.param[shell->parser.paramCount - 1] = NULL;
+                    shell->parser.paramCount--;
+                    task_get_pid(TASK_THIS, &cur_pid);
+                    pm_sig_watch(pid, 0);
+                    extern void tty_set_raw_mode(void);
+                    extern void tty_set_normal_mode(void);
+
+                    tty_set_normal_mode();
+                    tcsetpgrp(STDIN_FILENO, pid);
+                    pm_waitpid(pid, NULL);
+                    tcsetpgrp(STDIN_FILENO, cur_pid);
+                    tty_set_raw_mode();
+                }
             }
         }
     }

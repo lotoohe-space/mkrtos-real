@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <dirent.h>
+#include <poll.h>
 #include <u_types.h>
 #include <u_rpc.h>
 sd_t fs_open(const char *path, int flags, int mode);
@@ -23,3 +24,4 @@ int fs_rename(char *old, char *new);
 int fs_stat(char *path, void *buf);
 int fs_readlink(const char *path, char *buf, int bufsize);
 int fs_statfs(const char *path, statfs_t *buf);
+int fs_poll(struct pollfd *fds, nfds_t n, int timeout);

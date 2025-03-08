@@ -12,6 +12,7 @@
 #include <string.h>
 #include <assert.h>
 #include <sys/stat.h>
+#include <poll.h>
 #include "kstat.h"
 typedef struct kstat kstat_t;
 RPC_TYPE_DEF_ALL(kstat_t)
@@ -596,5 +597,38 @@ int fs_statfs(const char *path, statfs_t *buf)
         return msg_tag_get_val(tag);
     }
     *buf = rpc_buf.data;
+    return msg_tag_get_val(tag);
+}
+// long poll(struct pollfd *fds, nfds_t n, int timeout)
+RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_POLL, poll,
+                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, fds,
+                     rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, n,
+                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, timeout)
+
+int fs_poll(struct pollfd *fds, nfds_t n, int timeout)
+{
+    if (!fds || n == 0)
+    {
+        return -EINVAL;
+    }
+    obj_handler_t hd = mk_sd_init_raw(fds[0].fd).hd;
+    msg_tag_t tag;
+
+    rpc_ref_file_array_t rpc_fds = {
+        .data = (uint8_t *)(fds),
+        .len = sizeof(*fds) * n,
+    };
+    rpc_umword_t_t rpc_n = {
+        .data = n,
+    };
+    rpc_int_t rpc_timeout = {
+        .data = timeout,
+    };
+
+    tag = fs_t_poll_call(hd, &rpc_fds, &rpc_n, &rpc_timeout);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        return msg_tag_get_val(tag);
+    }
     return msg_tag_get_val(tag);
 }

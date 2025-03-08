@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <fcntl.h>
 int ls(int argc, char *agrv[])
 {
     DIR *dir;
@@ -117,7 +118,7 @@ int cat(int argc, char *argv[])
 
     while ((c = fgetc(fp)) != EOF)
     {
-        cons_write((uint8_t *)&c, 1);
+        write(STDOUT_FILENO, (uint8_t *)&c, 1);
     }
     fclose(fp);
 
@@ -178,8 +179,7 @@ int shell_symlink(int argc, char *argv[])
     return symlink(argv[1], argv[2]);
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), symlink, shell_symlink, symlink command);
-#include <unistd.h>
-#include <fcntl.h>
+
 int shell_touch(int argc, char *argv[])
 {
     if (argc < 2)

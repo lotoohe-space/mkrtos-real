@@ -20,6 +20,9 @@ int main(int argc, char *argv[])
         printf("open faile:%d.\n", fd);
         return fd;
     }
+    while(1){
+        u_sleep_ms(100000);
+    }
     exit(-3333);
     return 0;
 }

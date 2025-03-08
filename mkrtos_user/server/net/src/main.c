@@ -51,7 +51,7 @@ int main(int args, char *argv[])
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_net");
     printf("net startup..\n");
     fast_ipc_init();
-    ret = rpc_meta_init(TASK_THIS, &hd);
+    ret = rpc_meta_init_def(TASK_THIS, &hd);
     if (ret < 0)
     {
         printf("rpc meta init failed\n");

@@ -25,9 +25,24 @@
 AUTO_CALL(101)
 void fs_backend_init(void)
 {
-    assert(fd_map_alloc(0, 0, FD_TTY) >= 0);
-    assert(fd_map_alloc(0, 1, FD_TTY) >= 0);
-    assert(fd_map_alloc(0, 2, FD_TTY) >= 0);
+
+    umword_t cur_pid;
+    msg_tag_t tag;
+
+    tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
+    assert(msg_tag_get_val(tag) >= 0);
+    if (cur_pid != 0)
+    {
+        assert(be_open("/dev/tty", O_RDWR, 0) >= 0);
+        assert(be_open("/dev/tty", O_RDWR, 0) >= 0);
+        assert(be_open("/dev/tty", O_RDWR, 0) >= 0);
+    }
+    else
+    {
+        assert(fd_map_alloc(0, 0, FD_TTY) >= 0);
+        assert(fd_map_alloc(0, 1, FD_TTY) >= 0);
+        assert(fd_map_alloc(0, 2, FD_TTY) >= 0);
+    }
 }
 #define FS_PATH_LEN 64
 static char cur_path[FS_PATH_LEN] = "/";
@@ -491,21 +506,25 @@ long be_poll(struct pollfd *fds, nfds_t n, int timeout)
         if (fds[0].fd >= 3)
         {
             /*TODO:暂时只支持TTY*/
-            return -1;
+            return -ENOSYS;
         }
         /*FIXME:性能优化*/
         if (fds[0].events & POLLIN)
         {
             char buf;
             int len;
+            int ret;
             int time = 0;
 
             if (timeout == -1)
             {
-                // u_sema_down(SEMA_PROT);
             again1:
-                len = cons_read(&buf, 0);
-                if (len <= 0)
+                ret = ioctl(fds[0].fd, FIONREAD, &len);
+                if (ret < 0)
+                {
+                    return ret;
+                }
+                if (len == 0)
                 {
                     u_sleep_ms(1);
                     goto again1;
@@ -515,8 +534,12 @@ long be_poll(struct pollfd *fds, nfds_t n, int timeout)
             else
             {
             again:
-                len = cons_read(&buf, 0);
-                if (len <= 0)
+                ret = ioctl(fds[0].fd, FIONREAD, &len);
+                if (ret < 0)
+                {
+                    return ret;
+                }
+                if (len == 0)
                 {
                     u_sleep_ms(1);
                     time++;

@@ -163,6 +163,9 @@ int appfs_open(const char *name, int flags, int mode)
     }
     else
     {
+        if (name[0] == '/') {
+            name++;
+        }
         type = APPFS_FILE_TYPE;
     }
     if (type == APPFS_FILE_TYPE)
@@ -399,7 +402,7 @@ int appfs_truncate(int fd, off_t length)
     ret = appfs_file_resize_raw(fs, dir_info_cache_list[file->dir_info_fd].info, length);
     return ret;
 }
-int appfs_fstat(int fd, struct stat *st)
+int appfs_fstat(int fd, struct kstat *st)
 {
     appfs_file_t *file = appfs_get_file(fd);
 

@@ -13,7 +13,7 @@
 #include "u_env.h"
 #include "rpc_prot.h"
 #include "cons_svr.h"
-#include "namespace.h"
+#include "ns.h"
 #include "u_task.h"
 #include "u_hd_man.h"
 #include "u_sig.h"
@@ -22,6 +22,7 @@
 #include "u_malloc.h"
 #include "nsfs.h"
 #include "sig_cli.h"
+#include "tty.h"
 #include <errno.h>
 #include <malloc.h>
 #include <stdio.h>
@@ -130,14 +131,16 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
         handler_free_umap(sig_rcv_hd);
         return -ENOMEM;
     }
-
+#if 0
+    entry->notify_sem_hd = HANDLER_INVALID;
+#endif
     entry->sig_hd = sig_rcv_hd;
     entry->src_pid = src_pid;
     entry->watch_pid = pid;
     entry->flags = flags;
     slist_init(&entry->node);
     slist_add_append(&pm->watch_head, &entry->node);
-    printf("[pm] watch pid:%d, sig hd:%d.\n", src_pid, sig_rcv_hd);
+    printf("[pm] watch pid:%d, sig hd:%d.\n", pid, sig_rcv_hd);
     return 0;
 }
 #if IS_ENABLED(CONFIG_USING_SIG)
@@ -160,6 +163,7 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
     {
         watch_entry_t *next = slist_next_entry(pos, &pm->watch_head, node);
 
+        printf("watch_pid:%d pid:%d\n", pos->watch_pid, pid);
         if (pos->watch_pid == pid)
         {
             if (sig_val == KILL_SIG)
@@ -184,10 +188,8 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
  * @param flags
  * @return int
  */
-int pm_rpc_kill_task(int pid, int flags, int exit_code)
+int pm_rpc_kill_task(int src_pid, int pid, int flags, int exit_code)
 {
-    pid_t src_pid = thread_get_src_pid();
-
     if (pid == TASK_THIS)
     {
         printf("not kill init task.\n");
@@ -200,15 +202,15 @@ int pm_rpc_kill_task(int pid, int flags, int exit_code)
     }
 
     // ns_node_del_by_pid(pid, flags); TODO:         //!< 从ns中删除
-    pm_del_watch_by_pid(&pm, pid); //!< 从watch中删除
-#if IS_ENABLED(CONFIG_USING_SIG)
-    pm_send_sig_to_task(&pm, pid, KILL_SIG); //!< 给watch者发送sig
-#endif
+    #if IS_ENABLED(CONFIG_USING_SIG)
     if (src_pid != pid)
     {
         // 发起者自己删除
         handler_del_umap(pid);
     }
+    pm_send_sig_to_task(&pm, pid, KILL_SIG); //!< 给watch者发送sig
+    #endif
+    pm_del_watch_by_pid(&pm, pid); //!< 从watch中删除
     printf("[pm] kill pid:%d code:%d.\n", pid, exit_code);
     return 0;
 }
@@ -247,11 +249,15 @@ int pm_rpc_run_app(const char *path, int flags, char *params, int params_len)
                    NULL, 0, &sem, 0);
     if (ret >= 0)
     {
+        #if 0
         if (!(flags & PM_APP_BG_RUN))
         {
-            console_active(pid, sem);
+            tty_set_fg_pid(pid);
         }
+        #endif
+        return pid;
     }
+    return ret;
 }
 /**
  * @brief 用于拷贝数据
@@ -272,3 +278,27 @@ int pm_rpc_copy_data(pid_t src_pid, pid_t dst_pid, umword_t src_addr, umword_t d
 
     return msg_tag_get_val(tag);
 }
+#if 0
+/**
+ * @brief 等待某个进程死亡
+ */
+int pm_waitpid(obj_handler_t sig_rcv_hd, pid_t pid)
+{
+    pid_t src_pid = thread_get_src_pid();
+    watch_entry_t *pos;
+
+    /*TODO:检测sig_rcv_hd的类型*/
+    slist_foreach_not_next(pos, &pm->watch_head, node)
+    {
+        watch_entry_t *next = slist_next_entry(pos, &pm->watch_head, node);
+
+        if (pos->watch_pid == pid && src_pid == pos->src_pid)
+        {
+            pos->notify_sem_hd = sig_rcv_hd;
+            break;
+        }
+        pos = next;
+    }
+    return 0;
+}
+#endif

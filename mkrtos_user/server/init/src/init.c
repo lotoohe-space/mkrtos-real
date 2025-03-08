@@ -9,7 +9,7 @@
  *
  */
 #include "cons.h"
-#include "namespace.h"
+#include "ns.h"
 #include "ns_svr.h"
 #include "parse_cfg.h"
 #include "pm.h"
@@ -31,9 +31,10 @@
 #include <string.h>
 #include <u_fast_ipc.h>
 #include "nsfs.h"
+#include "tty.h"
 #define DEFAULT_INIT_CFG "init.cfg"
 
-#define STACK_COM_ITME_SIZE (2 * 1024 /*sizeof(struct pthread) + TP_OFFSET*/)
+#define STACK_COM_ITME_SIZE ((1024+512) * 4)
 #define STACK_NUM 2
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
@@ -61,10 +62,10 @@ int main(int argc, char *args[])
     ulog_write_str(LOG_PROT, "init..\n");
     u_env_default_init();
     env = u_get_global_env();
-    rpc_meta_init(TASK_THIS, &env->ns_hd);
+    rpc_meta_init_def(TASK_THIS, &env->ns_hd);
     namespace_init(env->ns_hd);
     pm_init();
-    console_init();
+    // console_init();
     parse_cfg_init();
 
     fs_ns_mkdir("/dev");
@@ -73,7 +74,7 @@ int main(int argc, char *args[])
     printf("test_main..\n");
     test_main();
 #endif
-
+    tty_svr_init();
     ret = parse_cfg(DEFAULT_INIT_CFG, env);
     printf("run app num is %d.\n", ret);
     // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, THREAD_MAIN));

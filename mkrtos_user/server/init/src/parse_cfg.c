@@ -22,7 +22,7 @@
 #include <u_mutex.h>
 #include <u_hd_man.h>
 #include <stdlib.h>
-
+#include "tty.h"
 #include <parse_cfg.h>
 #include <appfs_tiny.h>
 static char cmd_line[CMD_LEN];                              //!< 命令行
@@ -186,7 +186,8 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
                 }
                 else
                 {
-                    console_active(pid, hd_sem);
+                    // console_active(pid, hd_sem);
+                    tty_set_fg_pid(pid);
                     run_cn++;
                 }
             }

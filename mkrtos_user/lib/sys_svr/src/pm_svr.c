@@ -48,7 +48,7 @@ RPC_GENERATION_OP3(pm_t, PM_PROT, PM_KILL_TASK, kill_task,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, exit_code)
 {
     int16_t ret = 0;
-    ret = pm_rpc_kill_task(pid->data, flags->data, exit_code->data);
+    ret = pm_rpc_kill_task(thread_get_src_pid(), pid->data, flags->data, exit_code->data);
     return ret;
 }
 

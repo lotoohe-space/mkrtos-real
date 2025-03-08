@@ -10,3 +10,4 @@ void sig_init(void);
 int pm_sig_watch(pid_t pid, int flags);
 sig_call_back pm_sig_func_set(sig_call_back sig_func);
 int pm_sig_del_watch(pid_t pid, int flags);
+int pm_waitpid(pid_t pid, umword_t *status);

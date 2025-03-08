@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
     {
         printf("argv[%d]: %s\n", i, argv[i]);
     }
+    exit(-1);
     net_test();
     fs_test3();
     fs_test2();

@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2023
  *
  */
-#include "namespace.h"
+#include "ns.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -28,6 +28,7 @@
 #include "u_rpc_svr.h"
 #include "u_slist.h"
 #include "nsfs.h"
+
 static ns_t ns;
 static fs_t ns_fs;
 

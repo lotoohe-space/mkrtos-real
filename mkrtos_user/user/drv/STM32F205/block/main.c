@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 
     flash_init();
     blk_drv_init(&blk_drv);
-    ret = rpc_meta_init(TASK_THIS, &hd);
+    ret = rpc_meta_init_def(TASK_THIS, &hd);
     assert(ret >= 0);
     ns_register(argv[1], hd, 0);
     meta_reg_svr_obj(&blk_drv.svr, BLK_DRV_PROT);

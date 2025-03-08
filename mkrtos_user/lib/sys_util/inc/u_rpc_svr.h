@@ -32,15 +32,13 @@ typedef struct meta
     bool_t is_init;
 } meta_t;
 
-int rpc_meta_init(obj_handler_t tk, obj_handler_t *ret_ipc_hd);
-void meta_obj_init(void);
+int rpc_meta_init_def(obj_handler_t tk, obj_handler_t *ret_ipc_hd);
+int rpc_meta_init(meta_t *meta_obj, obj_handler_t tk_hd, obj_handler_t *ret_ipc_hd);
+void meta_obj_init_def(void);
+void meta_obj_init(meta_t *meta);
 void meta_unreg_svr_obj_raw(meta_t *meta, umword_t prot);
 void meta_unreg_svr_obj(umword_t prot);
 rpc_svr_obj_t *meta_find_svr_obj(umword_t prot);
 int meta_reg_svr_obj(rpc_svr_obj_t *svr_obj, umword_t prot);
 int meta_reg_svr_obj_raw(meta_t *meta, rpc_svr_obj_t *svr_obj, umword_t prot);
 int rpc_creaite_bind_ipc(obj_handler_t tk, void *obj, obj_handler_t *ipc_hd);
-#if 0
-void rpc_loop(void);
-int rpc_mtd_loop(void);
-#endif
