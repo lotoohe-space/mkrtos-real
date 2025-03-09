@@ -224,7 +224,7 @@ int safe_poll(struct pollfd *ufds, nfds_t nfds, int timeout)
 
 void *xzalloc(size_t size)
 {
-    void *ptr = malloc(size);
+    void *ptr = u_malloc(size);
     memset(ptr, 0, size);
     return ptr;
 }

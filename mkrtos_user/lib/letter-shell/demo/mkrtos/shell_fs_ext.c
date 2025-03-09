@@ -48,7 +48,7 @@ int ls(int argc, char *agrv[])
     while ((ptr = readdir(dir)) != NULL)
     {
         struct stat st = {0};
-        strcat(path, "/");
+        // strcat(path, "/");
         strcat(path, ptr->d_name);
         ret = stat(path, &st);
         // if (ret >= 0)
@@ -238,3 +238,10 @@ int shell_sys_info(int argc, char *argv[])
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), sys, shell_sys_info, sys command);
+
+int shell_exit(int argc, char *argv[])
+{
+    exit(0);
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), exit, exit, exit command);

@@ -11,14 +11,16 @@
 * [ ] 文件系统&网络协议栈完善自动删除支持(文件描述符自动管理库)
 * [x] 内核信号量对象完善,支持超时（已完成）。
 * [ ] 内核信号量支持优先级反转
-* [ ] FPU完善支持，目前版本偶发压栈错误
-* [ ] console 支持自动切换前后台
+* [x] TTY 支持自动切换前后台
 * [x] 重构路径管理（nsfs）
 * [ ] 线程占用率统计
 * [x] 去除原来的ipc机制（使用fastipc机制），并单独实现sleep接口，目前的ipc有概率卡死问题
 * [ ] 几大组件稳定性测试
 * [ ] dup, dup2等接口支持
-* [ ] fastipc FPU支持
+* [ ] FPU完整支持，fastipc FPU支持
+* [x] TTY驱动支持
+* [ ] proc支持
+* [ ] 新进程中env支持
 ### mid prio
 * [x] net server support
 * [x] block driver
@@ -29,11 +31,13 @@
 * [x] pin drvier
 * [x] snd drvier
 * [ ] ymodem support
+* [x] vi support
 ### low prio
 - [ ] toybox support
 - [ ] ota support
 - [ ] lvgl support
 - [ ] modbus support
+- [ ] poll/select实现
 
 #### must low prio
 - [ ] AT proctol support

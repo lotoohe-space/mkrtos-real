@@ -20,6 +20,7 @@
 // #include <dfs_poll.h>
 #include <poll.h>
 #include <sys/types.h>
+#include <u_malloc.h>
 
 #define BB_VER "latest: 2021-04-07"
 #define BB_BT "busybox vi"
@@ -262,7 +263,7 @@
 } while (0)
 #define FREE_PTR_TO_GLOBALS() do { \
     if (ENABLE_FEATURE_CLEAN_UP) { \
-        free(ptr_to_globals); \
+        u_free(ptr_to_globals); \
     } \
 } while (0)
 
@@ -338,11 +339,26 @@ int isatty (int  fd);
 /* At least gcc 3.4.6 on mipsel system needs optimization barrier */
 #define barrier() __asm__ __volatile__("":::"memory")
 #endif
-
-#define xmalloc malloc
-#define xrealloc realloc
-#define xstrdup strdup
-#define xstrndup strndup
+static inline char *u_strdup(const char *s)
+{
+	size_t l = strlen(s);
+	char *d = u_malloc(l+1);
+	if (!d) return NULL;
+	return memcpy(d, s, l+1);
+}
+static inline char *u_strndup(const char *s, size_t n)
+{
+	size_t l = strnlen(s, n);
+	char *d = u_malloc(l+1);
+	if (!d) return NULL;
+	memcpy(d, s, l);
+	d[l] = 0;
+	return d;
+}
+#define xmalloc u_malloc
+#define xrealloc u_realloc
+#define xstrdup u_strdup
+#define xstrndup u_strndup
 #define bb_putchar putchar
 #define bb_strtou strtoul
 #define bb_simple_error_msg_and_die(...) printf(__VA_ARGS__)

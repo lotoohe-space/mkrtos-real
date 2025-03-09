@@ -7,10 +7,34 @@
 #include <sys/shm.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <string.h>
 
 #include <u_malloc.h>
+#include <u_mutex.h>
+#include <u_hd_man.h>
+#include <assert.h>
+#include <errno.h>
 
 static struct allocmem *memlocs = NULL;
+static u_mutex_t lock_mutex = U_MUTEX_INIT;
+
+static void alloc_lock(void)
+{
+    obj_handler_t lock_hd;
+
+    if (lock_mutex.obj == HANDLER_INVALID)
+    {
+        lock_hd = handler_alloc();
+        assert(lock_hd != HANDLER_INVALID);
+        u_mutex_init(&lock_mutex, lock_hd);
+    }
+    u_mutex_lock(&lock_mutex, 0, NULL);
+}
+static void alloc_unlock(void)
+{
+    assert(lock_mutex.obj != HANDLER_INVALID);
+    u_mutex_unlock(&lock_mutex);
+}
 
 static struct allocmem *new_alloc_mem()
 {
@@ -83,10 +107,13 @@ struct allocmem *find_and_remove(struct allocmem *ptr, void *searchPtr)
 void *u_malloc(size_t size)
 {
     struct allocmem *info = NULL;
+
+    alloc_lock();
     memlocs = insert_end(memlocs, &info);
     if (info == NULL)
     {
         /// Failed to initialize metadata info
+        alloc_unlock();
         return NULL;
     }
     void *ptr;
@@ -101,8 +128,10 @@ void *u_malloc(size_t size)
         info->ptr = ptr;
         info->size = size;
         /// Return this precious pointer
+        alloc_unlock();
         return ptr;
     }
+    alloc_unlock();
     return NULL;
 }
 
@@ -127,16 +156,44 @@ void *u_calloc(size_t size, int nmemb)
     }
     return newPtr;
 }
+void *u_realloc(void *old, size_t size)
+{
+    struct allocmem *info;
+    size_t old_size;
+    void *new_mem = u_malloc(size);
 
+    if (!new_mem)
+    {
+        return NULL;
+    }
+    alloc_lock();
+    info = find(memlocs, old);
+    if (info == NULL)
+    {
+        alloc_unlock();
+        u_free(new_mem);
+        return NULL;
+    }
+    old_size = info->size;
+    alloc_unlock();
+    memcpy(new_mem, old, old_size);
+    u_free(old);
+    return new_mem;
+}
 void u_free(void *ptr)
 {
     if (ptr == NULL)
         return;
+    alloc_lock();
     struct allocmem *info = find(memlocs, ptr);
     if (info == NULL)
+    {
+        alloc_unlock();
         return;
+    }
     munmap(info->ptr, info->size);
     memlocs = find_and_remove(memlocs, ptr);
+    alloc_unlock();
 }
 
 /// Violently Remove Everything

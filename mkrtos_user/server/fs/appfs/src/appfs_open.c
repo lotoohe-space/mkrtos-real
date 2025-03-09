@@ -163,7 +163,8 @@ int appfs_open(const char *name, int flags, int mode)
     }
     else
     {
-        if (name[0] == '/') {
+        if (name[0] == '/')
+        {
             name++;
         }
         type = APPFS_FILE_TYPE;
@@ -176,7 +177,10 @@ int appfs_open(const char *name, int flags, int mode)
         }
         if (ret < 0)
         {
-            return ret;
+            if (ret != -EEXIST)
+            {
+                return ret;
+            }
         }
         file = appfs_find_file_by_name(fs, name);
         if (file == NULL)
@@ -429,6 +433,10 @@ int appfs_stat(const char *path, struct kstat *st)
         st->st_mode = S_IFDIR;
         st->st_nlink = 0;
         return 0;
+    }
+    if (path[0] == '/')
+    {
+        path++;
     }
     file = appfs_find_file_by_name(fs, path);
     if (file == NULL)

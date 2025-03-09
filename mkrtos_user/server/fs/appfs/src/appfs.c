@@ -337,7 +337,7 @@ int appfs_create_file(fs_info_t *info, const char *path, int size)
     ret = appfs_check_file_exist(info, path);
     if (ret < 0)
     {
-        return ret;
+        return -EEXIST;
     }
 
     for (int i = 0; i < info->save.dirinfo_nr; i++)
@@ -430,6 +430,8 @@ int appfs_write_file(fs_info_t *info, const char *name, void *data, int size, in
         // 写入数据
         int write_size = MIN(size, info->save.block_size - (offset % info->save.block_size));
 
+        write_size = MIN(dir_info->size - offset, write_size);
+
         if (write_size != info->save.block_size)
         {
             ret = info->cb.hw_read_block(info, block_inx + k + block_offset_inx, info->buf, info->save.block_size);
@@ -479,6 +481,7 @@ int appfs_read_file(fs_info_t *info, const char *name, void *data, int size, int
         // 写入数据
         int read_size = MIN(size, info->save.block_size - (offset % info->save.block_size));
 
+        read_size = MIN(dir_info->size - offset, read_size);
         ret = info->cb.hw_read_block(info, block_inx + k + block_offset_inx, info->buf, info->save.block_size);
         if (ret < 0)
         {

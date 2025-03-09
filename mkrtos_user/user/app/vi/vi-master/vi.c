@@ -364,7 +364,7 @@ struct globals
     {                                                    \
         FREE_PTR_TO_GLOBALS();                           \
         /* "" but has space for 2 chars: */              \
-        IF_FEATURE_VI_SEARCH(free(last_search_pattern);) \
+        IF_FEATURE_VI_SEARCH(u_free(last_search_pattern);) \
     } while (0)
 
 static void edit_file(char *); // edit one file
@@ -592,11 +592,11 @@ int vi_main(int argc, char **argv)
 
     /* RT-Thread team added */
     fflush_all();
-    free(text);
-    free(screen);
-    free(current_filename);
+    u_free(text);
+    u_free(screen);
+    u_free(current_filename);
 #if ENABLE_FEATURE_VI_DOT_CMD
-    free(ioq_start);
+    u_free(ioq_start);
 #endif
     DELETE_G();
     return 0;
@@ -617,13 +617,13 @@ static int init_text_buffer(char *fn)
 #endif
 
     /* allocate/reallocate text buffer */
-    free(text);
+    u_free(text);
     text_size = 10240;
     screenbegin = dot = end = text = xzalloc(text_size);
 
     if (fn != current_filename)
     {
-        free(current_filename);
+        u_free(current_filename);
         current_filename = xstrdup(fn);
     }
     rc = file_insert(fn, text, 1);
@@ -720,7 +720,7 @@ static void edit_file(char *fn)
     offset = 0; // no horizontal offset
     c = '\0';
 #if ENABLE_FEATURE_VI_DOT_CMD
-    free(ioq_start);
+    u_free(ioq_start);
     ioq_start = NULL;
     lmc_len = 0;
     adding2q = 0;
@@ -743,7 +743,7 @@ static void edit_file(char *fn)
                 if (*q)
                     colon(q);
             } while (p);
-            free(initial_cmds[n]);
+            u_free(initial_cmds[n]);
             initial_cmds[n] = NULL;
             n++;
         }
@@ -855,7 +855,7 @@ static char *get_one_address(char *p, int *addr) // get colon addr, if present
         if (p + 1 != q)
         {
             // save copy of new pattern
-            free(last_search_pattern);
+            u_free(last_search_pattern);
             last_search_pattern = xstrndup(p, q - p);
         }
         p = q;
@@ -1181,11 +1181,11 @@ static void colon(char *buf)
 #if ENABLE_FEATURE_VI_YANKMARK
         if (Ureg >= 0 && Ureg < 28)
         {
-            free(reg[Ureg]); //   free orig line reg- for 'U'
+            u_free(reg[Ureg]); //   u_free orig line reg- for 'U'
             reg[Ureg] = NULL;
         }
         /*if (YDreg < 28) - always true*/ {
-            free(reg[YDreg]); //   free default yank/delete register
+            u_free(reg[YDreg]); //   u_free default yank/delete register
             reg[YDreg] = NULL;
         }
 #endif
@@ -1209,7 +1209,7 @@ static void colon(char *buf)
         if (args[0])
         {
             // user wants a new filename
-            free(current_filename);
+            u_free(current_filename);
             current_filename = xstrdup(args);
         }
         else
@@ -1958,7 +1958,7 @@ static void new_screen(int ro, int co)
 {
     char *s;
 
-    free(screen);
+    u_free(screen);
     screensize = ro * co + 8;
     s = screen = xmalloc(screensize);
     // initialize the new screen. assume this will be a empty file.
@@ -2413,7 +2413,7 @@ static void flush_undo_data(void)
     {
         undo_entry = undo_stack_tail;
         undo_stack_tail = undo_entry->prev;
-        free(undo_entry);
+        u_free(undo_entry);
     }
 }
 
@@ -2605,7 +2605,7 @@ static void undo_pop(void)
     }
     // Deallocate the undo object we just processed
     undo_stack_tail = undo_entry->prev;
-    free(undo_entry);
+    u_free(undo_entry);
     modified_count--;
     // For chained operations, continue popping all the way down the chain.
     if (repeat)
@@ -2853,7 +2853,7 @@ static char *text_yank(char *p, char *q, int dest, int buftype)
         p = q;
         cnt = -cnt;
     }
-    free(reg[dest]); //  if already a yank register, free it
+    u_free(reg[dest]); //  if already a yank register, u_free it
     reg[dest] = xstrndup(p, cnt + 1);
     return p;
 }
@@ -3031,7 +3031,7 @@ static int get_one_char(void)
             if (c != '\0')
                 return c;
             // the end of the q
-            free(ioq_start);
+            u_free(ioq_start);
             ioq_start = NULL;
             // read from STDIN:
         }
@@ -4076,7 +4076,7 @@ key_cmd_mode:
         if (q[0])
         { // strlen(q) > 1: new pat- save it and find
             // there is a new pat
-            free(last_search_pattern);
+            u_free(last_search_pattern);
             last_search_pattern = xstrdup(q);
             goto dc3; // now find the pattern
         }

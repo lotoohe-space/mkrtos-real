@@ -6,6 +6,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Wno-unused-function \
 -Wno-unused-variable \
 -Wno-builtin-declaration-mismatch \
+-Ofast \
 ")
 
 # message(编译参数：${CMAKE_C_FLAGS})
