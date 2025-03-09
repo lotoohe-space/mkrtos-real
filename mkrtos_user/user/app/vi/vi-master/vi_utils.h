@@ -21,7 +21,6 @@
 #include <poll.h>
 #include <sys/types.h>
 #include <u_malloc.h>
-
 #define BB_VER "latest: 2021-04-07"
 #define BB_BT "busybox vi"
 

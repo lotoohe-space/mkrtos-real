@@ -65,7 +65,7 @@ void be_exit(long exit_code)
     while (1)
     {
         // thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
-        u_sleep_ms((umword_t)-1);
+        u_sleep_ms(U_SLEEP_ALWAYS);
     }
 }
 

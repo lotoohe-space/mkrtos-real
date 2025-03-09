@@ -49,6 +49,6 @@ int main(int argc, char *argv[])
     ns_register("/i2c2", hd, 0);
     while (1)
     {
-        u_sleep_ms(0);
+        u_sleep_ms(U_SLEEP_ALWAYS);
     }
 }

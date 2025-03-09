@@ -384,6 +384,9 @@ long be_ioctl(long fd, long req, void *args)
         ret = fs_ioctl(u_fd.priv_fd, req, args);
     }
     break;
+    default:
+        ret = -ENOSYS;
+        break;
     }
     return ret;
 }
@@ -519,7 +522,7 @@ long be_poll(struct pollfd *fds, nfds_t n, int timeout)
             if (timeout == -1)
             {
             again1:
-                ret = ioctl(fds[0].fd, FIONREAD, &len);
+                ret = be_ioctl(fds[0].fd, FIONREAD, &len);
                 if (ret < 0)
                 {
                     return ret;
@@ -534,7 +537,7 @@ long be_poll(struct pollfd *fds, nfds_t n, int timeout)
             else
             {
             again:
-                ret = ioctl(fds[0].fd, FIONREAD, &len);
+                ret = be_ioctl(fds[0].fd, FIONREAD, &len);
                 if (ret < 0)
                 {
                     return ret;

@@ -159,6 +159,6 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-        u_sleep_ms(0);
+        u_sleep_ms(U_SLEEP_ALWAYS);
     }
 }

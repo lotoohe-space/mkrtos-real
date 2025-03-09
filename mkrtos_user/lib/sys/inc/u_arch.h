@@ -2,8 +2,9 @@
 #include "u_types.h"
 #include "u_arch_hard.h"
 
-
+#ifndef PAGE_SIZE
 #define PAGE_SIZE (1UL << CONFIG_PAGE_SHIFT)
+#endif
 #define MK_PAGE_SIZE (PAGE_SIZE)
 #define WORD_BYTES (sizeof(void *))
 #define WORD_BITS (WORD_BYTES * 8)

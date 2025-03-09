@@ -135,7 +135,7 @@ again:
         }
         else
         {
-            u_sleep_ms(0);
+            u_sleep_ms(U_SLEEP_ALWAYS);
         }
     }
     return 0;

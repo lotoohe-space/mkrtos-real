@@ -112,6 +112,7 @@ void MemManage_Handler(void)
     }
     return;
   }
+  printk("error SCB->CFSR:0x%x.\n", SCB->CFSR);
   if ((SCB->CFSR & 8))
   {
     SCB->CFSR |= 8;

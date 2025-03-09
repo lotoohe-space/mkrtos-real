@@ -80,7 +80,7 @@ int main(int argc, char *args[])
     // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, THREAD_MAIN));
     while (1)
     {
-        u_sleep_ms((umword_t)(-1));
+        u_sleep_ms(U_SLEEP_ALWAYS);
     }
     return 0;
 }

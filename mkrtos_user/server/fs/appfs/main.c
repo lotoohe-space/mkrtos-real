@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 #endif
     while (1)
     {
-        u_sleep_ms((umword_t)(-1));
+        u_sleep_ms(U_SLEEP_ALWAYS);
     }
     return 0;
 }

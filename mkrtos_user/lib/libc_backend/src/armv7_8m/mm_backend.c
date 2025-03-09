@@ -208,10 +208,12 @@ long be_munmap(void *start, size_t len)
     assert(info);
     void *heap_addr = (void *)((umword_t)TASK_RAM_BASE() + info->i.heap_offset - info->i.data_offset);
 
-    if (len & (PAGE_SIZE - 1))
-    {
-        return -EINVAL;
-    }
+    len = ALIGN(len, MK_PAGE_SIZE);
+
+    // if (len & (PAGE_SIZE - 1))
+    // {
+    //     return -EINVAL;
+    // }
     // printf("munmap 0x%x, 0x%x.\n", start, len);
     tag = u_vmam_free(VMA_PROT, (addr_t)(start), len);
     if (msg_tag_get_val(tag) < 0)

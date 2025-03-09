@@ -128,6 +128,6 @@ int main(int argc, char *argv[])
     while (1)
     {
         // rpc_loop();
-        u_sleep_ms((umword_t)(-1));
+        u_sleep_ms(U_SLEEP_ALWAYS);
     }
 }

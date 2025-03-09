@@ -102,6 +102,6 @@ int main(int argc, char *argv[])
     meta_reg_svr_obj(&net_drv.svr, BLK_DRV_PROT);
     while (1)
     {
-        u_sleep_ms(0);
+        u_sleep_ms(U_SLEEP_ALWAYS);
     }
 }

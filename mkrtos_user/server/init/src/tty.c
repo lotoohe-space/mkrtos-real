@@ -98,7 +98,7 @@ static void console_read_func(void)
     // handler_free_umap(cons_obj.hd_cons_read);
     while (1)
     {
-        u_sleep_ms(0);
+        u_sleep_ms(U_SLEEP_ALWAYS);
     }
 }
 
