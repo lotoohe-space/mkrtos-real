@@ -58,7 +58,7 @@ int main(int args, char *argv[])
         return -1;
     }
 again:
-    ret = ns_query_svr("/eth", &net_drv_hd, 0x1);
+    ret = ns_query_svr("/dev/eth", &net_drv_hd, 0x1);
     if (ret < 0)
     {
         // 0代表根节点

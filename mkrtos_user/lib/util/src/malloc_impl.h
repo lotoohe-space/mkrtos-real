@@ -34,5 +34,6 @@ struct bin {
 
 #define IS_MMAPPED(c) !((c)->csize & (C_INUSE))
 
+void u__bin_chunk(struct chunk *self);
 
 #endif

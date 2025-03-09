@@ -85,8 +85,6 @@ static void console_read_func(void)
             if (!sys_tty.is_nl && L_ICANON(&sys_tty))
             {
                 tty_write_hw(&sys_tty);
-                // 规范模式下没有成一行
-                cons_read_unlock();
             }
             else
             {

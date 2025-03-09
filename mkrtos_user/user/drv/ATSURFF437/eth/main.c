@@ -96,9 +96,7 @@ int main(int argc, char *argv[])
     blk_drv_init(&net_drv);
     ret = rpc_meta_init_def(TASK_THIS, &hd);
     assert(ret >= 0);
-    // fs_svr_init();
-    // mkdir("/dev", 0777);
-    ns_register("/eth", hd, 0);
+    ns_register("/dev/eth", hd, 0);
     meta_reg_svr_obj(&net_drv.svr, BLK_DRV_PROT);
     while (1)
     {

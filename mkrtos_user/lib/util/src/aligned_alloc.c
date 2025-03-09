@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include "malloc_impl.h"
-
+#include "u_malloc.h"
 void *aligned_alloc(size_t align, size_t len)
 {
 	unsigned char *mem, *new;
@@ -19,9 +19,9 @@ void *aligned_alloc(size_t align, size_t len)
 	}
 
 	if (align <= SIZE_ALIGN)
-		return malloc(len);
+		return u_malloc(len);
 
-	if (!(mem = malloc(len + align-1)))
+	if (!(mem = u_malloc(len + align-1)))
 		return 0;
 
 	new = (void *)((uintptr_t)mem + align-1 & -align);
@@ -48,6 +48,6 @@ void *aligned_alloc(size_t align, size_t len)
 	n->psize = c->csize = C_INUSE | (new-mem);
 	n->csize = t->psize -= new-mem;
 
-	__bin_chunk(c);
+	u__bin_chunk(c);
 	return new;
 }

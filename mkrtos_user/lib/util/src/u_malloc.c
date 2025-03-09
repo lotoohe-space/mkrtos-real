@@ -12,7 +12,6 @@
 // #include "fork_impl.h"
 
 void u_free(void *p);
-static void __bin_chunk(struct chunk *self);
 // #define malloc __libc_malloc_impl
 // #define realloc __libc_realloc
 // #define free __libc_free
@@ -400,7 +399,7 @@ void *u_realloc(void *p, size_t n)
 		struct chunk *split = (void *)((char *)self + n);
 		self->csize = split->psize = n | C_INUSE;
 		split->csize = next->psize = n0-n | C_INUSE;
-		__bin_chunk(split);
+		u__bin_chunk(split);
 		return CHUNK_TO_MEM(self);
 	}
 
@@ -433,7 +432,7 @@ copy_free_ret:
 	return new;
 }
 
-static void __bin_chunk(struct chunk *self)
+void u__bin_chunk(struct chunk *self)
 {
 	struct chunk *next = NEXT_CHUNK(self);
 
@@ -517,7 +516,7 @@ void u_free(void *p)
 	if (IS_MMAPPED(self))
 		unmap_chunk(self);
 	else
-		__bin_chunk(self);
+		u__bin_chunk(self);
 }
 #if 0
 static void __malloc_donate(char *start, char *end)

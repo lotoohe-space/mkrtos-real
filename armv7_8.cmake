@@ -1,6 +1,6 @@
 message("========use armv7_8.cmake")
 
-set(CMAKE_C_FLAGS "-mcpu=${CONFIG_ARCH} -O0 -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE}  -mthumb  -DMKRTOS \
+set(CMAKE_C_FLAGS "-mcpu=${CONFIG_ARCH} -Ofast -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE}  -mthumb  -DMKRTOS \
 -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -u=_printf_float \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc \
 -fno-stack-protector -Wl,--gc-section -D__ARM_ARCH_7M__ \

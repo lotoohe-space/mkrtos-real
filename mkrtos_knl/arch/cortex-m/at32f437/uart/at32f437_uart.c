@@ -35,11 +35,15 @@ void uart_tigger(irq_entry_t *irq)
     {
         /* read one byte from the receive data register */
         q_enqueue(&queue, usart_data_receive(PRINT_USARTx));
-
+        usart_interrupt_enable(PRINT_USARTx, USART_IDLE_INT, TRUE);
+    }
+    if (usart_interrupt_flag_get(PRINT_USARTx, USART_IDLEF_FLAG) != RESET)
+    {
         if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
         {
             thread_ready_remote(irq->irq->wait_thread, TRUE);
         }
+        usart_interrupt_enable(PRINT_USARTx, USART_IDLE_INT, FALSE);
     }
 }
 
@@ -72,6 +76,8 @@ void uart_init(void)
     usart_receiver_enable(PRINT_USARTx, TRUE);
 
     usart_interrupt_enable(PRINT_USARTx, USART_RDBF_INT, TRUE);
+    usart_interrupt_enable(PRINT_USARTx, USART_IDLE_INT, TRUE);
+    
     usart_enable(PRINT_USARTx, TRUE);
    
     uart_is_init=1;

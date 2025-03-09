@@ -6,9 +6,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Wno-unused-function \
 -Wno-unused-variable \
 -Wno-builtin-declaration-mismatch \
--Ofast \
 ")
 
+# -Ofast \
 # message(编译参数：${CMAKE_C_FLAGS})
 
 # cortex-m 系列处理器采用相同的内核arch
