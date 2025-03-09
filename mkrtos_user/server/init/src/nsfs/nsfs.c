@@ -387,7 +387,7 @@ int fs_ns_readdir(int fd, struct dirent *_dir)
 
     node_info = dir_info_cache_list[file->tmp_fd].info;
     _dir->d_reclen = sizeof(*_dir);
-    _dir->d_type = node_info->type == NODE_TYPE_DUMMY ? DT_DIR : DT_REG; // DT_REG‌;
+    _dir->d_type = node_info->type == NODE_TYPE_DUMMY ? DT_DIR : DT_CHR; // DT_REG‌;
     strncpy(_dir->d_name, node_info->name, sizeof(_dir->d_name));
     _dir->d_name[sizeof(_dir->d_name) - 1] = 0;
 
