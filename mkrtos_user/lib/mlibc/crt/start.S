@@ -2,6 +2,7 @@
     .section .first
     
     .globl reloc
+    .globl heap_size
 
     .align 2
     .globl    _start_

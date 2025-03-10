@@ -96,6 +96,7 @@ msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_tim
     return msg_tag_init(r0);
 }
 #endif
+MK_SYSCALL
 msg_tag_t thread_sleep(umword_t ticks)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -111,6 +112,7 @@ msg_tag_t thread_sleep(umword_t ticks)
                      :
                      : ARCH_REG_0);
 }
+MK_SYSCALL
 msg_tag_t thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj, umword_t arg0, umword_t arg1, umword_t arg2)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -127,6 +129,7 @@ msg_tag_t thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj, umwor
                      : ARCH_REG_0);
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t thread_ipc_fast_replay(msg_tag_t in_tag, obj_handler_t target_obj, int unlock_bitmap)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -143,6 +146,7 @@ msg_tag_t thread_ipc_fast_replay(msg_tag_t in_tag, obj_handler_t target_obj, int
                      : ARCH_REG_0);
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t thread_yield(obj_handler_t obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -160,6 +164,7 @@ msg_tag_t thread_yield(obj_handler_t obj)
                      : ARCH_REG_0, ARCH_REG_1, ARCH_REG_2);
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -179,6 +184,7 @@ msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg)
                      : ARCH_REG_0, ARCH_REG_1, ARCH_REG_2);
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -207,6 +213,7 @@ msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len)
 
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t ram, umword_t cp_stack)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -226,6 +233,7 @@ msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t thread_run_cpu(obj_handler_t obj, uint8_t prio, umword_t cpu)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -245,6 +253,7 @@ msg_tag_t thread_run_cpu(obj_handler_t obj, uint8_t prio, umword_t cpu)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -263,6 +272,7 @@ msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t thread_set_exec(obj_handler_t obj, obj_handler_t exec_th)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);

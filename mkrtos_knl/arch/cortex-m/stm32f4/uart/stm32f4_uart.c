@@ -138,14 +138,15 @@ void uart_tigger(irq_entry_t *irq)
 {
     if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
     {
-        // 清除中断标志位
-        USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+        
         q_enqueue(&queue, USART_ReceiveData(USART1));
 
         if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
         {
             thread_ready_remote(irq->irq->wait_thread, TRUE);
         }
+        // 清除中断标志位
+        USART_ClearITPendingBit(USART1, USART_IT_RXNE);
     }
 }
 
@@ -191,6 +192,7 @@ void uart_init(void)
     NVIC_Init(&USART1_NVIC_InitStru);
 
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+    // USART_ITConfig(USART1, USART_IT_IDLE, ENABLE);
 
     USART_Cmd(USART1, ENABLE);
 }

@@ -1,5 +1,3 @@
-#include <u_util.h>
-#if !IS_ENABLED(CONFIG_MMU)
 /**
  * @file heap_stack.c
  * @author ATShining (1358745329@qq.com)
@@ -10,6 +8,9 @@
  * @copyright Copyright (c) 2023
  *
  */
+#include <u_types.h>
+
+#if !IS_ENABLED(CONFIG_MMU)
 #ifdef MKRTOS_TEST_MODE
 #define HEAP_SIZE (256 * 1024)
 #define STACK_SIZE (2 * 1024) //(1024 + 256)
@@ -31,4 +32,5 @@
 
 __attribute__((used)) HEAP_ATTR static char _____heap_____[HEAP_SIZE];
 __attribute__((used)) STACK_ATTR static char _____stack_____[STACK_SIZE];
+__attribute__((used)) umword_t _____mm_bitmap_____[ROUND(HEAP_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
 #endif

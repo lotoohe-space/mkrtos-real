@@ -33,9 +33,9 @@ target_link_libraries(
     mkrtos.elf
     PUBLIC
     --whole-archive
-    knl
     arch
     lib
+    knl
     test
     --no-whole-archive
 )

@@ -208,7 +208,8 @@
         "cons.h": "c",
         "*.def": "c",
         "poll.h": "c",
-        "u_rpc_1.h": "c"
+        "u_rpc_1.h": "c",
+        "mk_sys.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

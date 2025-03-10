@@ -8,7 +8,7 @@ enum share_mem_op
     SHARE_MEM_MAP,
     SHARE_MEM_UNMAP,
 };
-
+MK_SYSCALL
 msg_tag_t share_mem_map(obj_handler_t obj, vma_addr_t vaddr, umword_t *addr, umword_t *size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -35,6 +35,7 @@ msg_tag_t share_mem_map(obj_handler_t obj, vma_addr_t vaddr, umword_t *addr, umw
     }
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t share_mem_unmap(obj_handler_t obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);

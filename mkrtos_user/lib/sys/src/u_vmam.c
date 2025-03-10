@@ -9,7 +9,7 @@ enum
     VMA_FREE,
     VMA_GRANT,
 };
-
+MK_SYSCALL
 msg_tag_t u_vmam_alloc(obj_handler_t obj, vma_addr_t addr, size_t size, addr_t paddr, addr_t *vaddr)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -33,6 +33,7 @@ msg_tag_t u_vmam_alloc(obj_handler_t obj, vma_addr_t addr, size_t size, addr_t p
 
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t u_vmam_grant(obj_handler_t obj, obj_handler_t dst_task_obj, 
     addr_t src_addr, addr_t dst_addr, size_t size)
 {
@@ -52,7 +53,7 @@ msg_tag_t u_vmam_grant(obj_handler_t obj, obj_handler_t dst_task_obj,
 
     return msg_tag_init(r0);
 }
-
+MK_SYSCALL
 msg_tag_t u_vmam_free(obj_handler_t obj, addr_t addr, size_t size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);

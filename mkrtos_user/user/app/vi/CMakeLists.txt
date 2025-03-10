@@ -54,10 +54,6 @@ set_target_properties(
 add_custom_target(
     vi_dump ALL
     COMMAND
-    ${CMAKE_OBJDUMP} -s -S vi.elf > ${CMAKE_SOURCE_DIR}/build/output/vi.S
-    COMMAND
-    ${CMAKE_READELF} -a vi.elf > ${CMAKE_SOURCE_DIR}/build/output/vi.txt
-    COMMAND
     ${CMAKE_OBJCOPY} -O binary -S vi.elf vi.bin
     COMMAND
     ${CMAKE_SIZE} vi.elf

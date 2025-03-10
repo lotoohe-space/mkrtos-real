@@ -1,18 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
-file(GLOB deps 
-    ../cortex-m/arch.c
-    ../cortex-m/atomic.S
-    ../cortex-m/atomics.c
-    ../cortex-m/core_it.c
-    ../cortex-m/mm_space.c
-    ../cortex-m/sche.S
-    ../cortex-m/sched_arch.c
-    ../cortex-m/syscall.S
-    ../cortex-m/systick.c
-    ../cortex-m/thread_armv7m.c
-)
-# list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/link.lds.S)
+file(GLOB deps  *.c *.S)
+list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/link.lds.S)
 
 add_library(arch STATIC ${deps})
 

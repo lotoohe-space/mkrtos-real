@@ -37,4 +37,13 @@ int shell_test_sig(int argc, char *argv[])
     return ret;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), test_sig, shell_test_sig, shell_test_sig command);
+
+int shell_float_test(int argc, char *argv[])
+{
+    float a = 1.1, b = 1.2;
+     
+    printf("%f\n", a + b);
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), ftest, shell_float_test, ftest command);
 #endif

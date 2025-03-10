@@ -5,7 +5,6 @@
 #ifndef __MLN_DEFS_H
 #define __MLN_DEFS_H
 
-// #include <pthread.h>
 #include "mln_func.h"
 
 #ifdef __DEBUG__

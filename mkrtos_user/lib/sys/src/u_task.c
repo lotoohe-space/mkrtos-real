@@ -18,7 +18,7 @@ enum task_op_code
     TASK_COM_UNLOCK,
     TASK_COM_LOCK,
 };
-
+MK_SYSCALL
 msg_tag_t task_set_obj_name(obj_handler_t dst_task, obj_handler_t obj, const char *name)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -37,7 +37,9 @@ msg_tag_t task_set_obj_name(obj_handler_t dst_task, obj_handler_t obj, const cha
                      :
                      : ARCH_REG_0);
     msg_tag_t tag = msg_tag_init(r0);
+    return tag;
 }
+MK_SYSCALL
 msg_tag_t task_set_pid(obj_handler_t dst_task, umword_t pid)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -57,6 +59,7 @@ msg_tag_t task_set_pid(obj_handler_t dst_task, umword_t pid)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t task_get_pid(obj_handler_t dst_task, umword_t *pid)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -80,6 +83,7 @@ msg_tag_t task_get_pid(obj_handler_t dst_task, umword_t *pid)
 
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx, int *obj_type)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -95,7 +99,7 @@ msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx, int *obj
     asm __volatile__(""
                      :
                      :
-                     : ARCH_REG_0);
+                     : ARCH_REG_0, ARCH_REG_1);
     if (obj_type)
     {
         *obj_type = r1;
@@ -103,7 +107,7 @@ msg_tag_t task_obj_valid(obj_handler_t dst_task, obj_handler_t obj_inx, int *obj
 
     return msg_tag_init(r0);
 }
-
+MK_SYSCALL
 msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t dst_obj, uint8_t attrs)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -123,7 +127,7 @@ msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t 
 
     return tag;
 }
-
+MK_SYSCALL
 msg_tag_t task_unmap(obj_handler_t task_han, vpage_t vpage)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -139,6 +143,7 @@ msg_tag_t task_unmap(obj_handler_t task_han, vpage_t vpage)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *alloc_addr,int mem_block)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -162,6 +167,7 @@ msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *all
 
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t task_copy_data(obj_handler_t task_obj, void *st_addr, umword_t size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -176,10 +182,11 @@ msg_tag_t task_copy_data(obj_handler_t task_obj, void *st_addr, umword_t size)
     asm __volatile__(""
                      :
                      :
-                     : ARCH_REG_0, ARCH_REG_1);
+                     : ARCH_REG_0);
 
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t task_copy_data_to(obj_handler_t task_obj, obj_handler_t dst_task_obj, void *st_addr, void *dst_addr, umword_t size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -194,10 +201,11 @@ msg_tag_t task_copy_data_to(obj_handler_t task_obj, obj_handler_t dst_task_obj, 
     asm __volatile__(""
                      :
                      :
-                     : ARCH_REG_0, ARCH_REG_1);
+                     : ARCH_REG_0);
 
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t task_set_com_point(obj_handler_t task_obj, void *com_point_func, addr_t stack, umword_t stack_size, void *bitmap, int bitmap_len, void *msg_buf)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -212,10 +220,11 @@ msg_tag_t task_set_com_point(obj_handler_t task_obj, void *com_point_func, addr_
     asm __volatile__(""
                      :
                      :
-                     : ARCH_REG_0, ARCH_REG_1);
+                     : ARCH_REG_0);
 
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t task_com_unlock(obj_handler_t task_obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -230,11 +239,11 @@ msg_tag_t task_com_unlock(obj_handler_t task_obj)
     asm __volatile__(""
                      :
                      :
-                     : ARCH_REG_0, ARCH_REG_1);
+                     : ARCH_REG_0);
 
     return msg_tag_init(r0);
 }
-
+MK_SYSCALL
 msg_tag_t task_com_lock(obj_handler_t task_obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -249,7 +258,7 @@ msg_tag_t task_com_lock(obj_handler_t task_obj)
     asm __volatile__(""
                      :
                      :
-                     : ARCH_REG_0, ARCH_REG_1);
+                     : ARCH_REG_0);
 
     return msg_tag_init(r0);
 }

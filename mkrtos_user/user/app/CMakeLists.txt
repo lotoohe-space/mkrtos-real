@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
-# add_subdirectory(coremark)
-# add_subdirectory(tinycc-arm-thumb)
+add_subdirectory(coremark)
+add_subdirectory(tinycc-arm-thumb)
 add_subdirectory(test)
 add_subdirectory(test2)
 add_subdirectory(vi)

@@ -14,11 +14,10 @@
 static int lock_is_init;
 static u_mutex_t lock;
 extern void *app_start_addr;
-#ifdef CONFIG_EX_RAM_SIZE
-static umword_t mm_bitmap[ROUND(CONFIG_EX_RAM_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
-#else
+#if 0
 static umword_t mm_bitmap[ROUND(CONFIG_SYS_DATA_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
 #endif
+extern umword_t _____mm_bitmap_____[];
 static void *mm_page_alloc(int page_nr)
 {
     int cnt = 0;
@@ -32,10 +31,12 @@ static void *mm_page_alloc(int page_nr)
     {
         return NULL;
     }
-    if (max_page_nr > sizeof(mm_bitmap) * WORD_BITS)
+    #if 0
+    if (max_page_nr > sizeof(_____mm_bitmap_____) * WORD_BITS)
     {
         cons_write_str("mm bitmap is to small.\n");
     }
+    #endif
     // printf("heap is 0x%x, max page nr is %d.\n", heap_addr, max_page_nr);
     if (!lock_is_init)
     {
@@ -47,17 +48,17 @@ static void *mm_page_alloc(int page_nr)
             cons_write_str("mutex_hd alloc failed.\n");
             assert(0);
         }
-        u_mutex_init(&lock, handler_alloc());
+        u_mutex_init(&lock, mutex_hd);
         lock_is_init = 1;
     }
     u_mutex_lock(&lock, 0, NULL);
     for (umword_t i = 0; i < ROUND_UP(max_page_nr, WORD_BITS); i++)
     {
-        if (mm_bitmap[i] != (umword_t)(-1))
+        if (_____mm_bitmap_____[i] != (umword_t)(-1))
         {
             for (int j = 0; j < WORD_BITS; j++)
             {
-                if (MK_GET_BIT(mm_bitmap[i], j) == 0)
+                if (MK_GET_BIT(_____mm_bitmap_____[i], j) == 0)
                 {
                     // 找到空闲的
                     if (find_inx == -1)
@@ -75,7 +76,7 @@ static void *mm_page_alloc(int page_nr)
                         for (int m = find_inx; m < find_inx + cnt; m++)
                         {
 
-                            MK_SET_BIT(mm_bitmap[m / WORD_BITS], m % WORD_BITS);
+                            MK_SET_BIT(_____mm_bitmap_____[m / WORD_BITS], m % WORD_BITS);
                         }
                         u_mutex_unlock(&lock);
                         // printf("st_inx:%d, cnt:%d\n", find_inx, cnt);
@@ -109,7 +110,7 @@ static int mm_page_free(int st, int nr)
     u_mutex_lock(&lock, 0, NULL);
     for (int i = st; (i < st + nr) && (i < max_page_nr); i++)
     {
-        MK_CLR_BIT(mm_bitmap[i / WORD_BITS], i % WORD_BITS);
+        MK_CLR_BIT(_____mm_bitmap_____[i / WORD_BITS], i % WORD_BITS);
     }
     u_mutex_unlock(&lock);
     return 0;

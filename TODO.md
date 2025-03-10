@@ -21,6 +21,11 @@
 * [x] TTY驱动支持
 * [ ] proc支持
 * [ ] 新进程中env支持
+* [ ] posix mq支持
+* [ ] posix sig支持
+* [ ] posix shm支持
+* [ ] posix sema支持
+* [ ] vfork + exec实现
 ### mid prio
 * [x] net server support
 * [x] block driver

@@ -135,11 +135,11 @@ uart_t *uart_get_global(void)
 #define QUEUE_LEN 129
 static queue_t queue;
 static uint8_t queue_data[QUEUE_LEN];
-static uint32_t last_tick;
 #if 0
+static uint32_t last_tick;
 void uart_check_timeover(irq_entry_t *irq)
 {
-    if (last_tick != 0 && (sys_tick_cnt_get() - last_tick > 5))
+    if (last_tick != 0 && (sys_tick_cnt_get() - last_tick > 10))
     {
         if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
         {
@@ -155,12 +155,15 @@ void uart_tigger(irq_entry_t *irq)
     {
         // 清除中断标志位
         USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-        q_enqueue(&queue, USART_ReceiveData(USART1));
+        if (q_enqueue(&queue, USART_ReceiveData(USART1)) < 0)
+        {
+            
+        }
         if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
         {
             thread_ready_remote(irq->irq->wait_thread, TRUE);
         }
-        last_tick = sys_tick_cnt_get();
+        // last_tick = sys_tick_cnt_get();
     }
     // if (USART_GetITStatus(USART1, USART_IT_IDLE) != RESET)
     // {

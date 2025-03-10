@@ -10,5 +10,5 @@ fi
 
 qemu-system-arm -machine\
  	$1 -cpu cortex-m3 \
-  	-nographic -m size=2 \
+  	-nographic -m size=32 \
    	-kernel $PWD/build/output/kernel.img

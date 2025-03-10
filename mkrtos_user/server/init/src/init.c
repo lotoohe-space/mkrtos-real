@@ -34,8 +34,8 @@
 #include "tty.h"
 #define DEFAULT_INIT_CFG "init.cfg"
 
-#define STACK_COM_ITME_SIZE ((1024+512) * 4)
-#define STACK_NUM 2
+#define STACK_NUM 4
+#define STACK_COM_ITME_SIZE ((1024+512) * STACK_NUM)
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
 static uint8_t msg_buf_coms[MSG_BUG_LEN * STACK_NUM];
@@ -65,7 +65,6 @@ int main(int argc, char *args[])
     rpc_meta_init_def(TASK_THIS, &env->ns_hd);
     namespace_init(env->ns_hd);
     pm_init();
-    // console_init();
     parse_cfg_init();
 
     fs_ns_mkdir("/dev");
@@ -77,7 +76,6 @@ int main(int argc, char *args[])
     tty_svr_init();
     ret = parse_cfg(DEFAULT_INIT_CFG, env);
     printf("run app num is %d.\n", ret);
-    // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, THREAD_MAIN));
     while (1)
     {
         u_sleep_ms(U_SLEEP_ALWAYS);

@@ -7,6 +7,7 @@ enum SEMA_OP
     SEMA_UP,
     SEMA_DOWN,
 };
+MK_SYSCALL
 msg_tag_t u_sema_up(obj_handler_t obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -22,6 +23,7 @@ msg_tag_t u_sema_up(obj_handler_t obj)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t u_sema_down(obj_handler_t obj, umword_t timeout, umword_t *remain_times)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);

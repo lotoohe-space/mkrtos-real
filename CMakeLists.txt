@@ -43,5 +43,3 @@ if ((NOT DEFINED CONFIG_MMU) OR (CONFIG_MMU STREQUAL "n"))
     add_subdirectory(mkrtos_img)
 endif()
 add_subdirectory(mkrtos_user)
-
-
