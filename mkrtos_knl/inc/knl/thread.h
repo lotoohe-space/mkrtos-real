@@ -163,6 +163,10 @@ typedef struct thread
     umword_t magic; //!< maigc
 } thread_t;
 
+static inline int thread_get_prio(thread_t *th)
+{
+    return th->sche.prio;
+}
 static inline int thread_get_cpu(thread_t *th)
 {
     return th->cpu;
@@ -274,7 +278,7 @@ static inline int thread_fast_ipc_pop(thread_t *th, thread_fast_ipc_item_t *item
 task_t *thread_get_current_task(void);
 task_t *thread_get_task(thread_t *th);
 task_t *thread_get_bind_task(thread_t *th);
-
+int thread_set_prio(thread_t *th, int prio);
 static inline pf_t *thread_get_current_pf(void)
 {
     return thread_get_pf(thread_get_current());

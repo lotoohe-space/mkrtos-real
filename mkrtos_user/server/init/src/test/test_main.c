@@ -26,6 +26,7 @@ static void RunAllTests(void)
 	CuSuiteAddSuite(&suite, map_test_suite());
 #endif
 	CuSuiteAddSuite(&suite, thread_base_test_suite());
+	CuSuiteAddSuite(&suite, mutex_test_suite());
 	CuSuiteAddSuite(&suite, sema_test_suite());
 	CuSuiteAddSuite(&suite, pthread_base_test_suite());
 	CuSuiteAddSuite(&suite, pthread_press_test_suite());

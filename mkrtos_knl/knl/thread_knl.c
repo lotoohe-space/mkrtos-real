@@ -51,6 +51,7 @@ static thread_t *knl_thread[CONFIG_CPU];
 static slist_head_t del_task_head;
 static umword_t cpu_usage[CONFIG_CPU];
 static spinlock_t del_lock;
+static umword_t cpu_usage_last_tick_val[CONFIG_CPU];
 
 static void knl_main(void)
 {
@@ -131,17 +132,21 @@ static inline uint32_t thread_knl_get_current_run_nr(void)
     return atomic_read(&knl_thread[arch_get_current_cpu_id()]->time_count);
 }
 
-static uint32_t cpu_usage_last_tick_val[CONFIG_CPU];
 /**
  * 计算cpu占用率
  */
 void thread_calc_cpu_usage(void)
 {
     uint8_t cur_cpu_id = arch_get_current_cpu_id();
+    umword_t tick = thread_knl_get_current_run_nr();
+
     if (sys_tick_cnt_get() % 1000 == 0)
     {
-        cpu_usage[cur_cpu_id] = 1000 - ((thread_knl_get_current_run_nr() - cpu_usage_last_tick_val[cur_cpu_id]));
-        cpu_usage_last_tick_val[cur_cpu_id] = thread_knl_get_current_run_nr();
+        mword_t calc = tick - cpu_usage_last_tick_val[cur_cpu_id];
+
+        calc = calc > 1000 ? 1000 : calc;
+        cpu_usage[cur_cpu_id] = 1000 - calc;
+        cpu_usage_last_tick_val[cur_cpu_id] = tick;
         // printk("%d\n", cpu_usage[arch_get_current_cpu_id()]);
     }
 }

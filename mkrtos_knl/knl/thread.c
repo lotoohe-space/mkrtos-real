@@ -1468,6 +1468,24 @@ static int thread_remote_migration(ipi_msg_t *msg, bool_t *is_sched)
 }
 
 #endif
+int thread_set_prio(thread_t *th, int prio)
+{
+    assert(cpulock_get_status());
+    int old_prio = thread_get_prio(th);
+
+    if (old_prio != prio)
+    {
+        if (thread_get_status(th) == THREAD_READY)
+        {
+            thread_suspend(th);
+            th->sche.prio = prio;
+            thread_ready(th, TRUE);
+        } else {
+            th->sche.prio = prio;
+        }
+    }
+    return old_prio;
+}
 static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
                            msg_tag_t in_tag, entry_frame_t *f)
 {

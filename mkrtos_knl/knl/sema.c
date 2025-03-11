@@ -45,6 +45,7 @@ void sema_up(sema_t *obj)
 {
     assert(obj);
     umword_t status;
+    thread_t *th = thread_get_current();
 
     status = spinlock_lock(&obj->lock);
     if (slist_is_empty(&obj->suspend_head))
@@ -62,13 +63,11 @@ void sema_up(sema_t *obj)
 
         first_wait_node = slist_first(&obj->suspend_head);
         first_wait = container_of(first_wait_node, sema_wait_item_t, node);
-        // assert(first_wait->thread->status == THREAD_SUSPEND);
         if (thread_get_status(first_wait->thread) == THREAD_SUSPEND)
         {
             slist_del(first_wait_node);
             if (ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj) != 1)
             {
-                // thread_ready_remote(first_wait->thread, FALSE);
                 thread_sleep_del_and_wakeup(first_wait->thread);
             }
         }
@@ -76,10 +75,17 @@ void sema_up(sema_t *obj)
         {
             // 超时退出，但是切出来的时候切到了唤醒线程中，所以这里不是suspend状态。
             thread_sleep_del(first_wait->thread);
+            // 这里引用计数要-1
+            ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj);
         }
         if (obj->cnt < obj->max_cnt)
         {
             obj->cnt++;
+        }
+        if (obj->max_cnt == 1 && obj->hold_th == &th->kobj)
+        {
+            //还原优先级
+            thread_set_prio(th, obj->hold_th_prio);
         }
         // printk("up1 sema cnt:%d max:%d.\n", obj->cnt, obj->max_cnt);
     }
@@ -104,6 +110,14 @@ again:
         sema_wait_item_init(&wait_item, th);
         ref_counter_inc(&th->ref);
         slist_add_append(&obj->suspend_head, &wait_item.node);
+        if (obj->max_cnt == 1 && obj->hold_th)
+        {
+            if (thread_get_prio(th) > thread_get_prio((thread_t*)(obj->hold_th)))
+            {
+                //执行优先级继承
+                thread_set_prio(((thread_t*)(obj->hold_th)), thread_get_prio(th));
+            }
+        }
         remain_sleep = thread_sleep(ticks);
         if (remain_sleep == 0 && ticks != 0)
         {
@@ -126,6 +140,11 @@ again:
     {
         assert(obj->cnt > 0);
         obj->cnt--;
+        if (obj->max_cnt == 1)
+        {
+            obj->hold_th = &th->kobj;
+            obj->hold_th_prio = thread_get_prio(th);
+        }
         // printk("down sema cnt:%d max:%d.\n", obj->cnt, obj->max_cnt);
     }
     spinlock_set(&obj->lock, status);

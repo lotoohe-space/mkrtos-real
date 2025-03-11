@@ -15,6 +15,8 @@ CuSuite *pthread_base_test_suite(void);
 CuSuite *thread_base_test_suite(void);
 CuSuite *ipc_test_suite(void);
 CuSuite *sharem_mem_test_suite(void);
+CuSuite *mutex_test_suite(void);
+
 void test_main(void);
 
 void mm_test(void);

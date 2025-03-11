@@ -38,30 +38,35 @@ int ls(int argc, char *agrv[])
     {
         return -ENOMEM;
     }
-    strcpy(path, in_path);
-    dir = opendir(in_path);
+    ret = getcwd(path, PAGE_SIZE);
+    if (ret < 0) 
+    {
+        u_free(path);
+        return ret;
+    }
+    ret = chdir(in_path);
+    if (ret < 0) 
+    {
+        u_free(path);
+        return ret;
+    }
+    dir = opendir(".");
     if (!dir)
     {
         u_free(path);
         return 0;
     }
+    printf("%-20s%10s\n", "name", "size");
+
     while ((ptr = readdir(dir)) != NULL)
     {
         struct stat st = {0};
-        // strcat(path, "/");
-        strcat(path, ptr->d_name);
-        ret = stat(path, &st);
-        // if (ret >= 0)
-        // {
-        printf("%s\t\t\t%dB\n", path, st.st_size);
-        // }
-        // else
-        // {
-        //     printf("error:%d\n", ret);
-        // }
-        strcpy(path, in_path);
+
+        ret = stat(ptr->d_name, &st);
+        printf("%-20s%10d\n", ptr->d_name, st.st_size);
     }
     closedir(dir);
+    chdir(path);
     u_free(path);
     return 0;
 }
@@ -234,7 +239,7 @@ int shell_sys_info(int argc, char *argv[])
     size_t free;
 
     printf("sys:\n");
-    printf("\tcpu usage:%2.1f\n", sys_read_cpu_usage() / 10.0f);
+    printf("\tcpu usage:%d.%d\n", sys_read_cpu_usage() / 10, sys_read_cpu_usage() % 10);
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), sys, shell_sys_info, sys command);
