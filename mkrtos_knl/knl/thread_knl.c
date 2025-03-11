@@ -291,10 +291,6 @@ bool_t task_knl_kill(thread_t *kill_thread, bool_t is_knl)
             {
                 // 还原栈和usp TODO: arch相关的
                 thread_user_pf_restore(kill_thread, (void *)arch_get_user_sp());
-                // umword_t *cur_pf = (umword_t *)(arch_get_user_sp()) - 8;
-                // cur_pf[5] = (umword_t)(thread_get_bind_task(kill_thread)->mm_space.mm_block);
-                // register volatile umword_t r9 asm("r9");
-                // r9 = (umword_t)(thread_get_bind_task(kill_thread)->mm_space.mm_block);
                 mpu_switch_to_task(thread_get_bind_task(kill_thread));
                 ref_counter_dec_and_release(&task->ref_cn, &task->kobj);
                 reset_ram = TRUE;

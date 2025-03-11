@@ -18,7 +18,7 @@ static u_mutex_t mutex_lock;
 static int test_cn;
 static __attribute__((optimize(0)))  void hard_sleep(void)
 {
-    int i = 99999999;
+    volatile int i = 999999999;
     while(i--);
 }
 static void *thread_th1(void *arg)
@@ -52,6 +52,9 @@ static void *thread_th3(void *arg)
     u_mutex_unlock(&mutex_lock);
     return NULL;
 }
+/**
+ * 测试优先级继承是否生效
+ */
 static void u_mutex_test(CuTest *tc)
 {
     obj_handler_t mutex_hd;
