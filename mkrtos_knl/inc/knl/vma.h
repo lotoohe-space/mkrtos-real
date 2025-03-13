@@ -146,6 +146,9 @@ typedef struct task_vma
     mln_rbtree_t alloc_tree;                                         //!< 分配了那些内存
 #if IS_ENABLED(MPU_PAGE_FAULT_SUPPORT)
     region_info_t *mem_pages_pt_regions[MPU_PAGE_FAULT_REGIONS_NUM]; //!< 用多少个regions模拟缺页
+#if MPU_PAGE_FAULT_REGIONS_NUM == 0
+#error "MPU_PAGE_FAULT_REGIONS_NUM not is 0."
+#endif
     int pt_regions_sel;                                              //!< 用于确定下次选用那个region进行映射
 #endif
 } task_vma_t;

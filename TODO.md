@@ -26,6 +26,7 @@
 * [ ] posix sema支持
 * [ ] vfork + exec实现
 * [ ] 几大组件稳定性测试
+* [ ] 删除之前用于log的sem
 ### mid prio
 * [x] net server support
 * [x] block driver
@@ -35,7 +36,7 @@
 * [x] pca9555 driver
 * [x] pin drvier
 * [x] snd drvier
-* [ ] ymodem support
+* [x] ymodem support
 * [x] vi support
 ### low prio
 - [ ] toybox support

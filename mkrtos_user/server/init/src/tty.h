@@ -3,7 +3,7 @@
 #include <termios.h>
 #include "u_queue.h"
 #include "u_types.h"
-#define TTY_QUEUE_DATA_SIZE 128
+#define TTY_QUEUE_DATA_SIZE 257
 typedef struct tty_struct
 {
     struct termios termios; //!< 当前使用的终端信息
@@ -24,6 +24,9 @@ typedef struct tty_struct
     // 是否成行了
     uint8_t is_nl;
     pid_t fg_pid;
+
+    //FIXME:
+    int fd_flags;//!<暂时这样
 } tty_struct_t;
 
 #define C_CC_INIT "\003\034\177\025\004\0\1\0\021\023\032\0\022\017\027\026\0"

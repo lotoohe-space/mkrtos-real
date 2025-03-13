@@ -225,13 +225,13 @@ int pm_rpc_run_app(const char *path, int flags, char *params, int params_len)
 {
     pid_t pid;
     int ret;
+    obj_handler_t sem;
+    int i;
+    int j = 0;
     printf("pm run %s.\n", path);
     char *args[CMD_PARAMS_CN] = {
         (char *)path,
     };
-    obj_handler_t sem;
-    int i;
-    int j = 0;
 
     for (i = 1; *params && i < CMD_PARAMS_CN; i++)
     {

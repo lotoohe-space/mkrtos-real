@@ -178,8 +178,10 @@ next:
     if (reg_hd(path, newfd, msg_tag_get_val(tag)) == FALSE)
     {
         printf("The client service cache is full.\n");
+        #if 0
         handler_free_umap(newfd);
         return -ENOMEM;
+        #endif
     }
     *svr_hd = newfd;
     return msg_tag_get_val(tag);

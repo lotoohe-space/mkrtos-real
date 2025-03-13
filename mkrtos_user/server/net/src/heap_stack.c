@@ -1,7 +1,7 @@
 #include <u_types.h>
 
 #if !IS_ENABLED(CONFIG_MMU)
-#define HEAP_SIZE (16 * 1024)
+#define HEAP_SIZE (10 * 1024)
 #define STACK_SIZE (2048)
 
 #if defined(__CC_ARM)

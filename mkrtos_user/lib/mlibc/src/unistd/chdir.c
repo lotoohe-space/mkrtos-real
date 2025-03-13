@@ -9,6 +9,6 @@ int chdir(const char *path)
 #ifdef NO_LITTLE_MODE
 	return syscall(SYS_chdir, path);
 #else
-	return be_chdir(path);
+	return __syscall_ret(be_chdir(path));
 #endif
 }

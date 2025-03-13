@@ -25,30 +25,44 @@ uart_t *uart_get_global(void)
 {
     return &uart;
 }
-#define QUEUE_LEN 129
+#define QUEUE_LEN 257
 static queue_t queue;
 static uint8_t queue_data[QUEUE_LEN];
 static bool_t uart_is_init;
+
+static void uart_wakeup_waiter(irq_entry_t *irq)
+{
+    if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
+    {
+        thread_ready_remote(irq->irq->wait_thread, TRUE);
+    }
+}
 void uart_tigger(irq_entry_t *irq)
 {
     if (usart_interrupt_flag_get(PRINT_USARTx, USART_RDBF_FLAG) != RESET)
     {
         /* read one byte from the receive data register */
-        q_enqueue(&queue, usart_data_receive(PRINT_USARTx));
+        if (q_enqueue(&queue, usart_data_receive(PRINT_USARTx)) < 0)
+        {
+            uart_wakeup_waiter(irq);
+        }
         usart_interrupt_enable(PRINT_USARTx, USART_IDLE_INT, TRUE);
     }
+    // if (q_queue_len(&queue) >= queue.size / 2)
+    // {
+    //     uart_wakeup_waiter(irq);
+    // }
     if (usart_interrupt_flag_get(PRINT_USARTx, USART_IDLEF_FLAG) != RESET)
     {
-        if (irq->irq->wait_thread && thread_get_status(irq->irq->wait_thread) == THREAD_SUSPEND)
-        {
-            thread_ready_remote(irq->irq->wait_thread, TRUE);
-        }
+        uart_wakeup_waiter(irq);
         usart_interrupt_enable(PRINT_USARTx, USART_IDLE_INT, FALSE);
     }
 }
 
 void uart_init(void)
 {
+    uart_is_init = 1;
+
     q_init(&queue, queue_data, QUEUE_LEN);
     gpio_init_type gpio_init_struct;
 
@@ -77,10 +91,9 @@ void uart_init(void)
 
     usart_interrupt_enable(PRINT_USARTx, USART_RDBF_INT, TRUE);
     usart_interrupt_enable(PRINT_USARTx, USART_IDLE_INT, TRUE);
-    
+
     usart_enable(PRINT_USARTx, TRUE);
-   
-    uart_is_init=1;
+
 }
 INIT_HIGH_HAD(uart_init);
 
@@ -92,8 +105,9 @@ void uart_set(uart_t *uart)
 }
 void uart_putc(uart_t *uart, int data)
 {
-    if (!uart_is_init) {
-        return ;
+    if (!uart_is_init)
+    {
+        return;
     }
     while (usart_flag_get(USART1, USART_TDBE_FLAG) == RESET)
         ;

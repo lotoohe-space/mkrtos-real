@@ -11,7 +11,7 @@ extern "C"
 #endif
 #include "stdarg.h"
 #define XF_USE_OUTPUT 1 /* 1: Enable output functions */
-#define XF_CRLF 0       /* 1: Convert \n ==> \r\n in the output char */
+#define XF_CRLF 1       /* 1: Convert \n ==> \r\n in the output char */
 #define XF_USE_DUMP 0   /* 1: Enable put_dump function */
 #define XF_USE_LLI 0    /* 1: Enable long long integer in size prefix ll */
 #define XF_USE_FP 0     /* 1: Enable support for floating point in type e and f */

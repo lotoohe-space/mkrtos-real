@@ -24,7 +24,7 @@ static umword_t size;
 obj_handler_t net_drv_hd = HANDLER_INVALID;
 
 #define STACK_COM_ITME_SIZE (2 * 1024 /*sizeof(struct pthread) + TP_OFFSET*/)
-#define STACK_NUM 4
+#define STACK_NUM 3
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
 static uint8_t msg_buf_coms[MSG_BUG_LEN * STACK_NUM];
@@ -64,7 +64,7 @@ again:
         // 0代表根节点
         u_sleep_ms(50);
         count_net_link++;
-        if (count_net_link < 20)
+        if (count_net_link < 20 * 3)
         {
             goto again;
         }

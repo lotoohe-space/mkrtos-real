@@ -324,7 +324,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     {
         cp_args[i] = app_stack_push_str(hd_task, &usp_top, argv[i]);
         params_envp_len += ALIGN(strlen(argv[i]) + 1, sizeof(void *));
-        printf("app_load 1 cp_args:%p\n", cp_args[i]);
+        // printf("app_load 1 cp_args:%p\n", cp_args[i]);
     }
     for (int i = 0; i < envp_cn; i++)
     {
@@ -358,7 +358,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     app_stack_push_umword(hd_task, &usp_top, 0);
     for (int i = arg_cn - 1; i >= 0; i--)
     {
-        printf("app_load 2 cp_args:%p\n", cp_args[i]);
+        // printf("app_load 2 cp_args:%p\n", cp_args[i]);
         app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_args[i]);
     }
     app_stack_push_umword(hd_task, &usp_top, arg_cn);

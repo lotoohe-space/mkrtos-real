@@ -22,12 +22,15 @@
 #include <poll.h>
 #include <u_path.h>
 #include "kstat.h"
-AUTO_CALL(101)
+#define FS_PATH_LEN 64
+static char cur_path[FS_PATH_LEN] = "/";
+// AUTO_CALL(101)
 void fs_backend_init(void)
 {
 
     umword_t cur_pid;
     msg_tag_t tag;
+    char *pwd;
 
     tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
     assert(msg_tag_get_val(tag) >= 0);
@@ -43,9 +46,13 @@ void fs_backend_init(void)
         assert(fd_map_alloc(0, 1, FD_TTY) >= 0);
         assert(fd_map_alloc(0, 2, FD_TTY) >= 0);
     }
+    pwd = getenv("PWD");
+    if (pwd)
+    {
+        be_chdir(pwd);
+    }
 }
-#define FS_PATH_LEN 64
-static char cur_path[FS_PATH_LEN] = "/";
+
 int be_open(const char *path, int flags, mode_t mode)
 {
     int fd;

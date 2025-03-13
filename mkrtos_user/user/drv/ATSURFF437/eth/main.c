@@ -96,8 +96,8 @@ int main(int argc, char *argv[])
     blk_drv_init(&net_drv);
     ret = rpc_meta_init_def(TASK_THIS, &hd);
     assert(ret >= 0);
-    ns_register("/dev/eth", hd, 0);
     meta_reg_svr_obj(&net_drv.svr, BLK_DRV_PROT);
+    ns_register("/dev/eth", hd, 0);
     while (1)
     {
         u_sleep_ms(U_SLEEP_ALWAYS);

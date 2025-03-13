@@ -7,6 +7,7 @@
 #include <u_queue.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include "cons.h"
 #include "u_hd_man.h"
 #include "u_prot.h"
@@ -65,7 +66,7 @@ static inline void cons_read_unlock(void)
 
 static void console_read_func(void)
 {
-    uint8_t data[32];
+    uint8_t data[12];
 
     while (1)
     {
@@ -147,7 +148,8 @@ static int cons_init(void)
 static int tty_open(const char *path, int flags, int mode)
 {
 
-    ulog_write_str(LOG_PROT, "tty init...\n");
+    ulog_write_str(LOG_PROT, "tty open..\n");
+    sys_tty.fd_flags = flags;
     return 0;
 }
 
@@ -478,6 +480,10 @@ static int tty_read(int fd, void *buf, size_t len)
     }
     if (q_queue_len(&sys_tty.pre_queue) == 0)
     {
+        if (sys_tty.fd_flags & O_NONBLOCK)
+        {
+            return -EAGAIN;
+        }
         u_sema_down(sem_th, 0, NULL);
     }
 again:
@@ -628,6 +634,28 @@ static int tty_ioctl(int fd, int req, void *args)
         {
             return ret;
         }
+    }
+    break;
+    case TCIOFLUSH:
+    {
+        cons_read_lock();
+        q_queue_clear(&sys_tty.pre_queue);
+        q_queue_clear(&sys_tty.w_queue);
+        cons_read_unlock();
+    }
+    break;
+    case TCIFLUSH:
+    {
+        cons_read_lock();
+        q_queue_clear(&sys_tty.pre_queue);
+        cons_read_unlock();
+    }
+    break;
+    case TCOFLUSH:
+    {
+        cons_read_lock();
+        q_queue_clear(&sys_tty.w_queue);
+        cons_read_unlock();
     }
     break;
     default:

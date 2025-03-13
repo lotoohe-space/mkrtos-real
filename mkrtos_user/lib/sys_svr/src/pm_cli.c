@@ -20,7 +20,7 @@ int pm_run_app(const char *path, int flags, uint8_t *params, int params_len)
 {
     rpc_ref_file_array_t rpc_path = {
         .data = (uint8_t *)path,
-        .len = strlen(path) + 1,
+        .len = MIN(strlen(path) + 1, FS_RPC_BUF_LEN),
     };
     rpc_int_t rpc_flags = {
         .data = flags,
