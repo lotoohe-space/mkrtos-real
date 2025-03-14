@@ -24,6 +24,13 @@ execute_process(
     COMMAND git rev-parse --abbrev-ref HEAD
     OUTPUT_VARIABLE BRANCH
 )
+
+execute_process(
+    COMMAND cd ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/appfs/src
+    COMMAND sh build.sh
+    COMMAND_ECHO STDOUT
+)
+
 string(STRIP ${DATE} DATE)
 string(STRIP ${TIME} TIME)
 set(code_version ${BRANCH}-${COMMIT} CACHE STRING " " FORCE)
@@ -36,5 +43,3 @@ if ((NOT DEFINED CONFIG_MMU) OR (CONFIG_MMU STREQUAL "n"))
     add_subdirectory(mkrtos_img)
 endif()
 add_subdirectory(mkrtos_user)
-
-

@@ -8,7 +8,14 @@ typedef struct slist_head
 	struct slist_head *prev; //!< 前一个
 	struct slist_head *next; //!< 后一个
 } slist_head_t;
-
+#define SLIST_HEAD_INIT(name) { &(name), &(name) }
+#define WRITE_ONCE(var, val) (*((volatile typeof(val) *)(&(var))) = (val))
+#define READ_ONCE(var) (*((volatile typeof(var) *)(&(var))))
+static inline void INIT_SLIST_HEAD(slist_head_t *list)
+{
+    WRITE_ONCE(list->next, list);
+    list->prev = list;
+}
 static inline void slist_init(slist_head_t *list)
 {
 	list->prev = list;

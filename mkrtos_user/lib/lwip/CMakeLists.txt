@@ -11,7 +11,7 @@ file(GLOB
 
   ${CMAKE_CURRENT_LIST_DIR}/src/apps/lwiperf/lwiperf.c
 )
-message("lwip:${deps}")
+# message("lwip:${deps}")
 add_library(
   lwip
   ${deps}

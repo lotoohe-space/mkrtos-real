@@ -26,6 +26,7 @@ target_link_libraries(
     sys
     sys_util
     sys_svr
+    fd
     # stm32f1_bsp
     ${GCC_LIB_PATH}/libgcc.a
 )
@@ -41,12 +42,15 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/stm32f1_bsp/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/stm32f1_bsp/core_inc
     ${CMAKE_SOURCE_DIR}/mkrtos_user/server/fs/fatfs/ext_disk_drv
+
+    ${CMAKE_SOURCE_DIR}/mkrtos_user/lib/fd
 )
 add_dependencies(
     fatfs.elf
     ${START_LIB}
     sys
     sys_util
+    fd
     # stm32f1_bsp
 )
 set_target_properties(
@@ -57,19 +61,15 @@ set_target_properties(
 add_custom_target(
     fatfs_dump ALL
     COMMAND
-    ${CMAKE_OBJDUMP} -s -S fatfs.elf > ${CMAKE_SOURCE_DIR}/build/output/fatfs.S
-    COMMAND
-    ${CMAKE_READELF} -a fatfs.elf > ${CMAKE_SOURCE_DIR}/build/output/fatfs.txt
-    COMMAND
     ${CMAKE_OBJCOPY} -O binary -S fatfs.elf fatfs.bin
     COMMAND
     ${CMAKE_SIZE} fatfs.elf
     COMMAND
     mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
-    # COMMAND
-    # cp fatfs.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/fatfs
     COMMAND
-    cp fatfs.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/fatfs.elf
+    cp fatfs.bin ${CMAKE_SOURCE_DIR}/build/output/cpio/fatfs
+    COMMAND
+    cp fatfs.elf ${CMAKE_SOURCE_DIR}/build/output/fatfs.elf
 )
 
 add_dependencies(fatfs_dump fatfs.elf)

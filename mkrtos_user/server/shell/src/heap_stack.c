@@ -1,7 +1,7 @@
-#include <u_util.h>
+#include <u_types.h>
 #if !IS_ENABLED(CONFIG_MMU)
-#define HEAP_SIZE 2048
-#define STACK_SIZE (1024 + 512)
+#define HEAP_SIZE 16 * 1024
+#define STACK_SIZE (2 * 1024)
 
 #if defined(__CC_ARM)
 #define HEAP_ATTR SECTION("HEAP") __attribute__((zero_init))
@@ -16,4 +16,5 @@
 
 __attribute__((used)) HEAP_ATTR static char _____heap_____[HEAP_SIZE];
 __attribute__((used)) STACK_ATTR static char _____stack_____[STACK_SIZE];
+__attribute__((used)) umword_t _____mm_bitmap_____[ROUND(HEAP_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
 #endif

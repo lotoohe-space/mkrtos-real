@@ -13,14 +13,21 @@
 #include "u_env.h"
 #include "rpc_prot.h"
 #include "cons_svr.h"
-#include "namespace.h"
+#include "ns.h"
 #include "u_task.h"
 #include "u_hd_man.h"
 #include "u_sig.h"
+#include "pm.h"
+#include "parse_cfg.h"
+#include "u_malloc.h"
+#include "nsfs.h"
+#include "sig_cli.h"
+#include "tty.h"
 #include <errno.h>
 #include <malloc.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 static pm_t pm;
 
 void pm_init(void)
@@ -92,7 +99,7 @@ void pm_del_watch_by_pid(pm_t *pm, pid_t pid)
         {
             slist_del(&pos->node);
             handler_free_umap(pos->sig_hd);
-            free(pos);
+            u_free(pos);
         }
         pos = next;
     }
@@ -117,23 +124,26 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
         handler_free_umap(sig_rcv_hd);
         return -EEXIST;
     }
-    watch_entry_t *entry = (watch_entry_t *)malloc(sizeof(watch_entry_t));
+    watch_entry_t *entry = (watch_entry_t *)u_malloc(sizeof(watch_entry_t));
 
     if (!entry)
     {
         handler_free_umap(sig_rcv_hd);
         return -ENOMEM;
     }
-
+#if 0
+    entry->notify_sem_hd = HANDLER_INVALID;
+#endif
     entry->sig_hd = sig_rcv_hd;
     entry->src_pid = src_pid;
     entry->watch_pid = pid;
     entry->flags = flags;
     slist_init(&entry->node);
     slist_add_append(&pm->watch_head, &entry->node);
-    printf("[pm] watch pid:%d, sig hd:%d.\n", src_pid, sig_rcv_hd);
+    printf("[pm] watch pid:%d, sig hd:%d.\n", pid, sig_rcv_hd);
     return 0;
 }
+#if IS_ENABLED(CONFIG_USING_SIG)
 /**
  * @brief pm给task的信号线程发送消息
  *
@@ -153,25 +163,24 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
     {
         watch_entry_t *next = slist_next_entry(pos, &pm->watch_head, node);
 
+        printf("watch_pid:%d pid:%d\n", pos->watch_pid, pid);
         if (pos->watch_pid == pid)
         {
             if (sig_val == KILL_SIG)
             {
-                ipc->msg_buf[0] = PM_SIG_NOTIFY;
-                ipc->msg_buf[1] = sig_val;
-                ipc->msg_buf[2] = pid;
+                int ret;
 
-                thread_ipc_call(msg_tag_init4(0, 3, 0, PM_SIG_PROT), pos->sig_hd,
-                                ipc_timeout_create2(0, 0));
+                ret = sig_kill(pos->sig_hd, sig_val, pid);
             }
             slist_del(&pos->node);
             handler_free_umap(pos->sig_hd);   //!< 删除信号通知的ipc
-            handler_del_umap(pos->watch_pid); //!< 删除被watch的进程
-            free(pos);
+            handler_free_umap(pos->watch_pid); //!< 删除被watch的进程
+            u_free(pos);
         }
         pos = next;
     }
 }
+#endif
 /**
  * @brief 杀死某个进程
  *
@@ -179,22 +188,30 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
  * @param flags
  * @return int
  */
-int pm_rpc_kill_task(int pid, int flags)
+int pm_rpc_kill_task(int src_pid, int pid, int flags, int exit_code)
 {
     if (pid == TASK_THIS)
     {
+        printf("not kill init task.\n");
         return -EINVAL;
     }
     if (pm_pid_is_task(pid) == FALSE)
     {
+        printf("pid is error.\n");
         return -EINVAL;
     }
 
-    ns_node_del_by_pid(pid, flags);          //!< 从ns中删除
-    pm_del_watch_by_pid(&pm, pid);           //!< 从watch中删除
+    // ns_node_del_by_pid(pid, flags); TODO:         //!< 从ns中删除
+    #if IS_ENABLED(CONFIG_USING_SIG)
+    if (src_pid != pid)
+    {
+        // 发起者自己删除
+        handler_del_umap(pid);
+    }
     pm_send_sig_to_task(&pm, pid, KILL_SIG); //!< 给watch者发送sig
-    handler_del_umap(pid);
-    printf("[pm] kill pid:%d.\n", pid);
+    #endif
+    pm_del_watch_by_pid(&pm, pid); //!< 从watch中删除
+    printf("[pm] kill pid:%d code:%d.\n", pid, exit_code);
     return 0;
 }
 /**
@@ -204,21 +221,96 @@ int pm_rpc_kill_task(int pid, int flags)
  * @param flags
  * @return int
  */
-int pm_rpc_run_app(const char *path, int flags)
+int pm_rpc_run_app(const char *path, int mem_block, char *params, int params_len, char *envs_in, int envs_in_len)
 {
     pid_t pid;
     int ret;
+    int i;
+    int j = 0;
+    int args_len = 0;
+    int evns_len = 0;
     printf("pm run %s.\n", path);
-    char *args[] = {
-        "xx",/*TODO:*修正参数传递*/
-        "-t",
+    char *args[CMD_PARAMS_CN] = {
+        (char *)path,
     };
-    ret = app_load(path, u_get_global_env(), &pid, args, 2, NULL, 0);
-    if (ret > 0)
+    char *envs[8/*FIXME:*/] = {
+    };
+
+
+    for (i = 1, j = 0; *params && i < CMD_PARAMS_CN; i++)
     {
-        if (!(flags & PM_APP_BG_RUN))
+        if (j >= params_len)
         {
-            console_active(pid);
+            break;
         }
+        args[i] = params;
+        printf("params[%d]: %s\n", i, params);
+        j += strlen(params) + 1;
+        params += strlen(params) + 1;
     }
+    args_len = i;
+
+    for (i = 0, j = 0; *envs_in && i < CMD_PARAMS_CN; i++)
+    {
+        if (j >= envs_in_len)
+        {
+            break;
+        }
+        envs[i] = envs_in;
+        printf("envs[%d]: %s\n", i, envs_in);
+        j += strlen(envs_in) + 1;
+        envs_in += strlen(envs_in) + 1;
+    }
+    evns_len = i;
+
+    ret = app_load(path, u_get_global_env(), &pid, args, args_len,
+                   envs, evns_len,  mem_block);
+    if (ret >= 0)
+    {
+        return pid;
+    }
+    return ret;
 }
+/**
+ * @brief 用于拷贝数据
+ *
+ * @param src_pid
+ * @param dst_pid
+ * @param src_addr
+ * @param dst_addr
+ * @param len
+ * @return int
+ */
+int pm_rpc_copy_data(pid_t src_pid, pid_t dst_pid, umword_t src_addr, umword_t dst_addr, size_t len)
+{
+    msg_tag_t tag;
+
+    tag = task_copy_data_to(pm_hd2pid(src_pid), pm_hd2pid(dst_pid),
+                            (void *)src_addr, (void *)dst_addr, len);
+
+    return msg_tag_get_val(tag);
+}
+#if 0
+/**
+ * @brief 等待某个进程死亡
+ */
+int pm_waitpid(obj_handler_t sig_rcv_hd, pid_t pid)
+{
+    pid_t src_pid = thread_get_src_pid();
+    watch_entry_t *pos;
+
+    /*TODO:检测sig_rcv_hd的类型*/
+    slist_foreach_not_next(pos, &pm->watch_head, node)
+    {
+        watch_entry_t *next = slist_next_entry(pos, &pm->watch_head, node);
+
+        if (pos->watch_pid == pid && src_pid == pos->src_pid)
+        {
+            pos->notify_sem_hd = sig_rcv_hd;
+            break;
+        }
+        pos = next;
+    }
+    return 0;
+}
+#endif

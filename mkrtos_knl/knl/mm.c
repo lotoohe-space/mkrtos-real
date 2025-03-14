@@ -111,18 +111,20 @@ void *mem_split(mem_t *_this, void *mem, uint32_t size)
     }
     umword_t status = spinlock_lock(&_this->lock);
     t_mem = (struct mem_heap *)((ptr_t)mem - MEM_HEAP_STRUCT_SIZE);
-    if (t_mem->used == 0 || t_mem->size < MEM_HEAP_STRUCT_SIZE || t_mem->size < size || size < MEM_HEAP_STRUCT_SIZE)
+    if (t_mem->used == 0 || t_mem->size < MEM_HEAP_STRUCT_SIZE ||
+        t_mem->size < size || size < MEM_HEAP_STRUCT_SIZE)
     {
         spinlock_set(&_this->lock, status);
         return NULL;
     }
 
-    r_mem = (struct mem_heap *)((ptr_t)t_mem + size);
+    r_mem = (struct mem_heap *)((ptr_t)mem + size - MEM_HEAP_STRUCT_SIZE);
     r_mem->used = 1;
-    r_mem->size = t_mem->size - size;
+    r_mem->size = t_mem->size - size; // 右边的大小
     r_mem->next = t_mem->next;
     r_mem->prev = t_mem;
     r_mem->magic = MAGIC_NUM;
+
     t_mem->next->prev = r_mem;
     t_mem->next = r_mem;
     t_mem->used = 1;
@@ -154,13 +156,13 @@ again_alloc:
     {
         if (alloc_size - size >= align && align > MEM_HEAP_STRUCT_SIZE)
         {
-            void *split_addr = mem_split(_this, mem, alloc_size - (size - MEM_HEAP_STRUCT_SIZE));
-            if (!split_addr)
+            void *split_addr = mem_split(_this, mem, ALIGN(size, 4) + MEM_HEAP_STRUCT_SIZE);
+            if (split_addr)
             {
                 mem_free(_this, split_addr);
             }
         }
-        assert(((struct mem_heap *)(mem - MEM_HEAP_STRUCT_SIZE))->size >= size);
+        assert(((struct mem_heap *)((char *)mem - MEM_HEAP_STRUCT_SIZE))->size >= size);
         return mem;
     }
     else
@@ -180,7 +182,6 @@ again_alloc:
         }
         return split_addr;
     }
-
     return NULL;
 }
 /**
@@ -386,6 +387,7 @@ void mem_trace(mem_t *_this)
 
     for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next)
     {
+        assert(mem->magic == MAGIC_NUM);
         printk("%d [0x%x-] %dB\n", mem->used, mem, mem->size);
         total += mem->size + MEM_HEAP_STRUCT_SIZE;
     }

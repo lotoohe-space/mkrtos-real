@@ -26,11 +26,16 @@ else()
     endif()
 endif()
 
+file(GLOB mm_src mm/*.c mm/*.S)
+list(APPEND deps ${mm_src})
 if (DEFINED CONFIG_MMU)
     if (CONFIG_MMU STREQUAL "y")
-        file(GLOB mm_src mm/*.c mm/*.S)
-        list(APPEND deps ${mm_src})
+        file(GLOB mm_mmu_src mm/mmu/*.c mm/mmu/*.S)
+        list(APPEND deps ${mm_mmu_src})
     endif()
+else()
+file(GLOB mm_mpu_src mm/mpu/*.c mm/mpu/*.S)
+list(APPEND deps ${mm_mpu_src})
 endif()
 
 add_library(knl STATIC ${deps})
@@ -42,9 +47,11 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/
 
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/lib
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/lib/libfdt/lib/contrib
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/knl
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/drv
 
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/knl/mm
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/knl/mm/mmu
 )

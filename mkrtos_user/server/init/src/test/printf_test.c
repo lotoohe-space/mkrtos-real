@@ -19,12 +19,12 @@ static void printf_test(CuTest *tc)
         printf("%c %d %lf\n", 'a', 1234, 1.1);
     }
 }
-
+static CuSuite suite;
 CuSuite *printf_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
 
-    SUITE_ADD_TEST(suite, printf_test);
+    SUITE_ADD_TEST(&suite, printf_test);
 
-    return suite;
+    return &suite;
 }

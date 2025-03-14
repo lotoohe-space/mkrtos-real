@@ -1,18 +1,18 @@
 
 #pragma once
 
-typedef signed char int8_t;
-typedef signed short int16_t;
-typedef signed int int32_t;
+typedef signed char int8_t;   //!< 8位有符号整数
+typedef signed short int16_t; //!< 16位有符号整数
+typedef signed int int32_t;   //!< 32位有符号整数
 
 typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
+typedef unsigned short uint16_t; //!< 16位无符号整数
+typedef unsigned int uint32_t;   //!< 32位无符号整数
 
-typedef unsigned long long uint64_t;
+typedef unsigned long long uint64_t; //!< 64位无符号整数
 typedef long long int64_t;
 
-typedef unsigned long umword_t;
+typedef unsigned long umword_t; //!< 无符号字
 typedef unsigned short uhmword_t;
 typedef long mword_t;
 typedef short uhumword_t;

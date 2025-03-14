@@ -68,7 +68,7 @@ DHCP_State_TypeDef DHCP_state = DHCP_START;
  * @param  None
  * @retval None
  */
-void net_init(void)
+void net_hw_init(void)
 {
     ip4_addr_t ipaddr;
     ip4_addr_t netmask;

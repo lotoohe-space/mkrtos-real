@@ -10,15 +10,15 @@
 
 typedef struct mem_heap
 {
-    uint32_t magic;
     // union
     // {
     //     char name[MEM_HEAP_NAME];
     // };
     struct mem_heap *next;
     struct mem_heap *prev;
-    umword_t size;
-    uint16_t used;
+    umword_t size; // 可用的大小
+    uint32_t used;
+    uint32_t magic;
 } mem_heap_t;
 
 #define MEM_HEAP_STRUCT_SIZE ALIGN(sizeof(struct mem_heap), 4) //!< 对齐大小

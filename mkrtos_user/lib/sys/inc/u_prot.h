@@ -9,14 +9,13 @@ enum kobj_prot
     TASK_PROT,
     LOG_PROT,
     IPC_PROT,
-    MM_PROT,
     SYS_PROT,
     FUTEX_PROT,
     IRQ_PROT,
-    SHARE_MEM_PROT, // 10
-    VMA_PROT,
-    SEMA_PROT,
-    MAX_PROT,
+    SHARE_MEM_PROT,
+    VMA_PROT,  // 10
+    SEMA_PROT, // 11
+    MAX_PROT,  // 12
 };
 
 #define THREAD_MAIN THREAD_PROT
@@ -109,6 +108,10 @@ static inline vpage_t vpage_create_raw3(umword_t attrs, umword_t flags, umword_t
     return (vpage_t){.attrs = attrs, .flags = flags, .addr = addr};
 }
 
+/**
+ * @brief 对象的类型
+ *
+ */
 enum knl_obj_type
 {
     BASE_KOBJ_TYPE,
@@ -121,4 +124,7 @@ enum knl_obj_type
     FACTORY_TYPE,
     SYS_TYPE,
     FUTEX_TYPE,
+    SHARE_MEM_TYPE,
+    VMAM_TYPE,
+    SEMA_TYPE,
 };

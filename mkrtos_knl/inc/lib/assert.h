@@ -10,13 +10,16 @@
 
 #include "mm_wrap.h"
 #include "printk.h"
-#define assert(cond)                                       \
-    do {                                                   \
-        if (!(cond)) {                                     \
+#define assert(cond)                                           \
+    do                                                         \
+    {                                                          \
+        if (!(cond))                                           \
+        {                                                      \
             printk("\n%s:%d %s\n", __FILE__, __LINE__, #cond); \
-            dumpstack();                                   \
-            mm_trace();                                    \
-            while (1)                                      \
-                ;                                          \
-        }                                                  \
+            dumpstack();                                       \
+            mm_trace();                                        \
+            sys_reset();                                       \
+            while (1)                                          \
+                ;                                              \
+        }                                                      \
     } while (0)

@@ -21,8 +21,11 @@
 #include <errno.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <sys/statfs.h>
 
 typedef struct stat stat_t;
+// typedef struct kstat kstat_t;
+typedef struct statfs statfs_t;
 typedef struct dirent dirent_t;
 
 extern msg_tag_t dispatch_test(msg_tag_t tag, ipc_msg_t *msg);
@@ -182,13 +185,15 @@ static inline void rpc_memcpy(void *dst, void *src, size_t size)
 
 RPC_TYPE_DEF_ALL(int)      //!< 定义所有的
 RPC_TYPE_DEF_ALL(uint32_t) //!< 定义所有的
-RPC_TYPE_DEF_ALL(int64_t)      //!< 定义所有的
+RPC_TYPE_DEF_ALL(int64_t)  //!< 定义所有的
 RPC_TYPE_DEF_ALL(uint64_t) //!< 定义所有的
 RPC_TYPE_DEF_ALL(size_t)   //!< 定义所有的
 RPC_TYPE_DEF_ALL(umword_t) //!< 定义所有的
 RPC_TYPE_DEF_ALL(mword_t)  //!< 定义所有的
 RPC_TYPE_DEF_ALL(dirent_t) //!< 目录类型
 RPC_TYPE_DEF_ALL(stat_t)
+// RPC_TYPE_DEF_ALL(kstat_t)
+RPC_TYPE_DEF_ALL(statfs_t)
 
 /**
  * @brief 数组类型的rpc类型定义
@@ -304,7 +309,9 @@ RPC_TYPE_DEF_ALL(stat_t)
  */
 RPC_ARRAY_DEF(uint32_t, uint8_t, 32)
 RPC_ARRAY_DEF(uint32_t, uint8_t, 64)
+RPC_ARRAY_DEF(uint32_t, uint8_t, 96)
 RPC_ARRAY_DEF(uint32_t, uint8_t, 128)
+RPC_ARRAY_DEF(uint32_t, uint8_t, 160)
 RPC_ARRAY_DEF(uint32_t, uint8_t, 256)
 RPC_ARRAY_DEF(uint32_t, uint8_t, 400)
 RPC_ARRAY_DEF(uint32_t, uint8_t, 512)
@@ -378,7 +385,9 @@ RPC_ARRAY_DEF(uint32_t, uint8_t, 512)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 32)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 48)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 64)
+RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 96)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 128)
+RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 160)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 256)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 400)
 RPC_REF_ARRAY_DEF(uint32_t, uint8_t, 512)
@@ -439,7 +448,13 @@ RPC_SVR_MSG_TO_BUF_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
  */
 RPC_SVR_BUF_TO_MSG_WITHOUT_IMPL(rpc_obj_handler_t_t, int)
 {
-    return len;
+    if (sizeof(d->data) + rpc_align(len, __alignof(d->data)) > max)
+    {
+        return -ETOLONG;
+    }
+    len = rpc_align(len, __alignof(d->data));
+    d->data = *((typeof(d->data) *)(buf + len));
+    return sizeof(d->data) + rpc_align(len, __alignof(d->data));
 }
 /**
  * @brief Construct a new rpc type init without impl object
@@ -548,6 +563,26 @@ RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
     do                                                                                    \
     {                                                                                     \
         if (rpc_type == RPC_TYPE_DATA)                                                    \
+        {                                                                                 \
+            if (dir == RPC_DIR_IN || dir == RPC_DIR_INOUT)                                \
+            {                                                                             \
+                int ret = rpc_svr_buf_to_msg_##var_type(var, (uint8_t *)(buf), off, max); \
+                if (ret < 0)                                                              \
+                {                                                                         \
+                    return msg_tag_init4(0, 0, 0, ret);                                   \
+                }                                                                         \
+                off = ret;                                                                \
+            }                                                                             \
+        }                                                                                 \
+    } while (0)
+/**
+ * @brief 服务端从map里面取出数据
+ *
+ */
+#define RPC_SVR_MAP_TO_MSG_IN(rpc_type, var_type, var, dir, buf, off, max)                \
+    do                                                                                    \
+    {                                                                                     \
+        if (rpc_type == RPC_TYPE_BUF)                                                     \
         {                                                                                 \
             if (dir == RPC_DIR_IN || dir == RPC_DIR_INOUT)                                \
             {                                                                             \
@@ -883,6 +918,417 @@ RPC_TYPE_INIT_WITHOUT_IMPL(rpc_obj_handler_t_t)
         }                                                                                                 \
         return tag;                                                                                       \
     }
+#define RPC_DISPATCH14(struct_type, prot, op_type, func0_op, func0_name, func1_op, func1_name,            \
+                       func2_op, func2_name, func3_op, func3_name,                                        \
+                       func4_op, func4_name, func5_op, func5_name, func6_op, func6_name,                  \
+                       func7_op, func7_name, func8_op, func8_name, func9_op, func9_name,                  \
+                       func10_op, func10_name, func11_op, func11_name, func12_op, func12_name,            \
+                       func13_op, func13_name)                                                            \
+    msg_tag_t rpc_##struct_type##_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg) \
+    {                                                                                                     \
+        msg_tag_t tag = msg_tag_init4(0, 0, 0, -EPROTO);                                                  \
+        size_t op_val;                                                                                    \
+                                                                                                          \
+        op_val = *((op_type *)(ipc_msg->msg_buf));                                                        \
+        switch (op_val)                                                                                   \
+        {                                                                                                 \
+        case func0_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func0_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func1_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func1_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func2_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func2_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func3_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func3_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func4_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func4_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func5_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func5_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func6_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func6_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func7_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func7_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func8_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func8_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func9_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func9_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func10_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func10_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func11_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func11_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func12_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func12_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func13_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func13_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        default:                                                                                          \
+            break;                                                                                        \
+        }                                                                                                 \
+        return tag;                                                                                       \
+    }
+#define RPC_DISPATCH15(struct_type, prot, op_type, func0_op, func0_name, func1_op, func1_name,            \
+                       func2_op, func2_name, func3_op, func3_name,                                        \
+                       func4_op, func4_name, func5_op, func5_name, func6_op, func6_name,                  \
+                       func7_op, func7_name, func8_op, func8_name, func9_op, func9_name,                  \
+                       func10_op, func10_name, func11_op, func11_name, func12_op, func12_name,            \
+                       func13_op, func13_name, func14_op, func14_name)                                    \
+    msg_tag_t rpc_##struct_type##_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg) \
+    {                                                                                                     \
+        msg_tag_t tag = msg_tag_init4(0, 0, 0, -EPROTO);                                                  \
+        size_t op_val;                                                                                    \
+                                                                                                          \
+        op_val = *((op_type *)(ipc_msg->msg_buf));                                                        \
+        switch (op_val)                                                                                   \
+        {                                                                                                 \
+        case func0_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func0_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func1_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func1_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func2_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func2_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func3_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func3_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func4_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func4_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func5_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func5_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func6_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func6_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func7_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func7_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func8_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func8_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func9_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func9_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func10_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func10_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func11_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func11_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func12_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func12_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func13_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func13_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func14_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func14_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        default:                                                                                          \
+            break;                                                                                        \
+        }                                                                                                 \
+        return tag;                                                                                       \
+    }
+#define RPC_DISPATCH18(struct_type, prot, op_type, func0_op, func0_name, func1_op, func1_name,            \
+                       func2_op, func2_name, func3_op, func3_name,                                        \
+                       func4_op, func4_name, func5_op, func5_name, func6_op, func6_name,                  \
+                       func7_op, func7_name, func8_op, func8_name, func9_op, func9_name,                  \
+                       func10_op, func10_name, func11_op, func11_name, func12_op, func12_name,            \
+                       func13_op, func13_name, func14_op, func14_name, func15_op, func15_name,            \
+                       func16_op, func16_name, func17_op, func17_name)                                    \
+    msg_tag_t rpc_##struct_type##_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg) \
+    {                                                                                                     \
+        msg_tag_t tag = msg_tag_init4(0, 0, 0, -EPROTO);                                                  \
+        size_t op_val;                                                                                    \
+                                                                                                          \
+        op_val = *((op_type *)(ipc_msg->msg_buf));                                                        \
+        switch (op_val)                                                                                   \
+        {                                                                                                 \
+        case func0_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func0_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func1_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func1_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func2_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func2_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func3_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func3_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func4_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func4_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func5_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func5_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func6_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func6_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func7_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func7_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func8_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func8_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func9_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func9_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func10_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func10_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func11_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func11_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func12_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func12_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func13_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func13_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func14_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func14_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func15_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func15_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func16_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func16_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func17_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func17_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        default:                                                                                          \
+            break;                                                                                        \
+        }                                                                                                 \
+        return tag;                                                                                       \
+    }
+#define RPC_DISPATCH19(struct_type, prot, op_type, func0_op, func0_name, func1_op, func1_name,            \
+                       func2_op, func2_name, func3_op, func3_name,                                        \
+                       func4_op, func4_name, func5_op, func5_name, func6_op, func6_name,                  \
+                       func7_op, func7_name, func8_op, func8_name, func9_op, func9_name,                  \
+                       func10_op, func10_name, func11_op, func11_name, func12_op, func12_name,            \
+                       func13_op, func13_name, func14_op, func14_name, func15_op, func15_name,            \
+                       func16_op, func16_name, func17_op, func17_name, func18_op, func18_name)            \
+    msg_tag_t rpc_##struct_type##_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, ipc_msg_t *ipc_msg) \
+    {                                                                                                     \
+        msg_tag_t tag = msg_tag_init4(0, 0, 0, -EPROTO);                                                  \
+        size_t op_val;                                                                                    \
+                                                                                                          \
+        op_val = *((op_type *)(ipc_msg->msg_buf));                                                        \
+        switch (op_val)                                                                                   \
+        {                                                                                                 \
+        case func0_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func0_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func1_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func1_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func2_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func2_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func3_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func3_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func4_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func4_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func5_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func5_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func6_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func6_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func7_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func7_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func8_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func8_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func9_op:                                                                                    \
+        {                                                                                                 \
+            tag = struct_type##_##func9_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);             \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func10_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func10_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func11_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func11_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func12_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func12_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func13_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func13_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func14_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func14_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func15_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func15_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func16_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func16_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func17_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func17_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        case func18_op:                                                                                   \
+        {                                                                                                 \
+            tag = struct_type##_##func18_name##_dispatch((struct_type *)obj, in_tag, ipc_msg);            \
+        }                                                                                                 \
+        break;                                                                                            \
+        default:                                                                                          \
+            break;                                                                                        \
+        }                                                                                                 \
+        return tag;                                                                                       \
+    }
 #include "u_rpc_1.h"
 #include "u_rpc_2.h"
 #include "u_rpc_3.h"
+#include "u_rpc_4.h"
+#include "u_rpc_5.h"
+#include "u_rpc_6.h"

@@ -14,9 +14,10 @@ setjmp:
 	stmia ip!,{r2,lr}
 	mov r0,#0
 
-	adr r1,1f
-	ldr r2,1f
-	ldr r1,[r1,r2]
+	//adr r1,1f
+	//ldr r2,1f
+	//ldr r1,[r1,r2]
+	mov r1, #0
 
 #if __ARM_ARCH < 8
 	tst r1,#0x260

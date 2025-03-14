@@ -93,6 +93,25 @@ elseif(${CONFIG_CPU_TYPE} STREQUAL "swm34s" )
     )
     add_subdirectory(bsp/SWM34S)
     set(LINKS_FLAGS " --gc-section ")
+elseif(${CONFIG_CPU_TYPE} STREQUAL "at32f437" )
+    if(${CONFIG_BOARD_NAME} STREQUAL "ATSURFF437" )
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAT32F437ZMT7 -DUSE_STDPERIPH_DRIVER -DAT_SURF_F437_V1 ")
+    endif()
+    file(GLOB bsp_src 
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/drivers/src/*.c
+    )
+    list(APPEND deps ${bsp_src})
+
+    include_directories(
+        ${CMAKE_SOURCE_DIR}/mkrtos_bootstrap/bsp/AT32F437
+
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/core_support
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/cmsis/cm4/device_support
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/libraries/drivers/inc
+        ${CMAKE_SOURCE_DIR}/mkrtos_bsp/AT32/AT32F435_437_Firmware_Library_V2.2.0/project/at_surf_f437_board
+    )
+    add_subdirectory(bsp/AT32F437)
+    set(LINKS_FLAGS " --gc-section ")
 
 elseif(${CONFIG_CPU_TYPE} STREQUAL "aarch64_qemu" )
     include_directories(
@@ -124,8 +143,8 @@ if ((DEFINED CONFIG_MMU) AND (CONFIG_MMU STREQUAL "y"))
         mkrtos_dump_elf
         sh_dump_elf
         cpiofs_dump_elf
-        net_dump_elf
-        uvmm_dump_elf
+        # net_dump_elf
+        # uvmm_dump_elf
     )
     set_source_files_properties(${CMAKE_SOURCE_DIR}/build/output/rootfs.cpio.elf PROPERTIES EXTERNAL_OBJECT true)
     add_executable(bootstrap.elf
@@ -143,6 +162,16 @@ string(TOUPPER ${CONFIG_CPU_TYPE} cpu_type)
 set_target_properties(bootstrap.elf PROPERTIES LINK_FLAGS 
 "-T ${CMAKE_CURRENT_LIST_DIR}/bsp/${cpu_type}/link.lds ${LINKS_FLAGS} ")
 
+add_custom_target(
+    boot_link_file_dump ALL
+    COMMAND
+    ${CMAKE_C_COMPILER}
+    -include ${CMAKE_SOURCE_DIR}/build/autoconf.h
+    -E -P -<${CMAKE_CURRENT_LIST_DIR}/bsp/${cpu_type}/link.lds.asm> 
+    ${CMAKE_CURRENT_LIST_DIR}/bsp/${cpu_type}/link.lds
+)
+
+
 target_link_libraries(
     bootstrap.elf
     --whole-archive
@@ -150,21 +179,21 @@ target_link_libraries(
     --no-whole-archive
     ${GCC_LIB_PATH}/libgcc.a
 )
-
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/build/output)
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/build/output/cpio)
 add_custom_target(
     bootstrap_dump ALL
     COMMAND
     ${CMAKE_OBJCOPY} -O binary -S bootstrap.elf bootstrap.bin
     COMMAND
-    mkdir -p ${CMAKE_SOURCE_DIR}/build/output
+    ${CMAKE_COMMAND} -E copy bootstrap.bin ${CMAKE_SOURCE_DIR}/build/output/bootstrap
     COMMAND
-    mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
-    COMMAND
-    cp bootstrap.bin ${CMAKE_SOURCE_DIR}/build/output/bootstrap
-    COMMAND
-    cp bootstrap.elf ${CMAKE_SOURCE_DIR}/build/output/bootstrap.elf
+    ${CMAKE_COMMAND} -E copy bootstrap.elf ${CMAKE_SOURCE_DIR}/build/output/bootstrap.elf
     COMMAND
     ${CMAKE_SIZE} bootstrap.elf
 )
+execute_process( COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/build/include)
+
 add_dependencies(bootstrap_dump bootstrap.elf)
 add_dependencies(bootstrap.elf boot_bsp)
+add_dependencies(bootstrap.elf boot_link_file_dump)

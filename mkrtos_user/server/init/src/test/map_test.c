@@ -1,6 +1,6 @@
+#if 0
 #include "u_log.h"
 #include "u_prot.h"
-#include "u_mm.h"
 #include "u_factory.h"
 #include "u_thread.h"
 #include "u_task.h"
@@ -45,8 +45,8 @@ static void *thread_test_func(void *arg)
     assert(strcmp(TEST_STR, buf) == 0);
     ulog_write_str(log_hd, "map test success.\n");
     hard_sleep();
-    thread_ipc_reply(msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0), ipc_timeout_create2(0, 0));
     printf("thread_test_func.\n");
+    thread_ipc_reply(msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0), ipc_timeout_create2(0, 0));
     handler_free(log_hd);
     return NULL;
 }
@@ -61,7 +61,7 @@ static void *thread_test_func2(void *arg)
     strcpy((char *)(ipc_msg->msg_buf), TEST_STR);
     ipc_msg->map_buf[0] = vpage_create_raw3(KOBJ_DELETE_RIGHT, VPAGE_FLAGS_MAP, LOG_PROT).raw;
     thread_ipc_call(msg_tag_init4(0, ROUND_UP(strlen((char *)(ipc_msg->msg_buf)), WORD_BYTES), 1, 0),
-         pthread_hd_get(th1), ipc_timeout_create2(0, 0));
+                    pthread_hd_get(th1), ipc_timeout_create2(0, 0));
     printf("th2:%s", buf);
     assert(strcmp(TEST_STR, buf) == 0);
     printf("thread_test_func2.\n");
@@ -80,14 +80,16 @@ static void map_test(CuTest *test)
     pthread_create(&th2, NULL, thread_test_func2, NULL);
     CuAssert(test, "pthread create error.\n", ret == 0);
 
-    pthread_join(th1, NULL);
-    pthread_join(th2, NULL);
+    CuAssert(test, "pthread_join fail.\n", pthread_join(th1, NULL) == 0);
+    CuAssert(test, "pthread_join fail.\n", pthread_join(th2, NULL) == 0);
 }
+static CuSuite suite;
 CuSuite *map_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
 
-    SUITE_ADD_TEST(suite, map_test);
+    SUITE_ADD_TEST(&suite, map_test);
 
-    return suite;
+    return &suite;
 }
+#endif

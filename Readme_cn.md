@@ -1,7 +1,7 @@
 ## MKRTOS 是什么
 
 - MKRTOS 是第三代微内核操作系统，支持Cortex-A&Cortex-M核，支持动态加载app执行（MPU保护），支持ELF支持（MMU保护），多线程，进程隔离等功能。提供标准化的posix接口支持，用户态驱动，未来还将在支持虚拟化。MKRTOS适用于对安全与稳定性要求较高的场合。MKRTOS架构图如下：
- ![image](./mkrtos_doc/架构图.png) 
+- ![image](./mkrtos_doc/架构图.png) 
 ### 设计原则
 - 1.服务间数据交互不经过第三方组件。
 - 2.服务间最简接口原则。
@@ -24,23 +24,14 @@
 - 多ARCH支持（Cortex-M & Cortex-A)
 - 多核支持
 - 多核多进程支持，IPC支持
-- 虚拟化支持
+- 虚拟化支持(doing)
 - musl lib（posix支持）
-- path manager、process manager、init、fat server、shell
+- path manager、process manager、init、fs server、shell、net server
 - MPU & MMU内存保护支持
 - 可执行文件支持（bin&ELF）
 
-
-### MKRTOS 用户态生态正在做
-- 1.toybox常用命令支持
-- 2.ota支持
-- 3.ymodem支持
-- 4.GUI支持。
-- 5.lwip支持。
-- 6.modubs支持。
-- 7.can通信协议支持。
-- 8.AT协议支持。
-- 9.其它。
+### TODO
+see TODO.md
 
 ### 怎么使用？
 

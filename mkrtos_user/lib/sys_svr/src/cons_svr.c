@@ -39,7 +39,8 @@ RPC_GENERATION_DISPATCH2(cons_t, CONS_PROT, CONS_READ, read,
 RPC_GENERATION_OP1(cons_t, CONS_PROT, CONS_ACTIVE, active,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
 {
-    console_active(thread_get_src_pid());
+    printf("warrning: to map sema obj.\n");
+    console_active(thread_get_src_pid(), -1 /*TODO:映射sem*/);
     return 0;
 }
 
@@ -54,6 +55,6 @@ void cons_svr_obj_init(cons_t *cons)
     rpc_svr_obj_init(&cons->svr, rpc_cons_t_dispatch, CONS_PROT);
     cons->active_pid = -1;
     q_init(&cons->r_queue, cons->r_data, CONS_WRITE_BUF_SIZE);
-    pthread_spin_init(&cons->r_lock, 0);
-    pthread_mutex_init(&cons->w_lock, NULL);
+    // pthread_spin_init(&cons->r_lock, 0);
+    // pthread_mutex_init(&cons->w_lock, NULL);
 }

@@ -1,5 +1,8 @@
 #pragma once
 #include <types.h>
+#include <util.h>
+#if IS_ENABLED(CONFIG_CPIO_SUPPORT)
+
 //! 26bytes
 #pragma pack(1)
 typedef struct cpio_fs
@@ -32,3 +35,4 @@ static inline int64_t check_magic(char *magic)
 
 umword_t cpio_get_size(umword_t st);
 umword_t cpio_find_file(umword_t st, umword_t en, const char *name, size_t *size);
+#endif

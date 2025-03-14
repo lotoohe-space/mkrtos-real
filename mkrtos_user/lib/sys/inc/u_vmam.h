@@ -15,16 +15,22 @@ enum vpage_prot_attrs
     VPAGE_PROT_IN_KNL = 0x20,  //!< 内核中使用
 };
 
-#define VMA_ADDR_RESV 0x1    //!< 保留内存
-// #define VMA_ADDR_UNCACHE 0x2 //!< uncache内存
+#define VMA_ADDR_RESV 0x1           //!< flags 保留内存
+#define VMA_ADDR_PAGE_FAULT_SIM 0x2 //!< page fault模拟，使用mpu模拟，该内存不能被栈使用
+#define VMA_ADDR_PAGE_FAULT_DSCT 0x4 //!< 申请内存时按叶大小申请与映射
 
 typedef union vma_addr
 {
     umword_t raw;
     struct
     {
+#if IS_ENABLED(CONFIG_MMU)
         umword_t prot : 8;
         umword_t flags : 4;
+#else
+        umword_t prot : 6;
+        umword_t flags : 3;
+#endif
         // umword_t resv : 2;
         umword_t addr : (sizeof(void *) * 8 - CONFIG_PAGE_SHIFT);
     };

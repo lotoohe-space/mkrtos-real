@@ -31,7 +31,7 @@ RPC_GENERATION_CALL3(drv_t, FS_PROT, DRV_IOCTL, ioctl,
 int dev_fs_open(const char *path, uint32_t oflags)
 {
     obj_handler_t hd;
-    int ret = ns_query(path, &hd);
+    int ret = ns_query(path, &hd, 0x1);
 
     if (ret < 0)
     {

@@ -23,11 +23,17 @@
 #include <string.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <termios.h>
+#include <sys/stat.h>
 #include "cons_cli.h"
 #include "u_sleep.h"
+#include "u_sema.h"
+#include "u_task.h"
 static Shell shell;
 static ShellFs shellFs;
-static char shellBuffer[256];
+static char shellBuffer[512];
 // static char shellPathBuffer[128] = "/";
 
 /**
@@ -39,8 +45,7 @@ static char shellBuffer[256];
  * @return unsigned short 写入实际长度
  */
 signed short userShellWrite(char *data, unsigned short len)
-{
-    return cons_write((const char *)data, len);
+{    return write(STDOUT_FILENO, data, len);
 }
 
 /**
@@ -53,10 +58,10 @@ signed short userShellWrite(char *data, unsigned short len)
  */
 signed short userShellRead(char *data, unsigned short len)
 {
-    while (cons_read((uint8_t *)data, len) <= 0)
-    {
-        u_sleep_ms(5);
-    }
+    int rlen;
+
+    rlen = read(STDIN_FILENO, data, len);
+    return rlen;
 }
 /**
  * @brief 列出文件
@@ -90,12 +95,29 @@ size_t userShellListDir(char *path, char *buffer, size_t maxLen)
     closedir(dir);
     return 0;
 }
+static struct termios old_settings;
+static struct termios new_settings;
+
+void tty_set_raw_mode(void)
+{
+    new_settings = old_settings;
+    new_settings.c_lflag &= ~(ICANON | ECHO);   // 禁用规范模式和回显
+    new_settings.c_cc[VMIN] = 1;                // 读取的最小字符数
+    new_settings.c_cc[VTIME] = 0;               // 读取的超时时间（以10ms为单位）
+    tcsetattr(STDIN_FILENO, TCSANOW, &new_settings);
+}
+void tty_set_normal_mode(void)
+{
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_settings);
+}
 /**
  * @brief 用户shell初始化
  *
  */
 void userShellInit(void)
 {
+    tcgetattr(STDIN_FILENO, &old_settings);
+    tty_set_raw_mode();
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_shell");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_shell");
     // shellFs.getcwd = getcwd;

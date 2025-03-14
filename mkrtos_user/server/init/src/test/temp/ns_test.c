@@ -14,15 +14,15 @@ int ns_reg(const char *path, obj_handler_t hd, enum node_type type);
 void ns_test(void)
 {
     int ret;
-    ret = ns_reg("/", 0, FILE_NODE);
+    ret = ns_reg("/", 0, 0);
     assert(ret < 0);
-    ret = ns_reg("/test", 0, FILE_NODE);
+    ret = ns_reg("/test", 0, 0);
     assert(ret >= 0);
-    ret = ns_reg("/test", 0, FILE_NODE);
+    ret = ns_reg("/test", 0, 0);
     assert(ret < 0);
-    ret = ns_reg("/test1", 0, DIR_NODE);
+    ret = ns_reg("/test1", 0, 0);
     assert(ret >= 0);
-    ret = ns_reg("/test2", 0, MOUNT_NODE);
+    ret = ns_reg("/test2", 0, 0);
     assert(ret >= 0);
 
     int fd;

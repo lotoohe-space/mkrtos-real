@@ -17,12 +17,28 @@ config ARCH
 config FLOAT_TYPE
     string "float type is soft or hard"
     default "soft"
+
 config ELF_LAUNCH
     bool "elf app launch"
     default n
-config RTT_DIR
-    string ""
-    default "./"
 
+config DTBO_SUPPORT
+    bool "dtb support."
+    default n
 
+config DTBO_OFFSET
+    hex "dtbo img offset."
+    default 0x1000
+
+config CPIO_SUPPORT
+    bool "support cpio img."
+    default y
+
+config APP_PARAMS_NR
+    int "app params nr"
+    default 8
+
+config APP_ENV_NR
+    int "app env nr"
+    default 8
 

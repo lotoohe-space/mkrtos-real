@@ -40,4 +40,4 @@ void dumpstack(void);
  *
  */
 #define dbg_print_kobj(kobj, fmt, ...) printk(kobject_get_name(kobj), "[%s]" fmt, __VA_ARGS__)
-#define dbg_printk(fmt, ...) printk("[%d]" fmt, arch_get_sys_clk(), __VA_ARGS__)
+#define dbg_printk(fmt, ...) printk("[%d]" fmt, sys_tick_cnt_get(), __VA_ARGS__)

@@ -1,94 +1,37 @@
+#include "cons_cli.h"
+#include "ff.h"
+#include "fs_svr.h"
+#include "kstat.h"
+#include "rpc_prot.h"
+#include "u_env.h"
+#include "u_log.h"
 #include "u_rpc.h"
 #include "u_rpc_svr.h"
-#include "fs_svr.h"
-#include "ff.h"
-#include "cons_cli.h"
-#include "u_log.h"
-#include "u_env.h"
-#include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <assert.h>
-#include <string.h>
-#include "rpc_prot.h"
 #include "u_sig.h"
+#include "pm_cli.h"
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <u_malloc.h>
+#include "fd.h"
+#include "u_path.h"
+
 static fs_t fs;
 static int fs_sig_call_back(pid_t pid, umword_t sig_val);
-void fs_svr_init(void)
-{
-    fs_init(&fs);
-    meta_reg_svr_obj(&fs.svr, FS_PROT);
-#ifdef CONFIG_USING_SIG
-    pm_sig_func_set(fs_sig_call_back);
-#endif
-}
-typedef struct file_desc
+
+typedef struct file_desc_priv
 {
     union
     {
         FIL fp;
         FATFS_DIR dir;
     };
-    pid_t pid;
     uint8_t type; //!< 0:file 1:dir
-} file_desc_t;
+} file_desc_priv_t;
 
-#define FILE_DESC_NR 8                  //!< 最多同时可以打开多少个文件
-static file_desc_t files[FILE_DESC_NR]; //!< 预先设置的文件描述符
-
-static void free_fd(pid_t pid)
-{
-    for (int i = 0; i < FILE_DESC_NR; i++)
-    {
-        if (files[i].fp.obj.fs)
-        {
-            fs_svr_close(i);
-            files[i].fp.obj.fs = NULL;
-            files[i].pid = 0;
-        }
-    }
-}
-
-static int fs_sig_call_back(pid_t pid, umword_t sig_val)
-{
-    switch (sig_val)
-    {
-    case KILL_SIG:
-        free_fd(pid);
-        break;
-    }
-    return 0;
-}
-
-static file_desc_t *alloc_file(int *fd)
-{
-    for (int i = 0; i < FILE_DESC_NR; i++)
-    {
-        if (files[i].fp.obj.fs == NULL)
-        {
-            *fd = i;
-            files[i].pid = thread_get_src_pid();
-            return &files[i];
-        }
-    }
-    return NULL;
-}
-static void free_file(int fd)
-{
-    files[fd].fp.obj.fs = NULL;
-}
-static file_desc_t *file_get(int fd)
-{
-    if (fd < 0 || fd >= FILE_DESC_NR)
-    {
-        return NULL;
-    }
-    if (files[fd].fp.obj.fs == NULL)
-    {
-        return NULL;
-    }
-    return files + fd;
-}
+void fs_svr_close(int fd);
 static int fatfs_err_conv(FRESULT res)
 {
     switch (res)
@@ -121,14 +64,22 @@ static int fatfs_err_conv(FRESULT res)
 }
 int fs_svr_open(const char *path, int flags, int mode)
 {
-    // printf("open %s.\n", path);
     int fd;
     pid_t pid = thread_get_src_pid();
-    file_desc_t *file = alloc_file(&fd);
+    file_desc_priv_t *file = NULL;
 
-    if (!file)
+    file = u_malloc(sizeof(*file));
+    if (file == NULL)
     {
         return -ENOMEM;
+    }
+
+    fd = file_desc_alloc(pid, file, fs_svr_close);
+
+    if (fd < 0)
+    {
+        u_free(file);
+        return fd;
     }
     int new_mode = 0;
 
@@ -169,7 +120,8 @@ int fs_svr_open(const char *path, int flags, int mode)
             if (ret != FR_OK)
             {
                 cons_write_str("open fail..\n");
-                free_file(fd);
+                file_desc_free(fd);
+                u_free(file);
                 return fatfs_err_conv(ret);
             }
             file->type = 1;
@@ -184,6 +136,8 @@ int fs_svr_open(const char *path, int flags, int mode)
 
     if (ret != FR_OK)
     {
+        file_desc_free(fd);
+        u_free(file);
         return fatfs_err_conv(ret);
     }
 #ifdef CONFIG_USING_SIG
@@ -199,17 +153,19 @@ int fs_svr_open(const char *path, int flags, int mode)
 int fs_svr_read(int fd, void *buf, size_t len)
 {
     UINT br;
-    file_desc_t *file = file_get(fd);
+    file_desc_t *file = file_desc_get(fd);
+    file_desc_priv_t *file_priv = NULL;
 
-    if (!file)
+    if (!file || file->priv == NULL)
     {
         return -ENOENT;
     }
-    if (file->type != 0)
+    file_priv = file->priv;
+    if (file_priv->type != 0)
     {
         return -EACCES;
     }
-    FRESULT ret = f_read(&file->fp, buf, len, &br);
+    FRESULT ret = f_read(&file_priv->fp, buf, len, &br);
 
     if (ret != FR_OK)
     {
@@ -220,17 +176,19 @@ int fs_svr_read(int fd, void *buf, size_t len)
 int fs_svr_write(int fd, void *buf, size_t len)
 {
     UINT bw;
-    file_desc_t *file = file_get(fd);
+    file_desc_t *file = file_desc_get(fd);
+    file_desc_priv_t *file_priv = NULL;
 
-    if (!file)
+    if (!file || file->priv == NULL)
     {
         return -ENOENT;
     }
-    if (file->type != 0)
+    file_priv = file->priv;
+    if (file_priv->type != 0)
     {
         return -EACCES;
     }
-    FRESULT ret = f_write(&file->fp, buf, len, &bw);
+    FRESULT ret = f_write(&file_priv->fp, buf, len, &bw);
 
     if (ret != FR_OK)
     {
@@ -240,107 +198,40 @@ int fs_svr_write(int fd, void *buf, size_t len)
 }
 void fs_svr_close(int fd)
 {
-    file_desc_t *file = file_get(fd);
+    file_desc_t *file = file_desc_get(fd);
+    file_desc_priv_t *file_priv = NULL;
 
-    if (!file)
+    if (!file || file->priv == NULL)
     {
         return;
     }
-    switch (file->type)
+    file_priv = file->priv;
+
+    switch (file_priv->type)
     {
     case 0:
-        f_close(&file->fp);
+        f_close(&file_priv->fp);
         break;
     case 1:
-        f_closedir(&file->dir);
+        f_closedir(&file_priv->dir);
         break;
     }
-    file->fp.obj.fs = NULL;
-}
-int fs_svr_lseek(int fd, int offs, int whence)
-{
-    UINT bw;
-    file_desc_t *file = file_get(fd);
-    int new_offs = 0;
-
-    if (!file)
-    {
-        return -ENOENT;
-    }
-    if (file->type != 0)
-    {
-        return -EACCES;
-    }
-    switch (whence)
-    {
-    case SEEK_SET:
-        new_offs = offs;
-        break;
-    case SEEK_END:
-    {
-        new_offs = f_size(&file->fp) + offs;
-    }
-    break;
-    case SEEK_CUR:
-    {
-        new_offs = offs + f_tell(&file->fp);
-    }
-    break;
-    default:
-        return -EINVAL;
-    }
-    if (new_offs > f_size(&file->fp))
-    {
-        new_offs = f_size(&file->fp);
-    }
-    if (new_offs < 0)
-    {
-        new_offs = 0;
-    }
-    FRESULT ret = f_lseek(&file->fp, new_offs);
-
-    return fatfs_err_conv(ret);
-}
-int fs_svr_ftruncate(int fd, off_t off)
-{
-    file_desc_t *file = file_get(fd);
-
-    if (!file)
-    {
-        return -ENOENT;
-    }
-    if (file->type != 0)
-    {
-        return -EACCES;
-    }
-    FRESULT ret = f_truncate(&file->fp);
-
-    return fatfs_err_conv(ret);
-}
-void fs_svr_sync(int fd)
-{
-    file_desc_t *file = file_get(fd);
-
-    if (!file)
-    {
-        return;
-    }
-    if (file->type != 0)
-    {
-        return;
-    }
-    f_sync(&file->fp);
+    file_priv->fp.obj.fs = NULL;
+    file_desc_free_unlock(fd);
+    u_free(file_priv);
 }
 int fs_svr_readdir(int fd, dirent_t *dir)
 {
-    file_desc_t *file = file_get(fd);
+    file_desc_t *file = file_desc_get(fd);
+    file_desc_priv_t *file_priv = NULL;
 
-    if (!file)
+    if (!file || file->priv == NULL)
     {
         return -ENOENT;
     }
+    file_priv = file->priv;
     FILINFO info;
-    FRESULT ret = f_readdir(&file->dir, &info);
+    FRESULT ret = f_readdir(&file_priv->dir, &info);
 
     if (ret != FR_OK || info.fname[0] == 0)
     {
@@ -360,41 +251,190 @@ int fs_svr_readdir(int fd, dirent_t *dir)
     }
     return sizeof(*dir);
 }
+int fs_svr_lseek(int fd, int offs, int whence)
+{
+    UINT bw;
+    file_desc_t *file = file_desc_get(fd);
+    file_desc_priv_t *file_priv = NULL;
+
+    int new_offs = 0;
+
+    if (!file || file->priv == NULL)
+    {
+        return -ENOENT;
+    }
+    file_priv = file->priv;
+
+    if (file_priv->type != 0)
+    {
+        return -EACCES;
+    }
+    switch (whence)
+    {
+    case SEEK_SET:
+        new_offs = offs;
+        break;
+    case SEEK_END:
+    {
+        new_offs = f_size(&file_priv->fp) + offs;
+    }
+    break;
+    case SEEK_CUR:
+    {
+        new_offs = offs + f_tell(&file_priv->fp);
+    }
+    break;
+    default:
+        return -EINVAL;
+    }
+#if 0
+    if (new_offs > f_size(&file_priv->fp)) {
+        new_offs = f_size(&file_priv->fp);
+    }
+#endif
+    if (new_offs < 0)
+    {
+        new_offs = 0;
+    }
+    FRESULT ret = f_lseek(&file_priv->fp, new_offs);
+
+    return fatfs_err_conv(ret);
+}
+int fs_svr_ftruncate(int fd, off_t off)
+{
+    file_desc_t *file = file_desc_get(fd);
+    file_desc_priv_t *file_priv = NULL;
+
+    if (!file || file->priv == NULL)
+    {
+        return -ENOENT;
+    }
+    file_priv = file->priv;
+    if (file_priv->type != 0)
+    {
+        return -EACCES;
+    }
+    FRESULT ret = f_truncate(&file_priv->fp);
+
+    return fatfs_err_conv(ret);
+}
+int fs_svr_fstat(int fd, void *_stat)
+{
+    struct kstat *stat = _stat;
+    file_desc_t *file = file_desc_get(fd);
+    file_desc_priv_t *file_priv = NULL;
+
+    if (!file || file->priv == NULL)
+    {
+        return -ENOENT;
+    }
+    file_priv = file->priv;
+    memset(stat, 0, sizeof(*stat));
+    stat->st_size = file_priv->type == 1 ? 0 : f_size(&file_priv->fp);
+    stat->st_mode = file_priv->type == 1 ? S_IFDIR : S_IFREG;
+    stat->st_blksize = 0;
+    return 0;
+}
+int fs_svr_ioctl(int fd, int req, void *arg)
+{
+    return 0; /*TODO:*/
+}
+int fs_svr_fsync(int fd)
+{
+    file_desc_t *file = file_desc_get(fd);
+    file_desc_priv_t *file_priv = NULL;
+
+    if (!file || file->priv == NULL)
+    {
+        return -EBADFD;
+    }
+    file_priv = file->priv;
+    if (file_priv->type != 0)
+    {
+        return -EBADFD;
+    }
+    f_sync(&file_priv->fp);
+    return 0;
+}
+int fs_svr_unlink(const char *path)
+{
+    FRESULT ret = f_unlink(path);
+
+    return fatfs_err_conv(ret);
+}
+int fs_svr_symlink(const char *existing, const char *new)
+{
+    return -ENOSYS;
+}
 int fs_svr_mkdir(char *path)
 {
     FRESULT ret = f_mkdir(path);
 
     return fatfs_err_conv(ret);
 }
-int fs_svr_unlink(char *path)
-{
-    FRESULT ret = f_unlink(path);
-
-    return fatfs_err_conv(ret);
-}
-int fs_svr_renmae(char *oldname, char *newname)
-{
-    return fatfs_err_conv(f_rename(oldname, newname));
-}
-int fs_svr_fstat(int fd, stat_t *stat)
-{
-    file_desc_t *file = file_get(fd);
-
-    if (!file)
-    {
-        return -ENOENT;
-    }
-    memset(stat, 0, sizeof(*stat));
-    stat->st_size = file->type == 1 ? 0 : f_size(&file->fp);
-    stat->st_mode = file->type == 1 ? S_IFDIR : S_IFREG;
-    stat->st_blksize = 0;
-    return 0;
-}
-int fs_svr_symlink(const char *src, const char *dst)
+int fs_svr_rmdir(char *path)
 {
     return -ENOSYS;
 }
-void fs_svr_loop(void)
+int fs_svr_rename(char *oldname, char *newname)
 {
-    rpc_loop();
+    return fatfs_err_conv(f_rename(oldname, newname));
+}
+int fs_svr_stat(const char *path, void *_buf)
+{
+    FILINFO INFO;
+    FRESULT ret;
+    struct kstat *buf = (struct kstat *)_buf;
+
+    if (u_is_root_path(path))
+    {
+        buf->st_size = 0;
+        buf->st_mode = S_IFDIR;
+        return 0;
+    }
+    ret = f_stat(path, &INFO);
+    if (ret != FR_OK)
+    {
+        return fatfs_err_conv(ret);
+    }
+    memset(buf, 0, sizeof(*buf));
+    buf->st_size = INFO.fsize;
+    buf->st_mode = (INFO.fattrib & AM_DIR) ? S_IFDIR : S_IFREG;
+    return 0;
+}
+ssize_t fs_svr_readlink(const char *path, char *buf, size_t bufsize)
+{
+    return -ENOSYS;
+}
+
+int fs_svr_statfs(const char *path, struct statfs *buf)
+{
+    return -ENOSYS;
+}
+static const fs_operations_t ops =
+    {
+        .fs_svr_open = fs_svr_open,
+        .fs_svr_read = fs_svr_read,
+        .fs_svr_write = fs_svr_write,
+        .fs_svr_close = fs_svr_close,
+        .fs_svr_readdir = fs_svr_readdir,
+        .fs_svr_lseek = fs_svr_lseek,
+        .fs_svr_ftruncate = fs_svr_ftruncate,
+        .fs_svr_fstat = fs_svr_fstat,
+        .fs_svr_ioctl = fs_svr_ioctl,
+        // .fs_svr_fcntl = fs_svr_fcntl,
+        .fs_svr_fsync = fs_svr_fsync,
+        .fs_svr_unlink = fs_svr_unlink,
+        .fs_svr_symlink = fs_svr_symlink,
+        .fs_svr_mkdir = fs_svr_mkdir,
+        .fs_svr_rmdir = fs_svr_rmdir,
+        .fs_svr_rename = fs_svr_rename,
+        .fs_svr_stat = fs_svr_stat,
+        .fs_svr_readlink = fs_svr_readlink,
+};
+void fs_svr_init(void)
+{
+    fs_init(&fs, &ops);
+    meta_reg_svr_obj(&fs.svr, FS_PROT);
+    file_desc_init();
 }

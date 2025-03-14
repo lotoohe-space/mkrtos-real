@@ -13,7 +13,8 @@
 #include "stdarg.h"
 #include "uart/uart.h"
 #include "xprintf.h"
-
+#include "thread.h"
+#include "pre_cpu.h"
 static spinlock_t lock;
 static char print_cache[CONFIG_PRINTK_CACHE_SIZE];
 
@@ -24,7 +25,8 @@ static char print_cache[CONFIG_PRINTK_CACHE_SIZE];
  */
 static void print_raw(const char *str)
 {
-    for (int i = 0; str[i]; i++) {
+    for (int i = 0; str[i]; i++)
+    {
         uart_putc(uart_get_global(), str[i]);
     }
 }
@@ -51,13 +53,16 @@ void printk(const char *fmt, ...)
 {
     va_list args;
     umword_t state = 0;
+    thread_t *cut_th = thread_get_current();
 
     state = spinlock_lock(&lock);
+    xsprintf(print_cache, "[%8d]%s: ",
+             pre_cpu_is_init() ? sys_tick_cnt_get() : 0,
+             kobject_get_name(&cut_th->kobj));
+    print_raw(print_cache);
     va_start(args, fmt);
     xvsprintf(print_cache, fmt, args);
     va_end(args);
     print_raw(print_cache);
     spinlock_set(&lock, state);
 }
-
-

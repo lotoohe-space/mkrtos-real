@@ -2,11 +2,17 @@
 #include <time.h>
 #include <signal.h>
 #include "syscall.h"
-
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
 int poll(struct pollfd *fds, nfds_t n, int timeout)
 {
 #ifdef SYS_poll
+#ifdef NO_LITTLE_MODE
 	return syscall_cp(SYS_poll, fds, n, timeout);
+#else
+	return be_poll(fds, n, timeout);
+#endif
 #else
 #if SYS_ppoll_time64 == SYS_ppoll
 	typedef long long ppoll_ts_t[2];

@@ -1,0 +1,12 @@
+/dts-v1/;
+/ {
+    usart0:usart_0 {
+        compatible = "st,usart";
+        regs = <0x0000000 0x1000>;
+        baud = <115200>;
+        stopbits = <1>;
+    };
+    log {
+        dev = <&usart0>;
+    };
+};

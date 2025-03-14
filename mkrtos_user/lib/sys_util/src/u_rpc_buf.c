@@ -24,9 +24,8 @@ obj_handler_t rpc_hd_get(int inx)
     assert(inx < RPC_SVR_MAP_OBJ_NR && inx >= 0);
     return buf_hd[inx];
 }
-int rpc_hd_alloc(void)
+int rpc_hd_alloc_raw(ipc_msg_t *msg)
 {
-    ipc_msg_t *msg;
     msg_tag_t tag;
     obj_handler_t hd;
     bool_t alloc_new = TRUE;
@@ -62,9 +61,19 @@ int rpc_hd_alloc(void)
         {
             hd = tmp_hd;
         }
-        thread_msg_buf_get(-1, (umword_t *)(&msg), NULL);
         msg->map_buf[i] = vpage_create_raw3(0, 0, hd).raw;
         buf_hd[i] = hd;
     }
     return 0;
+}
+int rpc_hd_alloc(void)
+{
+    ipc_msg_t *msg;
+    msg_tag_t tag;
+    tag = thread_msg_buf_get(-1, (void *)(&msg), NULL);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        return msg_tag_get_val(tag);
+    }
+    return rpc_hd_alloc_raw(msg);
 }

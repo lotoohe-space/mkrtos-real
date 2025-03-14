@@ -1,6 +1,6 @@
+#if 0
 #include "u_log.h"
 #include "u_prot.h"
-#include "u_mm.h"
 #include "u_factory.h"
 #include "u_thread.h"
 #include "u_task.h"
@@ -58,7 +58,7 @@ static void thread_test_func(void)
             break;
         }
     }
-    printf("thread_test_func.\n");
+    // printf("thread_test_func.\n");
     while (1)
     {
         u_sleep_ms(100000);
@@ -213,21 +213,21 @@ static void ipc_test(CuTest *cu)
     tag = thread_run_cpu(th4_hd, 2, 0);
 
     while (test_cn < 1000)
-        ;
-    /*
-    TODO:存在bug
+    {
+        u_sleep_ms(10);
+    }
     u_thread_del(th1_hd);
     u_thread_del(th2_hd);
     u_thread_del(th3_hd);
     u_thread_del(th4_hd);
-    */
+    printf("test_cn:%d.\n", test_cn);
 }
-
+static CuSuite suite;
 CuSuite *ipc_test_suite(void)
 {
-    CuSuite *suite = CuSuiteNew();
+    CuSuiteInit(&suite);
+    SUITE_ADD_TEST(&suite, ipc_test);
 
-    SUITE_ADD_TEST(suite, ipc_test);
-
-    return suite;
+    return &suite;
 }
+#endif

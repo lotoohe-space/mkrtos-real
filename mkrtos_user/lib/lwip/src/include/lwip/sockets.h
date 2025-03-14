@@ -65,7 +65,11 @@ extern "C" {
 /* If your port already typedef's sa_family_t, define SA_FAMILY_T_DEFINED
    to prevent this code from redefining it. */
 #if !defined(sa_family_t) && !defined(SA_FAMILY_T_DEFINED)
+#ifdef MKRTOS
+typedef u16_t sa_family_t;
+#else
 typedef u8_t sa_family_t;
+#endif
 #endif
 /* If your port already typedef's in_port_t, define IN_PORT_T_DEFINED
    to prevent this code from redefining it. */
@@ -98,6 +102,9 @@ struct sockaddr_in6 {
 
 struct sockaddr {
   u8_t        sa_len;
+#ifdef MKRTOS
+	unsigned char is_null;
+#endif
   sa_family_t sa_family;
   char        sa_data[14];
 };
@@ -334,6 +341,9 @@ typedef struct ip_mreq {
 #if LWIP_IPV4
 struct in_pktinfo {
   unsigned int   ipi_ifindex;  /* Interface index */
+  #ifdef MKRTOS
+	struct in_addr ipi_spec_dst;
+  #endif
   struct in_addr ipi_addr;     /* Destination (from header) address */
 };
 #endif /* LWIP_IPV4 */

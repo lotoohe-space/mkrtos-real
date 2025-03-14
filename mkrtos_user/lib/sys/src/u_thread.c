@@ -12,6 +12,7 @@ enum thread_op
     YIELD,
     DO_IPC,
     SET_EXEC,
+    SLEEP,
 };
 enum IPC_TYPE
 {
@@ -20,7 +21,11 @@ enum IPC_TYPE
     IPC_WAIT,
     IPC_RECV,
     IPC_SEND,
+    IPC_FAST_CALL, //!< 快速CALL通信，不切换上下文
+    IPC_FAST_REPLAY,
 };
+#if 0
+
 msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj, obj_handler_t ipc_obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -90,6 +95,58 @@ msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_tim
                      : ARCH_REG_0);
     return msg_tag_init(r0);
 }
+#endif
+MK_SYSCALL
+msg_tag_t thread_sleep(umword_t ticks)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    mk_syscall(syscall_prot_create4(SLEEP, THREAD_PROT, -1, TRUE).raw,
+               ticks,
+               0,
+               0,
+               0,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0);
+}
+MK_SYSCALL
+msg_tag_t thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj, umword_t arg0, umword_t arg1, umword_t arg2)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, target_obj, TRUE).raw,
+               in_tag.raw,
+               IPC_FAST_CALL,
+               arg0,
+               arg1,
+               arg2,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0);
+    return msg_tag_init(r0);
+}
+MK_SYSCALL
+msg_tag_t thread_ipc_fast_replay(msg_tag_t in_tag, obj_handler_t target_obj, int unlock_bitmap)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, target_obj, TRUE).raw,
+               in_tag.raw,
+               IPC_FAST_REPLAY,
+               unlock_bitmap,
+               0,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0);
+    return msg_tag_init(r0);
+}
+MK_SYSCALL
 msg_tag_t thread_yield(obj_handler_t obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -107,13 +164,14 @@ msg_tag_t thread_yield(obj_handler_t obj)
                      : ARCH_REG_0, ARCH_REG_1, ARCH_REG_2);
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     register volatile umword_t r1 asm(ARCH_REG_1);
     register volatile umword_t r2 asm(ARCH_REG_2);
 
-    mk_syscall(syscall_prot_create(MSG_BUG_SET, THREAD_PROT, obj).raw,
+    mk_syscall(syscall_prot_create4(MSG_BUG_SET, THREAD_PROT, obj, TRUE).raw,
                0,
                msg,
                0,
@@ -126,6 +184,7 @@ msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg)
                      : ARCH_REG_0, ARCH_REG_1, ARCH_REG_2);
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -154,6 +213,7 @@ msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len)
 
     return msg_tag_init(r0);
 }
+MK_SYSCALL
 msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t ram, umword_t cp_stack)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -173,6 +233,7 @@ msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t thread_run_cpu(obj_handler_t obj, uint8_t prio, umword_t cpu)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -192,6 +253,7 @@ msg_tag_t thread_run_cpu(obj_handler_t obj, uint8_t prio, umword_t cpu)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -210,6 +272,7 @@ msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t thread_set_exec(obj_handler_t obj, obj_handler_t exec_th)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);

@@ -20,7 +20,6 @@ enum kobj_prot
     TASK_PROT,
     LOG_PROT,
     IPC_PROT,
-    MM_PROT,
     SYS_PROT,
     FUTEX_PROT,
     IRQ_PROT,

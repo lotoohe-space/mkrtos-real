@@ -15,10 +15,13 @@
 #include <factory.h>
 #include <string.h>
 #include <slab.h>
+#include <vma.h>
 #include "mm_wrap.h"
 #include "mpu.h"
 #include "init.h"
 #include "dlist.h"
+#include "printk.h"
+#include "ref.h"
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <slab.h>
 static slab_t *share_mem_slab;
@@ -58,6 +61,7 @@ typedef struct share_mem
     dlist_head_t task_head;    //!< 哪些任务使用了该共享内存
     share_mem_type_t mem_type; //!< 内存类型
     ram_limit_t *lim;          //!< 内存限额
+    ref_counter_t ref;         //!< 引用计数
 } share_mem_t;
 
 enum share_mem_op
@@ -65,24 +69,26 @@ enum share_mem_op
     SHARE_MEM_MAP,
     SHARE_MEM_UNMAP,
 };
-
+#if IS_ENABLED(CONFIG_BUDDY_SLAB)
+/**
+ * 初始化共享内存对象的内存分配器
+ */
 static void share_mem_slab_init(void)
 {
-#if IS_ENABLED(CONFIG_BUDDY_SLAB)
     share_mem_slab = slab_create(sizeof(share_mem_t), "share_mem");
     assert(share_mem_slab);
     share_mem_task_node_slab = slab_create(sizeof(share_mem_task_node_t), "share_mem_task_node");
     sizeof(share_mem_task_node_slab);
-#endif
 }
 INIT_KOBJ_MEM(share_mem_slab_init);
+#endif
 /**
  * @brief  共享内存解除映射
  *
  * @param sm
  * @return int
  */
-static void *share_mem_unmap_task(share_mem_t *sm)
+static void *share_mem_unmap_task(share_mem_t *sm, task_t *tk)
 {
     vaddr_t vaddr = 0;
     share_mem_task_node_t *pos;
@@ -92,7 +98,6 @@ static void *share_mem_unmap_task(share_mem_t *sm)
     {
         return NULL;
     }
-    task_t *tk = thread_get_current_task();
     dlist_foreach(&sm->task_head, pos, share_mem_task_node_t, node)
     {
         if (pos->task == tk)
@@ -174,6 +179,11 @@ static int share_mem_free_pmem(share_mem_t *obj)
     assert(obj);
     switch (obj->mem_type)
     {
+    case SHARE_MEM_CNT_CMA_CNT:
+#if IS_ENABLED(CONFIG_MMU)
+        /*TODO:support CMA mem.*/
+        return -ENOSYS;
+#endif
     case SHARE_MEM_CNT_BUDDY_CNT:
 #if IS_ENABLED(CONFIG_MMU)
         mm_limit_free_buddy(obj->lim, obj->mem, obj->size);
@@ -181,11 +191,9 @@ static int share_mem_free_pmem(share_mem_t *obj)
         mm_limit_free_align(obj->lim, obj->mem, obj->size);
 #endif
         break;
-    case SHARE_MEM_CNT_CMA_CNT:
-        /*TODO:support CMA mem.*/
-        return -ENOSYS;
     case SHARE_MEM_CNT_DPD:
     {
+#if IS_ENABLED(CONFIG_MMU)
         for (ssize_t st = 0; st < obj->size; st += PAGE_SIZE)
         {
             mm_limit_free_buddy(obj->lim, obj->mem_array[st / PAGE_SIZE], PAGE_SIZE);
@@ -194,6 +202,9 @@ static int share_mem_free_pmem(share_mem_t *obj)
         size_t mem_array_size = ALIGN(mem_cnt * sizeof(void *), PAGE_SIZE);
 
         mm_limit_free_buddy(obj->lim, obj->mem_array, mem_array_size);
+#else
+        return -ENOSYS;
+#endif
     }
     break;
     }
@@ -207,6 +218,8 @@ static int share_mem_free_pmem(share_mem_t *obj)
  */
 static int share_mem_alloc_pmem(share_mem_t *obj)
 {
+    int align_size = 0;
+
     assert(obj);
     if (obj->mem)
     {
@@ -214,13 +227,18 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
     }
     switch (obj->mem_type)
     {
+    case SHARE_MEM_CNT_CMA_CNT:
+#if IS_ENABLED(CONFIG_MMU)
+        /*TODO:support CMA mem.*/
+        return -ENOSYS;
+#endif
     case SHARE_MEM_CNT_BUDDY_CNT:
 #if IS_ENABLED(CONFIG_MMU)
         obj->mem = mm_limit_alloc_buddy(obj->lim, obj->size);
 #else
-        int align_size = obj->size;
+        align_size = obj->size;
 
-#if CONFIG_MK_MPU_CFG
+#if CONFIG_MPU
 #if CONFIG_MPU_VERSION == 1
         if (obj->size < (1UL << CONFIG_PAGE_SHIFT) || !is_power_of_2(obj->size))
         {
@@ -241,19 +259,18 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
         align_size = sizeof(void *);
 #endif
 
-        obj->mem = mm_limit_alloc_align(lim, obj->size, align_size);
+        obj->mem = mm_limit_alloc_align(obj->lim, obj->size, align_size);
 #endif
         if (obj->mem == NULL)
         {
             return -ENOMEM;
         }
+        printk("share mem:[0x%x 0x%x]\n", obj->mem, (char *)obj->mem + obj->size);
         memset(obj->mem, 0, obj->size);
         break;
-    case SHARE_MEM_CNT_CMA_CNT:
-        /*TODO:support CMA mem.*/
-        return -ENOSYS;
     case SHARE_MEM_CNT_DPD:
     {
+#if IS_ENABLED(CONFIG_MMU)
         /** 非连续内存，按页申请 */
         int mem_cnt = ROUND_UP(obj->size, PAGE_SIZE);
         size_t mem_array_size = ALIGN(mem_cnt * sizeof(void *), PAGE_SIZE);
@@ -280,6 +297,9 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
             }
             memset(obj->mem_array[i], 0, PAGE_SIZE);
         }
+#else
+        return -ENOSYS;
+#endif
     }
     break;
     }
@@ -345,14 +365,16 @@ static ssize_t share_mem_map(share_mem_t *obj, vma_addr_t addr, vaddr_t *ret_vad
         return ret;
     }
 #else
-    bool_t _ret = mm_space_add(&task->mm_space, (umword_t)(sm->mem), sm->size, attr);
 
-    if (_ret)
+    vma_addr_set_flags(&addr, vma_addr_get_flags(addr) | VMA_ADDR_RESV | VMA_ADDR_PAGE_FAULT_SIM); // 设置为保留模式
+    ret = task_vma_alloc(&task->mm_space.mem_vma, addr, obj->size,
+                         (vaddr_t)(obj->mem), ret_vaddr);
+    if (ret < 0)
     {
-        mpu_switch_to_task(task);
+        return ret;
     }
-    map_size = _ret == TRUE ? 0 : -ENOMEM;
-    *ret_vaddr = sm->mem;
+    map_size = obj->size;
+    // *ret_vaddr = (vaddr_t)(obj->mem);
 #endif
     return map_size;
 }
@@ -360,14 +382,21 @@ static int share_mem_unmap(share_mem_t *obj, vaddr_t vaddr)
 {
     task_t *task = thread_get_current_task();
 
-#if IS_ENABLED(CONFIG_MMU)
     task_vma_free_pmem(&task->mm_space.mem_vma, vaddr, obj->size, FALSE);
-#else
-    // 共享内存解除映射
-    mm_space_del(&task->mm_space, (umword_t)obj->mem);
-    mpu_switch_to_task(task);
-#endif
     return 0;
+}
+static void share_mem_unmap_op(task_t *tk, share_mem_t *sm)
+{
+    vaddr_t addr;
+
+    // 从记录中删除
+    addr = (vaddr_t)share_mem_unmap_task(sm, tk);
+    if (addr)
+    {
+        share_mem_unmap(sm, addr);
+        ref_counter_dec_and_release(&tk->ref_cn, &tk->kobj);
+        ref_counter_dec_and_release(&sm->ref, &sm->kobj);
+    }
 }
 static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
@@ -406,6 +435,7 @@ static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             ret = -EAGAIN;
             goto end;
         }
+        ref_counter_inc(&sm->ref);
         f->regs[1] = (umword_t)ret_vaddr;
         f->regs[2] = sm->size;
     end:
@@ -414,15 +444,7 @@ static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     break;
     case SHARE_MEM_UNMAP:
     {
-        vaddr_t addr;
-
-        // 从记录中删除
-        addr = (vaddr_t)share_mem_unmap_task(sm);
-        if (addr)
-        {
-            share_mem_unmap(sm, addr);
-            ref_counter_dec_and_release(&task->ref_cn, &task->kobj);
-        }
+        share_mem_unmap_op(task, sm);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
@@ -434,15 +456,8 @@ static void share_mem_obj_unmap(obj_space_t *obj_space, kobject_t *kobj)
 {
     task_t *task = container_of(obj_space, task_t, obj_space);
     share_mem_t *sm = container_of(kobj, share_mem_t, kobj);
-    vaddr_t addr;
 
-    // 从记录中删除
-    addr = (vaddr_t)share_mem_unmap_task(sm);
-    if (addr)
-    {
-        share_mem_unmap(sm, addr);
-        ref_counter_dec_and_release(&task->ref_cn, &task->kobj);
-    }
+    share_mem_unmap_op(task, sm);
 }
 static void share_mem_release_stage1(kobject_t *kobj)
 {
@@ -453,7 +468,7 @@ static void share_mem_release_stage2(kobject_t *kobj)
 {
     share_mem_t *sm = container_of(kobj, share_mem_t, kobj);
 
-    assert(dlist_is_empty(&sm->task_head));
+    assert(dlist_is_empty(&sm->task_head)); // TODO:有bug，释放这个对象的时候这个链表可能不为空，应该给对象增加引用计数
 
 #if IS_ENABLED(CONFIG_MMU)
     share_mem_free_pmem(sm);
@@ -464,6 +479,12 @@ static void share_mem_release_stage2(kobject_t *kobj)
 #endif
     printk("share mem 0x%x free.\n", sm);
 }
+bool_t share_mem_put(kobject_t *kobj)
+{
+    share_mem_t *sm = container_of(kobj, share_mem_t, kobj);
+
+    return ref_counter_dec(&sm->ref) == 1;
+}
 /**
  * @brief share_mem init.
  *
@@ -473,11 +494,14 @@ static void share_mem_release_stage2(kobject_t *kobj)
 static void share_mem_init(share_mem_t *sm, umword_t max)
 {
     kobject_init(&sm->kobj, SHARE_MEM_TYPE);
+    ref_counter_init(&sm->ref);
+    ref_counter_inc(&sm->ref);
     sm->size = max;
     sm->kobj.invoke_func = share_mem_syscall;
     sm->kobj.unmap_func = share_mem_obj_unmap;
     sm->kobj.stage_1_func = share_mem_release_stage1;
     sm->kobj.stage_2_func = share_mem_release_stage2;
+    sm->kobj.put_func = share_mem_put;
 }
 /**
  * @brief 创建共享内存对象

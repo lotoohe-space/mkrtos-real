@@ -7,7 +7,7 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include <cons_cli.h>
-#include <net_drv_cli.h>
+#include <blk_drv_cli.h>
 #include <u_hd_man.h>
 #include <u_factory.h>
 #include <u_share_mem.h>
@@ -28,16 +28,16 @@ umword_t send_shm_size;
 //        其他,失败
 static err_t low_level_init(struct netif *netif)
 {
-	umword_t tmp = *(vu32 *)(0x1FFFF7E8);
+	// umword_t tmp = *(vu32 *)(0x1FFFF7E8);
 	// INT8U err;
 	netif->hwaddr_len = ETHARP_HWADDR_LEN; // 设置MAC地址长度,为6个字节
 	// 初始化MAC地址,设置什么地址由用户自己设置,但是不能与网络中其他设备MAC地址重复
 	netif->hwaddr[0] = 2;
 	netif->hwaddr[1] = 0;
 	netif->hwaddr[2] = 0;
-	netif->hwaddr[3] = (tmp >> 16) & 0XFF; // 低三字节用STM32的唯一ID
-	netif->hwaddr[4] = (tmp >> 8) & 0XFF;
-	netif->hwaddr[5] = tmp & 0XFF;
+	netif->hwaddr[3] = 0; // 低三字节用STM32的唯一ID
+	netif->hwaddr[4] = 0;
+	netif->hwaddr[5] = 2 & 0XFF;
 	netif->mtu = 1500; // 最大允许传输单元,允许该网卡广播和ARP功能
 	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
 
@@ -64,8 +64,14 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 	int ret;
 
 	memcpy((void *)send_shm_addr, p->payload, p->len);
-	ret = net_drv_cli_write(net_drv_hd, send_shm_hd, p->len);
-	return ret >= 0 ? ERR_OK : ERR_IF;
+	// printf("start write.\n");
+	if (net_drv_hd != HANDLER_INVALID) {
+		ret = blk_drv_cli_write(net_drv_hd, send_shm_hd, p->len, 0);
+		// printf("start end.\n");
+		return ret >= 0 ? ERR_OK : ERR_IF;
+	} else {
+		return ERR_IF;
+	}
 }
 
 err_t ethernetif_input_raw(struct netif *netif, uint8_t *data, int len)

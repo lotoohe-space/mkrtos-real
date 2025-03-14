@@ -1,6 +1,8 @@
 build/*
 .config
 .config.old
+.cache
 mkrtos_knl/stm32_link.lds
 benos
 .vscode
+mkrtos_tool/kconfig/__pycache__

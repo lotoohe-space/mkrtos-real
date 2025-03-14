@@ -30,10 +30,11 @@ target_link_libraries(
     ${LIBC_NAME}
     cpio
     util
+    appfs_lib
 )
 set_target_properties(sys_util PROPERTIES LINK_FLAGS ${CORTEX_M_LINK_FLAGS})
 add_dependencies(sys_util sys)
 # add_dependencies(sys_util ${LIBC_NAME})
-add_dependencies(sys_util util)
+add_dependencies(sys_util util appfs_lib)
 
 

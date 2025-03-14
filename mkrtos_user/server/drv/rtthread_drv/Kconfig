@@ -1,4 +1,0 @@
-
-source "mkrtos_user/server/drv/rtthread_drv/components/dfs/Kconfig"
-source "mkrtos_user/server/drv/rtthread_drv/components/drivers/Kconfig"
-

@@ -15,7 +15,7 @@ RPC_GENERATION_OP3(ns_t, NS_PROT, NS_REGISTER_OP, register,
 {
     path->data[path->len - 1] = 0;
 
-    int ret = namespace_register((char *)(path->data), rpc_hd_get(0), type->data);
+    int ret = namespace_register((char *)(path->data), vpage_create_raw(svr_hd->data).addr, type->data);
     if (ret >= 0)
     {
         printf("register [%s] success.\n", (char *)(path->data));
@@ -38,6 +38,7 @@ RPC_GENERATION_OP2(ns_t, NS_PROT, NS_QUERY_OP, query,
     path->data[path->len - 1] = 0;
 
     int ret = namespace_query((char *)(path->data), &cli_hd->data);
+#if 0
     if (ret >= 0)
     {
         printf("The request service [%s] was successful, hd is %d.\n", (char *)(path->data), cli_hd->data);
@@ -46,6 +47,7 @@ RPC_GENERATION_OP2(ns_t, NS_PROT, NS_QUERY_OP, query,
     {
         printf("Failed to request service [%s]\n", (char *)(path->data));
     }
+#endif
     return ret;
 }
 

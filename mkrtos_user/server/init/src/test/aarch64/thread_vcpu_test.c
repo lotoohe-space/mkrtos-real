@@ -59,7 +59,7 @@ int thread_vcpu_test(void)
     {
         goto end_free_mm;
     }
-    thread_run(th1_hd, 2); // 优先级默认为2
+    thread_run(th1_hd, 3); // 优先级默认为2
     ret = 0;
     goto end_ok;
 end_free_mm:

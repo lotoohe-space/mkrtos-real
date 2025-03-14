@@ -1,0 +1,70 @@
+/dts-v1/;
+/ {
+	pin {
+		compatible = "at32f43x,pin";
+		regs = <
+		0x40020000 0x2000 /*GPIO*/
+		// 0x4002 1C00 - 0x4002 1FFF GPIO 端口 H
+		// 0x4002 1800 - 0x4002 1BFF GPIO 端口 G
+		// 0x4002 1400 - 0x4002 17FF GPIO 端口 F
+		// 0x4002 1000 - 0x4002 13FF GPIO 端口 E
+		// 0x4002 0C00 - 0x4002 0FFF GPIO 端口 D
+		// 0x4002 0800 - 0x4002 0BFF GPIO 端口 C
+		// 0x4002 0400 - 0x4002 07FF GPIO 端口 B
+		// 0x4002 0000 - 0x4002 03FF GPIO 端口 A
+		0x40013800 0x400  /*EXINT & SCFG*/
+		0x40013C00 0x400  /*EXINT & SCFG*/
+		0x40023800 0x400  /*CRM*/
+		>;
+	};
+	disp {
+		compatible = "at32f43x,lcd";
+		regs = <
+		0xA0000000 0x1000 /*XMC_REG*/
+		0x40023800 0x400  /*CRM*/
+		0x60000000 0x100000  /*XMC_MEM*/
+		>;
+		/*TODO: pca9555 set*/
+		/*TODO: pin set*/
+	};
+	i2c2:i2c2 {
+		compatible = "at32f43x,i2c2";
+		regs = <
+		0x40023800 0x400  /*CRM*/
+		0x40005800 0x400 /*I2C2*/
+		>;
+		/*TODO: pin set*/
+	};
+	pca9555 {
+		compatible = "at32f43x,pca9555";
+		regs = <0x40023800 0x400>; /*CRM*/
+		i2c_addr = <0x40>; /*i2c addr*/
+		// i2c = <&i2c2>;
+		i2c = "/i2c2";
+	};
+	eth {
+		compatible = "at32f43x,eth";
+		regs = <
+		0x40023800 0x400 /*CRM*/
+		0x40028000 0x2000 /*EMAC*/
+		0x40013800 0x400  /*EXINT & SCFG*/
+		0x40013C00 0x400  /*EXINT & SCFG*/
+		>;
+		/*TODO: pin set*/
+		/*TODO: pca9555 set*/
+	};
+	snd {
+		compatible = "at32f43x,snd";
+		regs = <
+		0x40023800 0x400 /*CRM*/
+		0x40003800 0x400 /*SPI2/I2S2*/
+		0x40000000 0x20000
+		/*0x40010400 0x400 TMR8*/
+		/*0x40017800 0x400 I2S2EXT*/
+		0x40026400 0x400 /*DMA1_2*/
+		>;
+		/*TODO: pin set*/
+		/*TODO: pca9555 set*/
+		/*TODO: i2c set*/
+	};
+};

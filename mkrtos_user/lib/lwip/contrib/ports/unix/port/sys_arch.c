@@ -135,7 +135,7 @@ struct sys_sem {
 };
 
 struct sys_mutex {
-  pthread_mutex_t mutex;
+  u_mutex_t mutex;
 };
 
 struct sys_thread {

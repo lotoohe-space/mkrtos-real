@@ -23,5 +23,6 @@ static obj_handler_t hd = HANDLER_INVALID;
 void u_sleep_ms(size_t ms)
 {
     umword_t sleep_tick = ROUND_UP(ms, (1000 / CONFIG_SYS_SCHE_HZ));
-    thread_ipc_wait(ipc_timeout_create2(0, sleep_tick), NULL, -1);
+    // thread_ipc_wait(ipc_timeout_create2(0, sleep_tick), NULL, -1);
+    thread_sleep(sleep_tick);
 }

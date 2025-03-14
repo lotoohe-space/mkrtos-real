@@ -10,6 +10,7 @@
  */
 
 #include "log.h"
+#include "arch.h"
 #include "factory.h"
 #include "kobject.h"
 #include "globals.h"
@@ -49,6 +50,7 @@ static void log_reg(void)
     log.kobj.kobj.put_func = kobject_put;
     global_reg_kobj(&log.kobj.kobj, LOG_PROT);
     irq_alloc(LOG_INTR_NO, &log.kobj, log_trigger);
+    arch_set_enable_irq_prio(LOG_INTR_NO, 0, 0);
     arch_enable_irq(LOG_INTR_NO);
 }
 INIT_KOBJ(log_reg);
@@ -106,7 +108,7 @@ log_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame
             break;
         case READ_DATA:
         {
-            int ret = log_read_data((log_t *)kobj, (uint8_t *)(&f->regs[1]), MIN(f->regs[1], WORD_BYTES * 5));
+            int ret = log_read_data((log_t *)kobj, (uint8_t *)(&f->regs[1]), MIN(f->regs[1], WORD_BYTES * 3));
             tag = msg_tag_init4(0, 0, 0, ret);
         }
         break;

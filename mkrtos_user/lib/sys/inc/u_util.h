@@ -12,8 +12,8 @@
 #define ROUND_UP(a, b) ROUND(a, b)                                 //!< a除b向上取整数
 #define ROUND_DOWN(a, b) ((a) / (b))                               //!< a/b向下取整
 
-#define USED __attribute__((used))
-#define UNUSED __attribute__((unused))
+#define __USED __attribute__((used))
+#define __UNUSED __attribute__((unused))
 #define PACKED __attribute__((packed))
 #define SECTION(section) __attribute__((__section__(section)))
 #define __ALIGN__(size) __attribute__((aligned(size)))
@@ -38,3 +38,15 @@
 #define IS_MODULE(option) __is_defined(option##_MODULE)
 
 #define IS_ENABLED(option) __or(IS_BUILTIN(option), IS_MODULE(option))
+
+/* Import a binary file */
+#define IMPORT_BIN(sect, file, sym) asm (\
+    ".section " #sect "\n"                  /* Change section */\
+    ".balign 4\n"                           /* Word alignment */\
+    ".global " #sym "\n"                    /* Export the object address */\
+    #sym ":\n"                              /* Define the object label */\
+    ".incbin \"" file "\"\n"                /* Import the file */\
+    ".global _sizeof_" #sym "\n"            /* Export the object size */\
+    ".set _sizeof_" #sym ", . - " #sym "\n" /* Define the object size */\
+    ".balign 4\n"                           /* Word alignment */\
+    ".section \".text\"\n")                 /* Restore section */

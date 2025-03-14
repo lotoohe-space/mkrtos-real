@@ -2,12 +2,13 @@
 #include <mk_sys.h>
 #include <SWM341.h>
 #include <system_SWM341.h>
+#include <boot_info.h>
 void uart_init(void)
 {
     UART_InitStructure UART_initStruct;
 
-    PORT_Init(PORTM, PIN0, PORTM_PIN0_UART0_RX, 1); // GPIOM.0ÅäÖÃÎªUART0ÊäÈëÒý½Å
-    PORT_Init(PORTM, PIN1, PORTM_PIN1_UART0_TX, 0); // GPIOM.1ÅäÖÃÎªUART0Êä³öÒý½Å
+    PORT_Init(PORTM, PIN0, PORTM_PIN0_UART0_RX, 1);
+    PORT_Init(PORTM, PIN1, PORTM_PIN1_UART0_TX, 0);
 
     UART_initStruct.Baudrate = 115200;
     UART_initStruct.DataBits = UART_DATA_8BIT;
@@ -36,6 +37,8 @@ void print_str(const char *str)
         putc(str[i]);
     }
 }
+#define EX_SDRAM_ADDR 0x80000000
+#define EX_SDRAM_SIZE (8 * 1024 * 1024)
 static void sdram_init(void)
 {
     SDRAM_InitStructure SDRAM_InitStruct;
@@ -91,7 +94,7 @@ static void sdram_init(void)
 
 int sram_test(void)
 {
-    volatile unsigned int *sram3_addr = (volatile unsigned int *)0x80000000;
+    volatile unsigned int *sram3_addr = (volatile unsigned int *)EX_SDRAM_ADDR;
     int i = 0;
     for (i = 0; i < 1024 * 1024 / 4; i++)
     {
@@ -108,23 +111,84 @@ int sram_test(void)
 }
 
 //! 内核镜像的开始地址
-#define KERNEL_IMG_START_ADDR (CONFIG_KNL_TEXT_ADDR + CONFIG_KNL_OFFSET)
-void jump2kernel(addr_t cpio_start, addr_t cpio_end)
+#define KERNEL_IMG_START_ADDR (CONFIG_SYS_TEXT_ADDR + CONFIG_BOOTSTRAP_TEXT_SIZE + CONFIG_DTBO_TEXT_SIZE)
+
+static boot_info_t boot_info = {
+    .flash_layer = {
+        /*flash布局*/
+        .flash_layer_list = {
+            {
+                .st_addr = CONFIG_SYS_TEXT_ADDR, /*bootstrap*/
+                .size = CONFIG_BOOTSTRAP_TEXT_SIZE,
+                .name = "bootstrap",
+            },
+            {
+                .st_addr = CONFIG_SYS_TEXT_ADDR + CONFIG_BOOTSTRAP_TEXT_SIZE, /*dtbo*/
+                .size = CONFIG_DTBO_TEXT_SIZE,
+                .name = "dtbo",
+            },
+            {
+                .st_addr = KERNEL_IMG_START_ADDR, /*kernel*/
+                .size = CONFIG_KNL_TEXT_SIZE,
+                .name = "kernel",
+            },
+            {
+                .st_addr = CONFIG_SYS_TEXT_ADDR + CONFIG_BOOTSTRAP_TEXT_SIZE + CONFIG_KNL_TEXT_SIZE + CONFIG_DTBO_TEXT_SIZE, /*bootfs*/
+                .size = CONFIG_SYS_TEXT_SIZE - (CONFIG_BOOTSTRAP_TEXT_SIZE + CONFIG_KNL_TEXT_SIZE + CONFIG_DTBO_TEXT_SIZE),
+                .name = "bootfs",
+            },
+        },
+        .flash_layer_num = 4,
+    }, /*flash布局*/
+    .flash = {
+        .flash_list = {
+            {
+                .addr = CONFIG_SYS_TEXT_ADDR,
+                .size = CONFIG_SYS_TEXT_SIZE,
+                .is_sys_mem = 1,
+                .speed = 0,
+            },
+        },
+        .flash_num = 1,
+    },
+    .mem = {
+        .mem_list = {
+            {
+                .addr = CONFIG_SYS_DATA_ADDR,
+                .size = CONFIG_SYS_DATA_SIZE / 2,
+                .is_sys_mem = 1,
+                .speed = 0,
+            },
+            {
+                .addr = EX_SDRAM_ADDR,
+                .size = EX_SDRAM_SIZE,
+                .speed = 1,
+            },
+        },
+        .mem_num = 2,
+    },
+};
+
+static void mem_init(void)
 {
-    SystemInit();
-    uart_init();
-#if CONFIG_KNL_EXRAM
     sdram_init();
+#if 0
     if (sram_test() == 0)
     {
         print_str("sdram fail.\n");
     }
 #endif
+}
+
+void jump2kernel(addr_t cpio_start, addr_t cpio_end)
+{
+    SystemInit();
+    uart_init();
+    mem_init();
     print_str("system startup.\n");
     uint32_t jump_addr;
-    void (*_main)(void);
 
-    if (((*(__IO uint32_t *)KERNEL_IMG_START_ADDR) & 0x2FFE0000) == 0x20000000) // 检查栈顶地址是否合法,即检查此段Flash中是否已有APP程序
+    if (((*(__IO uint32_t *)KERNEL_IMG_START_ADDR) & 0x2FFE0000) == CONFIG_SYS_DATA_ADDR) // 检查栈顶地址是否合法,即检查此段Flash中是否已有APP程序
     {
         print_str("starting.\n");
         __set_PRIMASK(1);
@@ -168,6 +232,6 @@ void jump2kernel(addr_t cpio_start, addr_t cpio_end)
         jump_addr = *(__IO uint32_t *)(KERNEL_IMG_START_ADDR + 4);
         _main = (void *)jump_addr;
 
-        _main();
+        _main(&boot_info);
     }
 }

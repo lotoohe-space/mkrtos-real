@@ -12,7 +12,6 @@
 #include "u_prot.h"
 #include "u_app.h"
 #include "u_factory.h"
-#include "u_mm.h"
 #include "u_task.h"
 #include "u_hd_man.h"
 #include "u_thread.h"
@@ -20,12 +19,19 @@
 #include "cpiofs.h"
 #include "u_env.h"
 #include "u_sys.h"
+
+#include "u_elf32.h"
+
 #include <assert.h>
 #include <string.h>
 #include <elf.h>
 #include <stdio.h>
 #include <errno.h>
 #include <sys/types.h>
+
+#if !IS_ENABLED(CONFIG_CPIO_SUPPORT)
+#include <appfs_tiny.h>
+#endif
 /**
  * @brief 向栈中存放数据
  *
@@ -111,7 +117,10 @@ static void *app_stack_push_array(obj_handler_t task_obj, umword_t **stack, uint
  * @param name app的名字
  * @return int
  */
-int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int arg_cn, char *envp[], int envp_cn)
+int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
+             char *argv[], int arg_cn,
+             char *envp[], int envp_cn,
+             int mem_block)
 {
     msg_tag_t tag;
     sys_info_t sys_info;
@@ -121,23 +130,58 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         return -ENOENT;
     }
+#if 0
+    for (int i = 0; i < arg_cn; i++)
+    {
+        printf("argv[%d]:%s\n", i, argv[i]);
+    }
+#endif
     int type;
     umword_t addr;
-    int ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL, &type, &addr);
+    int ret = 0;
 
+#if IS_ENABLED(CONFIG_CPIO_SUPPORT)
+    ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL, &type, &addr);
+#else
+    type = 0;
+    addr = (umword_t)appfs_tiny_find_file_addr_by_name(appfs_tiny_get_form_addr((void *)sys_info.bootfs_start_addr), name, NULL);
+    if (addr == 0)
+    {
+        ret = -ENOENT;
+    }
+#endif
     if (ret < 0 || (ret >= 0 && type == 1))
     {
         return -ENOENT;
     }
-
+    addr_t entry_addr;
     app_info_t *app = app_info_get((void *)addr);
-
+    addr_t at_base = addr;
     if (app == NULL)
     {
-        printf("app format is error.\n");
-        return -1;
+        addr_t text_addr;
+        ret = elf32_load((umword_t)addr, 0 /*TODO:*/,
+                         &entry_addr, 0, &text_addr);
+        if (ret < 0)
+        {
+            printf("app format is error.\n");
+            return -1;
+        }
+
+        addr = entry_addr + text_addr;
+        app = app_info_get((void *)addr);
+        if (app == NULL)
+        {
+            printf("app format is error.\n");
+            return -1;
+        }
+        printf("%s text addr is [0x%x]\n", name, text_addr);
+        printf("entry addr is [0x%x]\n", addr);
     }
-    printf("%s addr is [0x%x]\n", name, app);
+    else
+    {
+        printf("%s addr is [0x%x]\n", name, app);
+    }
     umword_t ram_base;
     obj_handler_t hd_task = handler_alloc();
     obj_handler_t hd_thread = handler_alloc();
@@ -150,7 +194,6 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         goto end;
     }
-
     tag = factory_create_task(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_task));
     if (msg_tag_get_prot(tag) < 0)
     {
@@ -161,7 +204,8 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         goto end_del_obj;
     }
-    tag = task_alloc_ram_base(hd_task, app->i.ram_size, &ram_base);
+    tag = task_alloc_ram_base(hd_task, app ? app->i.ram_size : 100 * 1024 /*TODO:*/,
+                              &ram_base, mem_block);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
@@ -196,7 +240,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, MM_PROT, MM_PROT, KOBJ_DELETE_RIGHT);
+    tag = task_map(hd_task, VMA_PROT, VMA_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
@@ -211,7 +255,15 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         goto end_del_obj;
     }
-    tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + app->i.ram_size));
+    if (app)
+    {
+        tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + app->i.ram_size));
+    }
+    else
+    {
+        /*TODO:*/
+        tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + 100 * 1024 - 2048 - MSG_BUG_LEN));
+    }
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
@@ -225,9 +277,19 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         *pid = hd_task;
     }
-    void *sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
-    void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
-    printf("stack:0x%x size:%d.\n", sp_addr, app->i.stack_size);
+    void *sp_addr;
+    void *sp_addr_top;
+    if (app)
+    {
+        sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
+        sp_addr_top = (char *)sp_addr + app->i.stack_size;
+        printf("stack:0x%x size:%d.\n", sp_addr, app->i.stack_size);
+    }
+    else
+    {
+        sp_addr = (char *)ram_base;
+        sp_addr_top = (char *)sp_addr + 100 * 1024 - 2048; /*TODO:*/
+    }
     umword_t *usp_top = (umword_t *)((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL);
     uenv_t uenv = {
         .log_hd = cur_env->ns_hd,
@@ -236,41 +298,51 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
         .rev2 = HANDLER_INVALID,
     };
     umword_t *app_env;
-    char *cp_args;
-    char *cp_envp;
+    char *cp_args[CONFIG_APP_PARAMS_NR];
+    char *cp_envp[CONFIG_APP_ENV_NR];
+    size_t params_envp_len = 0;
 
     app_env = app_stack_push_array(hd_task, &usp_top, (uint8_t *)(&uenv), sizeof(uenv));
     for (int i = 0; i < arg_cn; i++)
     {
-        cp_args = app_stack_push_str(hd_task, &usp_top, argv[i]);
+        cp_args[i] = app_stack_push_str(hd_task, &usp_top, argv[i]);
+        params_envp_len += ALIGN(strlen(argv[i]) + 1, sizeof(void *));
+        // printf("app_load 1 cp_args:%p\n", cp_args[i]);
     }
     for (int i = 0; i < envp_cn; i++)
     {
-        cp_envp = app_stack_push_str(hd_task, &usp_top, envp[i]);
+        cp_envp[i] = app_stack_push_str(hd_task, &usp_top, envp[i]);
+        params_envp_len += ALIGN(strlen(argv[i]) + 1, sizeof(void *));
     }
-
+    if ((umword_t)usp_top & 0x7UL)
+    {
+        usp_top = (umword_t *)((umword_t)usp_top & ~0x7UL);
+    }
     app_stack_push_umword(hd_task, &usp_top, 0);
+    if ((arg_cn + envp_cn) & 0x1) // 参数是奇数是，多添加一个
+    {
+        app_stack_push_umword(hd_task, &usp_top, 0);
+    }
 
     app_stack_push_umword(hd_task, &usp_top, (umword_t)app_env);
     app_stack_push_umword(hd_task, &usp_top, 0xfe);
+
+    app_stack_push_umword(hd_task, &usp_top, at_base);
+    app_stack_push_umword(hd_task, &usp_top, (umword_t)AT_BASE);
 
     app_stack_push_umword(hd_task, &usp_top, MK_PAGE_SIZE);
     app_stack_push_umword(hd_task, &usp_top, (umword_t)AT_PAGESZ);
 
     app_stack_push_umword(hd_task, &usp_top, 0);
-    for (int i = 0; i < envp_cn; i++)
+    for (int i = envp_cn - 1; i >= 0; i--)
     {
-        app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_envp);
-        cp_envp += ALIGN(strlen(envp[i]), sizeof(void *));
+        app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_envp[i]);
     }
-    if (arg_cn)
+    app_stack_push_umword(hd_task, &usp_top, 0);
+    for (int i = arg_cn - 1; i >= 0; i--)
     {
-        app_stack_push_umword(hd_task, &usp_top, 0);
-        for (int i = 0; i < arg_cn; i++)
-        {
-            app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_args);
-            cp_args += ALIGN(strlen(argv[i]) + 1, sizeof(void *));
-        }
+        // printf("app_load 2 cp_args:%p\n", cp_args[i]);
+        app_stack_push_umword(hd_task, &usp_top, (umword_t)cp_args[i]);
     }
     app_stack_push_umword(hd_task, &usp_top, arg_cn);
 
@@ -278,8 +350,9 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)usp_top,
                            ram_base, 0);
     assert(msg_tag_get_prot(tag) >= 0);
+
     /*启动线程运行*/
-    tag = thread_run(hd_thread, 2);
+    tag = thread_run(hd_thread, 3);
     assert(msg_tag_get_prot(tag) >= 0);
     task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_thread));
     handler_free(hd_thread);

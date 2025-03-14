@@ -2,6 +2,7 @@
     .section .first
     
     .globl reloc
+    .globl heap_size
 
     .align 2
     .globl    _start_
@@ -26,6 +27,8 @@ got_end:       	.word     	__got_end__
 rel_start:      .word     	__rel_start__
 rel_end:     .word    __rel_end__
 text_start: .word __text_start__
+data_start: .word __data_start__
+
     .SPACE   128 - (. -  _start_)
 
     .align

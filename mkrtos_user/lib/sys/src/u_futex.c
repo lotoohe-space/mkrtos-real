@@ -9,6 +9,7 @@ enum futex_op
 {
     FUTEX_CTRL,
 };
+MK_SYSCALL
 msg_tag_t futex_ctrl(obj_handler_t obj, uint32_t *uaddr, int futex_op, uint32_t val,
                      umword_t timeout, uint32_t uaddr2, uint32_t val3, int tid)
 {

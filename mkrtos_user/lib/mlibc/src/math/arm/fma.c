@@ -1,15 +1,15 @@
-#include <math.h>
+// #include <math.h>
 
-#if __ARM_FEATURE_FMA && __ARM_FP&8 && !__SOFTFP__
+// #if __ARM_FEATURE_FMA && __ARM_FP&8 && !__SOFTFP__
 
-double fma(double x, double y, double z)
-{
-	__asm__ ("vfma.f64 %P0, %P1, %P2" : "+w"(z) : "w"(x), "w"(y));
-	return z;
-}
+// double fma(double x, double y, double z)
+// {
+// 	__asm__ ("vfma.f64 %P0, %P1, %P2" : "+w"(z) : "w"(x), "w"(y));
+// 	return z;
+// }
 
-#else
+// #else
 
-#include "../fma.c"
+// #include "../fma.c"
 
-#endif
+// #endif

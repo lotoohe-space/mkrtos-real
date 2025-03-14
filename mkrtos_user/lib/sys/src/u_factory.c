@@ -7,6 +7,7 @@ enum
 {
     FACTORY_CREATE_KOBJ
 };
+MK_SYSCALL
 msg_tag_t factory_create_irq_sender(obj_handler_t obj, vpage_t vpage)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -22,6 +23,7 @@ msg_tag_t factory_create_irq_sender(obj_handler_t obj, vpage_t vpage)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t factory_create_thread(obj_handler_t obj, vpage_t vpage)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -37,6 +39,7 @@ msg_tag_t factory_create_thread(obj_handler_t obj, vpage_t vpage)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t factory_create_thread_vcpu(obj_handler_t obj, vpage_t vpage)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -52,6 +55,7 @@ msg_tag_t factory_create_thread_vcpu(obj_handler_t obj, vpage_t vpage)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t factory_create_task(obj_handler_t obj, vpage_t vpage)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -67,6 +71,7 @@ msg_tag_t factory_create_task(obj_handler_t obj, vpage_t vpage)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t factory_create_ipc(obj_handler_t obj, vpage_t vpage)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -86,6 +91,7 @@ msg_tag_t factory_create_ipc(obj_handler_t obj, vpage_t vpage)
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t facotry_create_share_mem(obj_handler_t obj, vpage_t vpage, share_mem_type_t mem_type, umword_t size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
@@ -105,6 +111,7 @@ msg_tag_t facotry_create_share_mem(obj_handler_t obj, vpage_t vpage, share_mem_t
 
     return tag;
 }
+MK_SYSCALL
 msg_tag_t facotry_create_sema(obj_handler_t obj, vpage_t vpage, int cnt, int max)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);

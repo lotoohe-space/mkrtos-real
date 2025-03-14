@@ -9,6 +9,6 @@ int tcdrain(int fd)
 #ifdef NO_LITTLE_MODE
 	return syscall_cp(SYS_ioctl, fd, TCSBRK, 1);
 #else
-	return be_ioctl(fd, TCSBRK, 1);
+	return be_ioctl(fd, TCSBRK, (void *)1);
 #endif
 }

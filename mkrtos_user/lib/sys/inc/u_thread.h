@@ -7,9 +7,9 @@
 #define MSG_BUF_RECV_R_FLAGS 0x02U //!< 接收上次发送数据的接收者
 #define MSG_BUF_REPLY_FLAGS 0x04U  //!<
 
-#define IPC_MSG_SIZE (CONFIG_THREAD_IPC_MSG_LEN * sizeof(void*))
-#define MAP_BUF_SIZE (CONFIG_THREAD_MAP_BUF_LEN * sizeof(void*))
-#define IPC_USER_SIZE (CONFIG_THREAD_USER_BUF_LEN * sizeof(void*))
+#define IPC_MSG_SIZE (CONFIG_THREAD_IPC_MSG_LEN * sizeof(void *))
+#define MAP_BUF_SIZE (CONFIG_THREAD_MAP_BUF_LEN * sizeof(void *))
+#define IPC_USER_SIZE (CONFIG_THREAD_USER_BUF_LEN * sizeof(void *))
 
 #if IS_ENABLED(CONFIG_VCPU)
 #define IPC_VPUC_MSG_OFFSET (3 * 1024) //!< vcpu 传递消息的偏移量
@@ -23,7 +23,7 @@ typedef struct ipc_msg
         {
             umword_t msg_buf[CONFIG_THREAD_IPC_MSG_LEN];
             umword_t map_buf[CONFIG_THREAD_MAP_BUF_LEN];
-            umword_t user[CONFIG_THREAD_USER_BUF_LEN]; // 0 pthread使用 1驱动使用 2 ipc通信时存储目标的pid
+            umword_t user[CONFIG_THREAD_USER_BUF_LEN]; // 0 pthread使用 1驱动使用 2 ipc通信时存储目标的pid 3虚拟化或者用户自定义
         };
         uint8_t data[MSG_BUG_LEN];
     };
@@ -66,11 +66,15 @@ static inline msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
 }
 msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj);
 msg_tag_t thread_set_exec(obj_handler_t obj, obj_handler_t exec_th);
-
+#if 0
 msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj, obj_handler_t ipc_obj);
 msg_tag_t thread_ipc_reply(msg_tag_t in_tag, ipc_timeout_t timeout);
 msg_tag_t thread_ipc_send(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
-__attribute__((optimize(0))) msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
+msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
+#endif
+msg_tag_t thread_sleep(umword_t ticks);
+msg_tag_t thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj, umword_t arg0, umword_t arg1, umword_t arg2);
+msg_tag_t thread_ipc_fast_replay(msg_tag_t in_tag, obj_handler_t target_obj, int unlock_bitmap);
 
 static inline ipc_msg_t *thread_get_cur_ipc_msg(void)
 {

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-set -e
+# set -e
 rm -r $PWD/build

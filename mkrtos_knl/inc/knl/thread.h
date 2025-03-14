@@ -16,6 +16,8 @@
 #include "arch.h"
 #include "ref.h"
 #include <atomics.h>
+#include "task.h"
+#include "stack.h"
 struct task;
 typedef struct task task_t;
 struct thread;
@@ -30,9 +32,9 @@ typedef struct thread thread_t;
 #define MSG_BUF_RECV_R_FLAGS 0x02U                   //!< 接收来自recv_th的消息
 #define MSG_BUF_REPLY_FLAGS 0x04U                    //!< 回复消息给send_th
 
-#define IPC_MSG_SIZE (CONFIG_THREAD_IPC_MSG_LEN * sizeof(void*))
-#define MAP_BUF_SIZE (CONFIG_THREAD_MAP_BUF_LEN * sizeof(void*))
-#define IPC_USER_SIZE (CONFIG_THREAD_USER_BUF_LEN * sizeof(void*))
+#define IPC_MSG_SIZE (CONFIG_THREAD_IPC_MSG_LEN * sizeof(void *))
+#define MAP_BUF_SIZE (CONFIG_THREAD_MAP_BUF_LEN * sizeof(void *))
+#define IPC_USER_SIZE (CONFIG_THREAD_USER_BUF_LEN * sizeof(void *))
 
 #if IS_ENABLED(CONFIG_VCPU)
 #define IPC_VPUC_MSG_OFFSET (3 * 1024) //!< vcpu 传递消息的偏移量
@@ -106,6 +108,23 @@ typedef struct msg_buf
 #endif
     msg_tag_t tag; //!< 存放发送的临时标识
 } msg_buf_t;
+
+typedef struct thread_fast_ipc_item
+{
+    kobject_t *task_bk; //!< 备份task，用于快速通信
+    void *usp_backup;   //!< 备份用户栈，用于快速通信
+    void *msg_buf;
+} thread_fast_ipc_item_t;
+#define THREAD_FAST_IPC_ITEM_NUM 8
+
+typedef struct thread_fast_ipc_com
+{
+    thread_fast_ipc_item_t fast_ipc_stack_data[THREAD_FAST_IPC_ITEM_NUM]; //!< 栈数据，用于通信栈备份
+    stack_t fast_ipc_stack;                                               //!< fast ipc stack
+    slist_head_t fast_ipc_node;                                           //!< 用于加入到task中去。
+    thread_t *th;
+} thread_fast_ipc_com_t;
+
 #define THREAD_MAGIC 0xdeadead //!< 用于栈溢出检测
 typedef struct thread
 {
@@ -126,22 +145,28 @@ typedef struct thread
     bool_t is_vcpu;      //!< 是否是vcpu
 
     msg_buf_t msg; //!< 每个线程独有的消息缓存区
-
+#if 0
     slist_head_t wait_send_head; //!< 等待头，那些节点等待给当前线程发送数据
     spinlock_t recv_lock;        //!< 当前线程接收消息时锁住
     spinlock_t send_lock;        //!< 当前线程发送消息时锁住
-    bool_t has_wait_send_th;    //!< 有线程等待给当前线程发送消息
-
+    bool_t has_wait_send_th;     //!< 有线程等待给当前线程发送消息
     thread_t *last_send_th; //!< 当前线程上次接收到谁的数据
     kobject_t *ipc_kobj;    //!< 发送者放到一个ipc对象中
+#endif
     umword_t user_id;       //!< 接收到的user_id
 
     enum thread_state status;         //!< 线程状态
     enum thread_ipc_state ipc_status; //!< ipc状态
 
+    thread_fast_ipc_com_t *com; //!< fast ipc通信，这里用指针是为了减少thread block大小
+
     umword_t magic; //!< maigc
 } thread_t;
 
+static inline int thread_get_prio(thread_t *th)
+{
+    return th->sche.prio;
+}
 static inline int thread_get_cpu(thread_t *th)
 {
     return th->cpu;
@@ -200,19 +225,66 @@ static inline thread_t *thread_get_current(void)
 {
     umword_t sp = arch_get_sp();
     thread_t *th = (thread_t *)(ALIGN_DOWN(sp, CONFIG_THREAD_BLOCK_SIZE));
+    // thread_t *th = (thread_t *)((sp / CONFIG_THREAD_BLOCK_SIZE) * CONFIG_THREAD_BLOCK_SIZE);
 
     return th;
+}
+static inline int thread_fast_ipc_save(thread_t *th, task_t *tk, void *usp)
+{
+    int ret;
+    assert(th);
+    assert(tk);
+    assert(usp);
+    thread_fast_ipc_item_t item = {
+        .task_bk = th->task,
+        .usp_backup = (void *)arch_get_user_sp(),
+        .msg_buf = th->msg.msg,
+    };
+    ret = stack_push(&th->com->fast_ipc_stack, &item);
+    if (ret < 0)
+    {
+        return ret;
+    }
+    th->task = &tk->kobj;
+    arch_set_user_sp((umword_t)usp); //!< 重新设置
+    return 0;
+}
+static inline int thread_fast_ipc_restore(thread_t *th)
+{
+    int ret;
+    assert(th);
+    thread_fast_ipc_item_t item;
+
+    ret = stack_pop(&th->com->fast_ipc_stack, &item);
+    if (ret < 0)
+    {
+        return ret;
+    }
+    th->task = item.task_bk;
+    th->msg.msg = item.msg_buf;
+    arch_set_user_sp((umword_t)(item.usp_backup));
+    return 0;
+}
+static inline int thread_fast_ipc_pop(thread_t *th, thread_fast_ipc_item_t *item)
+{
+    int ret;
+    assert(th);
+    assert(item);
+
+    ret = stack_pop(&th->com->fast_ipc_stack, item);
+
+    return ret;
 }
 task_t *thread_get_current_task(void);
 task_t *thread_get_task(thread_t *th);
 task_t *thread_get_bind_task(thread_t *th);
-
+int thread_set_prio(thread_t *th, int prio);
 static inline pf_t *thread_get_current_pf(void)
 {
     return thread_get_pf(thread_get_current());
 }
 void thread_init(thread_t *th, ram_limit_t *lim, umword_t flags);
-void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t user_sp, umword_t ram, umword_t stack);
+void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t user_sp, umword_t ram);
 thread_t *thread_create(ram_limit_t *ram, umword_t flags);
 void thread_bind(thread_t *th, kobject_t *tk);
 void thread_unbind(thread_t *th);
@@ -231,3 +303,7 @@ void thread_timeout_check(ssize_t tick);
 msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id);
 int thread_ipc_call(thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag,
                     ipc_timeout_t timout, umword_t *ret_user_id, bool_t is_call);
+bool_t thread_is_knl(thread_t *thread);
+
+msg_tag_t thread_fast_ipc_replay(entry_frame_t *f);
+msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_id);

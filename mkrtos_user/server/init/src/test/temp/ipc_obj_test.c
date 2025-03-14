@@ -1,6 +1,6 @@
 #include "u_log.h"
 #include "u_prot.h"
-#include "u_mm.h"
+
 #include "u_factory.h"
 #include "u_thread.h"
 #include "u_task.h"
@@ -38,7 +38,7 @@ static void thread_test_func(void)
     umword_t len;
     thread_msg_buf_get(th1_hd, (umword_t *)(&buf), NULL);
     u_sleep_ms(100);
-    ipc_bind(ipc_hd, th1_hd, 0);
+    ipc_bind(ipc_hd, TASK_THIS, 0);
     while (1)
     {
         thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);

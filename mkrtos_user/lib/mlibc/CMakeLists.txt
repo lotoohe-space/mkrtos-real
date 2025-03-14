@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -D_XOPEN_SOURCE=700 ")
-set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -w -D_XOPEN_SOURCE=700 ")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -w -D_XOPEN_SOURCE=700 -Wa,-mimplicit-it=thumb ")
 
 file(GLOB_RECURSE deps
 src/*.C

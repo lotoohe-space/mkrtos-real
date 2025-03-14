@@ -2,20 +2,24 @@ cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Werror \
--DSMP=1 \
 -Wno-unused-parameter \
 -Wno-unused-function \
 -Wno-unused-variable \
 -Wno-builtin-declaration-mismatch \
 ")
 
-message(编译参数：${CMAKE_C_FLAGS})
+# -Ofast \
+# message(编译参数：${CMAKE_C_FLAGS})
+
+# cortex-m 系列处理器采用相同的内核arch
+if(${CONFIG_ARCH} MATCHES "cortex-m")
+    set(CONFIG_ARCH "cortex-m")
+endif()
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/knl/mm
 )
 add_subdirectory(arch)
-add_subdirectory(drivers)
 add_subdirectory(knl)
 add_subdirectory(lib)
 add_subdirectory(test)
@@ -29,15 +33,13 @@ target_link_libraries(
     mkrtos.elf
     PUBLIC
     --whole-archive
-    knl
     arch
     lib
-    drv
+    knl
     test
     --no-whole-archive
 )
 add_dependencies(mkrtos.elf arch)
-add_dependencies(mkrtos.elf drv)
 add_dependencies(mkrtos.elf knl)
 add_dependencies(mkrtos.elf lib)
 add_dependencies(mkrtos.elf test)
@@ -49,29 +51,20 @@ add_custom_target(
     link_file_dump ALL
     COMMAND
     ${CMAKE_C_COMPILER}
-    # -DKNL_TEXT=$ENV{KNL_TEXT}
-    -DKNL_DATA=$ENV{KNL_DATA}
-    -DKNL_OFFSET=${CONFIG_KNL_OFFSET}
-    # -DKNL_DATA_SIZE=$ENV{KNL_DATA_SIZE}
     -include ${CMAKE_SOURCE_DIR}/build/autoconf.h
     -E -P -<${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds.S> 
     ${CMAKE_CURRENT_LIST_DIR}/arch/${CONFIG_ARCH}/link.lds
 )
-
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/build/output)
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/build/output/cpio)
 add_custom_target(
     mkrtos_dump ALL
     COMMAND
     ${CMAKE_OBJCOPY} -O binary -S mkrtos.elf mkrtos.bin
     COMMAND
-    mkdir -p ${CMAKE_SOURCE_DIR}/build/output
+    ${CMAKE_COMMAND} -E copy  mkrtos.bin ${CMAKE_SOURCE_DIR}/build/output/mkrtos
     COMMAND
-    mkdir -p ${CMAKE_SOURCE_DIR}/build/output/cpio
-    COMMAND
-    cp mkrtos.bin ${CMAKE_SOURCE_DIR}/build/output/mkrtos
-    COMMAND
-    cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/mkrtos.elf
-    COMMAND
-    ${CMAKE_OBJDUMP} -s -S mkrtos.elf > ${CMAKE_SOURCE_DIR}/build/output/mkrtos.S
+    ${CMAKE_COMMAND} -E copy  mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/mkrtos.elf
     COMMAND
     ${CMAKE_SIZE} mkrtos.elf
 )
@@ -79,7 +72,7 @@ if ((DEFINED CONFIG_ELF_LAUNCH) AND (CONFIG_ELF_LAUNCH STREQUAL "y"))
     add_custom_target(
         mkrtos_dump_elf ALL
         COMMAND
-        cp mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/mkrtos.elf
+        ${CMAKE_COMMAND} -E copy  mkrtos.elf ${CMAKE_SOURCE_DIR}/build/output/cpio/mkrtos.elf
     )
     add_dependencies(mkrtos_dump_elf mkrtos_dump)
 endif()
@@ -88,6 +81,5 @@ add_dependencies(mkrtos_dump mkrtos.elf)
 add_dependencies(mkrtos_dump knl)
 add_dependencies(mkrtos_dump arch)
 add_dependencies(mkrtos_dump lib)
-add_dependencies(mkrtos_dump drv) 
 
 

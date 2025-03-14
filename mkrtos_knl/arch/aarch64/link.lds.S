@@ -7,7 +7,7 @@ SECTIONS
 	 *
 	 * 这里“.”表示location counter，当前位置
 	 */
-	. = CONFIG_KNL_DATA_ADDR+CONFIG_KNL_OFFSET;
+	. = CONFIG_SYS_DATA_ADDR+CONFIG_BOOTSTRAP_TEXT_SIZE;
 	kernel_start = .;
 	/*
 	 * 这里是第一个段text.boot

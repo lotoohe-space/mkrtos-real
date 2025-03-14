@@ -35,6 +35,6 @@
 #define GW_ADDR2 3
 #define GW_ADDR3 1
 
-void net_init(void);
+void net_hw_init(void);
 void LwIP_Pkt_Handle(void);
 void lwip_pkt_handle_raw(uint8_t *data, int len);

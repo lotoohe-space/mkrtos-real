@@ -1,3 +1,2 @@
 source "mkrtos_user/lib/Kconfig"
-source "mkrtos_user/server/drv/rtthread_drv/Kconfig"
 

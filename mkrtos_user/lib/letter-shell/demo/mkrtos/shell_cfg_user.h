@@ -13,7 +13,7 @@
 #define __SHELL_CFG_USER_H__
 
 #include <u_sys.h>
-#include <malloc.h>
+#include <u_malloc.h>
 /**
  * @brief 获取系统时间(ms)
  *        定义此宏为获取系统Tick，如`HAL_GetTick()`
@@ -24,13 +24,13 @@
  * @brief shell内存分配
  *        shell本身不需要此接口，若使用shell伴生对象，需要进行定义
  */
-#define SHELL_MALLOC(size) malloc(size)
+#define SHELL_MALLOC(size) u_malloc(size)
 
 /**
  * @brief shell内存释放
  *        shell本身不需要此接口，若使用shell伴生对象，需要进行定义
  */
-#define SHELL_FREE(obj) free(obj)
+#define SHELL_FREE(obj) u_free(obj)
 /**
  * @brief 使用函数签名
  *        使能后，可以在声明命令时，指定函数的签名，shell 会根据函数签名进行参数转换，
@@ -43,5 +43,5 @@
  *        使能后，可以在命令中使用数组参数，如`cmd [1,2,3]`
  *        需要使能 `SHELL_USING_FUNC_SIGNATURE` 宏，并且配置 `SHELL_MALLOC`, `SHELL_FREE`
  */
-#define SHELL_SUPPORT_ARRAY_PARAM 1
+#define SHELL_SUPPORT_ARRAY_PARAM 0
 #endif

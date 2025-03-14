@@ -32,8 +32,13 @@
 #include "thread.h"
 #include "thread_task_arch.h"
 #include "types.h"
+#include "sema.h"
+#include "sleep.h"
 #if IS_ENABLED(CONFIG_SMP)
 #include <ipi.h>
+#endif
+#if IS_ENABLED(CONFIG_MPU)
+#include <mpu.h>
 #endif
 
 #define TAG "[thread]"
@@ -47,6 +52,7 @@ enum thread_op
     YIELD,
     DO_IPC = 6, //!< 与ipc对象中的额IPC_DO一致
     SET_EXEC,   //!< 设置异常处理
+    SLEEP,
 };
 enum IPC_TYPE
 {
@@ -55,13 +61,15 @@ enum IPC_TYPE
     IPC_WAIT,
     IPC_RECV,
     IPC_SEND,
+    IPC_FAST_CALL,   //!< 快速CALL通信，不切换上下文
+    IPC_FAST_REPLAY, //!<
 };
 static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
                            msg_tag_t in_tag, entry_frame_t *f);
 static bool_t thread_put(kobject_t *kobj);
 static void thread_release_stage1(kobject_t *kobj);
 static void thread_release_stage2(kobject_t *kobj);
-
+#if 0
 typedef struct thread_wait_entry
 {
     slist_head_t node;
@@ -78,7 +86,6 @@ static inline void thread_wait_entry_init(thread_wait_entry_t *entry,
     entry->th = th;
     entry->times = times;
 }
-
 static PER_CPU(slist_head_t, wait_send_queue);
 static PER_CPU(slist_head_t, wait_recv_queue);
 
@@ -90,8 +97,8 @@ static void thread_timeout_init(void)
         slist_init(pre_cpu_get_var_cpu(i, (&wait_recv_queue)));
     }
 }
-
 INIT_KOBJ(thread_timeout_init);
+#endif
 
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <buddy.h>
@@ -114,15 +121,27 @@ INIT_KOBJ_MEM(thread_mem_init);
  */
 void thread_init(thread_t *th, ram_limit_t *lim, umword_t flags)
 {
+    assert(th);
+    assert(th->com);
+    assert(lim);
     kobject_init(&th->kobj, THREAD_TYPE);
     sched_init(&th->sche);
     slist_init(&th->futex_node);
+#if 0
     slist_init(&th->wait_send_head);
     spinlock_init(&th->recv_lock);
     spinlock_init(&th->send_lock);
+#endif
     ref_counter_init(&th->ref);
     ref_counter_inc(&th->ref);
     thread_arch_init(th, flags);
+
+    slist_init(&th->com->fast_ipc_node);
+    stack_init(&th->com->fast_ipc_stack, &th->com->fast_ipc_stack_data,
+               ARRARY_LEN(th->com->fast_ipc_stack_data),
+               sizeof(th->com->fast_ipc_stack_data[0]));
+    th->com->th = th;
+
     th->cpu = arch_get_current_cpu_id();
     th->lim = lim;
     th->kobj.invoke_func = thread_syscall;
@@ -144,6 +163,8 @@ static void thread_release_stage1_impl(thread_t *th)
         thread_suspend(th);
     }
     th->ipc_status = THREAD_IPC_ABORT;
+    thread_sleep_del(th); //!< 从休眠中删除
+#if 0
     thread_wait_entry_t *pos;
 
     slist_foreach_not_next(
@@ -187,6 +208,7 @@ static void thread_release_stage1_impl(thread_t *th)
         }
         pos2 = next;
     }
+#endif
     thread_unbind(th);
 }
 #if IS_ENABLED(CONFIG_SMP)
@@ -225,76 +247,16 @@ static void thread_release_stage1(kobject_t *kobj)
     if (cur != th)
     {
         thread_release_stage1_remote(th);
-    } else {
+    }
+    else
+    {
         thread_release_stage1_remote(cur);
     }
-    // if (cur != th)
-    // {
-    //     //! 线程在运行中，则挂起线程
-    //     if (th->status == THREAD_READY)
-    //     {
-    //         thread_suspend_remote(th, FALSE);
-    //     }
-    //     th->ipc_status = THREAD_IPC_ABORT;
-    // }
-    // else
-    // {
-    //     if (cur->status == THREAD_READY)
-    //     {
-    //         thread_suspend_remote(th, FALSE);
-    //     }
-    //     cur->ipc_status = THREAD_IPC_ABORT;
-    // }
-    // thread_wait_entry_t *pos;
-
-    // slist_foreach_not_next(
-    //     pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
-    //     node_timeout)
-    // {
-    //     assert(pos->th->status == THREAD_SUSPEND);
-    //     thread_wait_entry_t *next = slist_next_entry(
-    //         pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
-    //         node_timeout);
-
-    //     if (pos->th != th)
-    //     {
-    //         pos->th->ipc_status = THREAD_IPC_ABORT;
-    //         thread_ready_remote(pos->th, FALSE);
-    //     }
-
-    //     slist_del(&pos->node_timeout);
-    //     if (slist_in_list(&pos->node))
-    //     {
-    //         slist_del(&pos->node);
-    //     }
-    //     pos = next;
-    // }
-    // thread_wait_entry_t *pos2;
-
-    // slist_foreach_not_next(
-    //     pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-    //     node)
-    // {
-    //     assert(pos2->th->status == THREAD_SUSPEND);
-    //     thread_wait_entry_t *next = slist_next_entry(
-    //         pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-    //         node);
-
-    //     slist_del(&pos2->node);
-    //     if (pos2->th != th)
-    //     {
-    //         pos2->th->ipc_status = THREAD_IPC_ABORT;
-    //         thread_ready_remote(pos2->th, FALSE);
-    //     }
-    //     pos2 = next;
-    // }
-    // thread_unbind(th);
 }
 static void thread_release_stage2(kobject_t *kobj)
 {
     thread_t *th = container_of(kobj, thread_t, kobj);
     thread_t *cur_th = thread_get_current();
-    // printk("release thread 0x%x\n", kobj);
 
     if (cur_th == th)
     {
@@ -307,6 +269,7 @@ static void thread_release_stage2(kobject_t *kobj)
 #else
     mm_limit_free_align(th->lim, kobj, CONFIG_THREAD_BLOCK_SIZE);
     // mm_trace();
+    printk("release thread 0x%x, name:%s\n", kobj, kobject_get_name(kobj));
 #endif
 }
 
@@ -318,9 +281,9 @@ static void thread_release_stage2(kobject_t *kobj)
  * @param ip
  */
 void thread_set_exc_regs(thread_t *th, umword_t pc, umword_t user_sp,
-                         umword_t ram, umword_t stack)
+                         umword_t ram)
 {
-    thread_user_pf_set(th, (void *)pc, (void *)user_sp, (void *)ram, stack);
+    thread_user_pf_set(th, (void *)pc, (void *)user_sp, (void *)ram);
 }
 /**
  * @brief 线程绑定到task
@@ -352,6 +315,7 @@ void thread_unbind(thread_t *th)
 }
 void thread_suspend_sw(thread_t *th, bool_t is_sche)
 {
+    assert(cpulock_get_status());
     assert(slist_in_list(&th->sche.node));
     assert(th->cpu == arch_get_current_cpu_id());
     umword_t status = cpulock_lock();
@@ -366,9 +330,10 @@ void thread_suspend_sw(thread_t *th, bool_t is_sche)
     }
     else
     {
+        thread_sched(FALSE);
         arch_to_sche(); //!< 触发调度中断
     }
-    // printk("suspend: cpu:%d sp:0x%lx\n", arch_get_current_cpu_id(), th->sp.sp);
+    // printk("suspend: th:0x%lx\n", th);
     cpulock_set(status);
 }
 /**
@@ -408,12 +373,12 @@ bool_t thread_sched(bool_t is_sche)
     sched_t *next_sche = scheduler_next();
     thread_t *th = thread_get_current();
 
+    assert(next_sche);
     assert(th->magic == THREAD_MAGIC);
     if (next_sche == &th->sche)
     {
         //!< 线程没有发生变化，则不用切换
         cpulock_set(status);
-
         return FALSE;
     }
     if (is_sche)
@@ -468,6 +433,7 @@ void thread_ready_remote(thread_t *th, bool_t is_sche)
  */
 void thread_ready(thread_t *th, bool_t is_sche)
 {
+    assert(th);
     bool_t ret;
     umword_t status = cpulock_lock();
 
@@ -489,8 +455,10 @@ void thread_ready(thread_t *th, bool_t is_sche)
     }
     else
     {
+        thread_sched(FALSE);
         arch_to_sche();
     }
+    // printk("ready: th:0x%lx\n", th);
     cpulock_set(status);
 }
 void thread_todead(thread_t *th, bool_t is_sche)
@@ -526,13 +494,20 @@ thread_t *thread_create(ram_limit_t *ram, umword_t flags)
     {
         return NULL;
     }
-    // assert(((mword_t)th & (~(CONFIG_THREAD_BLOCK_SIZE - 1))) == 0);
     memset(th, 0, CONFIG_THREAD_BLOCK_SIZE);
+    th->com = mm_limit_alloc(ram, sizeof(*th->com));
+    if (!th->com)
+    {
+        mm_limit_free(ram, th);
+        return NULL;
+    }
+    // assert(((mword_t)th & (~(CONFIG_THREAD_BLOCK_SIZE - 1))) == 0);
+    memset(th->com, 0, sizeof(*th->com));
     thread_init(th, ram, flags);
     printk("create thread 0x%x\n", th);
     return th;
 }
-
+#if 0
 /**
  * @brief 线程超时检查
  *
@@ -701,6 +676,47 @@ void thread_timeout_del_recv_remote(thread_t *th, bool_t is_sche)
     thread_ready(th, is_sche); //!< 直接唤醒接受者
 #endif
 }
+#endif
+
+static int ipc_dat_copy_raw(obj_space_t *dst_obj, obj_space_t *src_obj, ram_limit_t *lim,
+                            ipc_msg_t *dst_ipc, ipc_msg_t *src_ipc, msg_tag_t tag, int is_reply)
+{
+    int i = 0;
+    if (tag.map_buf_len > 0)
+    {
+        kobj_del_list_t del;
+        int map_len = tag.map_buf_len;
+
+        kobj_del_list_init(&del);
+
+        for (i = 0; i < map_len; i++)
+        {
+            int ret = 0;
+
+            vpage_t dst_page = vpage_create_raw(dst_ipc->map_buf[i]);
+            vpage_t src_page = vpage_create_raw(src_ipc->map_buf[i]);
+
+            // printk("map-> src:%d dst:%d\n", src_page.addr, dst_page.addr);
+            if ((src_page.flags & VPAGE_FLAGS_MAP) || is_reply)
+            {
+                ret = obj_map_src_dst(dst_obj, src_obj,
+                                      vpage_get_obj_handler(dst_page),
+                                      vpage_get_obj_handler(src_page), lim,
+                                      vpage_get_attrs(src_page), &del);
+            }
+
+            if (ret < 0)
+            {
+                return ret;
+            }
+        }
+        kobj_del_list_to_do(&del);
+    }
+    memcpy(dst_ipc->msg_buf, src_ipc->msg_buf,
+           MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
+    return i;
+}
+#if 0
 /**
  * @brief ipc传输时的数据拷贝
  *
@@ -709,7 +725,7 @@ void thread_timeout_del_recv_remote(thread_t *th, bool_t is_sche)
  * @param tag
  * @return int
  */
-static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
+static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag, int is_reply)
 {
     void *src = thread_get_kmsg_buf(src_th);
     void *dst = thread_get_kmsg_buf(dst_th);
@@ -721,38 +737,9 @@ static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag)
     src_ipc = src;
     dst_ipc = dst;
 
-    if (tag.map_buf_len > 0)
-    {
-        kobj_del_list_t del;
-        int map_len = tag.map_buf_len;
-
-        kobj_del_list_init(&del);
-
-        for (int i = 0; i < map_len; i++)
-        {
-            int ret = 0;
-
-            vpage_t dst_page = vpage_create_raw(dst_ipc->map_buf[i]);
-            vpage_t src_page = vpage_create_raw(src_ipc->map_buf[i]);
-
-            if (src_page.flags & VPAGE_FLAGS_MAP)
-            {
-                ret = obj_map_src_dst(&dst_tk->obj_space, &src_tk->obj_space,
-                                      vpage_get_obj_handler(dst_page),
-                                      vpage_get_obj_handler(src_page), dst_tk->lim,
-                                      vpage_get_attrs(src_page), &del);
-            }
-
-            if (ret < 0)
-            {
-                return ret;
-            }
-        }
-        kobj_del_list_to_do(&del);
-    }
+    ipc_dat_copy_raw(&dst_tk->obj_space, &src_tk->obj_space, dst_tk->lim, dst_ipc, src_ipc, tag, is_reply);
     dst_ipc->user[2] = task_pid_get(src_tk);
-    memcpy(dst_ipc->msg_buf, src_ipc->msg_buf,
-           MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
+
     dst_th->msg.tag = tag;
     return 0;
 }
@@ -771,9 +758,8 @@ static int thread_del_wait_send_handler(ipi_msg_t *msg, bool_t *is_sched)
 int thread_del_wait_send_remote(thread_wait_entry_t *wait)
 {
     assert(cpulock_get_status() == TRUE);
-#if IS_ENABLED(CONFIG_SMP)
     thread_t *th = wait->th;
-
+#if IS_ENABLED(CONFIG_SMP)
     if (th->cpu != arch_get_current_cpu_id())
     {
         th->ipi_msg_node.msg = (umword_t)wait;
@@ -781,6 +767,7 @@ int thread_del_wait_send_remote(thread_wait_entry_t *wait)
         cpu_ipi_to_msg(1 << th->cpu, &th->ipi_msg_node, IPI_CALL);
     }
     else
+#endif
     {
         if (slist_in_list(&wait->node_timeout))
         {
@@ -788,13 +775,6 @@ int thread_del_wait_send_remote(thread_wait_entry_t *wait)
         }
         thread_ready(th, FALSE);
     }
-#else
-    if (slist_in_list(&wait->node_timeout))
-    {
-        slist_del(&wait->node_timeout);
-    }
-    thread_ready(wait->th, TRUE);
-#endif
     return 0;
 }
 /**
@@ -876,11 +856,11 @@ static int thread_ipc_recv(msg_tag_t *ret_msg, ipc_timeout_t timeout,
     thread_set_ipc_state(cur_th, THREAD_RECV);
     thread_suspend_sw(cur_th, FALSE);
     spinlock_set(&cur_th->recv_lock, lock_status2);
+    preemption(); //!< 进行调度
 #if THREAD_IS_DEBUG
     dbg_printk(TAG "%s:%d ipc recv wait: %s[0x%x] status:%d ipc_status:%d recv_obj:0x%x\n", __func__, __LINE__,
                kobject_get_name(&cur_th->kobj), cur_th, cur_th->status, cur_th->ipc_status, recv_obj);
 #endif
-    preemption(); //!< 进行调度
     assert(cur_th->status == THREAD_READY);
     // cur_th->has_wait_send_th = FALSE;
 #if THREAD_IS_DEBUG
@@ -913,8 +893,15 @@ again:;
     if (to->status != THREAD_SUSPEND || to->ipc_status != THREAD_RECV)
     {
         /*TODO:这里应该挂起等待*/
-        spinlock_set(&to->recv_lock, status_lock2);
+        if (to->ipc_status == THREAD_IPC_ABORT)
+        {
+            ref_counter_dec_and_release(&to->ref, &to->kobj);
+            spinlock_set(&to->recv_lock, status_lock2);
+            return -ECANCELED;
+        }
         thread_sched(TRUE);
+        spinlock_set(&to->recv_lock, status_lock2);
+        preemption();
         goto again;
     }
 #if THREAD_IS_DEBUG
@@ -922,7 +909,7 @@ again:;
                kobject_get_name(&form->kobj), form, kobject_get_name(&to->kobj), to);
 #endif
     //!< 发送数据给上一次的发送者
-    int ret = ipc_data_copy(to, form, in_tag); //!< 拷贝数据
+    int ret = ipc_data_copy(to, form, in_tag, TRUE); //!< 拷贝数据
 
     if (ret < 0)
     {
@@ -938,7 +925,6 @@ again:;
         assert(to->status == THREAD_SUSPEND && to->ipc_status == THREAD_RECV);
         thread_timeout_del_from_send_queue_remote(to);
     }
-    // to->last_send_th = NULL;
     ref_counter_dec_and_release(&to->ref, &to->kobj);
     spinlock_set(&to->recv_lock, status_lock2);
     return 0;
@@ -1017,6 +1003,7 @@ static int thread_remote_suspend_handler(ipi_msg_t *msg, bool_t *is_sched)
 #endif
 int thread_suspend_remote(thread_t *th, bool_t is_sche)
 {
+    assert(cpulock_get_status());
 #if IS_ENABLED(CONFIG_SMP)
     if (th->cpu != arch_get_current_cpu_id())
     {
@@ -1029,7 +1016,7 @@ int thread_suspend_remote(thread_t *th, bool_t is_sche)
         thread_suspend_sw(th, is_sche);
     }
 #else
-    thread_suspend_sw(th);
+    thread_suspend_sw(th, is_sche);
 #endif
     return 0;
 }
@@ -1050,7 +1037,9 @@ static int thread_wait_recv_thread(thread_t *recv_th, ipc_timeout_t timeout)
 
 again_check:
     lock_status = spinlock_lock(&recv_th->recv_lock);
-    if ((thread_get_status(recv_th) != THREAD_SUSPEND || thread_get_ipc_state(recv_th) != THREAD_RECV) || recv_th->has_wait_send_th == FALSE /*如果已经在有人准备从这个线程获取数据，则当前call者需要挂起*/)
+    if ((thread_get_status(recv_th) != THREAD_SUSPEND ||
+         thread_get_ipc_state(recv_th) != THREAD_RECV) ||
+        recv_th->has_wait_send_th == FALSE /*如果已经在有人准备从这个线程获取数据，则当前call者需要挂起*/)
     {
         thread_wait_entry_t wait;
 
@@ -1099,7 +1088,8 @@ end:
     assert(recv_th->status == THREAD_SUSPEND && recv_th->ipc_status == THREAD_RECV);
     return ret;
 }
-__attribute__((optimize(0))) int thread_ipc_call(
+//__attribute__((optimize(0)))
+int thread_ipc_call(
     thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag, ipc_timeout_t timout,
     umword_t *ret_user_id, bool_t is_call)
 {
@@ -1110,7 +1100,6 @@ __attribute__((optimize(0))) int thread_ipc_call(
     }
     thread_t *cur_th = thread_get_current();
     thread_t *recv_kobj = to_th;
-    mword_t lock_stats;
     mword_t lock_stats2;
 
 #if THREAD_IS_DEBUG
@@ -1129,7 +1118,7 @@ again:
     if (thread_get_status(recv_kobj) == THREAD_SUSPEND && thread_get_ipc_state(recv_kobj) == THREAD_RECV)
     {
         //!< 开始发送数据
-        ret = ipc_data_copy(recv_kobj, cur_th, in_tag); //!< 拷贝数据
+        ret = ipc_data_copy(recv_kobj, cur_th, in_tag, FALSE); //!< 拷贝数据
         if (ret < 0)
         {
             //!< 拷贝失败
@@ -1167,7 +1156,6 @@ again:
         }
         else
         {
-
             thread_timeout_del_recv_remote(recv_kobj, TRUE);
 #if THREAD_IS_DEBUG
             dbg_printk(TAG "%s:%d ipc call wake: %s[0x%x]\n", __func__, __LINE__,
@@ -1193,6 +1181,179 @@ end:
 #endif
     return ret;
 }
+#endif
+/**
+ *  快速ipc call
+ * FIXME:以下代码是arch相关的，需要整理
+ **/
+msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_id)
+{
+    task_t *cur_task = thread_get_current_task();
+    thread_t *cur_th = thread_get_current();
+    msg_tag_t in_tag = msg_tag_init(f->regs[0]);
+    int ret;
+    // 1.需要切换的资源有r9，task，和用户栈
+    // 2.在对方进程中被杀死，需要还原当前线程的状态，并返回一个错误
+    // 3.多线程访问时，服务端提供一个小的用户线程栈，然后内核到用户部分为临界区域，在服务端重新分配用户栈用，使用新的用户栈。
+    // 4.fastipc嵌套访问会有问题，内核必须要提供一个软件上的调用栈。
+    // 在嵌套调用时，如果在其它进程中挂掉，如果是当前线程则需要还原
+
+    if (to_task->nofity_point == NULL)
+    {
+        printk("task:0x%x, notify point is not set.\n", to_task);
+        return msg_tag_init4(0, 0, 0, -EIO);
+    }
+    sema_down(&to_task->notify_sema, 0);
+    mutex_lock(&to_task->nofity_lock, 0);
+    umword_t cpu_status = cpulock_lock();
+    assert(cur_th->magic == THREAD_MAGIC);
+
+    // to_task = thread_get_bind_task(to_th);FIXME:
+    ref_counter_inc((&to_task->ref_cn));
+    //!< 执行目标线程时用的是当前线程的资源，这里还需要备份当前线程的上下文。
+    ret = thread_fast_ipc_save(cur_th, to_task, (void *)(to_task->nofity_stack - 4 * 8 /*FIXME:改成宏*/)); //!< 备份栈和usp
+    if (ret >= 0)
+    {
+        ipc_msg_t *dst_ipc = (void *)to_task->nofity_msg_buf;
+        ipc_msg_t *src_ipc = (void *)cur_th->msg.msg;
+        ret = ipc_dat_copy_raw(&to_task->obj_space, &cur_task->obj_space, to_task->lim,
+                               dst_ipc, src_ipc, in_tag, FALSE);
+        if (ret >= 0)
+        {
+            dst_ipc->user[2] = task_pid_get(cur_task);                            // 设置pid
+            slist_add(&to_task->nofity_theads_head, &cur_th->com->fast_ipc_node); // 添加到链表中，用于进程关闭时进行释放
+            pf_s_t *usr_stask_point = (void *)arch_get_user_sp();
+
+            if (thread_is_knl(cur_th))
+            {
+                // 如果是内核线程则全部重新设置
+                thread_set_user_pf_noset_knl_sp(cur_th, to_task->nofity_point,
+                                                (void *)to_task->nofity_stack, (void *)to_task->mm_space.mm_block);
+                usr_stask_point->rg0[0] = in_tag.raw;
+                usr_stask_point->rg0[1] = user_id;
+                usr_stask_point->rg0[2] = f->regs[2];
+                usr_stask_point->rg0[3] = f->regs[3];
+
+                scheduler_get_current()->sched_reset = 2;
+            }
+            else
+            {
+                usr_stask_point->r12 = 0x12121212;
+                usr_stask_point->xpsr = 0x01000000L;
+                usr_stask_point->lr = (umword_t)NULL; //!< 线程退出时调用的函数
+                usr_stask_point->pc = (umword_t)(to_task->nofity_point) | 0x1;
+
+                //! 获得内核栈栈顶
+                pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
+                // 重新设置r9寄存器
+                cur_pf->regs[5] = (umword_t)(to_task->mm_space.mm_block);
+                cur_th->sp.user_sp = cur_pf;
+
+                //! 寄存器传参数
+                f->regs[0] = in_tag.raw;
+                f->regs[1] = user_id;
+                f->regs[2] = f->regs[2];
+                f->regs[3] = f->regs[3];
+            }
+            // 切换mpu
+            mpu_switch_to_task(to_task);
+            cpulock_set(cpu_status);
+            if (thread_is_knl(cur_th))
+            {
+                // 内核线程则立刻进行调度
+                arch_to_sche();
+                preemption();
+            }
+            return in_tag;
+        }
+        else
+        {
+            ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
+            mutex_unlock(&to_task->nofity_lock);
+            sema_up(&to_task->notify_sema);
+        }
+    }
+    else
+    {
+        ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
+        mutex_unlock(&to_task->nofity_lock);
+        sema_up(&to_task->notify_sema);
+    }
+    cpulock_set(cpu_status);
+
+    return msg_tag_init4(0, 0, 0, ret);
+}
+msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
+{
+    task_t *cur_task = thread_get_current_task();
+    thread_t *cur_th = thread_get_current();
+    msg_tag_t in_tag = msg_tag_init(f->regs[0]);
+    task_t *old_task = thread_get_bind_task(cur_th);
+    int ret;
+
+    assert(cur_th->magic == THREAD_MAGIC);
+    *(cur_task->nofity_bitmap) &= ~(1 << MIN(f->regs[2], cur_task->nofity_bitmap_len)); //!< 解锁bitmap
+    slist_del(&cur_th->com->fast_ipc_node);                                             // 从链表中删除
+
+    ret = thread_fast_ipc_restore(cur_th); // 还原栈和usp
+    if (ret < 0)
+    {
+        mutex_unlock(&old_task->nofity_lock);
+        return msg_tag_init4(0, 0, 0, ret);
+    }
+    umword_t cpu_status = cpulock_lock();
+
+    cur_task = thread_get_current_task();
+    ipc_msg_t *dst_ipc = (void *)cur_th->msg.msg;
+    ipc_msg_t *src_ipc = (void *)old_task->nofity_msg_buf;
+    ret = ipc_dat_copy_raw(&cur_task->obj_space, &old_task->obj_space, cur_task->lim,
+                           dst_ipc, src_ipc, in_tag, TRUE); // copy数据
+    // if (ret >=0 ) {
+    for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
+    {
+        if (i < ret)
+        {
+            src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
+            old_task->nofity_map_buf[i] = 0;
+        }
+        else
+        {
+            src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
+        }
+    }
+    // }
+    mutex_unlock(&old_task->nofity_lock);
+    if (thread_is_knl(cur_th))
+    {
+        //! 吧r4-r11留出来
+        // memcpy((char *)cur_th->sp.knl_sp - 4 * 8 /*FIXME:*/, (char *)cur_th->sp.knl_sp, 4 * 8);
+        // memset(cur_th->sp.knl_sp, 0, 4 * 8);
+        // cur_th->sp.knl_sp = (char *)cur_th->sp.knl_sp - 4 * 8;
+        cur_th->sp.user_sp = 0x0;
+        cur_th->sp.sp_type = 0xfffffff9;
+        scheduler_get_current()->sched_reset = 3;
+    }
+    else
+    {
+        pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
+
+        cur_pf->regs[5] = (umword_t)(cur_task->mm_space.mm_block); // 更新r9寄存器
+    }
+    mpu_switch_to_task(cur_task); // 切换mpu
+    ref_counter_dec_and_release(&old_task->ref_cn, &old_task->kobj);
+    if (ret < 0)
+    {
+        in_tag = msg_tag_init4(0, 0, 0, ret);
+    }
+    cpulock_set(cpu_status);
+    sema_up(&old_task->notify_sema);
+    if (thread_is_knl(cur_th))
+    {
+        arch_to_sche();
+        preemption();
+    }
+    return in_tag;
+}
 /**
  * @brief 执行ipc
  *
@@ -1206,13 +1367,24 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
     assert(kobj);
     task_t *cur_task = thread_get_current_task();
     thread_t *cur_th = thread_get_current();
-    thread_t *to_th = (thread_t *)kobj;
+    task_t *to_tk = (task_t *)kobj;
     umword_t ipc_type = f->regs[1];
     obj_handler_t th_hd = 0;
     int ret = -EINVAL;
 
     switch (ipc_type)
     {
+    case IPC_FAST_REPLAY:
+    {
+        return thread_fast_ipc_replay(f);
+    }
+    break;
+    case IPC_FAST_CALL:
+    {
+        return thread_fast_ipc_call(to_tk, f, user_id);
+    }
+    break;
+#if 0
     case IPC_CALL:
     {
         msg_tag_t in_tag = msg_tag_init(f->regs[0]);
@@ -1263,6 +1435,7 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
         ret = thread_ipc_call(to_th, in_tag, NULL, ipc_tm_out, NULL, FALSE);
         return msg_tag_init4(0, 0, 0, ret);
     }
+#endif
     default:
         ret = -ENOSYS;
         break;
@@ -1295,6 +1468,24 @@ static int thread_remote_migration(ipi_msg_t *msg, bool_t *is_sched)
 }
 
 #endif
+int thread_set_prio(thread_t *th, int prio)
+{
+    assert(cpulock_get_status());
+    int old_prio = thread_get_prio(th);
+
+    if (old_prio != prio)
+    {
+        if (thread_get_status(th) == THREAD_READY)
+        {
+            thread_suspend(th);
+            th->sche.prio = prio;
+            thread_ready(th, TRUE);
+        } else {
+            th->sche.prio = prio;
+        }
+    }
+    return old_prio;
+}
 static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
                            msg_tag_t in_tag, entry_frame_t *f)
 {
@@ -1313,14 +1504,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
     {
     case SET_EXEC_REGS:
     {
-        umword_t stack_bottom = 0;
-
-        if (f->regs[4]) //!< cp_stack
-        {
-            stack_bottom = (umword_t)(thread_get_msg_buf(cur_th));
-        }
-        thread_set_exc_regs(tag_th, f->regs[1], f->regs[2], f->regs[3],
-                            stack_bottom);
+        thread_set_exc_regs(tag_th, f->regs[1], f->regs[2], f->regs[3]);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
     break;
@@ -1435,11 +1619,16 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
 #else
         if (!slist_in_list(&tag_th->sche.node))
         {
+            tag_th->sche.prio = tge_prio;
             thread_ready(tag_th, TRUE);
         }
         else
         {
             thread_suspend(tag_th);
+            if (tag_th != thread_get_current())
+            {
+                preemption();
+            }
             tag_th->sche.prio =
                 (tge_prio >= PRIO_MAX ? PRIO_MAX - 1 : tge_prio);
             thread_ready(tag_th, TRUE);
@@ -1473,7 +1662,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
     break;
     case DO_IPC:
     {
-        tag = thread_do_ipc(kobj, f, 0);
+        tag = thread_do_ipc(&thread_get_task(container_of(kobj, thread_t, kobj))->kobj, f, 0);
     }
     break;
     case SET_EXEC:
@@ -1488,6 +1677,17 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
         ref_counter_inc(&((thread_t *)th_kobj)->ref);
         task->exec_th = th_kobj;
         tag = msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
+    case SLEEP:
+    {
+        int ret;
+        umword_t status;
+
+        status = cpulock_lock();
+        ret = thread_sleep(f->regs[0]);
+        cpulock_set(status);
+        tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
     }

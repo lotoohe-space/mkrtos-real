@@ -14,7 +14,10 @@
 #include "stdio.h"
 #include "stdarg.h"
 #include "shell_ext.h"
-
+#include "fs_types.h"
+#include "u_sig.h"
+#include <termios.h>
+#include <unistd.h>
 #if SHELL_USING_CMD_EXPORT == 1
 /**
  * @brief 默认用户
@@ -234,7 +237,7 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
         else if (cmd->attr.attrs.type <= SHELL_TYPE_KEY)
         {
             cmd->data.key.desc += start_addr;
-            cmd->data.key.function = (int (*)())((unsigned long)cmd->data.key.function + start_addr | 0x1);
+            cmd->data.key.function = (void *)(int (*)())((unsigned long)cmd->data.key.function + start_addr | 0x1);
         }
     }
 #endif
@@ -1452,10 +1455,65 @@ void shellExec(Shell *shell)
         }
         else
         {
+            uint8_t params[96/*FIXME:数组溢出*/];
+            uint8_t envs[64/*FIXME:*/];
+            int params_len = 0;
+            int envs_len = 0;
+            int pid;
+            bool_t bg_run = FALSE;
+            int task_mem_blk = 0;
+
+            // 处理params
+            for (int i = 1; i < shell->parser.paramCount; i++)
+            {
+                memcpy(&params[params_len], shell->parser.param[i], strlen(shell->parser.param[i]) + 1); // copy the string
+                params_len += strlen(shell->parser.param[i]) + 1;
+            }
+            if (shell->parser.param[shell->parser.paramCount - 1][0] == '~')
+            {
+                //指定启动的mem，参数少一个
+                task_mem_blk = atoi(&(shell->parser.param[shell->parser.paramCount - 1][1]));
+                shell->parser.paramCount--;
+            }
+            if (strcmp(shell->parser.param[shell->parser.paramCount - 1], "&") == 0)
+            {
+                //后台启动，参数少一个
+                shell->parser.param[shell->parser.paramCount - 1] = NULL;
+                shell->parser.paramCount--;
+                bg_run = TRUE;
+            }
+            // 处理envs
+            for (char **e = __environ; *e; e++)
+            {
+                memcpy(&envs[envs_len], *e, strlen(*e) + 1);
+                envs_len+= strlen(*e)+1;
+            }
+
             //!< 内建命令中未找到，则执行应用
-            if (pm_run_app(shell->parser.param[0], PM_APP_BG_RUN) < 0)
+            pid = pm_run_app(shell->parser.param[0], task_mem_blk, params, params_len, envs, envs_len);
+            if (pid < 0)
             {
                 shellWriteString(shell, shellText[SHELL_TEXT_CMD_NOT_FOUND]);
+            }
+            else
+            {
+                pid_t cur_pid;
+
+                if (!bg_run)
+                {
+                    shell->parser.param[shell->parser.paramCount - 1] = NULL;
+                    shell->parser.paramCount--;
+                    task_get_pid(TASK_THIS, &cur_pid);
+                    pm_sig_watch(pid, 0);
+                    extern void tty_set_raw_mode(void);
+                    extern void tty_set_normal_mode(void);
+
+                    tty_set_normal_mode();
+                    tcsetpgrp(STDIN_FILENO, pid);
+                    pm_waitpid(pid, NULL);
+                    tcsetpgrp(STDIN_FILENO, cur_pid);
+                    tty_set_raw_mode();
+                }
             }
         }
     }

@@ -86,16 +86,11 @@ irq_entry_t *irq_get(int inx)
  * @brief 中断的入口函数
  *
  */
-void entry_handler(void)
+__USED void entry_handler(void)
 {
     umword_t isr_no = arch_get_isr_no();
 
-    if (isr_no < 0)
-    {
-        return;
-    }
     isr_no -= CONFIG_USER_ISR_START_NO; //!< 系统用的irq偏移
-
     if (isr_no >= CONFIG_IRQ_REG_TAB_SIZE)
     {
         assert(isr_no < CONFIG_IRQ_REG_TAB_SIZE);

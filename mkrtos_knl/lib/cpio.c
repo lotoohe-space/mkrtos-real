@@ -1,10 +1,9 @@
-// #include "mk_sys.h"
-#include "cpio.h"
 #include <util.h>
+#if IS_ENABLED(CONFIG_CPIO_SUPPORT)
+#include "cpio.h"
 #include <string.h>
 #include <arch.h>
-// #define MIN(a, b) ((a) < (b) ? (a) : (b))							   //!< 最小值
-// #define ALIGN(mem, align) (((mem) + ((align) - 1)) & (~((align) - 1))) //!< 向上对齐
+
 static int htoi(char *str, int len);
 
 umword_t cpio_get_size(umword_t st)
@@ -117,3 +116,4 @@ static int htoi(char *str, int len)
 	}
 	return n;
 }
+#endif
