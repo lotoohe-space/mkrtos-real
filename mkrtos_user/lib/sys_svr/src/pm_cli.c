@@ -11,29 +11,38 @@
 #include <string.h>
 #include <assert.h>
 
-RPC_GENERATION_CALL4(pm_t, PM_PROT, PM_RUN_APP, run_app,
-                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
-                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
-                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len)
-int pm_run_app(const char *path, int flags, uint8_t *params, int params_len)
+RPC_GENERATION_CALL6(pm_t, PM_PROT, PM_RUN_APP, run_app,
+                   rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mem_block,
+                   rpc_ref_array_uint32_t_uint8_t_96_t, rpc_array_uint32_t_uint8_t_96_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len,
+                   rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, envs,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, envs_len)
+int pm_run_app(const char *path, int mem_block, uint8_t *params, int params_len, uint8_t *envs, int envs_len)
 {
-    rpc_ref_file_array_t rpc_path = {
+    rpc_ref_array_uint32_t_uint8_t_64_t rpc_path = {
         .data = (uint8_t *)path,
-        .len = MIN(strlen(path) + 1, FS_RPC_BUF_LEN),
+        .len = MIN(strlen(path) + 1, 64),
     };
-    rpc_int_t rpc_flags = {
-        .data = flags,
+    rpc_int_t rpc_mem_block = {
+        .data = mem_block,
     };
-    rpc_ref_file_array_t rpc_params = {
-        .data = (uint8_t *)params,
-        .len = MIN(params_len, FS_RPC_BUF_LEN),
+    rpc_ref_array_uint32_t_uint8_t_96_t rpc_params = {
+        .data = (uint8_t *)params?params:"",
+        .len = MIN(params_len, 96),
     };
     rpc_int_t rpc_params_len = {
         .data = params_len,
     };
-    msg_tag_t tag = pm_t_run_app_call(u_get_global_env()->ns_hd, &rpc_path, &rpc_flags,
-                                      &rpc_params, &rpc_params_len);
+    rpc_ref_array_uint32_t_uint8_t_64_t rpc_envs = {
+        .data = (uint8_t *)envs?envs:"",
+        .len = MIN(envs_len, 64),
+    };
+    rpc_int_t rpc_envs_len = {
+        .data = envs_len,
+    };
+    msg_tag_t tag = pm_t_run_app_call(u_get_global_env()->ns_hd, &rpc_path, &rpc_mem_block,
+                                      &rpc_params, &rpc_params_len, &rpc_envs, &rpc_envs_len);
 
     return msg_tag_get_val(tag);
 }

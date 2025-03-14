@@ -92,17 +92,7 @@ static void knl_main(void)
 
                     if (thread_get_ipc_state(init_thread) != THREAD_IPC_ABORT)
                     {
-#if 0
-                        int ret = thread_ipc_call(init_thread, msg_tag_init4(0, 3, 0, 0x0005 /*PM_PROT*/),
-                                                  &tag, ipc_timeout_create2(3000, 3000), &user_id, TRUE);
-
-                        if (ret < 0)
-                        {
-                            printk("%s:%d ret:%d\n", __func__, __LINE__, ret);
-                        }
-#endif
 #define PM_PROT 0x0005
-
 #define MAGIC_NS_USERPID 0xbabababa
                         entry_frame_t f;
                         f.regs[0] = msg_tag_init4(0, 3, 0, PM_PROT).raw;
@@ -147,7 +137,6 @@ void thread_calc_cpu_usage(void)
         calc = calc > 1000 ? 1000 : calc;
         cpu_usage[cur_cpu_id] = 1000 - calc;
         cpu_usage_last_tick_val[cur_cpu_id] = tick;
-        // printk("%d\n", cpu_usage[arch_get_current_cpu_id()]);
     }
 }
 uint16_t cpu_get_current_usage(void)
@@ -283,13 +272,17 @@ bool_t task_knl_kill(thread_t *kill_thread, bool_t is_knl)
         status2 = spinlock_lock(&del_lock);
         if (stack_len(&kill_thread->com->fast_ipc_stack) != 0)
         {
+            // 在通信的时候出现了错误
+            // fast_ipc需要测试场景
+            // 1. 在ipc到其他进程中时其他进程死亡
+            // 2. 在ipc到其他进程中时当前进程死亡
             int ret;
             thread_fast_ipc_item_t ipc_item;
 
             ret = thread_fast_ipc_restore(kill_thread);
             if (ret >= 0)
             {
-                // 还原栈和usp TODO: arch相关的
+                // 还原栈和usp FIXME:arch相关的
                 thread_user_pf_restore(kill_thread, (void *)arch_get_user_sp());
                 mpu_switch_to_task(thread_get_bind_task(kill_thread));
                 ref_counter_dec_and_release(&task->ref_cn, &task->kobj);

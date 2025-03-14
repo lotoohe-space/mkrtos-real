@@ -35,7 +35,7 @@ typedef struct pm
 #define PM_APP_BG_RUN 0x1
 
 void pm_svr_obj_init(pm_t *pm);
-int pm_rpc_run_app(const char *path, int flags, char *params, int params_len);
+int pm_rpc_run_app(const char *path, int mem_block, char *params, int params_len, char *env, int envs_len);
 int pm_rpc_kill_task(int src_pid, int pid, int flags, int exit_code);
 
 int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags);

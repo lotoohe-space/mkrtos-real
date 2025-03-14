@@ -8,7 +8,6 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <fcntl.h>
-#include "cons.h"
 #include "u_hd_man.h"
 #include "u_prot.h"
 #include "u_task.h"
@@ -35,7 +34,6 @@ static tty_struct_t sys_tty;
 
 static obj_handler_t cons_th;
 static obj_handler_t sem_th;
-static u_mutex_t lock_cons;
 static meta_t tty_meta;
 static obj_handler_t tty_ipc_hd;
 static fs_t tty_fs;
@@ -57,11 +55,11 @@ void tty_struct_init(tty_struct_t *tty)
 
 static inline void cons_read_lock(void)
 {
-    u_mutex_lock(&lock_cons, 0, 0);
+    u_mutex_lock(&sys_tty.lock_cons, 0, 0);
 }
 static inline void cons_read_unlock(void)
 {
-    u_mutex_unlock(&lock_cons);
+    u_mutex_unlock(&sys_tty.lock_cons);
 }
 
 static void console_read_func(void)
@@ -127,7 +125,8 @@ static int cons_init(void)
 {
     msg_tag_t tag;
 
-    u_mutex_init(&lock_cons, handler_alloc());
+    u_mutex_init(&sys_tty.lock_cons, handler_alloc());
+    u_mutex_init(&sys_tty.lock_write_cons, handler_alloc());
 
     sem_th = handler_alloc();
     if (sem_th == HANDLER_INVALID)
@@ -508,6 +507,12 @@ again:
     tty_write_hw(&sys_tty);
     return i;
 }
+void tty_write_data(void *buf, size_t len)
+{
+    u_mutex_lock(&sys_tty.lock_write_cons, 0, 0);
+    ulog_write_bytes(LOG_PROT, buf, len);
+    u_mutex_unlock(&sys_tty.lock_write_cons);
+}
 static int tty_write(int fd, void *buf, size_t len)
 {
     int i;
@@ -523,7 +528,7 @@ static int tty_write(int fd, void *buf, size_t len)
     // 调用写函数
     ret = tty_write_hw(&sys_tty);
 #else
-    ulog_write_bytes(LOG_PROT, buf, len);
+    tty_write_data(buf, len);
 #endif
     return len;
 }

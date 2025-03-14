@@ -93,6 +93,10 @@ int cd(int argc, char *agrv[])
     }
 
     ret = chdir(agrv[1]);
+    if (ret >= 0)
+    {
+        setenv("PWD", agrv[1], 1);
+    }
     return ret;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), cd, cd, cd command);

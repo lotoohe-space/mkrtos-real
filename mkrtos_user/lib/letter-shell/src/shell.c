@@ -1455,17 +1455,42 @@ void shellExec(Shell *shell)
         }
         else
         {
-            uint8_t params[FS_RPC_BUF_LEN];
+            uint8_t params[96/*FIXME:数组溢出*/];
+            uint8_t envs[64/*FIXME:*/];
             int params_len = 0;
+            int envs_len = 0;
             int pid;
+            bool_t bg_run = FALSE;
+            int task_mem_blk = 0;
 
+            // 处理params
             for (int i = 1; i < shell->parser.paramCount; i++)
             {
                 memcpy(&params[params_len], shell->parser.param[i], strlen(shell->parser.param[i]) + 1); // copy the string
                 params_len += strlen(shell->parser.param[i]) + 1;
             }
+            if (shell->parser.param[shell->parser.paramCount - 1][0] == '~')
+            {
+                //指定启动的mem，参数少一个
+                task_mem_blk = atoi(&(shell->parser.param[shell->parser.paramCount - 1][1]));
+                shell->parser.paramCount--;
+            }
+            if (strcmp(shell->parser.param[shell->parser.paramCount - 1], "&") == 0)
+            {
+                //后台启动，参数少一个
+                shell->parser.param[shell->parser.paramCount - 1] = NULL;
+                shell->parser.paramCount--;
+                bg_run = TRUE;
+            }
+            // 处理envs
+            for (char **e = __environ; *e; e++)
+            {
+                memcpy(&envs[envs_len], *e, strlen(*e) + 1);
+                envs_len+= strlen(*e)+1;
+            }
+
             //!< 内建命令中未找到，则执行应用
-            pid = pm_run_app(shell->parser.param[0], 0 /*PM_APP_BG_RUN*/, params, params_len);
+            pid = pm_run_app(shell->parser.param[0], task_mem_blk, params, params_len, envs, envs_len);
             if (pid < 0)
             {
                 shellWriteString(shell, shellText[SHELL_TEXT_CMD_NOT_FOUND]);
@@ -1474,7 +1499,7 @@ void shellExec(Shell *shell)
             {
                 pid_t cur_pid;
 
-                if (strcmp(shell->parser.param[shell->parser.paramCount - 1], "&") != 0)
+                if (!bg_run)
                 {
                     shell->parser.param[shell->parser.paramCount - 1] = NULL;
                     shell->parser.paramCount--;

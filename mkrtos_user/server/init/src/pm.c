@@ -221,19 +221,23 @@ int pm_rpc_kill_task(int src_pid, int pid, int flags, int exit_code)
  * @param flags
  * @return int
  */
-int pm_rpc_run_app(const char *path, int flags, char *params, int params_len)
+int pm_rpc_run_app(const char *path, int mem_block, char *params, int params_len, char *envs_in, int envs_in_len)
 {
     pid_t pid;
     int ret;
-    obj_handler_t sem;
     int i;
     int j = 0;
+    int args_len = 0;
+    int evns_len = 0;
     printf("pm run %s.\n", path);
     char *args[CMD_PARAMS_CN] = {
         (char *)path,
     };
+    char *envs[8/*FIXME:*/] = {
+    };
 
-    for (i = 1; *params && i < CMD_PARAMS_CN; i++)
+
+    for (i = 1, j = 0; *params && i < CMD_PARAMS_CN; i++)
     {
         if (j >= params_len)
         {
@@ -244,17 +248,25 @@ int pm_rpc_run_app(const char *path, int flags, char *params, int params_len)
         j += strlen(params) + 1;
         params += strlen(params) + 1;
     }
+    args_len = i;
 
-    ret = app_load(path, u_get_global_env(), &pid, args, i,
-                   NULL, 0, &sem, 0);
+    for (i = 0, j = 0; *envs_in && i < CMD_PARAMS_CN; i++)
+    {
+        if (j >= envs_in_len)
+        {
+            break;
+        }
+        envs[i] = envs_in;
+        printf("envs[%d]: %s\n", i, envs_in);
+        j += strlen(envs_in) + 1;
+        envs_in += strlen(envs_in) + 1;
+    }
+    evns_len = i;
+
+    ret = app_load(path, u_get_global_env(), &pid, args, args_len,
+                   envs, evns_len,  mem_block);
     if (ret >= 0)
     {
-        #if 0
-        if (!(flags & PM_APP_BG_RUN))
-        {
-            tty_set_fg_pid(pid);
-        }
-        #endif
         return pid;
     }
     return ret;

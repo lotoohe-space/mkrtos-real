@@ -120,12 +120,10 @@ static void *app_stack_push_array(obj_handler_t task_obj, umword_t **stack, uint
 int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
              char *argv[], int arg_cn,
              char *envp[], int envp_cn,
-             obj_handler_t *p_sem_hd,
              int mem_block)
 {
     msg_tag_t tag;
     sys_info_t sys_info;
-    assert(p_sem_hd);
 
     tag = sys_read_info(SYS_PROT, &sys_info, 0);
     if (msg_tag_get_val(tag) < 0)
@@ -187,17 +185,12 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     umword_t ram_base;
     obj_handler_t hd_task = handler_alloc();
     obj_handler_t hd_thread = handler_alloc();
-    obj_handler_t hd_sem = handler_alloc();
 
     if (hd_task == HANDLER_INVALID)
     {
         goto end;
     }
     if (hd_thread == HANDLER_INVALID)
-    {
-        goto end;
-    }
-    if (hd_sem == HANDLER_INVALID)
     {
         goto end;
     }
@@ -211,11 +204,6 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     {
         goto end_del_obj;
     }
-    tag = facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_sem), 0, (uint32_t)(-1));
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
     tag = task_alloc_ram_base(hd_task, app ? app->i.ram_size : 100 * 1024 /*TODO:*/,
                               &ram_base, mem_block);
     if (msg_tag_get_prot(tag) < 0)
@@ -223,11 +211,6 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
         goto end_del_obj;
     }
     tag = task_map(hd_task, hd_task, TASK_PROT, 0);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    tag = task_map(hd_task, hd_sem, SEMA_PROT, 0);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
@@ -368,7 +351,6 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
                            ram_base, 0);
     assert(msg_tag_get_prot(tag) >= 0);
 
-    *p_sem_hd = hd_sem;
     /*启动线程运行*/
     tag = thread_run(hd_thread, 3);
     assert(msg_tag_get_prot(tag) >= 0);
@@ -384,10 +366,6 @@ end_del_obj:
     {
         task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_task));
     }
-    if (hd_sem != HANDLER_INVALID)
-    {
-        task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_sem));
-    }
 end:
     if (hd_task != HANDLER_INVALID)
     {
@@ -396,10 +374,6 @@ end:
     if (hd_thread != HANDLER_INVALID)
     {
         handler_free(hd_thread);
-    }
-    if (hd_sem != HANDLER_INVALID)
-    {
-        handler_free(hd_sem);
     }
     return -ENOMEM;
 }

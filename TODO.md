@@ -26,7 +26,7 @@
 * [ ] posix sema支持
 * [ ] vfork + exec实现
 * [ ] 几大组件稳定性测试
-* [ ] 删除之前用于log的sem
+* [x] 删除之前用于log的sem
 ### mid prio
 * [x] net server support
 * [x] block driver

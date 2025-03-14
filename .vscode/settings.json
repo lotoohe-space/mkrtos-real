@@ -209,7 +209,9 @@
         "*.def": "c",
         "poll.h": "c",
         "u_rpc_1.h": "c",
-        "mk_sys.h": "c"
+        "mk_sys.h": "c",
+        "environ.h": "c",
+        "lwipopts.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

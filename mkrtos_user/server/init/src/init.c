@@ -8,7 +8,6 @@
  * @copyright Copyright (c) 2023
  *
  */
-#include "cons.h"
 #include "ns.h"
 #include "ns_svr.h"
 #include "parse_cfg.h"
@@ -35,7 +34,7 @@
 #define DEFAULT_INIT_CFG "init.cfg"
 
 #define STACK_NUM 4
-#define STACK_COM_ITME_SIZE ((1024+512) * STACK_NUM)
+#define STACK_COM_ITME_SIZE ((2048) * STACK_NUM)
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
 static uint8_t msg_buf_coms[MSG_BUG_LEN * STACK_NUM];

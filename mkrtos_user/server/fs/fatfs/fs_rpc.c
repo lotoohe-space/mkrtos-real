@@ -16,6 +16,8 @@
 #include <string.h>
 #include <u_malloc.h>
 #include "fd.h"
+#include "u_path.h"
+
 static fs_t fs;
 static int fs_sig_call_back(pid_t pid, umword_t sig_val);
 
@@ -378,7 +380,6 @@ int fs_svr_rename(char *oldname, char *newname)
 {
     return fatfs_err_conv(f_rename(oldname, newname));
 }
-#include "u_path.h"
 int fs_svr_stat(const char *path, void *_buf)
 {
     FILINFO INFO;

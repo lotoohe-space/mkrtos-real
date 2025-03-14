@@ -47,6 +47,7 @@ void sema_up(sema_t *obj)
     umword_t status;
     thread_t *th = thread_get_current();
 
+again:
     status = spinlock_lock(&obj->lock);
     if (slist_is_empty(&obj->suspend_head))
     {
@@ -70,24 +71,23 @@ void sema_up(sema_t *obj)
             {
                 thread_sleep_del_and_wakeup(first_wait->thread);
             }
+            if (obj->cnt < obj->max_cnt)
+            {
+                obj->cnt++;
+            }
+            if (obj->max_cnt == 1 && obj->hold_th == &th->kobj)
+            {
+                //还原优先级
+                thread_set_prio(th, obj->hold_th_prio);
+                obj->hold_th = NULL;
+            }
         }
         else
         {
-            // 超时退出，但是切出来的时候切到了唤醒线程中，所以这里不是suspend状态。
-            thread_sleep_del(first_wait->thread);
-            // 这里引用计数要-1
-            ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj);
+            // 超时退出，但是切出来的时候没有切到休眠线程，切到了这里。
+            spinlock_set(&obj->lock, status);
+            goto again;
         }
-        if (obj->cnt < obj->max_cnt)
-        {
-            obj->cnt++;
-        }
-        if (obj->max_cnt == 1 && obj->hold_th == &th->kobj)
-        {
-            //还原优先级
-            thread_set_prio(th, obj->hold_th_prio);
-        }
-        // printk("up1 sema cnt:%d max:%d.\n", obj->cnt, obj->max_cnt);
     }
     spinlock_set(&obj->lock, status);
     if (cpulock_get_status())
@@ -118,7 +118,7 @@ again:
                 thread_set_prio(((thread_t*)(obj->hold_th)), thread_get_prio(th));
             }
         }
-        remain_sleep = thread_sleep(ticks);
+        remain_sleep = thread_sleep(ticks); //注意：这里可能不是up环保型
         if (remain_sleep == 0 && ticks != 0)
         {
             // 超时退出的，直接从列表中删除
@@ -145,7 +145,6 @@ again:
             obj->hold_th = &th->kobj;
             obj->hold_th_prio = thread_get_prio(th);
         }
-        // printk("down sema cnt:%d max:%d.\n", obj->cnt, obj->max_cnt);
     }
     spinlock_set(&obj->lock, status);
     return remain_sleep;

@@ -6,7 +6,7 @@
 #include <u_sys.h>
 #include <rpc_prot.h>
 static fs_t fs;
-
+extern void fd_man_unreg(int fd);
 int fs_svr_open(const char *path, int flags, int mode)
 {
     return -ENOSYS;
@@ -22,6 +22,7 @@ int fs_svr_write(int fd, void *buf, size_t len)
 void fs_svr_close(int fd)
 {
     lwip_close(fd);
+    fd_man_unreg(fd);
 }
 int fs_svr_lseek(int fd, int offs, int whence)
 {

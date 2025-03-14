@@ -22,24 +22,29 @@
  * @brief 运行app
  * run_app
  */
-RPC_GENERATION_OP4(pm_t, PM_PROT, PM_RUN_APP, run_app,
-                   rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
-                   rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len)
+RPC_GENERATION_OP6(pm_t, PM_PROT, PM_RUN_APP, run_app,
+                   rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mem_block,
+                   rpc_ref_array_uint32_t_uint8_t_96_t, rpc_array_uint32_t_uint8_t_96_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len,
+                   rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, envs,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, envs_len
+                   )
 {
     int16_t ret = -1;
 
     path->data[path->len - 1] = 0;
-    ret = pm_rpc_run_app(path->data, flags->data, params->data, params_len->data);
+    ret = pm_rpc_run_app(path->data, mem_block->data, params->data, params_len->data, envs->data, envs_len->data);
     return ret;
 }
 
-RPC_GENERATION_DISPATCH4(pm_t, PM_PROT, PM_RUN_APP, run_app,
-                         rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
-                         rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
-                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len)
+RPC_GENERATION_DISPATCH6(pm_t, PM_PROT, PM_RUN_APP, run_app,
+                   rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mem_block,
+                   rpc_ref_array_uint32_t_uint8_t_96_t, rpc_array_uint32_t_uint8_t_96_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len,
+                   rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, envs,
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, envs_len)
 
 /*kill_task*/
 RPC_GENERATION_OP3(pm_t, PM_PROT, PM_KILL_TASK, kill_task,

@@ -168,7 +168,6 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
                 char *args[CMD_PARAMS_CN] = {
                     NULL,
                 };
-                obj_handler_t hd_sem;
                 int mem_block;
 
                 mem_block = parse_cfg_cmd_line();
@@ -179,14 +178,13 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
                 }
                 printf("parse_cfg cmd_params_num:%d\n", cmd_params_num);
                 int ret = app_load(cmd_line, env, &pid, args, cmd_params_num,
-                                   NULL, 0, &hd_sem, mem_block);
+                                   NULL, 0, mem_block);
                 if (ret < 0)
                 {
                     printf("%s load fail, 0x%x\n", cmd_line, ret);
                 }
                 else
                 {
-                    // console_active(pid, hd_sem);
                     tty_set_fg_pid(pid);
                     run_cn++;
                 }

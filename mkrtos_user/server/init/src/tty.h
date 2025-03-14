@@ -3,16 +3,17 @@
 #include <termios.h>
 #include "u_queue.h"
 #include "u_types.h"
+#include <u_mutex.h>
 #define TTY_QUEUE_DATA_SIZE 257
 typedef struct tty_struct
 {
     struct termios termios; //!< 当前使用的终端信息
     struct winsize w_size;  //!< 窗口大小
-    // queue_t r_queue;        //!< 最底层的数据首先读取到这里
-    // uint8_t r_queue_data[TTY_QUEUE_DATA_SIZE];
-    queue_t w_queue;        //!< 写数据的缓存
+    u_mutex_t lock_cons;
+    u_mutex_t lock_write_cons;
+    queue_t w_queue; //!< 写数据的缓存
     uint8_t w_queue_data[TTY_QUEUE_DATA_SIZE];
-    queue_t pre_queue;      //!< 然后通过handler处理机制存放到per_queue中，pre_queue中的数据直接可以给用户，或者进行回显
+    queue_t pre_queue; //!< 然后通过handler处理机制存放到per_queue中，pre_queue中的数据直接可以给用户，或者进行回显
     uint8_t pre_uque_data[TTY_QUEUE_DATA_SIZE];
     // 有多少列
     int col;
@@ -25,8 +26,8 @@ typedef struct tty_struct
     uint8_t is_nl;
     pid_t fg_pid;
 
-    //FIXME:
-    int fd_flags;//!<暂时这样
+    // FIXME:
+    int fd_flags; //!< 暂时这样
 } tty_struct_t;
 
 #define C_CC_INIT "\003\034\177\025\004\0\1\0\021\023\032\0\022\017\027\026\0"
@@ -127,7 +128,6 @@ typedef struct tty_struct
 #define L_FLUSHO(tty) _L_FLAG((tty), FLUSHO)
 #define L_PENDIN(tty) _L_FLAG((tty), PENDIN)
 #define L_IEXTEN(tty) _L_FLAG((tty), IEXTEN)
-
 
 void tty_svr_init(void);
 void tty_set_fg_pid(pid_t pid);

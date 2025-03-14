@@ -3,9 +3,91 @@
 #include "lwip/sockets.h"
 #include "net_svr.h"
 #include "rpc_prot.h"
+#include "u_sig.h"
+#include "lwipopts.h"
+#include "u_mutex.h"
+#include <u_hd_man.h>
+
+typedef struct fd_man
+{
+    pid_t pid;
+    int fd;
+    uint8_t used;
+} fd_man_t;
+
+static fd_man_t fd_man_list[MEMP_NUM_UDP_PCB + MEMP_NUM_TCP_PCB + MEMP_NUM_TCP_PCB_LISTEN];
+static u_mutex_t fd_man_lock;
+
+void fd_man_reg(pid_t pid, int fd)
+{
+    u_mutex_lock(&fd_man_lock, 0, NULL);
+    for (int i = 0; i < ARRAY_SIZE(fd_man_list); i++)
+    {
+        if (fd_man_list[i].used == 0)
+        {
+            fd_man_list[i].pid = pid;
+            fd_man_list[i].fd = fd;
+            fd_man_list[i].used = 1;
+            int w_ret = pm_sig_watch(pid, 0 /*TODO:现在只有kill */);
+            if (w_ret < 0)
+            {
+                printf("net wath pid %d err.\n", w_ret);
+            }
+            break;
+        }
+    }
+    u_mutex_unlock(&fd_man_lock);
+}
+void fd_man_unreg(int fd)
+{
+    u_mutex_lock(&fd_man_lock, 0, NULL);
+    for (int i = 0; i < ARRAY_SIZE(fd_man_list); i++)
+    {
+        if (fd_man_list[i].used == 1 && fd_man_list[i].fd == fd)
+        {
+            fd_man_list[i].used = 0;
+            break;
+        }
+    }
+    u_mutex_unlock(&fd_man_lock);
+}
+void fd_man_close_without_pid(pid_t pid)
+{
+    u_mutex_lock(&fd_man_lock, 0, NULL);
+    for (int i = 0; i < ARRAY_SIZE(fd_man_list); i++)
+    {
+        if (fd_man_list[i].used == 1 && fd_man_list[i].pid == pid)
+        {
+            printf("net close fd:%d\n", fd_man_list[i].fd);
+            lwip_close(fd_man_list[i].fd);
+            fd_man_list[i].used = 0;
+        }
+    }
+    u_mutex_unlock(&fd_man_lock);
+    printf("net close--\n");
+}
+static int fs_sig_call_back(pid_t pid, umword_t sig_val)
+{
+    switch (sig_val)
+    {
+    case KILL_SIG:
+        fd_man_close_without_pid(pid);
+        break;
+    }
+    return 0;
+}
+
 static int net_svr_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
 {
-    return lwip_accept(s, addr, addrlen);
+    int fd;
+    pid_t pid = thread_get_src_pid();
+
+    fd = lwip_accept(s, addr, addrlen);
+    if (fd >= 0)
+    {
+        fd_man_reg(pid, fd);
+    }
+    return fd;
 }
 static int net_svr_bind(int s, const struct sockaddr *name, socklen_t namelen)
 {
@@ -13,7 +95,11 @@ static int net_svr_bind(int s, const struct sockaddr *name, socklen_t namelen)
 }
 static int net_svr_shutdown(int s, int how)
 {
-    return lwip_shutdown(s, how);
+    int ret;
+    
+    ret = lwip_shutdown(s, how);
+    fd_man_unreg(s);
+    return ret;
 }
 static int net_svr_getpeername(int s, struct sockaddr *name, socklen_t *namelen)
 {
@@ -75,7 +161,15 @@ static ssize_t net_svr_sendto(int s, const void *dataptr, size_t size, int flags
 }
 static int net_svr_socket(int domain, int type, int protocol)
 {
-    return lwip_socket(domain, type, protocol);
+    int fd;
+    pid_t pid = thread_get_src_pid();
+
+    fd = lwip_socket(domain, type, protocol);
+    if (fd >= 0)
+    {
+        fd_man_reg(pid, fd);
+    }
+    return fd;
 }
 static net_operations_t net_op = {
     .accept = net_svr_accept,
@@ -100,4 +194,8 @@ void net_svr_init(void)
 
     net_init(&net, &net_op);
     meta_reg_svr_obj(&net.svr, NET_PROT);
+
+    u_mutex_init(&fd_man_lock, handler_alloc());
+
+    pm_sig_func_set(fs_sig_call_back);
 }

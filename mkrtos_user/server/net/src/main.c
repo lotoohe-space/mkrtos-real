@@ -24,7 +24,7 @@ static umword_t size;
 obj_handler_t net_drv_hd = HANDLER_INVALID;
 
 #define STACK_COM_ITME_SIZE (2 * 1024 /*sizeof(struct pthread) + TP_OFFSET*/)
-#define STACK_NUM 3
+#define STACK_NUM 4
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
 static uint8_t msg_buf_coms[MSG_BUG_LEN * STACK_NUM];

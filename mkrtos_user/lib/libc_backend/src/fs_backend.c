@@ -22,6 +22,7 @@
 #include <poll.h>
 #include <u_path.h>
 #include "kstat.h"
+#include "svr_path.h"
 #define FS_PATH_LEN 64
 static char cur_path[FS_PATH_LEN] = "/";
 // AUTO_CALL(101)
@@ -36,9 +37,9 @@ void fs_backend_init(void)
     assert(msg_tag_get_val(tag) >= 0);
     if (cur_pid != 0)
     {
-        assert(be_open("/dev/tty", O_RDWR, 0) >= 0);
-        assert(be_open("/dev/tty", O_RDWR, 0) >= 0);
-        assert(be_open("/dev/tty", O_RDWR, 0) >= 0);
+        assert(be_open(TTY_PATCH, O_RDWR, 0) >= 0);
+        assert(be_open(TTY_PATCH, O_RDWR, 0) >= 0);
+        assert(be_open(TTY_PATCH, O_RDWR, 0) >= 0);
     }
     else
     {
@@ -109,10 +110,6 @@ int be_close(int fd)
     }
     switch (u_fd.type)
     {
-    case FD_TTY:
-    {
-    }
-    break;
     case FD_FS:
     {
         return fs_close(u_fd.priv_fd);
@@ -131,6 +128,7 @@ long sys_be_close(va_list ap)
 
     return be_close(fd);
 }
+#if 0
 static int be_tty_read(char *buf, long size)
 {
     pid_t pid;
@@ -167,6 +165,7 @@ static int be_tty_read(char *buf, long size)
     }
     return r_len;
 }
+#endif
 long be_read(long fd, char *buf, long size)
 {
     fd_map_entry_t u_fd;
@@ -180,7 +179,11 @@ long be_read(long fd, char *buf, long size)
     {
     case FD_TTY:
     {
+#if 0
         return be_tty_read(buf, size);
+#else
+        return -ENOSYS;
+#endif
     }
     break;
     case FD_FS:
@@ -216,7 +219,7 @@ long be_write(long fd, char *buf, long size)
         }
         else
         {
-            cons_write(buf, size);
+            return -ENOSYS;
         }
         return size;
     }
@@ -247,6 +250,7 @@ long be_readv(long fd, const struct iovec *iov, long iovcnt)
         {
         case FD_TTY:
         {
+#if 0
             pid_t pid;
             int read_cn;
 
@@ -271,6 +275,9 @@ long be_readv(long fd, const struct iovec *iov, long iovcnt)
                 }
             }
             wlen += read_cn;
+#else
+            return -ENOSYS;
+#endif
         }
         break;
         case FD_FS:
@@ -311,7 +318,7 @@ long be_writev(long fd, const struct iovec *iov, long iovcnt)
             }
             else
             {
-                cons_write(iov[i].iov_base, iov[i].iov_len);
+                return -ENOSYS;
             }
             wlen += iov[i].iov_len;
         }
@@ -377,13 +384,7 @@ long be_ioctl(long fd, long req, void *args)
     {
     case FD_TTY:
     {
-        struct winsize *wsz = args;
-
-        wsz->ws_row = 30;
-        wsz->ws_col = 30;
-        wsz->ws_xpixel = 800;
-        wsz->ws_ypixel = 480;
-        ret = 0;
+        return -ENOSYS;
     }
     break;
     case FD_FS:
