@@ -484,6 +484,11 @@ u32_t sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
            must be prepared to timeout. */
         if (timeout != 0)
         {
+            if (mbox->not_empty == NULL)
+            {
+
+                return SYS_ARCH_TIMEOUT;
+            }
             time_needed = sys_arch_sem_wait(&mbox->not_empty, timeout);
 
             if (time_needed == SYS_ARCH_TIMEOUT)
@@ -493,9 +498,17 @@ u32_t sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
         }
         else
         {
+            if (mbox->not_empty == NULL)
+            {
+
+                return SYS_ARCH_TIMEOUT;
+            }
             sys_arch_sem_wait(&mbox->not_empty, 0);
         }
-
+        if (mbox->mutex == NULL)
+        {
+            return SYS_ARCH_TIMEOUT;
+        }
         sys_arch_sem_wait(&mbox->mutex, 0);
     }
 

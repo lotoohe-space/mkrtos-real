@@ -93,11 +93,11 @@ thread_wait_entry_t *thread_sleep_del(thread_t *th)
         if (pos->th == th)
         {
             slist_del(&pos->node);
-            break;
+            return pos;
         }
         pos = next;
     }
-    return pos;
+    return NULL;
 }
 void thread_sleep_del_and_wakeup(thread_t *th)
 {

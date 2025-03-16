@@ -93,11 +93,12 @@ enum thread_state
 enum thread_ipc_state
 {
     THREAD_NONE = 0,
-    THREAD_SEND = 1,
-    THREAD_RECV = 2,
-    THREAD_WAIT = 4,
-    THREAD_TIMEOUT = 8,
-    THREAD_IPC_ABORT = 16,
+    // THREAD_SEND = 1,
+    // THREAD_RECV = 2,
+    // THREAD_WAIT = 4,
+    THREAD_TIMEOUT = 1,
+    THREAD_IPC_ABORT = 2,
+    // THREAD_IPC_KILL = 4,
 };
 
 typedef struct msg_buf
@@ -119,10 +120,10 @@ typedef struct thread_fast_ipc_item
 
 typedef struct thread_fast_ipc_com
 {
-    thread_fast_ipc_item_t fast_ipc_stack_data[THREAD_FAST_IPC_ITEM_NUM]; //!< 栈数据，用于通信栈备份
-    stack_t fast_ipc_stack;                                               //!< fast ipc stack
-    slist_head_t fast_ipc_node;                                           //!< 用于加入到task中去。
-    thread_t *th;
+    thread_fast_ipc_item_t fast_ipc_stack_data[THREAD_FAST_IPC_ITEM_NUM];   //!< 栈数据，用于通信栈备份
+    stack_t fast_ipc_stack;                                                 //!< fast ipc stack
+    slist_head_t fast_ipc_node;                                             //!< 用于加入到task中去。
+    thread_t *th;                                                           //!< 存储当前ipc_com属于那个线程
 } thread_fast_ipc_com_t;
 
 #define THREAD_MAGIC 0xdeadead //!< 用于栈溢出检测

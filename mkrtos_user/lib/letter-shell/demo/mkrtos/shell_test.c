@@ -46,4 +46,13 @@ int shell_float_test(int argc, char *argv[])
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), ftest, shell_float_test, ftest command);
+int shell_div0(int argc, char *argv[])
+{
+    int a=1,b=0;
+     
+    *((char *)(0)) = 0;
+    printf("%d\n", a/b);
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), div0, shell_div0, div0 command);
 #endif

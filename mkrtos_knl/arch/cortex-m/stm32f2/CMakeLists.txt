@@ -18,4 +18,5 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/drv
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/knl
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../CmBacktrace/cm_backtrace
 )

@@ -67,14 +67,14 @@ bool_t pm_pid_is_task(pid_t pid)
  * @param pid
  * @return watch_entry_t*
  */
-watch_entry_t *pm_watch_lookup(pm_t *pm, pid_t pid)
+watch_entry_t *pm_watch_lookup(pm_t *pm, pid_t src_pid, pid_t listen_pid)
 {
     watch_entry_t *pos;
 
     slist_foreach_not_next(pos, &pm->watch_head, node)
     {
         watch_entry_t *next = slist_next_entry(pos, &pm->watch_head, node);
-        if (pos->src_pid == pid)
+        if (pos->src_pid == src_pid && pos->watch_pid == listen_pid)
         {
             return pos;
         }
@@ -105,7 +105,7 @@ void pm_del_watch_by_pid(pm_t *pm, pid_t pid)
     }
 }
 /**
- * @brief 源pid监听某个pid的状态
+ * @brief 某个task去另一个task的状态
  *
  * @param pid 被监听的状态
  * @param flags 监听的flags
@@ -119,7 +119,7 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
     {
         return -EINVAL;
     }
-    if (pm_watch_lookup(pm, src_pid))
+    if (pm_watch_lookup(pm, src_pid, pid))
     {
         handler_free_umap(sig_rcv_hd);
         return -EEXIST;
@@ -135,8 +135,8 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
     entry->notify_sem_hd = HANDLER_INVALID;
 #endif
     entry->sig_hd = sig_rcv_hd;
-    entry->src_pid = src_pid;
-    entry->watch_pid = pid;
+    entry->src_pid = src_pid; // 监控的pid
+    entry->watch_pid = pid; //被监控的pid
     entry->flags = flags;
     slist_init(&entry->node);
     slist_add_append(&pm->watch_head, &entry->node);
@@ -163,7 +163,7 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
     {
         watch_entry_t *next = slist_next_entry(pos, &pm->watch_head, node);
 
-        printf("watch_pid:%d pid:%d\n", pos->watch_pid, pid);
+        // printf("watch_pid:%d pid:%d\n", pos->watch_pid, pid);
         if (pos->watch_pid == pid)
         {
             if (sig_val == KILL_SIG)
@@ -174,7 +174,7 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
             }
             slist_del(&pos->node);
             handler_free_umap(pos->sig_hd);   //!< 删除信号通知的ipc
-            handler_free_umap(pos->watch_pid); //!< 删除被watch的进程
+            // handler_free_umap(pos->watch_pid); //!< 删除被watch的进程
             u_free(pos);
         }
         pos = next;
@@ -200,7 +200,6 @@ int pm_rpc_kill_task(int src_pid, int pid, int flags, int exit_code)
         printf("pid is error.\n");
         return -EINVAL;
     }
-
     // ns_node_del_by_pid(pid, flags); TODO:         //!< 从ns中删除
     #if IS_ENABLED(CONFIG_USING_SIG)
     if (src_pid != pid)

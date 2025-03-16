@@ -194,7 +194,7 @@ static void ipc_release_stage1(kobject_t *kobj)
     slist_foreach(pos, &ipc->wait_bind, node)
     {
         assert(pos->th->status == THREAD_SUSPEND);
-        pos->th->ipc_status == THREAD_IPC_ABORT;
+        pos->th->ipc_status = THREAD_IPC_ABORT;
         thread_ready_remote(pos->th, TRUE);
     }
     if (ipc->svr_tk)

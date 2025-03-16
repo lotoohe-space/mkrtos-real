@@ -144,7 +144,7 @@ msg_tag_t task_unmap(obj_handler_t task_han, vpage_t vpage)
     return tag;
 }
 MK_SYSCALL
-msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *alloc_addr,int mem_block)
+msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *alloc_addr,int mem_block, addr_t text_addr, size_t text_size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     register volatile umword_t r1 asm(ARCH_REG_1);
@@ -153,8 +153,8 @@ msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *all
                0,
                size,
                mem_block,
-               0,
-               0,
+               text_addr,
+               text_size,
                0);
     asm __volatile__(""
                      :

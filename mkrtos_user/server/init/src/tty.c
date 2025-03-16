@@ -23,11 +23,8 @@
 #include "u_task.h"
 #include "pm.h"
 #include "pm_svr.h"
-#if IS_ENABLED(CONFIG_MMU)
+#include "u_sig.h"
 #define CONS_STACK_SIZE 1024
-#else
-#define CONS_STACK_SIZE 1024
-#endif
 static ATTR_ALIGN(8) uint8_t cons_stack[CONS_STACK_SIZE];
 static uint8_t cons_ipc_msg[MSG_BUG_LEN];
 static tty_struct_t sys_tty;
@@ -346,12 +343,11 @@ static int tty_def_line_handler(tty_struct_t *tty, uint8_t r)
                     {
                         // 发送给前台进程组的所有进程
                         // inner_set_sig(SIGINT);TODO:
-                        pm_rpc_kill_task(-1, tty->fg_pid, 0, 0);
-                        // ulog_write_str(LOG_PROT, "ctrl c");
+                        pm_rpc_kill_task(-1, tty->fg_pid, KILL_SIG, 0);
                         if (!L_NOFLSH(tty))
                         {
                             q_queue_clear(&tty->w_queue);
-                            // q_queue_clear(&tty->r_queue);
+                            q_queue_clear(&tty->pre_queue);
                             ret = 1;
                         }
                         tty->is_nl = 1;
@@ -360,11 +356,11 @@ static int tty_def_line_handler(tty_struct_t *tty, uint8_t r)
                     else if (r == QUIT_C(tty))
                     {
                         // inner_set_sig(SIGQUIT);TODO:
-                        ulog_write_str(LOG_PROT, "Ctrl+C");
+                        // ulog_write_str(LOG_PROT, "Ctrl+C");
                         if (!L_NOFLSH(tty))
                         {
                             q_queue_clear(&tty->w_queue);
-                            // q_queue_clear(&tty->r_queue);
+                            q_queue_clear(&tty->pre_queue);
                             ret = 1;
                         }
                         tty->is_nl = 1;

@@ -18,6 +18,7 @@
 #include <rpc_prot.h>
 #include <assert.h>
 #include <errno.h>
+#include <stdio.h>
 #include "u_fast_ipc.h"
 #include "u_hd_man.h"
 #include "u_rpc_svr.h"
@@ -71,6 +72,7 @@ static int kill(int flags, int pid)
 {
     int ret = -EINVAL;
 
+        printf("kill pid:%d, flags:0x%x\n", pid ,flags);
     if (wait_pid == pid || wait_pid == -1)
     {
         u_sema_up(sema_wait_hd);

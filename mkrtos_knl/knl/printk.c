@@ -66,3 +66,21 @@ void printk(const char *fmt, ...)
     print_raw(print_cache);
     spinlock_set(&lock, state);
 }
+void printkln(const char *fmt, ...)
+{
+    va_list args;
+    umword_t state = 0;
+    thread_t *cut_th = thread_get_current();
+
+    state = spinlock_lock(&lock);
+    xsprintf(print_cache, "[%8d]%s:",
+             pre_cpu_is_init() ? sys_tick_cnt_get() : 0,
+             kobject_get_name(&cut_th->kobj));
+    print_raw(print_cache);
+    va_start(args, fmt);
+    xvsprintf(print_cache, fmt, args);
+    va_end(args);
+    print_raw(print_cache);
+    print_raw("\r\n"); 
+    spinlock_set(&lock, state);
+}
