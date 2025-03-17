@@ -147,7 +147,7 @@ int u_fast_ipc_init(uint8_t *stack_array, uint8_t *msg_buf_array, int stack_msgb
         cons_map_buf[i] = vpage_create_raw3(0, 0, handler_alloc()).raw;
         msg->map_buf[i] = cons_map_buf[i];
     }
-#if 1
+#if 0
     for (int i = 0; i < stack_msgbuf_array_num; i++)
     {
         printf("stack 0x%x %x\n", stack_array + stack_size * i, stack_size);

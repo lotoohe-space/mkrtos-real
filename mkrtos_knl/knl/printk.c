@@ -56,7 +56,7 @@ void printk(const char *fmt, ...)
     thread_t *cut_th = thread_get_current();
 
     state = spinlock_lock(&lock);
-    xsprintf(print_cache, "[%8d]%s: ",
+    xsprintf(print_cache, "[%8d][%8s]: ",
              pre_cpu_is_init() ? sys_tick_cnt_get() : 0,
              kobject_get_name(&cut_th->kobj));
     print_raw(print_cache);

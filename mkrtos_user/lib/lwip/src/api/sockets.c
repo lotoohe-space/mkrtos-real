@@ -677,7 +677,7 @@ lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
   err = netconn_accept(sock->conn, &newconn);
   if (err != ERR_OK) {
     LWIP_DEBUGF(SOCKETS_DEBUG, ("lwip_accept(%d): netconn_acept failed, err=%d\n", s, err));
-    if (NETCONNTYPE_GROUP(netconn_type(sock->conn)) != NETCONN_TCP) {
+    if (sock->conn && NETCONNTYPE_GROUP(netconn_type(sock->conn)) != NETCONN_TCP) {
       set_errno(EOPNOTSUPP);
     } else if (err == ERR_CLSD) {
       set_errno(EINVAL);

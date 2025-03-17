@@ -6,8 +6,11 @@
 #include "syscall.h"
 #include "atomic.h"
 #include "libc.h"
+#ifdef MKRTOS
 #include "cons_cli.h"
 #include "u_sig.h"
+#include "u_task.h"
+#endif
 static void dummy(void) {}
 weak_alias(dummy, _init);
 
@@ -147,10 +150,16 @@ weak void ipc_init(void)
 static int libc_start_main_stage2(int (*main)(int, char **, char **), int argc, char **argv)
 {
 	char **envp = argv + argc + 1;
+	#ifdef MKRTOS
 	fs_backend_init();
 	ipc_init();
+	if (argv && argv[0])
+	{
+		task_set_obj_name(TASK_THIS, TASK_THIS, argv[0]);
+		task_set_obj_name(TASK_THIS, THREAD_MAIN, argv[0]);
+	}
+	#endif
 	__libc_start_init();
-
 	/* Pass control to the application */
 	exit(main(argc, argv, envp));
 	return 0;

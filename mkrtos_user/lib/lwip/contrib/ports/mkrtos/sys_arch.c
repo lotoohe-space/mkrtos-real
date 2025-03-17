@@ -798,18 +798,19 @@ sys_arch_protect(void)
      * own counter (which is locked by the mutex). The return code is not actually
      * used. */
     // printf("thread:%d\n", lwprot_thread);
-    if (lwprot_thread != sys_thread_get_private_data_self())
-    {
-        /* We are locking the mutex where it has not been locked before *
-         * or is being locked by another thread */
-        // pthread_mutex_lock(&lwprot_mutex);
-        u_mutex_lock(&lwprot_mutex, 0, NULL);
-        lwprot_thread = sys_thread_get_private_data_self();
-        lwprot_count = 1;
-    }
-    else
-        /* It is already locked by THIS thread */
-        lwprot_count++;
+    // if (lwprot_thread != sys_thread_get_private_data_self())
+    // {
+    //     /* We are locking the mutex where it has not been locked before *
+    //      * or is being locked by another thread */
+    //     // pthread_mutex_lock(&lwprot_mutex);
+    //     u_mutex_lock(&lwprot_mutex, 0, NULL);
+    //     lwprot_thread = sys_thread_get_private_data_self();
+    //     lwprot_count = 1;
+    // }
+    // else
+    //     /* It is already locked by THIS thread */
+    //     lwprot_count++;
+    u_mutex_lock(&lwprot_mutex, 0, NULL);
     return 0;
 }
 
@@ -823,16 +824,17 @@ an operating system.
 void sys_arch_unprotect(sys_prot_t pval)
 {
     LWIP_UNUSED_ARG(pval);
-    if (lwprot_thread == sys_thread_get_private_data_self())
-    {
-        lwprot_count--;
-        if (lwprot_count == 0)
-        {
-            lwprot_thread = (umword_t)0xDEAD;
-            // pthread_mutex_unlock(&lwprot_mutex);
-            u_mutex_unlock(&lwprot_mutex);
-        }
-    }
+    // if (lwprot_thread == sys_thread_get_private_data_self())
+    // {
+    //     lwprot_count--;
+    //     if (lwprot_count == 0)
+    //     {
+    //         lwprot_thread = (umword_t)0xDEAD;
+    //         // pthread_mutex_unlock(&lwprot_mutex);
+    //         u_mutex_unlock(&lwprot_mutex);
+    //     }
+    // }
+    u_mutex_unlock(&lwprot_mutex);
 }
 #endif /* SYS_LIGHTWEIGHT_PROT */
 

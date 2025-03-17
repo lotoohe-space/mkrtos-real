@@ -68,8 +68,10 @@ again:
         if (thread_get_status(first_wait->thread) == THREAD_SUSPEND)
         {
             slist_del(first_wait_node);
-            thread_sleep_del_and_wakeup(first_wait->thread);
-            ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj);
+            if (ref_counter_dec_and_release(&first_wait->thread->ref, &first_wait->thread->kobj) != 1)
+            {
+                thread_sleep_del_and_wakeup(first_wait->thread);
+            }
             if (obj->cnt < obj->max_cnt)
             {
                 obj->cnt++;
@@ -220,7 +222,10 @@ static void sema_release_stage1(kobject_t *kobj)
         sema_wait_item_t *next = slist_next_entry(wait_item, &obj->suspend_head, node);
 
         slist_del(&wait_item->node);
-        thread_sleep_del_and_wakeup(wait_item->thread);
+        if (ref_counter_dec_and_release(&wait_item->thread->ref, &wait_item->thread->kobj) != 1)
+        {
+            thread_sleep_del_and_wakeup(wait_item->thread);
+        }
         if (obj->cnt < obj->max_cnt)
         {
             obj->cnt++;

@@ -9,7 +9,6 @@
 
 #include "ff.h"		/* Obtains integer types */
 #include "diskio.h" /* Declarations of disk functions */
-#include "ram_disk.h"
 #include <stdio.h>
 #include "blk_drv_cli.h"
 #include "ns_cli.h"
@@ -20,7 +19,7 @@
 #include <string.h>
 #include "u_share_mem.h"
 /* Definitions of physical drive number for each drive */
-#define DEV_RAM 0 /* Example: Map Ramdisk to physical drive 0 */
+#define DEV_MK_BLOCK 0 /* Example: Map Ramdisk to physical drive 0 */
 
 static obj_handler_t dev_hd;
 static obj_handler_t shm_hd;
@@ -30,9 +29,9 @@ static blk_drv_info_t blk_info;
 int disk_set_dev_path(int pdrv, const char *dev)
 {
 	int ret;
-	switch (DEV_RAM)
+	switch (DEV_MK_BLOCK)
 	{
-	case DEV_RAM:
+	case DEV_MK_BLOCK:
 	{
 		int try_cn = 0;
 	again:
@@ -40,11 +39,11 @@ int disk_set_dev_path(int pdrv, const char *dev)
 		if (ret < 0)
 		{
 			try_cn++;
-			if (try_cn > 10)
+			if (try_cn > 100)
 			{
 				return ret;
 			}
-			u_sleep_ms(20);
+			u_sleep_ms(5);
 			goto again;
 		}
 		ret = blk_drv_cli_info(dev_hd, &blk_info);
@@ -72,7 +71,7 @@ DSTATUS disk_status(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_MK_BLOCK:
 		result = 0;
 
 		// translate the reslut code here
@@ -95,7 +94,7 @@ DSTATUS disk_initialize(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_MK_BLOCK:
 	{
 		msg_tag_t tag;
 
@@ -143,7 +142,7 @@ DRESULT disk_read(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_MK_BLOCK:
 		// translate the reslut code here
 		for (umword_t i = sector; i < sector + count; i++)
 		{
@@ -176,7 +175,7 @@ DRESULT disk_write(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_MK_BLOCK:
 		// translate the arguments here
 		for (umword_t i = sector; i < sector + count; i++)
 		{
@@ -209,7 +208,7 @@ DRESULT disk_ioctl(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_MK_BLOCK:
 	{
 		switch (cmd)
 		{					   // fatfs内核使用cmd调用

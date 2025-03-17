@@ -14,19 +14,20 @@
 * [x] 去除原来的ipc机制（使用fastipc机制），并单独实现sleep接口，目前的ipc有概率卡死问题
 * [x] TTY驱动支持
 * [x] 内核二值信号量支持优先级反转（优先级继承协议）。
+* [x] 删除之前用于log的sem
+* [x] 集成cmbacktrace 
+* [x] 新进程中env支持
 * [ ] FPU完整支持，fastipc FPU支持
 * [ ] 文件系统 & 网络协议栈完善自动删除支持(文件描述符自动管理库)
 * [ ] 线程占用率统计
 * [ ] procfs支持
-* [ ] 新进程中env支持
 * [ ] dup, dup2等接口支持
 * [ ] posix mq支持
 * [ ] posix sig支持
 * [ ] posix shm支持
 * [ ] posix sema支持
-* [ ] vfork + exec实现
 * [ ] 几大组件稳定性测试
-* [x] 删除之前用于log的sem
+* [ ] 内核代码review
 ### mid prio
 * [x] net server support
 * [x] block driver
@@ -38,6 +39,7 @@
 * [x] snd drvier
 * [x] ymodem support
 * [x] vi support
+* [ ] vfork + exec实现
 ### low prio
 - [ ] toybox support
 - [ ] ota support

@@ -270,7 +270,7 @@ static const char *get_cur_thread_name(void)
     TX_THREAD_GET_CURRENT(ptThread);
     return ptThread->tx_thread_name;
 #elif (CMB_OS_PLATFORM_TYPE == CMB_OS_PLATFORM_MKRTOS)
-    return kobject_get_name(&(thread_get_current()->kobj));
+    return kobject_get_name(&(thread_get_current_task()->kobj));
 #endif
 }
 

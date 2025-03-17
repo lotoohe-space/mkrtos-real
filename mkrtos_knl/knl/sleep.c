@@ -57,7 +57,10 @@ void thread_check_timeout(void)
             {
                 assert(pos->th->status == THREAD_SUSPEND);
                 slist_del(&pos->node);
-                thread_ready(pos->th, TRUE);
+                if (thread_get_ipc_state(pos->th) != THREAD_IPC_ABORT)
+                {
+                    thread_ready(pos->th, TRUE);
+                }
             }
         } else {
             // if (pos->times_debug >= 3000) 

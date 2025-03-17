@@ -42,7 +42,7 @@
 
 /* We link to special sys_arch.c (for basic non-waiting API layers unit tests) */
 #define NO_SYS                          0
-#define SYS_LIGHTWEIGHT_PROT            0
+#define SYS_LIGHTWEIGHT_PROT            1
 #define LWIP_NETCONN                    !NO_SYS
 #define LWIP_SOCKET                     !NO_SYS
 #define LWIP_NETCONN_FULLDUPLEX         LWIP_SOCKET

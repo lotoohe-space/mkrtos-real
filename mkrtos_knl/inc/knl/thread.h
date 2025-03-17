@@ -158,6 +158,7 @@ typedef struct thread
 
     enum thread_state status;         //!< 线程状态
     enum thread_ipc_state ipc_status; //!< ipc状态
+    slist_head_t release_node;
 
     thread_fast_ipc_com_t *com; //!< fast ipc通信，这里用指针是为了减少thread block大小
 

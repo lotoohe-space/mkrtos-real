@@ -34,6 +34,7 @@
 #include "types.h"
 #include "sema.h"
 #include "sleep.h"
+#include "thread_knl.h"
 #if IS_ENABLED(CONFIG_SMP)
 #include <ipi.h>
 #endif
@@ -127,6 +128,7 @@ void thread_init(thread_t *th, ram_limit_t *lim, umword_t flags)
     kobject_init(&th->kobj, THREAD_TYPE);
     sched_init(&th->sche);
     slist_init(&th->futex_node);
+    slist_init(&th->release_node);
 #if 0
     slist_init(&th->wait_send_head);
     spinlock_init(&th->recv_lock);
@@ -330,7 +332,7 @@ void thread_unbind(thread_t *th)
     {
         task_t *tsk = container_of(th->task, task_t, kobj);
 
-        ref_counter_dec_and_release(&tsk->ref_cn, &th->kobj);
+        ref_counter_dec_and_release(&tsk->ref_cn, &tsk->kobj);
         th->task = NULL;
     }
 }
@@ -1383,6 +1385,7 @@ end:
         cpu_status = cpulock_lock();
         thread_unbind(cur_th);
         thread_suspend(cur_th);
+        thread_knl_release_helper(cur_th);
         cpulock_set(cpu_status);
     } else {
         ref_counter_dec_and_release(&cur_th->ref, &cur_th->kobj);

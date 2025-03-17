@@ -174,9 +174,13 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
                 for (int i = 0; i < cmd_params_num; i++)
                 {
                     args[i] = &cmd_line[cmd_params_off[i]];
+                    #if 0
                     printf("parse_cfg args[%d] = %s\n", i, args[i]);
+                    #endif
                 }
+                #if 0
                 printf("parse_cfg cmd_params_num:%d\n", cmd_params_num);
+                #endif
                 int ret = app_load(cmd_line, env, &pid, args, cmd_params_num,
                                    NULL, 0, mem_block);
                 if (ret < 0)
