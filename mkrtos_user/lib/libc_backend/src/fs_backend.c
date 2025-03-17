@@ -23,8 +23,12 @@
 #include <u_path.h>
 #include "kstat.h"
 #include "svr_path.h"
+#include "u_mutex.h"
+#include "u_hd_man.h"
 #define FS_PATH_LEN 64
 static char cur_path[FS_PATH_LEN] = "/";
+
+static u_mutex_t lock_cons;
 // AUTO_CALL(101)
 void fs_backend_init(void)
 {
@@ -46,6 +50,7 @@ void fs_backend_init(void)
         assert(fd_map_alloc(0, 0, FD_TTY) >= 0);
         assert(fd_map_alloc(0, 1, FD_TTY) >= 0);
         assert(fd_map_alloc(0, 2, FD_TTY) >= 0);
+        assert(u_mutex_init(&lock_cons, handler_alloc()) >= 0);
     }
     pwd = getenv("PWD");
     if (pwd)
@@ -53,7 +58,12 @@ void fs_backend_init(void)
         be_chdir(pwd);
     }
 }
-
+void fs_cons_write(void *buf, size_t size)
+{
+    u_mutex_lock(&lock_cons, 0, NULL);
+    ulog_write_bytes(u_get_global_env()->log_hd, buf, size);
+    u_mutex_unlock(&lock_cons);
+}
 int be_open(const char *path, int flags, mode_t mode)
 {
     int fd;
@@ -178,13 +188,7 @@ long be_read(long fd, char *buf, long size)
     switch (u_fd.type)
     {
     case FD_TTY:
-    {
-#if 0
-        return be_tty_read(buf, size);
-#else
         return -ENOSYS;
-#endif
-    }
     break;
     case FD_FS:
     {
@@ -215,7 +219,7 @@ long be_write(long fd, char *buf, long size)
         task_get_pid(TASK_THIS, (umword_t *)(&pid));
         if (pid == 0)
         {
-            ulog_write_bytes(u_get_global_env()->log_hd, buf, size);
+            fs_cons_write(buf, size);
         }
         else
         {
@@ -314,7 +318,7 @@ long be_writev(long fd, const struct iovec *iov, long iovcnt)
             task_get_pid(TASK_THIS, (umword_t *)(&pid));
             if (pid == 0)
             {
-                ulog_write_bytes(u_get_global_env()->log_hd, iov[i].iov_base, iov[i].iov_len);
+                fs_cons_write(iov[i].iov_base, iov[i].iov_len);
             }
             else
             {
