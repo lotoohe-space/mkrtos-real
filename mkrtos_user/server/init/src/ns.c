@@ -49,7 +49,7 @@ static void fs_svr_close(int fd)
 }
 static int fs_svr_unlink(const char *path)
 {
-    return -ENOSYS;
+    return fs_ns_remove(path);
 }
 static int fs_svr_mkdir(char *path)
 {
@@ -87,8 +87,17 @@ int namespace_register(const char *path, obj_handler_t hd, int type)
 {
     int ret;
 
+    if (path[0] == '\0' || (path[0] == '/' && path[1] == '\0'))
+    {
+        return -EISDIR;
+    }
 again:
     ret = ns_mknode(path, hd, NODE_TYPE_SVR);
+    if (ret < 0)
+    {
+        handler_free_umap(hd);
+    }
+#if 0
     if (ret == -EEXIST)
     {
         //  如果已经存在，则检查是否有效，否则删除它
@@ -102,6 +111,7 @@ again:
             return ret;
         }
     }
+#endif
     return ret;
 }
 /**

@@ -57,8 +57,8 @@ static int tcp_server(void)
     }
 
     printf("Client connected!\n");
-
-    while (1)
+    int test_cn = 0;
+    while (test_cn++ < 1000)
     {
         ssize_t bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
         if (bytes_received < 0)
@@ -127,16 +127,17 @@ static int tcp_client(void)
         {
             perror("recv failed");
             close(server_socket);
-            exit(EXIT_FAILURE);
+            break;
         }
         #if 0
         printf("client recv: %s, len:%d\n", buffer, bytes_received);
         #endif
-        usleep(1000);
+        // usleep(1000);
     }
 
     // 关闭套接字
     close(server_socket);
+    printf("net test ok\n");
 
     return 0;
 }

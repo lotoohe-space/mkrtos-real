@@ -1,33 +1,4 @@
-/**
- ******************************************************************************
- * @file    Project/STM32F2xx_StdPeriph_Template/stm32f2xx_it.c
- * @author  MCD Application Team
- * @version V1.1.0
- * @date    13-April-2012
- * @brief   Main Interrupt Service Routines.
- *          This file provides template for all exceptions handler and
- *          peripherals interrupt service routine.
- ******************************************************************************
- * @attention
- *
- * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
- *
- * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
- * You may not use this file except in compliance with the License.
- * You may obtain a copy of the License at:
- *
- *        http://www.st.com/software_license_agreement_liberty_v2
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- ******************************************************************************
- */
 
-/* Includes ------------------------------------------------------------------*/
 #include "mk_sys.h"
 #include "printk.h"
 #include "mm_man.h"
@@ -36,21 +7,7 @@
 #include "map.h"
 #include "thread_knl.h"
 #include "vma.h"
-/** @addtogroup Template_Project
- * @{
- */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
-
-/******************************************************************************/
-/*            Cortex-M3 Processor Exceptions Handlers                         */
-/******************************************************************************/
-
+#include <cm_backtrace.h>
 /**
  * @brief   This function handles NMI exception.
  * @param  None
@@ -68,13 +25,25 @@ void NMI_Handler(void)
  */
 void HardFault_Handler(void)
 {
+  uint32_t lr_val = cmb_get_lr();
   bool_t is_knl = is_run_knl();
-  addr_t fault_addr = (addr_t)(SCB->MMFAR);
-
-  printk("data 0x%x access is error.\n", fault_addr);
+  bool_t reset_r9 = FALSE;
 
   printk("%s\n", __FUNCTION__);
-  task_knl_kill(thread_get_current(), is_knl);
+  cm_backtrace_fault(lr_val, cmb_get_psp() + sizeof(uint32_t) * 9);
+  reset_r9 = task_knl_kill(thread_get_current(), is_knl);
+  if (reset_r9)
+  {
+    do
+    {
+      __asm__ __volatile__(
+          "mov r9, %0\n\t"
+          :                                                   /* 无输出操作数 */
+          : "r"(thread_get_current_task()->mm_space.mm_block) // 输入操作数，将value的值传递给R0寄存器
+          :                                                   // 告诉编译器R9寄存器将被修改
+      );
+    } while (0);
+  }
 }
 
 /**
@@ -84,6 +53,7 @@ void HardFault_Handler(void)
  */
 void MemManage_Handler(void)
 {
+  uint32_t lr_val = cmb_get_lr();
   bool_t is_knl = is_run_knl();
   addr_t fault_addr = (addr_t)(SCB->MMFAR);
   addr_t bus_addr = (addr_t)(SCB->BFAR);
@@ -129,6 +99,7 @@ void MemManage_Handler(void)
     printk("Floating point lazy stack error.\n");
   }
 end:
+  cm_backtrace_fault(lr_val, cmb_get_psp() + sizeof(uint32_t) * 9);
   reset_r9 = task_knl_kill(thread_get_current(), is_knl);
   if (reset_r9)
   {
@@ -151,10 +122,26 @@ end:
  */
 void BusFault_Handler(void)
 {
+  uint32_t lr_val = cmb_get_lr();
   bool_t is_knl = is_run_knl();
 
+  bool_t reset_r9 = FALSE;
+
   printk("%s\n", __FUNCTION__);
-  task_knl_kill(thread_get_current(), is_knl);
+  cm_backtrace_fault(lr_val, cmb_get_psp() + sizeof(uint32_t) * 9);
+  reset_r9 = task_knl_kill(thread_get_current(), is_knl);
+  if (reset_r9)
+  {
+    do
+    {
+      __asm__ __volatile__(
+          "mov r9, %0\n\t"
+          :                                                   /* 无输出操作数 */
+          : "r"(thread_get_current_task()->mm_space.mm_block) // 输入操作数，将value的值传递给R0寄存器
+          :                                                   // 告诉编译器R9寄存器将被修改
+      );
+    } while (0);
+  }
 }
 
 /**
@@ -164,6 +151,7 @@ void BusFault_Handler(void)
  */
 void UsageFault_Handler(void)
 {
+  uint32_t lr_val = cmb_get_lr();
   bool_t is_knl = is_run_knl();
   printk("%s\n", __FUNCTION__);
   if (SCB->CFSR & (1 << 16))
@@ -190,7 +178,23 @@ void UsageFault_Handler(void)
   {
     printk("Division by zero error\n");
   }
-  task_knl_kill(thread_get_current(), is_knl);
+  bool_t reset_r9 = FALSE;
+
+  printk("%s\n", __FUNCTION__);
+  cm_backtrace_fault(lr_val, cmb_get_psp() + sizeof(uint32_t) * 9);
+  reset_r9 = task_knl_kill(thread_get_current(), is_knl);
+  if (reset_r9)
+  {
+    do
+    {
+      __asm__ __volatile__(
+          "mov r9, %0\n\t"
+          :                                                   /* 无输出操作数 */
+          : "r"(thread_get_current_task()->mm_space.mm_block) // 输入操作数，将value的值传递给R0寄存器
+          :                                                   // 告诉编译器R9寄存器将被修改
+      );
+    } while (0);
+  }
 }
 
 /**
@@ -202,25 +206,3 @@ void DebugMon_Handler(void)
 {
   printk("%s\n", __FUNCTION__);
 }
-
-/******************************************************************************/
-/*                 STM32F2xx Peripherals Interrupt Handlers                   */
-/*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
-/*  available peripheral interrupt handler's name please refer to the startup */
-/*  file (startup_stm32f2xx.s).                                               */
-/******************************************************************************/
-
-/**
- * @brief  This function handles PPP interrupt request.
- * @param  None
- * @retval None
- */
-/*void PPP_IRQHandler(void)
-{
-}*/
-
-/**
- * @}
- */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

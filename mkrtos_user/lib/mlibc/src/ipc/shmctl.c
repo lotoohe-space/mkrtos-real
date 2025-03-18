@@ -2,7 +2,9 @@
 #include <endian.h>
 #include "syscall.h"
 #include "ipc.h"
-
+#ifndef NO_LITTLE_MODE
+#include "syscall_backend.h"
+#endif
 #if __BYTE_ORDER != __BIG_ENDIAN
 #undef SYSCALL_IPC_BROKEN_MODE
 #endif
@@ -25,10 +27,14 @@ int shmctl(int id, int cmd, struct shmid_ds *buf)
 		buf = &tmp;
 	}
 #endif
+#ifdef NO_LITTLE_MODE
 #ifndef SYS_ipc
 	int r = __syscall(SYS_shmctl, id, IPC_CMD(cmd), buf);
 #else
 	int r = __syscall(SYS_ipc, IPCOP_shmctl, id, IPC_CMD(cmd), 0, buf, 0);
+#endif
+#else
+	int r = be_shmctl(id, IPC_CMD(cmd), buf);
 #endif
 #ifdef SYSCALL_IPC_BROKEN_MODE
 	if (r >= 0) switch (cmd | IPC_TIME64) {

@@ -309,6 +309,8 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         }
         int ret = task_alloc_base_ram(tag_task, tag_task->lim, f->regs[1], f->regs[2]);
         tag = msg_tag_init4(0, 0, 0, ret);
+        tag_task->text_addr = (void *)(f->regs[3]);
+        tag_task->text_size = (size_t)(f->regs[4]);
         f->regs[1] = (umword_t)(tag_task->mm_space.mm_block);
         spinlock_set(&tag_task->kobj.lock, status);
     }
@@ -426,7 +428,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         }
         int stack_size = f->regs[2];
 
-        tag_task->nofity_point = (void *)(f->regs[0]);
+        tag_task->notify_point = (void *)(f->regs[0]);
         tag_task->nofity_stack = (addr_t)(f->regs[1] + stack_size);
         tag_task->nofity_bitmap = (void *)(f->regs[3]);
         tag_task->nofity_bitmap_len = (f->regs[4]);
@@ -555,7 +557,6 @@ static void task_release_stage2(kobject_t *kobj)
     thread_sched(TRUE);
     // arch_to_sche();
     // }
-    // mm_trace();
     printk("release tk %x, name is:%s\n", tk, kobject_get_name(&tk->kobj));
 }
 void task_kill(task_t *tk)

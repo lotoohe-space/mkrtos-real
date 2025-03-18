@@ -48,69 +48,102 @@ static task_t knl_task;
 static thread_t *init_thread;
 static task_t *init_task;
 static thread_t *knl_thread[CONFIG_CPU];
-static slist_head_t del_task_head;
+static slist_head_t del_task_head; //!<链表中是需要被删除的进程
+static slist_head_t del_thread_head;//!<链表中是需要被释放内存的线程
 static umword_t cpu_usage[CONFIG_CPU];
 static spinlock_t del_lock;
 static umword_t cpu_usage_last_tick_val[CONFIG_CPU];
 
+static void knl_release_thread(void)
+{
+    thread_t *pos;
+    umword_t status2;
+
+    status2 = spinlock_lock(&del_lock);
+    if (slist_is_empty(&del_thread_head))
+    {
+        spinlock_set(&del_lock, status2);
+        return ;
+    }
+    slist_foreach_not_next(pos, &del_thread_head, release_node)
+    {
+        thread_t *next = slist_next_entry(pos, &del_thread_head, release_node);
+        int ret;
+
+        // printk("+++++release th:0x%x\n", pos);
+        ret = ref_counter_dec_and_release(&pos->ref, &pos->kobj);
+        // if (ret == 1)
+        // {
+            // printk("------release th:0x%x\n", pos);
+        // }
+        slist_del(&pos->release_node);
+        pos = next;
+    }
+    spinlock_set(&del_lock, status2);
+}
+static void knl_del_task(void)
+{
+    task_t *pos;
+    umword_t status2;
+
+    status2 = spinlock_lock(&del_lock);
+    if (slist_is_empty(&del_task_head))
+    {
+        spinlock_set(&del_lock, status2);
+        return ;
+    }
+    // 在这里删除进程
+    slist_foreach_not_next(pos, &del_task_head, del_node)
+    {
+        task_t *next = slist_next_entry(pos, &del_task_head, del_node);
+        slist_del(&pos->del_node);
+        {
+            msg_tag_t tag;
+            umword_t user_id;
+            ipc_msg_t *msg = (ipc_msg_t *)knl_msg_buf;
+
+            if (pos->pid != 0)
+            {
+                msg->msg_buf[0] = 1; /*KILL_TASK*/
+                msg->msg_buf[1] = pos->pid;
+                msg->msg_buf[2] = 0;
+
+                if (thread_get_ipc_state(init_thread) != THREAD_IPC_ABORT)
+                {
+#define PM_PROT 0x0005
+#define MAGIC_NS_USERPID 0xbabababa
+                    entry_frame_t f;
+                    f.regs[0] = msg_tag_init4(0, 3, 0, PM_PROT).raw;
+                    f.regs[1] = 0;
+                    f.regs[2] = 0x2222; /*传递两个参数，没有用到，暂时用不上*/
+                    f.regs[3] = 0x3333;
+                    tag = thread_fast_ipc_call(init_task, &f, MAGIC_NS_USERPID);
+                    if (msg_tag_get_val(tag) < 0)
+                    {
+                        printk("init thread comm failed, ret:%d\n", __func__, __LINE__, msg_tag_get_val(tag));
+                    }
+                }
+            }
+        }
+        task_kill(pos);
+        pos = next;
+    }
+    spinlock_set(&del_lock, status2);
+}
+
 static void knl_main(void)
 {
-    umword_t status;
-    umword_t status2;
+
     printk("knl main run..\n");
     while (1)
     {
-        task_t *pos;
-
-        if (slist_is_empty(&del_task_head))
+        if (slist_is_empty(&del_task_head) && slist_is_empty(&del_thread_head))
         {
             cpu_sleep();
             continue;
         }
-
-        status2 = spinlock_lock(&del_lock);
-        if (slist_is_empty(&del_task_head))
-        {
-            spinlock_set(&del_lock, status2);
-            continue;
-        }
-        // 在这里删除进程
-        slist_foreach_not_next(pos, &del_task_head, del_node)
-        {
-            task_t *next = slist_next_entry(pos, &del_task_head, del_node);
-            slist_del(&pos->del_node);
-            {
-                msg_tag_t tag;
-                umword_t user_id;
-                ipc_msg_t *msg = (ipc_msg_t *)knl_msg_buf;
-
-                if (pos->pid != 0)
-                {
-                    msg->msg_buf[0] = 1; /*KILL_TASK*/
-                    msg->msg_buf[1] = pos->pid;
-                    msg->msg_buf[2] = 0;
-
-                    if (thread_get_ipc_state(init_thread) != THREAD_IPC_ABORT)
-                    {
-#define PM_PROT 0x0005
-#define MAGIC_NS_USERPID 0xbabababa
-                        entry_frame_t f;
-                        f.regs[0] = msg_tag_init4(0, 3, 0, PM_PROT).raw;
-                        f.regs[1] = 0;
-                        f.regs[2] = 0x2222; /*传递两个参数，没有用到，暂时用不上*/
-                        f.regs[3] = 0x3333;
-                        tag = thread_fast_ipc_call(init_task, &f, MAGIC_NS_USERPID);
-                        if (msg_tag_get_val(tag) < 0)
-                        {
-                            printk("init thread comm failed, ret:%d\n", __func__, __LINE__, msg_tag_get_val(tag));
-                        }
-                    }
-                }
-            }
-            task_kill(pos);
-            pos = next;
-        }
-        spinlock_set(&del_lock, status2);
+        knl_del_task();
+        knl_release_thread();
     }
 }
 static inline uint32_t thread_knl_get_current_run_nr(void)
@@ -157,10 +190,10 @@ void knl_init_1(void)
     thread_init(knl_th, &root_factory_get()->limit, FALSE);
     task_init(&knl_task, &root_factory_get()->limit, TRUE);
     task_knl_init(&knl_task);
-    kobject_set_name(&knl_task.kobj, "tk_knl");
+    kobject_set_name(&knl_task.kobj, "knl");
     thread_knl_pf_set(knl_th, knl_main);
     thread_bind(knl_th, &knl_task.kobj);
-    kobject_set_name(&knl_th->kobj, "th_knl");
+    kobject_set_name(&knl_th->kobj, "knl");
     thread_set_msg_buf(knl_th, knl_msg_buf[arch_get_current_cpu_id()],
                        knl_msg_buf[arch_get_current_cpu_id()]);
     knl_th->cpu = arch_get_current_cpu_id();
@@ -189,6 +222,7 @@ static void knl_init_2(void)
 {
     mm_trace();
     slist_init(&del_task_head);
+    slist_init(&del_thread_head);
 #if IS_ENABLED(CONFIG_KNL_TEST)
     knl_test();
 #else
@@ -260,6 +294,11 @@ static void knl_init_2(void)
 }
 INIT_STAGE2(knl_init_2);
 
+void thread_knl_release_helper(thread_t *th)
+{
+    assert(th);
+    slist_add_append(&del_thread_head, &th->release_node); // 添加到删除队列中
+}
 bool_t task_knl_kill(thread_t *kill_thread, bool_t is_knl)
 {
     bool_t reset_ram = FALSE;
@@ -272,10 +311,6 @@ bool_t task_knl_kill(thread_t *kill_thread, bool_t is_knl)
         status2 = spinlock_lock(&del_lock);
         if (stack_len(&kill_thread->com->fast_ipc_stack) != 0)
         {
-            // 在通信的时候出现了错误
-            // fast_ipc需要测试场景
-            // 1. 在ipc到其他进程中时其他进程死亡
-            // 2. 在ipc到其他进程中时当前进程死亡
             int ret;
             thread_fast_ipc_item_t ipc_item;
 
@@ -294,7 +329,7 @@ bool_t task_knl_kill(thread_t *kill_thread, bool_t is_knl)
             thread_suspend(kill_thread);
             kill_thread->ipc_status = THREAD_IPC_ABORT;
         }
-        slist_add_append(&del_task_head, &task->del_node);
+        slist_add_append(&del_task_head, &task->del_node); // 添加到删除队列中
         spinlock_set(&del_lock, status2);
     }
     else

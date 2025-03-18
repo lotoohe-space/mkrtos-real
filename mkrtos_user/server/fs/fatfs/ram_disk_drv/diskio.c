@@ -9,13 +9,55 @@
 
 #include "ff.h"		/* Obtains integer types */
 #include "diskio.h" /* Declarations of disk functions */
-#include "ram_disk.h"
 #include <stdio.h>
+#include "blk_drv_cli.h"
+#include "ns_cli.h"
+#include "u_factory.h"
+#include "u_vmam.h"
+#include "u_hd_man.h"
+#include "u_sleep.h"
+#include <string.h>
+#include "u_share_mem.h"
 /* Definitions of physical drive number for each drive */
-#define DEV_RAM 0 /* Example: Map Ramdisk to physical drive 0 */
-#define DEV_MMC 1 /* Example: Map MMC/SD card to physical drive 1 */
-#define DEV_USB 2 /* Example: Map USB MSD to physical drive 2 */
+#define DEV_MK_BLOCK 0 /* Example: Map Ramdisk to physical drive 0 */
 
+static obj_handler_t dev_hd;
+static obj_handler_t shm_hd;
+static addr_t dev_shm_mem;
+static addr_t dev_shm_size;
+static blk_drv_info_t blk_info;
+int disk_set_dev_path(int pdrv, const char *dev)
+{
+	int ret;
+	switch (DEV_MK_BLOCK)
+	{
+	case DEV_MK_BLOCK:
+	{
+		int try_cn = 0;
+	again:
+		ret = ns_query_svr(dev, &dev_hd, 1);
+		if (ret < 0)
+		{
+			try_cn++;
+			if (try_cn > 100)
+			{
+				return ret;
+			}
+			u_sleep_ms(5);
+			goto again;
+		}
+		ret = blk_drv_cli_info(dev_hd, &blk_info);
+		if (ret < 0)
+		{
+			return ret;
+		}
+	}
+	break;
+	default:
+		return -1;
+	}
+	return 0;
+}
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/
@@ -29,7 +71,7 @@ DSTATUS disk_status(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_MK_BLOCK:
 		result = 0;
 
 		// translate the reslut code here
@@ -52,11 +94,35 @@ DSTATUS disk_initialize(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
-		result = 0;
+	case DEV_MK_BLOCK:
+	{
+		msg_tag_t tag;
+
+		shm_hd = handler_alloc();
+		if (shm_hd == HANDLER_INVALID)
+		{
+			printf("handler alloc failed.\n");
+			return RES_ERROR;
+		}
+		tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+									   SHARE_MEM_CNT_BUDDY_CNT, blk_info.blk_size);
+		if (msg_tag_get_val(tag) < 0)
+		{
+			handler_free(shm_hd);
+			printf("share mem create failed.\n");
+			return RES_ERROR;
+		}
+		tag  = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &dev_shm_mem, &dev_shm_size);
+		if (msg_tag_get_val(tag) < 0)
+		{
+			handler_del_umap(shm_hd);
+			printf("share mem map failed.\n");
+			return RES_ERROR;
+		}
 		stat = RES_OK;
 		// translate the reslut code here
 		return stat;
+	}
 	}
 	return STA_NOINIT;
 }
@@ -76,10 +142,15 @@ DRESULT disk_read(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_MK_BLOCK:
 		// translate the reslut code here
-		if (ram_disk_read(buff, sector, count) < 0) {
-			return RES_ERROR;
+		for (umword_t i = sector; i < sector + count; i++)
+		{
+			if (blk_drv_cli_read(dev_hd, shm_hd, blk_info.blk_size, i) < 0)
+			{
+				return RES_ERROR;
+			}
+			memcpy(buff + (i - sector) * blk_info.blk_size, (void *)dev_shm_mem, blk_info.blk_size);
 		}
 		return 0;
 	}
@@ -104,11 +175,16 @@ DRESULT disk_write(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_MK_BLOCK:
 		// translate the arguments here
+		for (umword_t i = sector; i < sector + count; i++)
+		{
+			memcpy((void *)dev_shm_mem, buff + (i - sector) * blk_info.blk_size, blk_info.blk_size);
 
-		if (ram_disk_write((uint8_t *)buff, sector, count) < 0) {
-			return RES_ERROR;
+			if (blk_drv_cli_write(dev_hd, shm_hd, blk_info.blk_size, i) < 0)
+			{
+				return RES_ERROR;
+			}
 		}
 		return 0;
 	}
@@ -121,7 +197,6 @@ DRESULT disk_write(
 /*-----------------------------------------------------------------------*/
 /* Miscellaneous Functions                                               */
 /*-----------------------------------------------------------------------*/
-
 DRESULT disk_ioctl(
 	BYTE pdrv, /* Physical drive nmuber (0..) */
 	BYTE cmd,  /* Control code */
@@ -133,14 +208,15 @@ DRESULT disk_ioctl(
 
 	switch (pdrv)
 	{
-	case DEV_RAM:
+	case DEV_MK_BLOCK:
+	{
 		switch (cmd)
 		{					   // fatfs内核使用cmd调用
 		case GET_SECTOR_COUNT: // sector count, 传入sect_cnt
-			*(DWORD *)buff = ram_disk_sector_nr();
+			*(DWORD *)buff = blk_info.blk_nr;
 			return RES_OK;
 		case GET_SECTOR_SIZE: // sector size, 传入block size(SD),单位bytes
-			*(DWORD *)buff = 512;
+			*(DWORD *)buff = blk_info.blk_size;
 			return RES_OK;
 		case GET_BLOCK_SIZE:	// block size, 由上文可得，对于SD2.0卡最大8192，最小 1
 			*(DWORD *)buff = 1; // 单位为 sector(FatFs)
@@ -148,6 +224,7 @@ DRESULT disk_ioctl(
 		case CTRL_SYNC: // 同步命令，貌似FatFs内核用来判断写操作是否完成
 			return RES_OK;
 		}
+	}
 	default:
 		printf("No device %d.\n", pdrv);
 		break;

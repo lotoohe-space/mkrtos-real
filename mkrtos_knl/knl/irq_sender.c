@@ -158,7 +158,7 @@ void irq_sender_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     {
         ref_counter_inc(&th->ref);
         int ret = irq_sender_wait(irq, th, f->regs[1]);
-        ref_counter_dec_and_release(&th->ref, &irq->kobj); //! 引用计数+1
+        ref_counter_dec_and_release(&th->ref, &th->kobj); //! 引用计数+1
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;

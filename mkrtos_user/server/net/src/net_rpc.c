@@ -59,6 +59,7 @@ void fd_man_close_without_pid(pid_t pid)
         if (fd_man_list[i].used == 1 && fd_man_list[i].pid == pid)
         {
             printf("net close fd:%d\n", fd_man_list[i].fd);
+            // lwip_shutdown(fd_man_list[i].fd, SHUT_RzDWR);
             lwip_close(fd_man_list[i].fd);
             fd_man_list[i].used = 0;
         }

@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.13)
 
-file(GLOB deps *.c libfdt/lib/contrib/*.c)
+file(GLOB 
+    deps 
+    *.c 
+    libfdt/lib/contrib/*.c
+)
 
 add_library(lib STATIC ${deps})
 target_include_directories(
@@ -13,6 +17,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/lib/libfdt/lib/contrib
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/knl
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/drv
+
 
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc
 )

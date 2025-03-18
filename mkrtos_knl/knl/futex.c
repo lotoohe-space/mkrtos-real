@@ -679,7 +679,7 @@ static void futex_unmap(obj_space_t *obj_space, kobject_t *kobj)
                 {
                     assert(pos->status == THREAD_SUSPEND);
                     slist_del(&pos->futex_node);
-                    pos->status == THREAD_IPC_ABORT;
+                    pos->status = THREAD_IPC_ABORT;
                     thread_ready_remote(pos, TRUE);
                 }
                 pos = next;

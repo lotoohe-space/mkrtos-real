@@ -20,7 +20,7 @@ bool_t obj_map_root(kobject_t *kobj, obj_space_t *obj_space, ram_limit_t *ram, v
 
     kobj_del_list_init(&kobj_list);
     if (obj_space_lookup_kobj(obj_space, vpage_get_obj_handler(page)))
-    { //!< 已经存在则解除注释
+    { //!< 已经存在则删除
         obj_unmap(obj_space, page, &kobj_list);
     }
     umword_t status = cpulock_lock();

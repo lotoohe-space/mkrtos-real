@@ -1,7 +1,7 @@
 /**
  * @file fd_map.c
  * @author your name (1358745329@qq.com)
- * @brief fd映射层
+ * @brief fd map layer
  * @version 0.1
  * @date 2024-08-08
  *
@@ -108,13 +108,16 @@ int fd_map_get(int fd, fd_map_entry_t *new_entry)
     }
     int row_inx = fd / CONFIG_FD_MAP_ROW_CN;
     int inx = fd % CONFIG_FD_MAP_ROW_CN;
+    pthread_spin_lock(&fd_map.lock);
 
     if (fd_map.row[row_inx] == NULL)
     {
+        pthread_spin_unlock(&fd_map.lock);
         return -1;
     }
 
     *new_entry = fd_map.row[row_inx]->entry[inx];
+    pthread_spin_unlock(&fd_map.lock);
     return 0;
 }
 /**

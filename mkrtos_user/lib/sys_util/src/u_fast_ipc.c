@@ -150,7 +150,7 @@ int u_fast_ipc_init(uint8_t *stack_array, uint8_t *msg_buf_array, int stack_msgb
 #if 1
     for (int i = 0; i < stack_msgbuf_array_num; i++)
     {
-        printf("stack 0x%x %x\n", stack_array + stack_size * i, stack_size);
+        printf("fastipc: stack 0x%x %x\n", stack_array + stack_size * i, stack_size);
     }
 #endif
     msg->user[0] = (umword_t)((char *)fake_pthread + sizeof(fake_pthread));

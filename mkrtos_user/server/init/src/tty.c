@@ -23,11 +23,8 @@
 #include "u_task.h"
 #include "pm.h"
 #include "pm_svr.h"
-#if IS_ENABLED(CONFIG_MMU)
+#include "u_sig.h"
 #define CONS_STACK_SIZE 1024
-#else
-#define CONS_STACK_SIZE 1024
-#endif
 static ATTR_ALIGN(8) uint8_t cons_stack[CONS_STACK_SIZE];
 static uint8_t cons_ipc_msg[MSG_BUG_LEN];
 static tty_struct_t sys_tty;
@@ -40,6 +37,7 @@ static fs_t tty_fs;
 
 static int tty_def_line_handler(tty_struct_t *tty, uint8_t r);
 static int tty_write_hw(tty_struct_t *tty);
+void tty_write_data(void *buf, size_t len);
 
 void tty_set_fg_pid(pid_t pid)
 {
@@ -126,7 +124,7 @@ static int cons_init(void)
     msg_tag_t tag;
 
     u_mutex_init(&sys_tty.lock_cons, handler_alloc());
-    u_mutex_init(&sys_tty.lock_write_cons, handler_alloc());
+    // u_mutex_init(&sys_tty.lock_write_cons, handler_alloc());
 
     sem_th = handler_alloc();
     if (sem_th == HANDLER_INVALID)
@@ -148,7 +146,7 @@ static int tty_open(const char *path, int flags, int mode)
 {
 
     ulog_write_str(LOG_PROT, "tty open..\n");
-    sys_tty.fd_flags = flags;
+    sys_tty.fd_flags = flags;//FIXME:修正支持不同fd拥有不同的flags。
     return 0;
 }
 
@@ -346,12 +344,11 @@ static int tty_def_line_handler(tty_struct_t *tty, uint8_t r)
                     {
                         // 发送给前台进程组的所有进程
                         // inner_set_sig(SIGINT);TODO:
-                        pm_rpc_kill_task(-1, tty->fg_pid, 0, 0);
-                        // ulog_write_str(LOG_PROT, "ctrl c");
+                        pm_rpc_kill_task(-1, tty->fg_pid, KILL_SIG, 0);
                         if (!L_NOFLSH(tty))
                         {
                             q_queue_clear(&tty->w_queue);
-                            // q_queue_clear(&tty->r_queue);
+                            q_queue_clear(&tty->pre_queue);
                             ret = 1;
                         }
                         tty->is_nl = 1;
@@ -360,11 +357,11 @@ static int tty_def_line_handler(tty_struct_t *tty, uint8_t r)
                     else if (r == QUIT_C(tty))
                     {
                         // inner_set_sig(SIGQUIT);TODO:
-                        ulog_write_str(LOG_PROT, "Ctrl+C");
+                        // ulog_write_str(LOG_PROT, "Ctrl+C");
                         if (!L_NOFLSH(tty))
                         {
                             q_queue_clear(&tty->w_queue);
-                            // q_queue_clear(&tty->r_queue);
+                            q_queue_clear(&tty->pre_queue);
                             ret = 1;
                         }
                         tty->is_nl = 1;
@@ -462,7 +459,7 @@ static int tty_write_hw(tty_struct_t *tty)
     }
     while ((res = q_dequeue(&tty->w_queue, &r)) >= 0)
     {
-        ulog_write_bytes(LOG_PROT, &r, 1);
+        tty_write_data(&r, 1);
         w_len++;
     }
     return w_len;
@@ -509,9 +506,8 @@ again:
 }
 void tty_write_data(void *buf, size_t len)
 {
-    u_mutex_lock(&sys_tty.lock_write_cons, 0, 0);
-    ulog_write_bytes(LOG_PROT, buf, len);
-    u_mutex_unlock(&sys_tty.lock_write_cons);
+    extern void fs_cons_write(void *buf, size_t size);
+    fs_cons_write(buf, len);
 }
 static int tty_write(int fd, void *buf, size_t len)
 {

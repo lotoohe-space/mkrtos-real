@@ -34,7 +34,7 @@
 #define DEFAULT_INIT_CFG "init.cfg"
 
 #define STACK_NUM 4
-#define STACK_COM_ITME_SIZE ((2048) * STACK_NUM)
+#define STACK_COM_ITME_SIZE 2048
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
 static uint8_t msg_buf_coms[MSG_BUG_LEN * STACK_NUM];
@@ -68,6 +68,7 @@ int main(int argc, char *args[])
 
     fs_ns_mkdir("/dev");
     fs_ns_mkdir("/sys");
+    fs_ns_mkdir("/dev/shm");
 #if defined(MKRTOS_TEST_MODE)
     printf("test_main..\n");
     test_main();

@@ -29,8 +29,8 @@ typedef struct task
     ref_counter_t ref_cn;  //!< ref count.
     slist_head_t del_node; //!< delect list node.
 
-    void *nofity_point;  //!< commint point func.
-    addr_t nofity_stack; //!< nofity_point_stack.
+    void *notify_point;  //!< commint point func.
+    addr_t nofity_stack; //!< notify_point_stack.
     mutex_t nofity_lock;
     sema_t notify_sema;    //!< sema
     addr_t nofity_msg_buf; //!<
@@ -39,6 +39,8 @@ typedef struct task
     int nofity_bitmap_len;   //!< max is WORD_BITS
     slist_head_t nofity_theads_head;
 
+    void *text_addr; //!< text start addr for cmbacktrace.
+    size_t text_size;
     pid_t pid; //!< task pid.
 } task_t;
 

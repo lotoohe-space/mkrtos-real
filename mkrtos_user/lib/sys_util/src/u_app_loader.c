@@ -130,21 +130,16 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     {
         return -ENOENT;
     }
-#if 0
-    for (int i = 0; i < arg_cn; i++)
-    {
-        printf("argv[%d]:%s\n", i, argv[i]);
-    }
-#endif
     int type;
     umword_t addr;
     int ret = 0;
+    unsigned long size;
 
 #if IS_ENABLED(CONFIG_CPIO_SUPPORT)
     ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL, &type, &addr);
 #else
     type = 0;
-    addr = (umword_t)appfs_tiny_find_file_addr_by_name(appfs_tiny_get_form_addr((void *)sys_info.bootfs_start_addr), name, NULL);
+    addr = (umword_t)appfs_tiny_find_file_addr_by_name(appfs_tiny_get_form_addr((void *)sys_info.bootfs_start_addr), name, &size);
     if (addr == 0)
     {
         ret = -ENOENT;
@@ -205,7 +200,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
         goto end_del_obj;
     }
     tag = task_alloc_ram_base(hd_task, app ? app->i.ram_size : 100 * 1024 /*TODO:*/,
-                              &ram_base, mem_block);
+                              &ram_base, mem_block, (addr_t)addr, size);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;

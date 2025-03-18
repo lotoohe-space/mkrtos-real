@@ -17,7 +17,7 @@
 typedef struct watch_entry
 {
     pid_t watch_pid;//!<被监控的pid
-    pid_t src_pid; //!<发起监控的pid
+    pid_t src_pid; //!<观察者
     obj_handler_t sig_hd; //!<用于通信用的ipc对象
     #if 0
     obj_handler_t notify_sem_hd;//!<通知用的信号量

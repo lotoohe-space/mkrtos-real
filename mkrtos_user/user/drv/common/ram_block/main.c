@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
     if (dev_path == NULL)
     {
         printf("please set dev path.\n");
-        printf("example:ram_block -p /block -s 512 -n 2048");
+        printf("example:ram_block -p /dev/block -s 512 -n 2048");
         return -1;
     }
     blk_data = mmap(0, blk_nr * blk_size, PROT_PFS | PROT_READ | PROT_WRITE, MAP_PRIVATE, -1, 0);

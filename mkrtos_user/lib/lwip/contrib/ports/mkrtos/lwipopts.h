@@ -37,9 +37,9 @@
 #define MEM_ALIGNMENT 4           // 使用4字节对齐模式
 #define MEM_SIZE (8 * 1024)       // 内存堆heap大小
 #define MEMP_NUM_PBUF 16          // MEMP_NUM_PBUF:memp结构的pbuf数量,如果应用从ROM或者静态存储区发送大量数据时,这个值应该设置大一点
-#define MEMP_NUM_UDP_PCB 4        // MEMP_NUM_UDP_PCB:UDP协议控制块(PCB)数量.每个活动的UDP"连接"需要一个PCB.
-#define MEMP_NUM_TCP_PCB 4        // MEMP_NUM_TCP_PCB:同时建立激活的TCP数量
-#define MEMP_NUM_TCP_PCB_LISTEN 4 // MEMP_NUM_TCP_PCB_LISTEN:能够监听的TCP连接数量
+#define MEMP_NUM_UDP_PCB 16        // MEMP_NUM_UDP_PCB:UDP协议控制块(PCB)数量.每个活动的UDP"连接"需要一个PCB.
+#define MEMP_NUM_TCP_PCB 16        // MEMP_NUM_TCP_PCB:同时建立激活的TCP数量
+#define MEMP_NUM_TCP_PCB_LISTEN 16 // MEMP_NUM_TCP_PCB_LISTEN:能够监听的TCP连接数量
 #define MEMP_NUM_TCP_SEG 64       // MEMP_NUM_TCP_SEG:最多同时在队列中的TCP段数量
 #define MEMP_NUM_SYS_TIMEOUT 4    // MEMP_NUM_SYS_TIMEOUT:能够同时激活的timeout个数
 #define LWIP_NETCONN_SEM_PER_THREAD 0

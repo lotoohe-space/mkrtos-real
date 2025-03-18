@@ -13,6 +13,7 @@ enum fd_type
 {
     FD_TTY,
     FD_FS,
+    FD_SHM,
 };
 
 int fd_map_alloc(uint32_t svr_fd, uint32_t priv_fd, enum fd_type type);

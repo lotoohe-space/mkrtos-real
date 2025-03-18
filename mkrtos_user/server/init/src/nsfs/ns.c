@@ -257,7 +257,7 @@ int ns_delnode(const char *path)
     if (cur_node->type == NODE_TYPE_SVR)
     {
 #ifdef MKRTOS
-        handler_free_umap(cur_node->svr_hd);
+        handler_del_umap(cur_node->svr_hd);
 #else
         printf("ns del node:0x%lx.\n", cur_node->svr_hd);
 #endif
@@ -372,7 +372,7 @@ int ns_find_svr_obj(const char *path, obj_handler_t *svr_hd)
     {
         return -ENOENT;
     }
-#ifdef MKRTOS
+#if 0
     msg_tag_t tag;
 
     tag = task_obj_valid(TASK_THIS, svr_node->svr_hd, NULL);
@@ -401,11 +401,15 @@ int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type)
     char name[NS_NODE_NAME_LEN];
 
     cur_node = ns_node_find(&dir_node, path, &ret, &cur_inx, &p_inx);
-    if (dir_node == NULL || dir_node->type != NODE_TYPE_DUMMY || (cur_node != NULL && cur_node->type == NODE_TYPE_SVR))
+    if (dir_node == NULL || dir_node->type != NODE_TYPE_DUMMY || (cur_node != NULL))
     {
         if (cur_node != NULL && cur_node->type == NODE_TYPE_SVR)
         {
             return -EEXIST;
+        }
+        if (cur_node != NULL && cur_node->type == NODE_TYPE_DUMMY)
+        {
+            return -EISDIR;
         }
         return -ENOENT;
     }

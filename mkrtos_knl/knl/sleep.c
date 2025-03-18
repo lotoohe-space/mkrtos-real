@@ -48,27 +48,19 @@ void thread_check_timeout(void)
         thread_wait_entry_t *next = slist_next_entry(
             pos, (slist_head_t *)wait_list,
             node);
-        // pos->times_debug++;
         if (pos->times != 0)
         {
             pos->times--;
-            // pos->times_debug = 0;
             if (pos->times == 0)
             {
                 assert(pos->th->status == THREAD_SUSPEND);
                 slist_del(&pos->node);
-                thread_ready(pos->th, TRUE);
+                if (thread_get_ipc_state(pos->th) != THREAD_IPC_ABORT)
+                {
+                    thread_ready(pos->th, TRUE);
+                }
             }
-        } else {
-            // if (pos->times_debug >= 3000) 
-            // {
-            //     printk("thread:0x%x block times %d.\n", pos->th, pos->times_debug);
-            // }
-        } // !< 如果是0，则一直休眠
-        // if (pos->times_debug%2000 == 0)
-        // {
-        //  //   printk("thread 0x%x block %d sec.\n", pos->th, pos->times_debug /1000);
-        // }
+        }
         pos = next;
     }
 }
@@ -93,11 +85,11 @@ thread_wait_entry_t *thread_sleep_del(thread_t *th)
         if (pos->th == th)
         {
             slist_del(&pos->node);
-            break;
+            return pos;
         }
         pos = next;
     }
-    return pos;
+    return NULL;
 }
 void thread_sleep_del_and_wakeup(thread_t *th)
 {

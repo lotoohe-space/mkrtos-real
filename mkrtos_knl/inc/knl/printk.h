@@ -32,6 +32,7 @@ int getc(void);
  * @param ...
  */
 void printk(const char *fmt, ...);
+void printkln(const char *fmt, ...);
 
 void dumpstack(void);
 

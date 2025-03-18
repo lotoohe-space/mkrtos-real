@@ -10,7 +10,7 @@ typedef struct tty_struct
     struct termios termios; //!< 当前使用的终端信息
     struct winsize w_size;  //!< 窗口大小
     u_mutex_t lock_cons;
-    u_mutex_t lock_write_cons;
+    // u_mutex_t lock_write_cons;
     queue_t w_queue; //!< 写数据的缓存
     uint8_t w_queue_data[TTY_QUEUE_DATA_SIZE];
     queue_t pre_queue; //!< 然后通过handler处理机制存放到per_queue中，pre_queue中的数据直接可以给用户，或者进行回显

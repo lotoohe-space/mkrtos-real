@@ -17,6 +17,10 @@
 #include "mk_sys.h"
 #include "mpu.h"
 #include "boot_info.h"
+#include <cm_backtrace.h>
+#define HARDWARE_VERSION               "V1.0.0"
+#define SOFTWARE_VERSION               "V0.1.0"
+
 __ALIGN__(CONFIG_THREAD_BLOCK_SIZE)
 static uint8_t thread_knl_stack[CONFIG_THREAD_BLOCK_SIZE] = {0};
 void *_estack = thread_knl_stack + CONFIG_THREAD_BLOCK_SIZE;
@@ -112,6 +116,9 @@ void arch_init(void)
     SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk;
     SCB->SHCSR |= SCB_SHCSR_BUSFAULTENA_Msk;
     ((uint8_t *)(0xE000E008))[0] |= 0x6;
+
+    cm_backtrace_init("CmBacktrace", HARDWARE_VERSION, SOFTWARE_VERSION);
+
     // RCC_ClocksTypeDef RCC_ClocksStatus;
     // RCC_GetClocksFreq(&RCC_ClocksStatus);
 }

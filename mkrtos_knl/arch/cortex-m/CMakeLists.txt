@@ -1,18 +1,17 @@
 cmake_minimum_required(VERSION 3.13)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__MPU_PRESENT=1 -DUSE_STDPERIPH_DRIVER=1 ")
 
-file(GLOB deps  *.c *.S)
+file(GLOB deps  
+    CmBacktrace/cm_backtrace/cm_backtrace.c
+    *.c 
+    *.S
+)
 list(REMOVE_ITEM deps ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/link.lds.S)
 
 add_library(arch STATIC ${deps})
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__MPU_PRESENT=1 -DUSE_STDPERIPH_DRIVER=1 ")
 message(=======${CONFIG_CPU_TYPE})
-target_include_directories(
-    arch
-    PUBLIC
-    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/${CONFIG_CPU_TYPE}
-    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/
-)
+
 if (${CONFIG_CPU_TYPE} STREQUAL "stm32f1")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F10X_XL ")
     target_include_directories(
@@ -69,10 +68,18 @@ target_link_libraries(
     PUBLIC
     knl_bsp
 )
+add_dependencies(
+    arch
+    knl_bsp
+    )
 target_include_directories(
     arch
     PUBLIC
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/inc
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/lib
     ${CMAKE_SOURCE_DIR}/mkrtos_knl/inc/knl
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/${CONFIG_CPU_TYPE}
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/${CONFIG_ARCH}/
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/cortex-m/CmBacktrace/cm_backtrace
+    ${CMAKE_SOURCE_DIR}/mkrtos_knl/arch/cortex-m/CmBacktrace/cm_backtrace/Languages/en-US
 )

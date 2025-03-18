@@ -34,6 +34,7 @@
 #include "types.h"
 #include "sema.h"
 #include "sleep.h"
+#include "thread_knl.h"
 #if IS_ENABLED(CONFIG_SMP)
 #include <ipi.h>
 #endif
@@ -127,6 +128,7 @@ void thread_init(thread_t *th, ram_limit_t *lim, umword_t flags)
     kobject_init(&th->kobj, THREAD_TYPE);
     sched_init(&th->sche);
     slist_init(&th->futex_node);
+    slist_init(&th->release_node);
 #if 0
     slist_init(&th->wait_send_head);
     spinlock_init(&th->recv_lock);
@@ -158,58 +160,19 @@ static bool_t thread_put(kobject_t *kobj)
 }
 static void thread_release_stage1_impl(thread_t *th)
 {
-    if (th->status == THREAD_READY)
-    {
-        thread_suspend(th);
-    }
-    th->ipc_status = THREAD_IPC_ABORT;
-    thread_sleep_del(th); //!< 从休眠中删除
-#if 0
-    thread_wait_entry_t *pos;
-
-    slist_foreach_not_next(
-        pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
-        node_timeout)
-    {
-        assert(pos->th->status == THREAD_SUSPEND);
-        thread_wait_entry_t *next = slist_next_entry(
-            pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
-            node_timeout);
-
-        if (pos->th != th)
+    if (stack_len(&th->com->fast_ipc_stack)==0){
+        //处于ipc通信中，不能直接删除，否者会立刻中断ipc中的执行
+        if (th->status == THREAD_READY)
         {
-            pos->th->ipc_status = THREAD_IPC_ABORT;
-            thread_ready(pos->th, FALSE);
+            thread_suspend(th);
         }
-
-        slist_del(&pos->node_timeout);
-        if (slist_in_list(&pos->node))
-        {
-            slist_del(&pos->node);
-        }
-        pos = next;
+        
+        thread_sleep_del(th); //!< 从休眠中删除
+        thread_unbind(th);
+        th->ipc_status = THREAD_IPC_ABORT;
+    } else {
+        th->ipc_status = THREAD_IPC_ABORT;
     }
-    thread_wait_entry_t *pos2;
-
-    slist_foreach_not_next(
-        pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-        node)
-    {
-        assert(pos2->th->status == THREAD_SUSPEND);
-        thread_wait_entry_t *next = slist_next_entry(
-            pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-            node);
-
-        slist_del(&pos2->node);
-        if (pos2->th != th)
-        {
-            pos2->th->ipc_status = THREAD_IPC_ABORT;
-            thread_ready(pos2->th, FALSE);
-        }
-        pos2 = next;
-    }
-#endif
-    thread_unbind(th);
 }
 #if IS_ENABLED(CONFIG_SMP)
 static int thread_remote_release_stage1_handler(ipi_msg_t *msg, bool_t *is_sched)
@@ -309,7 +272,7 @@ void thread_unbind(thread_t *th)
     {
         task_t *tsk = container_of(th->task, task_t, kobj);
 
-        ref_counter_dec_and_release(&tsk->ref_cn, &th->kobj);
+        ref_counter_dec_and_release(&tsk->ref_cn, &tsk->kobj);
         th->task = NULL;
     }
 }
@@ -1197,8 +1160,12 @@ msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_
     // 3.多线程访问时，服务端提供一个小的用户线程栈，然后内核到用户部分为临界区域，在服务端重新分配用户栈用，使用新的用户栈。
     // 4.fastipc嵌套访问会有问题，内核必须要提供一个软件上的调用栈。
     // 在嵌套调用时，如果在其它进程中挂掉，如果是当前线程则需要还原
+    // 回收ipc线程注意事项：
+    // 1.ipc的线程在与其它进程通信时在其它进程中死亡（这个最常见）
+    // 2.ipc的线程在其它进程通信时其它进程死亡（需要吧其它进程的ipc线程给还原回去）
+    // 3.ipc的线程在与其他的进程通信时，ipc线程的原进程死亡（需要推迟ipc线程的删除到ipc操作完成，否者可能发生未知的错误）
 
-    if (to_task->nofity_point == NULL)
+    if (to_task->notify_point == NULL)
     {
         printk("task:0x%x, notify point is not set.\n", to_task);
         return msg_tag_init4(0, 0, 0, -EIO);
@@ -1208,7 +1175,6 @@ msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_
     umword_t cpu_status = cpulock_lock();
     assert(cur_th->magic == THREAD_MAGIC);
 
-    // to_task = thread_get_bind_task(to_th);FIXME:
     ref_counter_inc((&to_task->ref_cn));
     //!< 执行目标线程时用的是当前线程的资源，这里还需要备份当前线程的上下文。
     ret = thread_fast_ipc_save(cur_th, to_task, (void *)(to_task->nofity_stack - 4 * 8 /*FIXME:改成宏*/)); //!< 备份栈和usp
@@ -1227,7 +1193,7 @@ msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_
             if (thread_is_knl(cur_th))
             {
                 // 如果是内核线程则全部重新设置
-                thread_set_user_pf_noset_knl_sp(cur_th, to_task->nofity_point,
+                thread_set_user_pf_noset_knl_sp(cur_th, to_task->notify_point,
                                                 (void *)to_task->nofity_stack, (void *)to_task->mm_space.mm_block);
                 usr_stask_point->rg0[0] = in_tag.raw;
                 usr_stask_point->rg0[1] = user_id;
@@ -1241,7 +1207,7 @@ msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_
                 usr_stask_point->r12 = 0x12121212;
                 usr_stask_point->xpsr = 0x01000000L;
                 usr_stask_point->lr = (umword_t)NULL; //!< 线程退出时调用的函数
-                usr_stask_point->pc = (umword_t)(to_task->nofity_point) | 0x1;
+                usr_stask_point->pc = (umword_t)(to_task->notify_point) | 0x1;
 
                 //! 获得内核栈栈顶
                 pf_t *cur_pf = ((pf_t *)((char *)cur_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
@@ -1256,6 +1222,7 @@ msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_
                 f->regs[3] = f->regs[3];
             }
             // 切换mpu
+            ref_counter_inc(&cur_th->ref);
             mpu_switch_to_task(to_task);
             cpulock_set(cpu_status);
             if (thread_is_knl(cur_th))
@@ -1269,6 +1236,7 @@ msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_
         else
         {
             ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
+            cpulock_set(cpu_status);
             mutex_unlock(&to_task->nofity_lock);
             sema_up(&to_task->notify_sema);
         }
@@ -1276,11 +1244,11 @@ msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_
     else
     {
         ref_counter_dec_and_release(&to_task->ref_cn, &to_task->kobj);
+        cpulock_set(cpu_status);
         mutex_unlock(&to_task->nofity_lock);
         sema_up(&to_task->notify_sema);
     }
-    cpulock_set(cpu_status);
-
+   
     return msg_tag_init4(0, 0, 0, ret);
 }
 msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
@@ -1299,7 +1267,8 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
     if (ret < 0)
     {
         mutex_unlock(&old_task->nofity_lock);
-        return msg_tag_init4(0, 0, 0, ret);
+        in_tag =  msg_tag_init4(0, 0, 0, ret);
+        goto end;
     }
     umword_t cpu_status = cpulock_lock();
 
@@ -1326,9 +1295,6 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
     if (thread_is_knl(cur_th))
     {
         //! 吧r4-r11留出来
-        // memcpy((char *)cur_th->sp.knl_sp - 4 * 8 /*FIXME:*/, (char *)cur_th->sp.knl_sp, 4 * 8);
-        // memset(cur_th->sp.knl_sp, 0, 4 * 8);
-        // cur_th->sp.knl_sp = (char *)cur_th->sp.knl_sp - 4 * 8;
         cur_th->sp.user_sp = 0x0;
         cur_th->sp.sp_type = 0xfffffff9;
         scheduler_get_current()->sched_reset = 3;
@@ -1351,6 +1317,18 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
     {
         arch_to_sche();
         preemption();
+    }
+end:
+    if (thread_get_ipc_state(cur_th) == THREAD_IPC_ABORT && stack_len(&cur_th->com->fast_ipc_stack)==0)
+    {
+        /*FIXME:这里面没有释放线程的内存*/
+        cpu_status = cpulock_lock();
+        thread_unbind(cur_th);
+        thread_suspend(cur_th);
+        thread_knl_release_helper(cur_th);
+        cpulock_set(cpu_status);
+    } else {
+        ref_counter_dec_and_release(&cur_th->ref, &cur_th->kobj);
     }
     return in_tag;
 }
