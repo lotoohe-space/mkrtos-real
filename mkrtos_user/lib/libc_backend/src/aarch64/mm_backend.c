@@ -2,17 +2,18 @@
 #include "syscall_backend.h"
 #include "u_prot.h"
 #include "u_ipc.h"
-
 #include "u_app.h"
 #include "cons_cli.h"
 #include "u_arch.h"
 #include "u_vmam.h"
+#include "fd_map.h"
 #include <assert.h>
 #undef hidden
 #undef weak
 #define hidden
 #include <pthread_impl.h>
-umword_t be_mmap(void *start,
+
+static umword_t be_mmap_alloc_mem(void *start,
                  size_t len,
                  long prot,
                  long flags,
@@ -64,6 +65,36 @@ umword_t be_mmap(void *start,
         return (umword_t)msg_tag_get_val(tag);
     }
     return addr;
+}
+
+umword_t be_mmap(void *start,
+                 size_t len,
+                 long prot,
+                 long flags,
+                 long fd,
+                 long _offset)
+{
+    if (fd == -1)
+    {
+        return be_mmap_alloc_mem(start, len, prot, flags, fd, _offset);
+    }
+    fd_map_entry_t u_fd;
+    int ret = fd_map_get(fd, &u_fd);
+
+    if (ret < 0)
+    {
+        return -EBADF;
+    }
+    switch (u_fd.type)
+    {
+    case FD_SHM:
+    {
+        ret = be_shm_mmap(start, len, prot, flags, u_fd.priv_fd, _offset);
+    }
+    default:
+        return -ENOSYS;
+    }
+    return ret;
 }
 long sys_mmap(va_list ap)
 {

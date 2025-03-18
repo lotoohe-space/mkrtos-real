@@ -12,12 +12,12 @@
 #include <assert.h>
 
 RPC_GENERATION_CALL6(pm_t, PM_PROT, PM_RUN_APP, run_app,
-                   rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mem_block,
-                   rpc_ref_array_uint32_t_uint8_t_96_t, rpc_array_uint32_t_uint8_t_96_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len,
-                   rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, envs,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, envs_len)
+                     rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
+                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mem_block,
+                     rpc_ref_array_uint32_t_uint8_t_96_t, rpc_array_uint32_t_uint8_t_96_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
+                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len,
+                     rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, envs,
+                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, envs_len)
 int pm_run_app(const char *path, int mem_block, uint8_t *params, int params_len, uint8_t *envs, int envs_len)
 {
     rpc_ref_array_uint32_t_uint8_t_64_t rpc_path = {
@@ -28,14 +28,14 @@ int pm_run_app(const char *path, int mem_block, uint8_t *params, int params_len,
         .data = mem_block,
     };
     rpc_ref_array_uint32_t_uint8_t_96_t rpc_params = {
-        .data = (uint8_t *)params?params:"",
+        .data = (uint8_t *)params ? params : (uint8_t *)"",
         .len = MIN(params_len, 96),
     };
     rpc_int_t rpc_params_len = {
         .data = params_len,
     };
     rpc_ref_array_uint32_t_uint8_t_64_t rpc_envs = {
-        .data = (uint8_t *)envs?envs:"",
+        .data = (uint8_t *)envs ? envs : (uint8_t *)"",
         .len = MIN(envs_len, 64),
     };
     rpc_int_t rpc_envs_len = {

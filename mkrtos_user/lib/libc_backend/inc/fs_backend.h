@@ -2,6 +2,8 @@
 
 #include <stdarg.h>
 
+const char *fs_backend_cur_path(void);
+
 long sys_be_open(va_list ap);
 long sys_be_open_at(va_list ap);
 long sys_be_close(va_list ap);

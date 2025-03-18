@@ -7,6 +7,7 @@
 #include "u_arch.h"
 #include "u_mutex.h"
 #include "u_hd_man.h"
+#include "fd_map.h"
 #include <pthread_impl.h>
 #include <assert.h>
 #include <u_vmam.h>
@@ -176,18 +177,39 @@ umword_t be_mmap2(void *start,
                   long _offset)
 {
     umword_t addr;
+    mword_t ret;
 
     if (len == 0)
     {
         return 0;
     }
-    int ret = _sys_mmap2(start, len, prot, flags, fd, _offset, &addr);
+    if (fd == -1)
+    {
+        ret = _sys_mmap2(start, len, prot, flags, fd, _offset, &addr);
+        if (ret < 0)
+        {
+            return ret;
+        }
+        return addr;
+    }
+    fd_map_entry_t u_fd;
+    ret = fd_map_get(fd, &u_fd);
 
     if (ret < 0)
     {
-        return (umword_t)ret;
+        return -EBADF;
     }
-    return addr;
+    switch (u_fd.type)
+    {
+    case FD_SHM:
+    {
+        ret = be_shm_mmap(start, len, prot, flags, u_fd.priv_fd, _offset);
+    }
+    break;
+    default:
+        return -ENOSYS;
+    }
+    return ret;
 }
 long sys_mmap2(va_list ap)
 {

@@ -16,7 +16,7 @@ int fs_fstat(sd_t _fd, stat_t *stat);
 int fs_ioctl(sd_t _fd, int req, void *arg);
 int fs_fcntl(sd_t _fd, int cmd, void *arg);
 int fs_fsync(sd_t _fd);
-int fs_unlink(const char *path);
+int fs_unlink(obj_handler_t hd, const char *path);
 int fs_symlink(const char *src, const char *dst);
 int fs_mkdir(char *path);
 int fs_rmdir(char *path);

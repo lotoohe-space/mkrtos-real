@@ -23,9 +23,10 @@ typedef struct ns_cli_cache
 } ns_cli_cache_t;
 
 static ns_cli_cache_t ns_cli_cache;
+static pthread_spinlock_t ns_cli_cache_lock;
 
 /**
- * @brief TODO:加锁
+ * @brief 
  *
  * @param path
  * @param split_pos
@@ -35,10 +36,13 @@ static obj_handler_t find_hd(const char *path, int *split_pos)
 {
     int i = 0;
     int empty = -1;
+
+    pthread_spin_lock(&ns_cli_cache_lock);
     for (i = 0; i < NS_CLI_CACHE_NR; i++)
     {
         if (ns_cli_cache.cache[i].path[0] != 0)
         {
+            #if 0
             char *new_str = strstr(path, ns_cli_cache.cache[i].path);
             if (new_str && (new_str == path))
             {
@@ -46,16 +50,31 @@ static obj_handler_t find_hd(const char *path, int *split_pos)
                 {
                     *split_pos = (int)(strlen(ns_cli_cache.cache[i].path));
                 }
+                pthread_spin_unlock(&ns_cli_cache_lock);
                 return ns_cli_cache.cache[i].hd;
             }
+            #else
+            if (strcmp(ns_cli_cache.cache[i].path, path) == 0)
+            {
+                if (split_pos)
+                {
+                    *split_pos = (int)(strlen(ns_cli_cache.cache[i].path));
+                }
+                pthread_spin_unlock(&ns_cli_cache_lock);
+                return ns_cli_cache.cache[i].hd;
+            }
+            #endif
         }
     }
+    pthread_spin_unlock(&ns_cli_cache_lock);
     return HANDLER_INVALID;
 }
 static bool_t reg_hd(const char *path, obj_handler_t hd, int split_inx)
 {
     int i = 0;
     int empty = -1;
+
+    pthread_spin_lock(&ns_cli_cache_lock);
     for (i = 0; i < NS_CLI_CACHE_NR; i++)
     {
         if (ns_cli_cache.cache[i].path[0] == 0)
@@ -63,15 +82,19 @@ static bool_t reg_hd(const char *path, obj_handler_t hd, int split_inx)
             strncpy(ns_cli_cache.cache[i].path, path, split_inx);
             ns_cli_cache.cache[i].path[split_inx] = 0;
             ns_cli_cache.cache[i].hd = hd;
+            pthread_spin_unlock(&ns_cli_cache_lock);
             return TRUE;
         }
     }
+    pthread_spin_unlock(&ns_cli_cache_lock);
     return FALSE;
 }
 static void del_hd(obj_handler_t hd)
 {
     int i = 0;
     int empty = -1;
+
+    pthread_spin_lock(&ns_cli_cache_lock);
     for (i = 0; i < NS_CLI_CACHE_NR; i++)
     {
         if (ns_cli_cache.cache[i].path[0] != 0 && ns_cli_cache.cache[i].hd == hd)
@@ -80,6 +103,7 @@ static void del_hd(obj_handler_t hd)
             ns_cli_cache.cache[i].hd = 0;
         }
     }
+    pthread_spin_unlock(&ns_cli_cache_lock);
 }
 
 RPC_GENERATION_CALL3(ns_t, NS_PROT, NS_REGISTER_OP, register,
@@ -175,13 +199,18 @@ next:
         }
     }
 #endif
-    if (reg_hd(path, newfd, msg_tag_get_val(tag)) == FALSE)
+    int s_inx = msg_tag_get_val(tag);
+
+    if (s_inx == strlen(path))
     {
-        printf("The client service cache is full.\n");
-        #if 0
-        handler_free_umap(newfd);
-        return -ENOMEM;
-        #endif
+        if (reg_hd(path, newfd, msg_tag_get_val(tag)) == FALSE)
+        {
+            printf("The client service cache is full.\n");
+            #if 0
+            handler_free_umap(newfd);
+            return -ENOMEM;
+            #endif
+        }
     }
     *svr_hd = newfd;
     return msg_tag_get_val(tag);

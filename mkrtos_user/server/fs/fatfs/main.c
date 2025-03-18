@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
         res = f_mkfs("0:/", &defopt, (void *)(fs.win), FF_MAX_SS); // 第三个参数可以设置成NULL，默认使用heap memory
         if (res != FR_OK)
         {
-            printf("f_mkfs err.\n");
+            printf("f_mkfs err:%d.\n", res);
             exit(-1);
         }
         else

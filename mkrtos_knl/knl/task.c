@@ -557,7 +557,6 @@ static void task_release_stage2(kobject_t *kobj)
     thread_sched(TRUE);
     // arch_to_sche();
     // }
-    // mm_trace();
     printk("release tk %x, name is:%s\n", tk, kobject_get_name(&tk->kobj));
 }
 void task_kill(task_t *tk)

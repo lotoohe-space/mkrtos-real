@@ -275,12 +275,11 @@ void sema_init(sema_t *obj, int cnt, int max)
     ref_counter_inc(&obj->ref);
     obj->max_cnt = max <= 0 ? 1 : max;
     obj->kobj.invoke_func = sema_syscall;
-    // obj->kobj.put_func = thread_put;
     obj->kobj.stage_1_func = sema_release_stage1;
     obj->kobj.stage_2_func = sema_release_stage2;
     obj->kobj.put_func = sema_put;
 
-    printk("sema init cnt:%d max:%d.\n", cnt, max);
+    // printk("sema init cnt:%d max:%d.\n", cnt, max);
 }
 static kobject_t *sema_func(ram_limit_t *lim, umword_t arg0, umword_t arg1,
                             umword_t arg2, umword_t arg3)

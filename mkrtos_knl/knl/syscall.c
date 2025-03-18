@@ -44,7 +44,7 @@ void syscall_entry(entry_frame_t *entry)
     {
         kobj->invoke_func(kobj, sys_p, msg_tag_init(entry->regs[0]), entry);
     }
-     cpulock_set(status);
+    cpulock_set(status);
 end:;
 #if !IS_ENABLED(CONFIG_MMU)
     addr_t u_sp = arch_get_user_sp();

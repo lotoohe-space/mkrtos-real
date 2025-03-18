@@ -349,19 +349,11 @@ int fs_fsync(sd_t _fd)
 /*int unlink(const char *path)*/
 RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_UNLINK, unlink,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path)
-int fs_unlink(const char *path)
+int fs_unlink(obj_handler_t hd, const char *path)
 {
-    obj_handler_t hd;
-    int ret = ns_query(path, &hd, 0);
-
-    if (ret < 0)
-    {
-        return ret;
-    }
-
     rpc_ref_file_array_t rpc_path = {
-        .data = (uint8_t *)(&path[ret]),
-        .len = strlen(&path[ret]) + 1,
+        .data = (uint8_t *)(path),
+        .len = strlen(path) + 1,
     };
 
     msg_tag_t tag = fs_t_unlink_call(hd, &rpc_path);

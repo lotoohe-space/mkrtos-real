@@ -216,7 +216,12 @@
         "cm_backtrace.h": "c",
         "xprintf.h": "c",
         "cmb_def.h": "c",
-        "getopt.h": "c"
+        "getopt.h": "c",
+        "shm.h": "c",
+        "endian.h": "c",
+        "ipc.h": "c",
+        "stdarg.h": "c",
+        "ipcstat.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

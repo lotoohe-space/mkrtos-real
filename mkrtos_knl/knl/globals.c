@@ -76,7 +76,7 @@ INIT_MEM(mem_sys_init);
 #if IS_ENABLED(CONFIG_DTBO_SUPPORT)
 static void dts_parse(void)
 {
-    printk("init dts parsing.\n");
+    printk("init dtbo parsing.\n");
     addr_t entry;
     size_t size;
     void *fdt;
@@ -85,16 +85,12 @@ static void dts_parse(void)
     assert(fdt);
 
     int fdt_size = fdt_totalsize(fdt);
-    printk("fdt_size:%d\n", fdt_size);
+    printk("dtbo: fdt_size:%d\n", fdt_size);
 
     fdt32_t magic = fdt_get_header(fdt, magic);
     assert(magic == 0xd00dfeed);
     fdt32_t version = fdt_get_header(fdt, version);
-    printk("0x%x 0x%0x\n", magic, version);
-    // #if !IS_ENABLED(CONFIG_MMU)
-    //     dts_read_mem_node(fdt);
-    //     dts_read_flash_node(fdt);
-    // #endif
+    printk("dtbo: 0x%x 0x%0x\n", magic, version);
 }
 INIT_ONBOOT(dts_parse);
 #endif

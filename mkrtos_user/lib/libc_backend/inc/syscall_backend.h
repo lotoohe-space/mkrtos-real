@@ -6,6 +6,10 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <sys/socket.h>
+#include <sys/ipc.h>
+#include "sys/shm.h"
+// typedef int key_t;
+
 #define ARG_1_BE(ap, arg0, type0)       \
     do                                  \
     {                                   \
@@ -105,7 +109,7 @@ umword_t be_mmap(void *start,
                  long _offset);
 int be_fcntl(int fd, int cmd, void *arg);
 long be_chdir(const char *path);
-int be_accept(int s, struct sockaddr *addr, socklen_t *addrlen);
+long be_ftruncate(int fd, off_t off);
 // net api
 int be_accept(int s, struct sockaddr *addr, socklen_t *addrlen);
 int be_bind(int s, const struct sockaddr *name, socklen_t namelen);
@@ -125,6 +129,22 @@ ssize_t be_sendto(int s, const void *dataptr, size_t size, int flags,
 int be_socket(int domain, int type, int protocol);
 // end net api
 long be_clock_gettime(clockid_t clk_id, struct timespec *tp);
+
+//shm
+int be_shm_open(const char *name, int flag, mode_t mode);
+int be_inner_shm_ftruncate(sd_t fd, size_t size);
+int be_shm_unlink(const char *path);
+long be_shm_mmap(void *start,
+                 size_t len,
+                 long prot,
+                 long flags,
+                 sd_t sd,
+                 long _offset);
+
+int be_shmget(key_t key, size_t size, int flag);
+void *be_shmat(int id, const void *addr, int flag);
+int be_shmdt(const void *addr);
+int be_shmctl(int id, int cmd, struct shmid_ds *buf);
 
 long sys_mmap(va_list ap);
 long sys_set_tid_address(va_list ap);

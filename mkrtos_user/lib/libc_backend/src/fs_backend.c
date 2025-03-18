@@ -25,6 +25,7 @@
 #include "svr_path.h"
 #include "u_mutex.h"
 #include "u_hd_man.h"
+#include "ns_cli.h"
 #define FS_PATH_LEN 64
 static char cur_path[FS_PATH_LEN] = "/";
 
@@ -47,6 +48,7 @@ void fs_backend_init(void)
     }
     else
     {
+        // init进程直接分配假的fd即可，不用调用be_open打开
         assert(fd_map_alloc(0, 0, FD_TTY) >= 0);
         assert(fd_map_alloc(0, 1, FD_TTY) >= 0);
         assert(fd_map_alloc(0, 2, FD_TTY) >= 0);
@@ -58,11 +60,29 @@ void fs_backend_init(void)
         be_chdir(pwd);
     }
 }
+const char *fs_backend_cur_path(void)
+{
+    return cur_path;
+}
 void fs_cons_write(void *buf, size_t size)
 {
     u_mutex_lock(&lock_cons, 0, NULL);
     ulog_write_bytes(u_get_global_env()->log_hd, buf, size);
     u_mutex_unlock(&lock_cons);
+}
+#define SHM_DEV_PATH "/dev/shm/"
+enum path_type
+{
+    PATH_SHM,
+    PATH_FS,
+};
+static enum path_type be_path_type(const char *path)
+{
+    if (memcmp(SHM_DEV_PATH, path, 9) == 0)
+    {
+        return PATH_SHM;
+    }
+    return PATH_FS;
 }
 int be_open(const char *path, int flags, mode_t mode)
 {
@@ -75,6 +95,20 @@ int be_open(const char *path, int flags, mode_t mode)
     char new_path[FS_PATH_LEN]; // FIXME:动态申请
     u_rel_path_to_abs(cur_path, path, new_path);
 
+    if (be_path_type(new_path) == PATH_SHM)
+    {
+        // 共享内存的路径是固定的
+        fd = be_shm_open(new_path, flags, mode);
+        if (fd < 0)
+        {
+            if (fd == -EISDIR)
+            {
+                goto next;
+            }
+        }
+        return fd;
+    }
+next:
     fd = fs_open(new_path, flags, mode);
     if (fd < 0)
     {
@@ -138,44 +172,6 @@ long sys_be_close(va_list ap)
 
     return be_close(fd);
 }
-#if 0
-static int be_tty_read(char *buf, long size)
-{
-    pid_t pid;
-    int len;
-    int r_len = 0;
-
-    if (size == 0)
-    {
-        return 0;
-    }
-    task_get_pid(TASK_THIS, (umword_t *)(&pid));
-
-    while (r_len < size)
-    {
-        if (pid == 0)
-        {
-            len = ulog_read_bytes(u_get_global_env()->log_hd, buf + r_len, size - r_len);
-        }
-        else
-        {
-            len = cons_read(buf + r_len, size - r_len);
-        }
-        if (len < 0)
-        {
-            return len;
-        }
-        else if (len == 0)
-        {
-            u_sema_down(SEMA_PROT, 0 /*TODO:*/, NULL);
-            continue;
-        }
-        r_len += len;
-        break;
-    }
-    return r_len;
-}
-#endif
 long be_read(long fd, char *buf, long size)
 {
     fd_map_entry_t u_fd;
@@ -254,34 +250,7 @@ long be_readv(long fd, const struct iovec *iov, long iovcnt)
         {
         case FD_TTY:
         {
-#if 0
-            pid_t pid;
-            int read_cn;
-
-            task_get_pid(TASK_THIS, (umword_t *)(&pid));
-            if (pid == 0)
-            {
-                read_cn = ulog_read_bytes(u_get_global_env()->log_hd, iov[i].iov_base, iov[i].iov_len);
-            }
-            else
-            {
-            again_read:
-                read_cn = cons_read(iov[i].iov_base, iov[i].iov_len);
-                if (read_cn < 0)
-                {
-                    return read_cn;
-                }
-                else if (read_cn == 0)
-                {
-                    u_sema_down(SEMA_PROT, 0, NULL);
-                    cons_write_str(".\n");
-                    goto again_read;
-                }
-            }
-            wlen += read_cn;
-#else
             return -ENOSYS;
-#endif
         }
         break;
         case FD_FS:
@@ -512,7 +481,33 @@ long be_unlink(const char *path)
 {
     char new_src_path[FS_PATH_LEN]; // FIXME:动态申请
     u_rel_path_to_abs(cur_path, path, new_src_path);
-    return fs_unlink(new_src_path);
+
+    int path_len = strlen(path);
+    char *parent_last_path;
+
+    if (new_src_path[path_len - 1] == '/')
+    {
+        new_src_path[path_len - 1] = '\0';
+    }
+    
+    parent_last_path = strrchr(new_src_path, '/');
+    if (parent_last_path)
+    {
+        if (parent_last_path == new_src_path)
+        {
+            return -EINVAL;
+        }
+        *parent_last_path = '\0';
+    }
+    obj_handler_t hd;
+    int ret = ns_query(new_src_path, &hd, 0);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+    *parent_last_path = '/';
+    return fs_unlink(hd, ret == 0 ? new_src_path : parent_last_path);
 }
 long be_poll(struct pollfd *fds, nfds_t n, int timeout)
 {
@@ -585,6 +580,37 @@ long sys_be_getdents(va_list ap)
 
     return be_getdents(fd, buf, size);
 }
+long be_ftruncate(int fd, off_t off)
+{
+    fd_map_entry_t u_fd;
+    int ret = fd_map_get(fd, &u_fd);
+
+    if (ret < 0)
+    {
+        return -EBADF;
+    }
+    switch (u_fd.type)
+    {
+    case FD_TTY:
+    {
+        return -ENOSYS;
+    }
+    break;
+    case FD_FS:
+    {
+        ret = fs_ftruncate(u_fd.priv_fd, off);
+    }
+    break;
+    case FD_SHM:
+    {
+        ret = be_inner_shm_ftruncate(u_fd.priv_fd, off);
+    }
+    break;
+    default:
+        return -ENOSYS;
+    }
+    return ret;
+}
 long sys_be_ftruncate(va_list ap)
 {
     long fd;
@@ -593,8 +619,7 @@ long sys_be_ftruncate(va_list ap)
 
     ARG_2_BE(ap, fd, long, off, off_t);
 
-    ret = fs_ftruncate(fd, off);
-
+    ret = be_ftruncate(fd, off);
     return ret;
 }
 int be_fcntl(int fd, int cmd, void *arg)

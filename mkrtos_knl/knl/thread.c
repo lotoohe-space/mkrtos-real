@@ -160,20 +160,6 @@ static bool_t thread_put(kobject_t *kobj)
 }
 static void thread_release_stage1_impl(thread_t *th)
 {
-    // int is_wait_suspend = 0;
-
-    
-    // while(stack_len(&th->com->fast_ipc_stack)!=0)
-    // {
-    //     thread_sleep(1);
-    //     is_wait_suspend = 1;
-    // }
-    // if (is_wait_suspend)
-    // {
-    //     while (th->status != THREAD_SUSPEND) {
-    //         thread_sleep(1);
-    //     }
-    // }
     if (stack_len(&th->com->fast_ipc_stack)==0){
         //处于ipc通信中，不能直接删除，否者会立刻中断ipc中的执行
         if (th->status == THREAD_READY)
@@ -187,52 +173,6 @@ static void thread_release_stage1_impl(thread_t *th)
     } else {
         th->ipc_status = THREAD_IPC_ABORT;
     }
-#if 0
-    thread_wait_entry_t *pos;
-
-    slist_foreach_not_next(
-        pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
-        node_timeout)
-    {
-        assert(pos->th->status == THREAD_SUSPEND);
-        thread_wait_entry_t *next = slist_next_entry(
-            pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
-            node_timeout);
-
-        if (pos->th != th)
-        {
-            pos->th->ipc_status = THREAD_IPC_ABORT;
-            thread_ready(pos->th, FALSE);
-        }
-
-        slist_del(&pos->node_timeout);
-        if (slist_in_list(&pos->node))
-        {
-            slist_del(&pos->node);
-        }
-        pos = next;
-    }
-    thread_wait_entry_t *pos2;
-
-    slist_foreach_not_next(
-        pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-        node)
-    {
-        assert(pos2->th->status == THREAD_SUSPEND);
-        thread_wait_entry_t *next = slist_next_entry(
-            pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-            node);
-
-        slist_del(&pos2->node);
-        if (pos2->th != th)
-        {
-            pos2->th->ipc_status = THREAD_IPC_ABORT;
-            thread_ready(pos2->th, FALSE);
-        }
-        pos2 = next;
-    }
-#endif
-    
 }
 #if IS_ENABLED(CONFIG_SMP)
 static int thread_remote_release_stage1_handler(ipi_msg_t *msg, bool_t *is_sched)
