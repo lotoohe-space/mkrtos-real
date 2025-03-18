@@ -7,6 +7,7 @@ file(
     ff15/source/*.c  
     # ext_disk_drv/*.c 
     ram_disk_drv/*.c
+    # static_ram_disk_drv/*.c
     *.c
 )
 

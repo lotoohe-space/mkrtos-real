@@ -5,6 +5,7 @@ set(ENV{CFLAGS} "${CMAKE_C_FLAGS} \
 -I${CMAKE_SOURCE_DIR}/build/libc/output/include \
 -L${GCC_LIB_PATH}/ \
 -DHAVE_STPCPY -DHAVE_MEMPCPY -DHAVE_PSIGNAL \
+-DMK_PAGE_SIZE=512 \
 -Wl,-no-dynamic-linker -T ${CMAKE_SOURCE_DIR}/mkrtos_user/user/app/binutils-2.33.1/armv7_8m/link.lds \
 -L${CMAKE_SOURCE_DIR}/build/usr_lib \
 -Wl,--start-group \

@@ -64,7 +64,6 @@ int main(int argc, char *argv[])
         printf("dev open failed.\n");
         return -1;
     }
-
     ret = rpc_meta_init_def(TASK_THIS, &hd);
     assert(ret >= 0);
     fs_svr_init();

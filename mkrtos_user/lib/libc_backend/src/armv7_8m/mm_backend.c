@@ -15,10 +15,8 @@
 static int lock_is_init;
 static u_mutex_t lock;
 extern void *app_start_addr;
-#if 0
-static umword_t mm_bitmap[ROUND(CONFIG_SYS_DATA_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
-#endif
-extern umword_t _____mm_bitmap_____[];
+weak umword_t _____mm_bitmap_____[ROUND(CONFIG_SYS_DATA_SIZE, MK_PAGE_SIZE) / (sizeof(umword_t) * 8) + 1];
+// extern umword_t _____mm_bitmap_____[];
 static void *mm_page_alloc(int page_nr)
 {
     int cnt = 0;

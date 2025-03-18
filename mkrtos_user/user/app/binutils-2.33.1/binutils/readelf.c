@@ -61,10 +61,11 @@
 #define HEAP_ATTR
 #define STACK_ATTR
 #endif
+#define ROUND(a, b) (((a) / (b)) + (((a) % (b)) ? 1 : 0))
 
 __attribute__((used)) HEAP_ATTR static char _____heap_____[HEAP_SIZE];
 __attribute__((used)) __attribute__((aligned(8)))  STACK_ATTR static char _____stack_____[STACK_SIZE];
-
+__attribute__((used)) unsigned long _____mm_bitmap_____[ROUND(HEAP_SIZE, MK_PAGE_SIZE) / (sizeof(unsigned long) * 8) + 1];
 #endif
 #if __GNUC__ >= 2
 /* Define BFD64 here, even if our default architecture is 32 bit ELF

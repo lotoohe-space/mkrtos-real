@@ -39,13 +39,13 @@ int ls(int argc, char *agrv[])
         return -ENOMEM;
     }
     ret = getcwd(path, PAGE_SIZE);
-    if (ret < 0) 
+    if (ret < 0)
     {
         u_free(path);
         return ret;
     }
     ret = chdir(in_path);
-    if (ret < 0) 
+    if (ret < 0)
     {
         u_free(path);
         return ret;
@@ -71,7 +71,74 @@ int ls(int argc, char *agrv[])
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), ls, ls, ls command);
+int cp(int argc, char *argv[])
+{
+#define BUFFER_SIZE 64
 
+    int source_fd, target_fd;
+    ssize_t bytes_read, bytes_written;
+    char buffer[BUFFER_SIZE];
+    int ret;
+
+    // 检查参数数量
+    if (argc != 3)
+    {
+        fprintf(stderr, "用法: %s 源文件 目标文件\n", argv[0]);
+        return -1;
+    }
+
+    // 打开源文件
+    source_fd = open(argv[1], O_RDONLY);
+    if (source_fd == -1)
+    {
+        perror("无法打开源文件");
+        return -1;
+    }
+    struct stat st = {0};
+
+    ret = stat(argv[1], &st);
+
+    // 打开目标文件（如果不存在则创建，如果存在则截断）
+    target_fd = open(argv[2], O_WRONLY | O_CREAT, 0644);
+    if (target_fd == -1)
+    {
+        perror("无法打开目标文件");
+        close(source_fd);
+        return -1;
+    }
+    if (ftruncate(target_fd, st.st_size) < 0)
+    {
+        printf("设置文件大小错误\n");
+        return -1;
+    }
+
+    // 复制文件内容
+    while ((bytes_read = read(source_fd, buffer, BUFFER_SIZE)) > 0)
+    {
+        bytes_written = write(target_fd, buffer, bytes_read);
+        if (bytes_written != bytes_read)
+        {
+            perror("写入目标文件失败");
+            close(source_fd);
+            close(target_fd);
+            return -1;
+        }
+    }
+
+    if (bytes_read == -1)
+    {
+        perror("读取源文件失败");
+    }
+
+    // 关闭文件
+    close(source_fd);
+    close(target_fd);
+
+    printf("文件复制成功！\n");
+
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), cp, cp, cp command);
 int rm(int argc, char *agrv[])
 {
     int ret;

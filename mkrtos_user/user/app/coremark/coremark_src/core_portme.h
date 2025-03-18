@@ -22,7 +22,7 @@ Original Author: Shay Gal-on
 #ifndef CORE_PORTME_H
 #define CORE_PORTME_H
 
-#define ITERATIONS 25000
+#define ITERATIONS 80000
 
 /************************/
 /* Data types and settings */

@@ -76,7 +76,7 @@ static inline uint16_t cal_CRC16(const uint8_t *data, uint32_t size)
     return (crc & 0xffffu);
 }
 
-int ymodem_receive(const char *path, int fd)
+int ymodem_receive(int fd)
 {
     int fd_file;
     char start_char, tmp_char;
@@ -160,7 +160,7 @@ int ymodem_receive(const char *path, int fd)
                 file_size = atoi((buf + strlen(buf) + 1));
                 PRINTF("file size: %d\n", file_size);
 
-                fd_file = open(path, O_RDWR | O_CREAT | O_TRUNC, 0777);
+                fd_file = open(buf, O_RDWR | O_CREAT | O_TRUNC, 0777);
                 if (fd_file < 0)
                 {
                     perror("open() file");
@@ -315,9 +315,9 @@ int main(int argc, char **argv)
     //     return -1;
     // }
     // char *path = argv[1];
-    char *path = "/mnt/1.txt";
+    // char *path = "/mnt/1.txt";
     ret = 0;
-    printf("recv file is %.\n", path);
+    // printf("recv file is %.\n", path);
     fd = open("/dev/tty", O_RDWR | O_NONBLOCK);
     if (fd < 0)
     {
@@ -332,7 +332,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    ret = ymodem_receive(path, fd);
+    ret = ymodem_receive(fd);
     if (ret < 0)
     {
         PRINTF("ymodem_receive() error\n");
