@@ -25,6 +25,7 @@ void putc(int c);
  * @return int
  */
 int getc(void);
+void put_bytes(const uint8_t *data, size_t len);
 /**
  * @brief 打印内核信息
  *

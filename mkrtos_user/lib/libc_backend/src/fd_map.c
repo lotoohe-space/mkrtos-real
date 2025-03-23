@@ -43,7 +43,6 @@ int fd_map_alloc(uint32_t svr_fd, uint32_t priv_fd, enum fd_type type)
 {
     int alloc_fd = 0;
 
-again_alloc:
     pthread_spin_lock(&fd_map.lock);
     if (fd_map.free_fd >= FD_MAP_TOTAL)
     {
@@ -142,6 +141,7 @@ int fd_map_update(int fd, fd_map_entry_t *new_entry)
     fd_map.row[row_inx]->entry[inx] = *new_entry;
     fd_map.row[row_inx]->entry[inx].flags = flags;
     pthread_spin_unlock(&fd_map.lock);
+    return 0;
 }
 /**
  * @brief 释放fd

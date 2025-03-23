@@ -74,7 +74,7 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
     msg_tag_t tag;
     obj_handler_t th1_hd;
     struct pthread *ph;
-    struct start_args *st_args = args;
+    // struct start_args *st_args = args;
 
     ph = (struct pthread *)((char *)tls - sizeof(struct pthread));
 
@@ -144,7 +144,6 @@ end_free_mm:
 #if IS_ENABLED(CONFIG_MMU)
     u_vmam_free(VMA_PROT, msg_buf_addr, PAGE_SIZE);
 #endif
-end:
     handler_free_umap(th1_hd);
 end_ok:
     return ret;

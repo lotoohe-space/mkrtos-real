@@ -95,11 +95,13 @@ int blk_drv_info(blk_drv_info_t *info)
     ret = flash_get_sector_size(&mem_addr, &blk_size, &blk_nr);
     if (ret < 0)
     {
+        printf("blk drv info error : %d\n", ret);
         return ret;
     }
     info->blk_nr = blk_nr;
     info->blk_size = blk_size;
     info->blk_start_addr = mem_addr;
+    printf("[block] 0x%x %d\n", info->blk_start_addr, info->blk_size);
     return 0;
 }
 int main(int argc, char *argv[])
@@ -113,8 +115,6 @@ int main(int argc, char *argv[])
         printf("example:block /block");
         return -1;
     }
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_blk");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_blk");
     printf("%s init..\n", argv[0]);
     fast_ipc_init();
 
@@ -122,11 +122,11 @@ int main(int argc, char *argv[])
     blk_drv_init(&blk_drv);
     ret = rpc_meta_init_def(TASK_THIS, &hd);
     assert(ret >= 0);
-    ns_register(argv[1], hd, 0);
     meta_reg_svr_obj(&blk_drv.svr, BLK_DRV_PROT);
+    ns_register(argv[1], hd, 0);
 
     while (1)
     {
-        u_sleep_ms(0);
+        u_sleep_ms(U_SLEEP_ALWAYS);
     }
 }

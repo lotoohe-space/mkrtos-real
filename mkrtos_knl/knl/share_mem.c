@@ -453,7 +453,7 @@ static void share_mem_unmap_op(task_t *tk, share_mem_t *sm)
 }
 static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
-    ssize_t ret;
+    ssize_t ret = 0;
     msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
     task_t *task = thread_get_current_task();
     share_mem_t *sm = container_of(kobj, share_mem_t, kobj);

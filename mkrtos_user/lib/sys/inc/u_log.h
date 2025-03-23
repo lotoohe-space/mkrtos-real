@@ -7,4 +7,4 @@
 
 void ulog_write_bytes(obj_handler_t obj_inx, const uint8_t *data, umword_t len);
 void ulog_write_str(obj_handler_t obj_inx, const char *str);
-int ulog_read_bytes(obj_handler_t obj_inx, uint8_t *data, umword_t len);
+int ulog_read_bytes(obj_handler_t obj_inx, uint8_t *data, umword_t len, int flags);

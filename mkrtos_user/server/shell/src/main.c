@@ -60,16 +60,7 @@ void fast_ipc_test(void)
 
 int main(int argc, char *args[])
 {
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_sh");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_sh");
-#if 0
-    thread_run(-1, 3);
-#endif
     // fast_ipc_test();
-    for (int i = 0; i < argc; i++)
-    {
-        printf("args[%d]:%s\n", i, args[i]);
-    }
-    userShellInit();
+    userShellInit(argc, args);
     return 0;
 }

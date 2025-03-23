@@ -14,7 +14,7 @@ int u_intr_bind(int irq_no, u_irq_prio_t prio, int th_prio,
     obj_handler_t irq_obj = handler_alloc();
     obj_handler_t th_hd;
     msg_tag_t tag;
-    int ret;
+    int ret = 0;
 
     if (irq_obj == HANDLER_INVALID)
     {

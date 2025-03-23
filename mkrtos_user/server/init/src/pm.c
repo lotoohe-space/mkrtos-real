@@ -136,7 +136,7 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
 #endif
     entry->sig_hd = sig_rcv_hd;
     entry->src_pid = src_pid; // 监控的pid
-    entry->watch_pid = pid; //被监控的pid
+    entry->watch_pid = pid;   // 被监控的pid
     entry->flags = flags;
     slist_init(&entry->node);
     slist_add_append(&pm->watch_head, &entry->node);
@@ -151,7 +151,7 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
  * @param pid
  * @return bool_t
  */
-static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
+static void pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
 {
     ipc_msg_t *ipc;
     watch_entry_t *pos;
@@ -173,12 +173,13 @@ static bool_t pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
                 ret = sig_kill(pos->sig_hd, sig_val, pid);
             }
             slist_del(&pos->node);
-            handler_free_umap(pos->sig_hd);   //!< 删除信号通知的ipc
+            handler_free_umap(pos->sig_hd); //!< 删除信号通知的ipc
             // handler_free_umap(pos->watch_pid); //!< 删除被watch的进程
             u_free(pos);
         }
         pos = next;
     }
+    return ;
 }
 #endif
 /**
@@ -200,18 +201,59 @@ int pm_rpc_kill_task(int src_pid, int pid, int flags, int exit_code)
         printf("pid is error.\n");
         return -EINVAL;
     }
-    // ns_node_del_by_pid(pid, flags); TODO:         //!< 从ns中删除
-    #if IS_ENABLED(CONFIG_USING_SIG)
+// ns_node_del_by_pid(pid, flags); TODO:         //!< 从ns中删除
+#if IS_ENABLED(CONFIG_USING_SIG)
     if (src_pid != pid)
     {
         // 发起者自己删除
         handler_del_umap(pid);
     }
     pm_send_sig_to_task(&pm, pid, KILL_SIG); //!< 给watch者发送sig
-    #endif
+#endif
     pm_del_watch_by_pid(&pm, pid); //!< 从watch中删除
     printf("[pm] kill pid:%d code:%d.\n", pid, exit_code);
     return 0;
+}
+#include "u_task.h"
+#include "u_factory.h"
+/**
+ * @return >0 pid <0 错误码
+ */
+static int pm_rpc_create_dummy_task(int mem_block, size_t app_size)
+{
+    obj_handler_t hd_task = handler_alloc();
+    msg_tag_t tag;
+    addr_t ram_base;
+
+    if (hd_task == HANDLER_INVALID)
+    {
+        goto end;
+    }
+    tag = factory_create_task(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_task));
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
+    tag = task_alloc_ram_base(hd_task, app_size,
+                              &ram_base, mem_block, (addr_t)NULL, 0);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
+    tag = task_set_pid(hd_task, hd_task); //!< 设置进程的pid就是进程hd号码
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
+    printf("dummy task pid:%d addr:0x%x\n\n", hd_task, ram_base);
+    return hd_task;
+end_del_obj:
+    if (hd_task != HANDLER_INVALID)
+    {
+        task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_task));
+    }
+end:
+    return -ENOMEM;
 }
 /**
  * @brief 运行一个新的app
@@ -220,25 +262,42 @@ int pm_rpc_kill_task(int src_pid, int pid, int flags, int exit_code)
  * @param flags
  * @return int
  */
-int pm_rpc_run_app(const char *path, int mem_block, char *params, int params_len, char *envs_in, int envs_in_len)
+int pm_rpc_run_app(const char *path, pm_flags_t pm_flags, char *params, int params_len_or_app_size,
+                   char *envs_in, int envs_in_len)
 {
-    pid_t pid;
+    pid_t pid = HANDLER_INVALID;
     int ret;
     int i;
     int j = 0;
     int args_len = 0;
     int evns_len = 0;
+
+    if (pm_flags.flags & PM_CREATE_DUMMY_TASK)
+    {
+        return pm_rpc_create_dummy_task(pm_flags.mem_block, params_len_or_app_size);
+    }
+    int obj_type;
+    if (msg_tag_get_val(task_obj_valid(TASK_THIS, pm_flags.pid, &obj_type)) != 1)
+    {
+        pid = HANDLER_INVALID;
+    }
+    else if (obj_type != TASK_TYPE)
+    {
+        pid = HANDLER_INVALID;
+    }
+    else
+    {
+        pid = pm_flags.pid;
+    }
     printf("pm run %s.\n", path);
     char *args[CMD_PARAMS_CN] = {
         (char *)path,
     };
-    char *envs[8/*FIXME:*/] = {
-    };
-
+    char *envs[CMD_ENVS_CN] = {};
 
     for (i = 1, j = 0; *params && i < CMD_PARAMS_CN; i++)
     {
-        if (j >= params_len)
+        if (j >= params_len_or_app_size)
         {
             break;
         }
@@ -249,7 +308,7 @@ int pm_rpc_run_app(const char *path, int mem_block, char *params, int params_len
     }
     args_len = i;
 
-    for (i = 0, j = 0; *envs_in && i < CMD_PARAMS_CN; i++)
+    for (i = 0, j = 0; *envs_in && i < CMD_ENVS_CN; i++)
     {
         if (j >= envs_in_len)
         {
@@ -263,7 +322,8 @@ int pm_rpc_run_app(const char *path, int mem_block, char *params, int params_len
     evns_len = i;
 
     ret = app_load(path, u_get_global_env(), &pid, args, args_len,
-                   envs, evns_len,  mem_block);
+                   envs, evns_len, pm_flags.mem_block,
+                   !!(pm_flags.flags & PM_USE_LOAD_TO_RAM));
     if (ret >= 0)
     {
         return pid;

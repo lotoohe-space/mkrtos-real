@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 
 #include "thread.h"
 typedef struct thread_wait_entry

@@ -53,7 +53,7 @@ static int mk_display_drv_ioctl(mk_dev_t *_dev, int cmd, umword_t args)
     mk_display_dev_t *dis_dev = _dev->priv_data;
     mk_display_ops_t *ops = dis_dev->ops;
     assert(ops);
-    int ret;
+    int ret = 0;
     pid_t cur_pid;
 
     switch (cmd)

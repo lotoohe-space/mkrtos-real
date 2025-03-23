@@ -41,7 +41,7 @@ int fs_svr_open(const char *path, int flags, int mode)
         int w_ret = pm_sig_watch(pid, 0 /*TODO:现在只有kill */);
         if (w_ret < 0)
         {
-            printf("pm wath pid %d err.\n", w_ret);
+            printf("appfs wath pid %d err.\n", w_ret);
         }
 #endif
     }

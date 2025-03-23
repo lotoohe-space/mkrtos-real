@@ -24,7 +24,7 @@
  */
 RPC_GENERATION_OP6(pm_t, PM_PROT, PM_RUN_APP, run_app,
                    rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mem_block,
+                   rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, pm_flags,
                    rpc_ref_array_uint32_t_uint8_t_96_t, rpc_array_uint32_t_uint8_t_96_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len,
                    rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, envs,
@@ -33,14 +33,18 @@ RPC_GENERATION_OP6(pm_t, PM_PROT, PM_RUN_APP, run_app,
 {
     int16_t ret = -1;
 
-    path->data[path->len - 1] = 0;
-    ret = pm_rpc_run_app(path->data, mem_block->data, params->data, params_len->data, envs->data, envs_len->data);
+    if (path->len)
+    {
+        path->data[path->len - 1] = 0;
+    }
+    ret = pm_rpc_run_app((char *)path->data, pm_flags_init_raw(pm_flags->data),
+    (char *)params->data, params_len->data, (char *)envs->data, envs_len->data);
     return ret;
 }
 
 RPC_GENERATION_DISPATCH6(pm_t, PM_PROT, PM_RUN_APP, run_app,
                    rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mem_block,
+                   rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, pm_flags,
                    rpc_ref_array_uint32_t_uint8_t_96_t, rpc_array_uint32_t_uint8_t_96_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len,
                    rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, envs,

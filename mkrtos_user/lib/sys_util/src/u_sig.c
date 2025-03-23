@@ -50,7 +50,6 @@ int pm_sig_del_watch(pid_t pid, int flags)
  */
 int pm_waitpid(pid_t pid, umword_t *status)
 {
-    msg_tag_t tag;
 
     wait_pid = pid;
     pm_sig_watch(pid, 0);
@@ -72,7 +71,7 @@ static int kill(int flags, int pid)
 {
     int ret = -EINVAL;
 
-        printf("kill pid:%d, flags:0x%x\n", pid ,flags);
+    printf("kill pid:%d, flags:0x%x\n", pid ,flags);
     if (wait_pid == pid || wait_pid == -1)
     {
         u_sema_up(sema_wait_hd);

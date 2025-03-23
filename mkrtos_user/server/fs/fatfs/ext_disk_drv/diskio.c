@@ -150,7 +150,7 @@ DRESULT disk_ioctl(
 			*(DWORD *)buff = FLASH_SECTOR_COUNT;
 			return RES_OK;
 		case GET_SECTOR_SIZE: // sector size, 传入block size(SD),单位bytes
-			*(DWORD *)buff = FLASH_SECTOR_SIZE;
+			*(WORD *)buff = FLASH_SECTOR_SIZE;
 			return RES_OK;
 		case GET_BLOCK_SIZE:				   // block size, 由上文可得，对于SD2.0卡最大8192，最小 1
 			*(DWORD *)buff = FLASH_BLOCK_SIZE; // 单位为 sector(FatFs)

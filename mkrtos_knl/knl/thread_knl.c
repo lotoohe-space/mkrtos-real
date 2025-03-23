@@ -48,8 +48,8 @@ static task_t knl_task;
 static thread_t *init_thread;
 static task_t *init_task;
 static thread_t *knl_thread[CONFIG_CPU];
-static slist_head_t del_task_head; //!<链表中是需要被删除的进程
-static slist_head_t del_thread_head;//!<链表中是需要被释放内存的线程
+static slist_head_t del_task_head;   //!< 链表中是需要被删除的进程
+static slist_head_t del_thread_head; //!< 链表中是需要被释放内存的线程
 static umword_t cpu_usage[CONFIG_CPU];
 static spinlock_t del_lock;
 static umword_t cpu_usage_last_tick_val[CONFIG_CPU];
@@ -63,19 +63,15 @@ static void knl_release_thread(void)
     if (slist_is_empty(&del_thread_head))
     {
         spinlock_set(&del_lock, status2);
-        return ;
+        return;
     }
     slist_foreach_not_next(pos, &del_thread_head, release_node)
     {
         thread_t *next = slist_next_entry(pos, &del_thread_head, release_node);
-        int ret;
 
         // printk("+++++release th:0x%x\n", pos);
-        ret = ref_counter_dec_and_release(&pos->ref, &pos->kobj);
-        // if (ret == 1)
-        // {
-            // printk("------release th:0x%x\n", pos);
-        // }
+        ref_counter_dec_and_release(&pos->ref, &pos->kobj);
+        // printk("------release th:0x%x\n", pos);
         slist_del(&pos->release_node);
         pos = next;
     }
@@ -90,7 +86,7 @@ static void knl_del_task(void)
     if (slist_is_empty(&del_task_head))
     {
         spinlock_set(&del_lock, status2);
-        return ;
+        return;
     }
     // 在这里删除进程
     slist_foreach_not_next(pos, &del_task_head, del_node)
@@ -305,7 +301,8 @@ bool_t task_knl_kill(thread_t *kill_thread, bool_t is_knl)
     task_t *task = container_of(kill_thread->task, task_t, kobj);
     if (!is_knl)
     {
-        printk("kill %s th:0x%x task:0x%x, pid:%d\n", kobject_get_name(&task->kobj), kill_thread, task, task->pid);
+        printk("kill task:0x%x-->%s th:0x%x-->%s, pid:%d\n", task, kobject_get_name(&task->kobj), kill_thread,
+               kobject_get_name(&kill_thread->kobj), task->pid);
         umword_t status2;
 
         status2 = spinlock_lock(&del_lock);

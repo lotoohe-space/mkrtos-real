@@ -21,7 +21,6 @@
                                                                                                                                     \
         int off = 0;                                                                                                                \
         int off_buf = 0;                                                                                                            \
-        int ret = -1;                                                                                                               \
         umword_t op_val = op;                                                                                                       \
         /*拷贝op*/                                                                                                                  \
         rpc_memcpy(msg_ipc->msg_buf, &op_val, sizeof(op_val));                                                                      \

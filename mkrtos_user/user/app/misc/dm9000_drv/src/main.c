@@ -70,10 +70,10 @@ int main(int argc, char *args[])
     assert(ret >= 0);
     meta_reg_svr_obj(&net_drv.svr, BLK_DRV_PROT);
 
+    
+    assert(DM9000_Init(1) == 0);
     assert(ns_register("/dm9000", hd, 0) >= 0);
     mk_printf("dm9000 reg success\n");
-
-    assert(DM9000_Init(1) == 0);
     rpc_loop(); //!< loop
     return 0;
 }

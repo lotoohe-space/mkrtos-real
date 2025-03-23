@@ -8,6 +8,7 @@ enum task_op_code
     TASK_OBJ_MAP,
     TASK_OBJ_UNMAP,
     TASK_ALLOC_RAM_BASE,
+    TASK_GET_RAM_INFO,   //!< 获取task的ram信息
     TASK_OBJ_VALID,
     TASK_SET_PID,
     TASK_GET_PID,
@@ -163,6 +164,35 @@ msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *all
     if (alloc_addr)
     {
         *alloc_addr = r1;
+    }
+
+    return msg_tag_init(r0);
+}
+MK_SYSCALL
+msg_tag_t task_alloc_get_ram_info(obj_handler_t task_han, addr_t *ram_addr, size_t *size)
+{
+    register volatile umword_t r0 asm(ARCH_REG_0);
+    register volatile umword_t r1 asm(ARCH_REG_1);
+    register volatile umword_t r2 asm(ARCH_REG_2);
+
+    mk_syscall(syscall_prot_create(TASK_GET_RAM_INFO, TASK_PROT, task_han).raw,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0);
+    asm __volatile__(""
+                     :
+                     :
+                     : ARCH_REG_0, ARCH_REG_1);
+    if (ram_addr)
+    {
+        *ram_addr = r1;
+    }
+    if (size)
+    {
+        *size = r2;
     }
 
     return msg_tag_init(r0);

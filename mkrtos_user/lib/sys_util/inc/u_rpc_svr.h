@@ -18,6 +18,7 @@ static inline int rpc_svr_obj_init(rpc_svr_obj_t *obj, rpc_dispatch_func dis, mw
 {
     obj->dispatch = dis;
     obj->prot = prot;
+    return 0;
 }
 
 #define META_PROT_NR 4

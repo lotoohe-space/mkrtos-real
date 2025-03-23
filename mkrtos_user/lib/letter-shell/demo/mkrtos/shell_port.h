@@ -16,5 +16,5 @@
 
 extern Shell shell;
 
-void userShellInit(void);
+void userShellInit(int argc, char *args[]);
 #endif

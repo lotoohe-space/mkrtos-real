@@ -38,14 +38,14 @@ int fcntl(int fd, int cmd, ...)
 	#ifdef NO_LITTLE_MODE
 		int ret = __syscall(SYS_fcntl, fd, F_DUPFD_CLOEXEC, arg);
 	#else
-		int ret = be_fcntl( fd, F_DUPFD_CLOEXEC, arg);
+		int ret = be_fcntl( fd, F_DUPFD_CLOEXEC, (void *)arg);
 	#endif
 		if (ret != -EINVAL) {
 			if (ret >= 0)
 	#ifdef NO_LITTLE_MODE
 				__syscall(SYS_fcntl, ret, F_SETFD, FD_CLOEXEC);
 	#else
-				be_fcntl(ret, F_SETFD, FD_CLOEXEC);
+				be_fcntl(ret, F_SETFD, (void *)FD_CLOEXEC);
 	#endif
 			return __syscall_ret(ret);
 		}
@@ -66,8 +66,8 @@ int fcntl(int fd, int cmd, ...)
 		ret = __syscall(SYS_fcntl, fd, F_DUPFD, arg);
 		if (ret >= 0) __syscall(SYS_fcntl, ret, F_SETFD, FD_CLOEXEC);
 	#else
-		ret = be_fcntl(fd, F_DUPFD, arg);
-		if (ret >= 0) be_fcntl(ret, F_SETFD, FD_CLOEXEC);
+		ret = be_fcntl(fd, F_DUPFD, (void *)arg);
+		if (ret >= 0) be_fcntl(ret, F_SETFD, (void *)FD_CLOEXEC);
 	#endif
 		return __syscall_ret(ret);
 	}

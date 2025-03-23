@@ -48,7 +48,6 @@ void sema_up(sema_t *obj)
     thread_t *th = thread_get_current();
 
     ref_counter_inc(&obj->ref);
-again:
     status = spinlock_lock(&obj->lock);
     if (slist_is_empty(&obj->suspend_head))
     {

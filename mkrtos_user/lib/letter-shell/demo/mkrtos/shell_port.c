@@ -31,11 +31,15 @@
 #include "u_sleep.h"
 #include "u_sema.h"
 #include "u_task.h"
+#include <errno.h>
+#include <stdlib.h>
 static Shell shell;
 static ShellFs shellFs;
-static char shellBuffer[512];
+static char shellBuffer[1024];
 // static char shellPathBuffer[128] = "/";
-
+static struct termios old_settings;
+static struct termios new_settings;
+int script_sh_fd = STDIN_FILENO;
 /**
  * @brief 用户shell写
  *
@@ -45,7 +49,11 @@ static char shellBuffer[512];
  * @return unsigned short 写入实际长度
  */
 signed short userShellWrite(char *data, unsigned short len)
-{    return write(STDOUT_FILENO, data, len);
+{
+    // if (script_sh_fd == STDIN_FILENO)
+    {
+        return write(STDOUT_FILENO, data, len);
+    }
 }
 
 /**
@@ -60,7 +68,13 @@ signed short userShellRead(char *data, unsigned short len)
 {
     int rlen;
 
-    rlen = read(STDIN_FILENO, data, len);
+    rlen = read(script_sh_fd, data, len);
+    if (rlen <= 0)
+    {
+        if (errno != ENOTTY && errno != EAGAIN) {
+            exit(0);
+        }
+    }
     return rlen;
 }
 /**
@@ -95,31 +109,47 @@ size_t userShellListDir(char *path, char *buffer, size_t maxLen)
     closedir(dir);
     return 0;
 }
-static struct termios old_settings;
-static struct termios new_settings;
 
 void tty_set_raw_mode(void)
 {
-    new_settings = old_settings;
-    new_settings.c_lflag &= ~(ICANON | ECHO);   // 禁用规范模式和回显
-    new_settings.c_cc[VMIN] = 1;                // 读取的最小字符数
-    new_settings.c_cc[VTIME] = 0;               // 读取的超时时间（以10ms为单位）
-    tcsetattr(STDIN_FILENO, TCSANOW, &new_settings);
+    if (script_sh_fd == STDIN_FILENO)
+    {
+        new_settings = old_settings;
+        new_settings.c_lflag &= ~(ICANON | ECHO);   // 禁用规范模式和回显
+        new_settings.c_cc[VMIN] = 1;                // 读取的最小字符数
+        new_settings.c_cc[VTIME] = 0;               // 读取的超时时间（以10ms为单位）
+        tcsetattr(script_sh_fd, TCSANOW, &new_settings);
+    }
 }
 void tty_set_normal_mode(void)
 {
-    tcsetattr(STDIN_FILENO, TCSANOW, &old_settings);
+    if (script_sh_fd == STDIN_FILENO)
+    {
+        tcsetattr(script_sh_fd, TCSANOW, &old_settings);
+    }
 }
 /**
  * @brief 用户shell初始化
  *
  */
-void userShellInit(void)
+void userShellInit(int argc, char *args[])
 {
-    tcgetattr(STDIN_FILENO, &old_settings);
-    tty_set_raw_mode();
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_shell");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_shell");
+    if (argc > 1)
+    {
+        printf("run script:%s\n", args[1]);
+        script_sh_fd = open(args[1], O_RDWR, 0777);
+        if (script_sh_fd < 0)
+        {
+            script_sh_fd = STDIN_FILENO;
+        }
+    } else {
+        script_sh_fd = STDIN_FILENO;
+    }
+    if (script_sh_fd == STDIN_FILENO)
+    {
+        tcgetattr(script_sh_fd, &old_settings);
+        tty_set_raw_mode();
+    }
     // shellFs.getcwd = getcwd;
     // shellFs.chdir = chdir;
     // shellFs.listdir = userShellListDir;

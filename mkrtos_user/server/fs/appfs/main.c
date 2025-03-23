@@ -38,12 +38,6 @@ int main(int argc, char *argv[])
     char *mount_path = NULL;
     char *dev_path = NULL;
 
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_appfs");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_appfs");
-    for (int i = 0; i < argc; i++)
-    {
-        printf("args[%d]:%s\n", i, argv[i]);
-    }
     fast_ipc_init();
     int o;
     const char *optstring = "d:m:"; // 有三个选项-abc，其中c选项后有冒号，所以后面必须有参数
@@ -53,6 +47,7 @@ int main(int argc, char *argv[])
         {
         case 'd':
             dev_path = optarg;
+            printf("dev path:%s\n", optarg);
             break;
         case 'm':
             printf("mount path:%s\n", optarg);
@@ -71,20 +66,17 @@ int main(int argc, char *argv[])
         return -1;
     }
     ret = hw_init_block(&fs_obj, dev_path);
-    assert(ret >= 0);
+    assert(ret >= 0 && "hw_init_block error.");
     ret = appfs_init(&fs_obj);
-    assert(ret >= 0);
+    assert(ret >= 0 && "appfs_init error.");
     ret = appfs_open_init(&fs_obj);
-    assert(ret >= 0);
+    assert(ret >= 0 && "appfs_open_init error.");
 
     ret = rpc_meta_init_def(TASK_THIS, &hd);
-    assert(ret >= 0);
+    assert(ret >= 0 && "rpc_meta_init_def error.");
     fs_svr_init();
     ns_register(mount_path, hd, 0);
     cons_write_str("appfs mount success\n");
-#if 0
-    fs_svr_loop();
-#endif
     while (1)
     {
         u_sleep_ms(U_SLEEP_ALWAYS);

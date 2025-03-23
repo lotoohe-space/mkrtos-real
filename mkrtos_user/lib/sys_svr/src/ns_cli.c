@@ -35,7 +35,6 @@ static pthread_spinlock_t ns_cli_cache_lock;
 static obj_handler_t find_hd(const char *path, int *split_pos)
 {
     int i = 0;
-    int empty = -1;
 
     pthread_spin_lock(&ns_cli_cache_lock);
     for (i = 0; i < NS_CLI_CACHE_NR; i++)
@@ -72,7 +71,6 @@ static obj_handler_t find_hd(const char *path, int *split_pos)
 static bool_t reg_hd(const char *path, obj_handler_t hd, int split_inx)
 {
     int i = 0;
-    int empty = -1;
 
     pthread_spin_lock(&ns_cli_cache_lock);
     for (i = 0; i < NS_CLI_CACHE_NR; i++)
@@ -92,7 +90,6 @@ static bool_t reg_hd(const char *path, obj_handler_t hd, int split_inx)
 static void del_hd(obj_handler_t hd)
 {
     int i = 0;
-    int empty = -1;
 
     pthread_spin_lock(&ns_cli_cache_lock);
     for (i = 0; i < NS_CLI_CACHE_NR; i++)
@@ -135,7 +132,7 @@ int ns_register(const char *path, obj_handler_t svr_hd, int flags)
     return msg_tag_get_val(tag);
 }
 
-int ns_query(const char *path, obj_handler_t *svr_hd, int flags)
+int ns_query(const char *path, obj_handler_t *svr_hd)
 {
     int inx = 0;
     assert(path);
@@ -215,11 +212,11 @@ next:
     *svr_hd = newfd;
     return msg_tag_get_val(tag);
 }
-int ns_query_svr(const char *path, obj_handler_t *svr_hd, int flags)
+int ns_query_svr(const char *path, obj_handler_t *svr_hd)
 {
     int ret;
 
-    ret = ns_query(path, svr_hd, flags);
+    ret = ns_query(path, svr_hd);
     if (ret < 0)
     {
         return ret;

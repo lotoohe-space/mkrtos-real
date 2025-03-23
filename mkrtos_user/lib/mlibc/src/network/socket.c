@@ -31,9 +31,9 @@ int socket(int domain, int type, int protocol)
 			__syscall(SYS_fcntl, s, F_SETFL, O_NONBLOCK);
 	#else
 	if (type & SOCK_CLOEXEC)
-			be_fcntl(s, F_SETFD, FD_CLOEXEC);
+			be_fcntl(s, F_SETFD, (void *)FD_CLOEXEC);
 		if (type & SOCK_NONBLOCK)
-			be_fcntl(s, F_SETFL, O_NONBLOCK);
+			be_fcntl(s, F_SETFL, (void *)O_NONBLOCK);
 	#endif
 	}
 	return __syscall_ret(s);

@@ -12,7 +12,7 @@ RPC_GENERATION_OP2(drv_t, FS_PROT, DRV_OPEN, open,
                    rpc_uint32_t_t, rpc_uint32_t_t, RPC_DIR_IN, RPC_TYPE_DATA, oflags)
 {
     name->data[name->len - 1] = 0;
-    return dev_open(name->data, oflags->data);
+    return dev_open((char *)name->data, oflags->data);
 }
 
 RPC_GENERATION_DISPATCH2(drv_t, FS_PROT, DRV_OPEN, open,

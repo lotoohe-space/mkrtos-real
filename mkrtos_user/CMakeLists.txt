@@ -6,6 +6,7 @@ if (${CONFIG_ARCH} STREQUAL "cortex-m3" OR
     ${CONFIG_ARCH} STREQUAL "cortex-m33"
     )
     # -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative
+    # -mlong-calls -mword-relocations
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
     -fPIC -fPIE -n -pie -fpie -fpic -msingle-pic-base -mno-pic-data-is-text-relative \
    \

@@ -24,78 +24,6 @@ enum IPC_TYPE
     IPC_FAST_CALL, //!< 快速CALL通信，不切换上下文
     IPC_FAST_REPLAY,
 };
-#if 0
-
-msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj, obj_handler_t ipc_obj)
-{
-    register volatile umword_t r0 asm(ARCH_REG_0);
-    register volatile umword_t r1 asm(ARCH_REG_1);
-    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, -1, TRUE).raw,
-               0,
-               IPC_WAIT,
-               0,
-               timeout.raw,
-               ipc_obj,
-               0);
-    asm __volatile__(""
-                     :
-                     :
-                     : ARCH_REG_0, ARCH_REG_1);
-    if (obj)
-    {
-        *obj = r1;
-    }
-    return msg_tag_init(r0);
-}
-msg_tag_t thread_ipc_reply(msg_tag_t in_tag, ipc_timeout_t timeout)
-{
-    register volatile umword_t r0 asm(ARCH_REG_0);
-    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, -1, TRUE).raw,
-               in_tag.raw,
-               IPC_REPLY,
-               0,
-               timeout.raw,
-               0,
-               0);
-    asm __volatile__(""
-                     :
-                     :
-                     : ARCH_REG_0);
-    return msg_tag_init(r0);
-}
-msg_tag_t thread_ipc_send(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout)
-{
-    register volatile umword_t r0 asm(ARCH_REG_0);
-    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, target_th_obj, TRUE).raw,
-               in_tag.raw,
-               IPC_SEND,
-               0,
-               timeout.raw,
-               0,
-               0);
-    asm __volatile__(""
-                     :
-                     :
-                     : ARCH_REG_0);
-    return msg_tag_init(r0);
-}
-msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout)
-{
-    register volatile umword_t r0 asm(ARCH_REG_0);
-    mk_syscall(syscall_prot_create4(DO_IPC, THREAD_PROT, target_th_obj, TRUE).raw,
-               in_tag.raw,
-               IPC_CALL,
-               0,
-               timeout.raw,
-               0,
-               0);
-    asm __volatile__(""
-                     :
-                     :
-                     : ARCH_REG_0);
-    return msg_tag_init(r0);
-}
-#endif
 MK_SYSCALL
 msg_tag_t thread_sleep(umword_t ticks)
 {
@@ -111,6 +39,7 @@ msg_tag_t thread_sleep(umword_t ticks)
                      :
                      :
                      : ARCH_REG_0);
+    return msg_tag_init(r0);
 }
 MK_SYSCALL
 msg_tag_t thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj, umword_t arg0, umword_t arg1, umword_t arg2)

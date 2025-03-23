@@ -1,8 +1,15 @@
 
 
-
+int a;
+int b;
 int _start_c(void)
 {
-    *((char *)(0)) = 0;
-    return 0;
+    a = 1;
+    b = 2;
+    while(a++ < 100)
+    {
+        ulog_write_bytes(4, "tcc test\n", 9);
+    }
+   
+    return a+b;
 }

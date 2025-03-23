@@ -15,6 +15,7 @@ msg_tag_t task_map(obj_handler_t dst_task, obj_handler_t src_obj, obj_handler_t 
 msg_tag_t task_unmap(obj_handler_t task_han, vpage_t vpage);
 msg_tag_t task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *alloc_addr,
                               int mem_block, addr_t text_addr, size_t text_size);
+msg_tag_t task_alloc_get_ram_info(obj_handler_t task_han, addr_t *ram_addr, size_t *size);
 msg_tag_t task_copy_data(obj_handler_t task_obj, void *st_addr, umword_t size);
 msg_tag_t task_copy_data_to(obj_handler_t task_obj, obj_handler_t dst_task_obj, void *st_addr, void *dst_addr, umword_t size);
 msg_tag_t task_set_com_point(obj_handler_t task_obj, void *com_point_func,

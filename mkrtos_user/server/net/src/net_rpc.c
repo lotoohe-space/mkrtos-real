@@ -191,7 +191,6 @@ static net_operations_t net_op = {
 static net_t net;
 void net_svr_init(void)
 {
-    msg_tag_t tag;
 
     net_init(&net, &net_op);
     meta_reg_svr_obj(&net.svr, NET_PROT);

@@ -294,6 +294,7 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
     int ret = 0;
     size_t mem_align_size;
     bool_t is_alloc_mem = FALSE;
+    mword_t status = -1;
 
     pt_task = container_of(
         container_of(task_vma, mm_space_t, mem_vma),
@@ -321,7 +322,7 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
         ret = -EINVAL;
         goto err_end;
     }
-    mword_t status = task_vma_lock(task_vma);
+    status = task_vma_lock(task_vma);
 
     if (paddr == 0)
     {
@@ -410,7 +411,10 @@ err_end:
         mm_limit_free_align(pt_task->lim, (void *)vma_addr, mem_align_size);
     }
 end:
-    task_vma_unlock(task_vma, status);
+    if (status >= 0)
+    {
+        task_vma_unlock(task_vma, status);
+    }
     return ret;
 }
 /**
@@ -455,9 +459,6 @@ static int vma_idl_tree_eq_cmp_handler(const void *key, const void *data)
     {
         return 1;
     }
-}
-static inline int task_vma_addr_check(vaddr_t addr, size_t size)
-{
 }
 static int task_vma_free_inner(task_vma_t *task_vma, vaddr_t vaddr, size_t size, bool_t is_free_mem)
 {
@@ -535,7 +536,7 @@ end:
         mpu_switch_to_task(pt_task);
     }
     task_vma_unlock(task_vma, status);
-    return 0;
+    return ret;
 }
 /**
  * @brief 释放申请的虚拟内存，并释放已经申请的物理内存
@@ -700,7 +701,7 @@ int task_vma_clean(task_vma_t *task_vma)
         .tree = &task_vma->alloc_tree,
     }; // 删除所有的节点
     ret = mln_rbtree_iterate(&task_vma->alloc_tree, rbtree_iterate_handler_delete, &params);
-    return 0;
+    return ret;
 }
 
 #if IS_ENABLED(CONFIG_MPU)

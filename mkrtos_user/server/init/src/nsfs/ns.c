@@ -414,7 +414,9 @@ int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type)
         return -ENOENT;
     }
     // 获得节点的名字
-    int name_len = ns_node_strcpy(name, path + p_inx + 1, NS_NODE_NAME_LEN);
+    // int name_len = 0;
+    
+    ns_node_strcpy(name, path + p_inx + 1, NS_NODE_NAME_LEN);
 
     new_node = node_create(name, NODE_TYPE_DUMMY);
     if (new_node == NULL)

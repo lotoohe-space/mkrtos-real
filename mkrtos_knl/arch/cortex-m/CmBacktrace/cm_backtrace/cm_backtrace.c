@@ -470,7 +470,7 @@ static void print_call_stack(uint32_t sp)
 
     if (cur_depth)
     {
-        cmb_println(print_info[PRINT_CALL_STACK_INFO], fw_name, CMB_ELF_FILE_EXTENSION_NAME, cur_depth * (8 + 1),
+        cmb_println(print_info[PRINT_CALL_STACK_INFO], kobject_get_name(&thread_get_current_task()->kobj), CMB_ELF_FILE_EXTENSION_NAME, cur_depth * (8 + 1),
                     call_stack_info);
     }
     else

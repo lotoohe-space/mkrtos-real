@@ -19,7 +19,7 @@
 #include <string.h>
 #include "u_hd_man.h"
 #include "u_vmam.h"
-#define STACK_COM_ITME_SIZE (1024 + 512)
+#define STACK_COM_ITME_SIZE (2048)
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE];
 static uint8_t msg_buf_coms[MSG_BUG_LEN];
@@ -39,11 +39,14 @@ static size_t blk_size;
 
 int blk_drv_write(obj_handler_t obj, int len, int inx)
 {
-    int ret = -1;
     addr_t addr = 0;
     umword_t size = 0;
     msg_tag_t tag;
 
+    if (inx >= blk_nr)
+    {
+        return -EINVAL;
+    }
     if (len == 0)
     {
         memset(blk_data + inx * blk_size, 0xff, len);
@@ -64,11 +67,13 @@ int blk_drv_write(obj_handler_t obj, int len, int inx)
 }
 int blk_drv_read(obj_handler_t obj, int len, int inx)
 {
-    int ret = -1;
     addr_t addr = 0;
     umword_t size = 0;
-    uint32_t _err;
 
+    if (inx >= blk_nr)
+    {
+        return -EINVAL;
+    }
     if (len % blk_size)
     {
         return -EINVAL;
@@ -124,6 +129,7 @@ int main(int argc, char *argv[])
             break;
         case 'p':
             dev_path = optarg;
+            printf("dev path %s\n", dev_path);
         default:
             break;
         }
@@ -146,6 +152,7 @@ int main(int argc, char *argv[])
         return -1;
     }
     printf("%s init..\n", argv[0]);
+    printf("ram block base addr:[0x%x 0x%x] \n", blk_data, blk_data + blk_nr* blk_size);
     fast_ipc_init();
 
     blk_drv_init(&blk_drv);

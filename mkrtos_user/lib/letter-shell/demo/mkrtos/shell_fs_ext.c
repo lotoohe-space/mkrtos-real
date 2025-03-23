@@ -15,6 +15,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
+#include <u_sleep.h>
 int ls(int argc, char *agrv[])
 {
     DIR *dir;
@@ -38,8 +40,8 @@ int ls(int argc, char *agrv[])
     {
         return -ENOMEM;
     }
-    ret = getcwd(path, PAGE_SIZE);
-    if (ret < 0)
+    path = getcwd(path, PAGE_SIZE);
+    if (path == NULL)
     {
         u_free(path);
         return ret;
@@ -83,7 +85,7 @@ int cp(int argc, char *argv[])
     // 检查参数数量
     if (argc != 3)
     {
-        fprintf(stderr, "用法: %s 源文件 目标文件\n", argv[0]);
+        fprintf(stderr, "example: %s /bin/a.bin /mnt/a.bin\n", argv[0]);
         return -1;
     }
 
@@ -91,7 +93,7 @@ int cp(int argc, char *argv[])
     source_fd = open(argv[1], O_RDONLY);
     if (source_fd == -1)
     {
-        perror("无法打开源文件");
+        perror("can not open src file.\n");
         return -1;
     }
     struct stat st = {0};
@@ -102,13 +104,13 @@ int cp(int argc, char *argv[])
     target_fd = open(argv[2], O_WRONLY | O_CREAT, 0644);
     if (target_fd == -1)
     {
-        perror("无法打开目标文件");
+        perror("can not open dest file.");
         close(source_fd);
         return -1;
     }
     if (ftruncate(target_fd, st.st_size) < 0)
     {
-        printf("设置文件大小错误\n");
+        printf("to set fiel size is error.\n");
         return -1;
     }
 
@@ -118,7 +120,7 @@ int cp(int argc, char *argv[])
         bytes_written = write(target_fd, buffer, bytes_read);
         if (bytes_written != bytes_read)
         {
-            perror("写入目标文件失败");
+            perror("write file is error.\n");
             close(source_fd);
             close(target_fd);
             return -1;
@@ -127,14 +129,14 @@ int cp(int argc, char *argv[])
 
     if (bytes_read == -1)
     {
-        perror("读取源文件失败");
+        perror("read src file is error.\n");
     }
 
     // 关闭文件
     close(source_fd);
     close(target_fd);
 
-    printf("文件复制成功！\n");
+    printf("cp file is success.\n");
 
     return 0;
 }
@@ -320,4 +322,14 @@ int shell_exit(int argc, char *argv[])
     exit(0);
     return 0;
 }
-SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), exit, exit, exit command);
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), exit, shell_exit, exit command);
+int shell_sleep(int argc, char *argv[])
+{
+    if (argc < 1)
+    {
+        return -1;
+    }
+    u_sleep_ms(1000 * atol(argv[1]));
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), sleep, shell_sleep, sleep command);

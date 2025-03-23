@@ -44,8 +44,8 @@ int main(int args, char *argv[])
     int ret;
     msg_tag_t tag;
     obj_handler_t hd;
-    obj_handler_t sem_hd;
-    obj_handler_t shm_hd;
+    obj_handler_t sem_hd = HANDLER_INVALID;
+    obj_handler_t shm_hd = HANDLER_INVALID;
     int count_net_link = 0;
     task_set_obj_name(TASK_THIS, TASK_THIS, "tk_net");
     task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_net");
@@ -58,7 +58,7 @@ int main(int args, char *argv[])
         return -1;
     }
 again:
-    ret = ns_query_svr("/dev/eth", &net_drv_hd, 0x1);
+    ret = ns_query_svr("/dev/eth", &net_drv_hd);
     if (ret < 0)
     {
         // 0代表根节点

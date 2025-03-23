@@ -117,7 +117,7 @@ void arch_init(void)
     SCB->SHCSR |= SCB_SHCSR_BUSFAULTENA_Msk;
     ((uint8_t *)(0xE000E008))[0] |= 0x6;
 
-    cm_backtrace_init("CmBacktrace", HARDWARE_VERSION, SOFTWARE_VERSION);
+    cm_backtrace_init("mkrtos", HARDWARE_VERSION, SOFTWARE_VERSION);
 
     // RCC_ClocksTypeDef RCC_ClocksStatus;
     // RCC_GetClocksFreq(&RCC_ClocksStatus);

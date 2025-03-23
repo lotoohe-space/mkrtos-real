@@ -122,8 +122,8 @@ int main(int argc, char *argv[])
     blk_drv_init(&blk_drv);
     ret = rpc_meta_init_def(TASK_THIS, &hd);
     assert(ret >= 0);
-    ns_register(argv[1], hd, 0);
     meta_reg_svr_obj(&blk_drv.svr, BLK_DRV_PROT);
+    ns_register(argv[1], hd, 0);
 
     while (1)
     {

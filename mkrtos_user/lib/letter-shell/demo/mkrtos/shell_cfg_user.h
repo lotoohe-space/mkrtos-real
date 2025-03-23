@@ -36,7 +36,7 @@
  *        使能后，可以在声明命令时，指定函数的签名，shell 会根据函数签名进行参数转换，
  *        而不是自动判断参数的类型，如果参数和函数签名不匹配，会停止执行命令
  */
-#define SHELL_USING_FUNC_SIGNATURE 1
+#define SHELL_USING_FUNC_SIGNATURE 0
 
 /**
  * @brief 支持数组参数

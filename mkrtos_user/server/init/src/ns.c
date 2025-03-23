@@ -28,39 +28,63 @@
 #include "u_rpc_svr.h"
 #include "u_slist.h"
 #include "nsfs.h"
-
+#include "u_mutex.h"
 static ns_t ns;
 static fs_t ns_fs;
 
 static obj_handler_t ns_hd;
-
+static u_mutex_t ns_lock;
 static int fs_svr_open(const char *path, int flags, int mode)
 {
-    return fs_ns_open(path, flags, mode);
+    int ret;
+    
+    u_mutex_lock(&ns_lock, 0, NULL);
+    ret = fs_ns_open(path, flags, mode);
+    u_mutex_unlock(&ns_lock);
+    return ret;
 }
 
 static int fs_svr_readdir(int fd, dirent_t *dir)
 {
-    return fs_ns_readdir(fd, dir);
+    int ret;
+    
+    u_mutex_lock(&ns_lock, 0, NULL);
+    ret = fs_ns_readdir(fd, dir);
+    u_mutex_unlock(&ns_lock);
+    return ret;
 }
 static void fs_svr_close(int fd)
 {
+    u_mutex_lock(&ns_lock, 0, NULL);
     fs_ns_close(fd);
+    u_mutex_unlock(&ns_lock);
 }
 static int fs_svr_unlink(const char *path)
 {
-    return fs_ns_remove(path);
+    int ret;
+    
+    u_mutex_lock(&ns_lock, 0, NULL);
+    ret = fs_ns_remove(path);
+    u_mutex_unlock(&ns_lock);
+    return ret;
 }
 static int fs_svr_mkdir(char *path)
 {
-    return fs_ns_mkdir(path);
+    int ret;
+    
+    u_mutex_lock(&ns_lock, 0, NULL);
+    ret = fs_ns_mkdir(path);
+    u_mutex_unlock(&ns_lock);
+    return ret;
 }
 static int fs_svr_stat(const char *path, void *_buf)
 {
     struct kstat *buf = (struct kstat *)_buf;
     int ret;
-
+    
+    u_mutex_lock(&ns_lock, 0, NULL);
     ret = fs_ns_stat(path, buf);
+    u_mutex_unlock(&ns_lock);
     return ret;
 }
 /**
@@ -91,7 +115,8 @@ int namespace_register(const char *path, obj_handler_t hd, int type)
     {
         return -EISDIR;
     }
-again:
+    
+    u_mutex_lock(&ns_lock, 0, NULL);
     ret = ns_mknode(path, hd, NODE_TYPE_SVR);
     if (ret < 0)
     {
@@ -112,6 +137,7 @@ again:
         }
     }
 #endif
+    u_mutex_unlock(&ns_lock);
     return ret;
 }
 /**
@@ -125,7 +151,9 @@ int namespace_query(const char *path, obj_handler_t *hd)
 {
     int ret;
 
+    u_mutex_lock(&ns_lock, 0, NULL);
     ret = ns_find_svr_obj(path, hd);
+    u_mutex_unlock(&ns_lock);
     return ret;
 }
 /**
@@ -153,5 +181,6 @@ void namespace_init(obj_handler_t ipc_hd)
     thread_set_src_pid(0);
     ns_hd = ipc_hd;
     ns_root_node_init(ipc_hd);
+    assert(u_mutex_init(&ns_lock, handler_alloc()) >= 0);
     // printf("ns svr init...\n");
 }

@@ -221,7 +221,8 @@
         "endian.h": "c",
         "ipc.h": "c",
         "stdarg.h": "c",
-        "ipcstat.h": "c"
+        "ipcstat.h": "c",
+        "fs_cli.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

@@ -191,7 +191,6 @@ void mem_free_align(mem_t *_this, void *f_mem)
 {
     struct mem_heap *mem;
     umword_t *real_mem;
-    int find = 0;
 
     umword_t status = spinlock_lock(&_this->lock);
     for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next)
@@ -199,7 +198,6 @@ void mem_free_align(mem_t *_this, void *f_mem)
         assert(mem->magic == MAGIC_NUM);
         if ((ptr_t)mem == (ptr_t)f_mem - MEM_HEAP_STRUCT_SIZE)
         {
-            find = 1;
             break;
         }
     }

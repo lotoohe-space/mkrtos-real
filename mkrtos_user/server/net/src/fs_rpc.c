@@ -116,7 +116,6 @@ static const fs_operations_t ops =
 
 void fs_svr_init(void)
 {
-    msg_tag_t tag;
 
     fs_init(&fs, &ops);
     meta_reg_svr_obj(&fs.svr, FS_PROT);

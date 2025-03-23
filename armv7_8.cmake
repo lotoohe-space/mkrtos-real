@@ -1,21 +1,22 @@
 message("========use armv7_8.cmake")
 
-set(CMAKE_C_FLAGS "-mcpu=${CONFIG_ARCH} -O0 -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE} -mthumb  -DMKRTOS \
--std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -u=_printf_float \
+set(CMAKE_C_FLAGS "-mcpu=${CONFIG_ARCH} -Ofast -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE} -mthumb  -DMKRTOS \
+-std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -u=_printf_float -Wall \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc \
--fno-stack-protector -Wl,--gc-section -D__ARM_ARCH_7M__ \
+-fno-stack-protector -Wno-unused-but-set-variable -Wno-unused-function -Wno-parentheses -Wno-volatile-register-var -Wno-unused-variable -Wno-maybe-uninitialized\
+-Wl,--gc-section -D__ARM_ARCH_7M__ -Werror \
 -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)
 
-set(CMAKE_CXX_FLAGS "-mcpu=${CONFIG_ARCH} -O0 -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE} -mthumb -DMKRTOS -std=c++11 \
--fmessage-length=0 -Xlinker --print-map -Wall -W -fno-stack-protector \ 
+set(CMAKE_CXX_FLAGS "-mcpu=${CONFIG_ARCH} -Ofast -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE} -mthumb -DMKRTOS -std=c++11 \
+-fmessage-length=0 -Xlinker --print-map -Wall -W -fno-stack-protector -Wall \ 
  -u=_printf_float  -D__ARM_ARCH_7M__  \
 -ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker \
 -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)
 
-set(CMAKE_ASM_FLAGS "-mcpu=${CONFIG_ARCH} -O0 -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE} -mthumb -DMKRTOS \
--u=_printf_float -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin \
+set(CMAKE_ASM_FLAGS "-mcpu=${CONFIG_ARCH} -Ofast -g3 -mfloat-abi=${CONFIG_FLOAT_TYPE} -mthumb -DMKRTOS \
+-u=_printf_float -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -Wall \
 -nostartfiles -nodefaultlibs -nostdlib -nostdinc -Xlinker  -fno-stack-protector  -D__ARM_ARCH_7M__ \
 -include ${CMAKE_SOURCE_DIR}/build/autoconf.h \
 " CACHE STRING "" FORCE)

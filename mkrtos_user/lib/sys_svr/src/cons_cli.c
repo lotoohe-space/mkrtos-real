@@ -31,9 +31,6 @@ int cons_write(const uint8_t *data, int len)
             .data = (uint8_t *)data + rlen,
             .len = r_once_len,
         };
-        rpc_int_t rpc_len = {
-            .data = r_once_len,
-        };
         msg_tag_t tag = cons_t_write_call(env->log_hd, &rpc_buf);
 
         if (msg_tag_get_val(tag) < 0)

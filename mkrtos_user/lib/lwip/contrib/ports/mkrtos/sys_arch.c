@@ -110,8 +110,8 @@ get_monotonic_time(struct timespec *ts)
 
 #if SYS_LIGHTWEIGHT_PROT
 static u_mutex_t lwprot_mutex;
-static umword_t lwprot_thread = (umword_t)0xDEAD;
-static int lwprot_count = 0;
+// static umword_t lwprot_thread = (umword_t)0xDEAD;
+// static int lwprot_count = 0;
 #endif /* SYS_LIGHTWEIGHT_PROT */
 
 #if !NO_SYS

@@ -13,19 +13,20 @@
 
 RPC_GENERATION_CALL6(pm_t, PM_PROT, PM_RUN_APP, run_app,
                      rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                     rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mem_block,
+                     rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, pm_flags,
                      rpc_ref_array_uint32_t_uint8_t_96_t, rpc_array_uint32_t_uint8_t_96_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len,
                      rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, envs,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, envs_len)
-int pm_run_app(const char *path, int mem_block, uint8_t *params, int params_len, uint8_t *envs, int envs_len)
+int pm_run_app(const char *path, int16_t mem_block, int16_t flags, 
+    int pid, uint8_t *params, int params_len, uint8_t *envs, int envs_len)
 {
     rpc_ref_array_uint32_t_uint8_t_64_t rpc_path = {
-        .data = (uint8_t *)path,
-        .len = MIN(strlen(path) + 1, 64),
+        .data = (uint8_t *)path ? (uint8_t *)path : (uint8_t *)"",
+        .len = path ? MIN(strlen(path) + 1, 64) : 1,
     };
-    rpc_int_t rpc_mem_block = {
-        .data = mem_block,
+    rpc_umword_t_t rpc_mem_block = {
+        .data = pm_flags_init(mem_block, flags, pid).raw,
     };
     rpc_ref_array_uint32_t_uint8_t_96_t rpc_params = {
         .data = (uint8_t *)params ? params : (uint8_t *)"",

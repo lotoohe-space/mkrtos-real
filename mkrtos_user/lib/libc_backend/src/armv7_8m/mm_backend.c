@@ -99,7 +99,7 @@ static int mm_page_free(int st, int nr)
 {
     app_info_t *info = app_info_get(app_start_addr);
     assert(info);
-    void *heap_addr = (void *)((umword_t)TASK_RAM_BASE() + info->i.heap_offset - info->i.data_offset);
+    // void *heap_addr = (void *)((umword_t)TASK_RAM_BASE() + info->i.heap_offset - info->i.data_offset);
     size_t max_page_nr = (info->i.heap_size) / PAGE_SIZE;
 
     if (st + nr >= max_page_nr)

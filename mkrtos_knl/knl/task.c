@@ -35,6 +35,7 @@ enum task_op_code
     TASK_OBJ_MAP,        //!< 进行映射操作
     TASK_OBJ_UNMAP,      //!< 进行解除映射操作
     TASK_ALLOC_RAM_BASE, //!< 分配task的基础内存
+    TASK_GET_RAM_INFO,   //!< 获取task的ram信息
     TASK_OBJ_VALID,      //!< 判断一个对象是否有效
     TASK_SET_PID,        //!< 设置task的pid
     TASK_GET_PID,        //!< 获取task的pid
@@ -120,10 +121,12 @@ static void task_unlock_2(spinlock_t *sp0, spinlock_t *sp1, int status0, int sta
         spinlock_set(sp1, status1);
         spinlock_set(sp0, status0);
     }
-    else
+    else if (sp0 > sp1)
     {
         spinlock_set(sp0, status0);
         spinlock_set(sp1, status1);
+    } else {
+        spinlock_set(sp0, status0);
     }
 }
 /**
@@ -155,7 +158,7 @@ static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
         *st0 = status0;
         *st1 = status1;
     }
-    else
+    else if (sp0 > sp1)
     {
         status0 = spinlock_lock(sp1);
         if (status0 < 0)
@@ -169,6 +172,14 @@ static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
             return FALSE;
         }
         *st0 = status1;
+        *st1 = status0;
+    } else {
+        status0 = spinlock_lock(sp0);
+        if (status0 < 0)
+        {
+            return FALSE;
+        }
+        *st0 = status0;
         *st1 = status0;
     }
     return TRUE;
@@ -315,6 +326,19 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         spinlock_set(&tag_task->kobj.lock, status);
     }
     break;
+    case TASK_GET_RAM_INFO:
+    {
+        mword_t status = spinlock_lock(&tag_task->kobj.lock);
+        if (status < 0)
+        {
+            tag = msg_tag_init4(0, 0, 0, -EINVAL);
+            break;
+        }
+        mm_space_get_ram_block(&tag_task->mm_space, (void**)(&f->regs[1]), (size_t *)(&f->regs[2]));
+        spinlock_set(&tag_task->kobj.lock, status);
+        tag = msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
 #endif
     case TASK_COPY_DATA: //!< 拷贝数据到task的内存区域
     {
@@ -371,7 +395,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         if (!source_kobj)
         {
             ret = -EINVAL;
-            goto copy_data_to_end;
+            goto copy_data_to_end2;
         }
         task_t *dst_task_obj = container_of(source_kobj, task_t, kobj);
 
@@ -381,11 +405,13 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
+        #if 0/*TODO: 需要检查动态申请的内存*/
         if (!is_rw_access(tag_task, (void *)src_addr, copy_len, FALSE))
         {
             ret = -EPERM;
             goto copy_data_to_end;
         }
+        #endif
         if (!is_rw_access(dst_task_obj, (void *)dst_addr, copy_len, FALSE))
         {
             ret = -EPERM;
@@ -399,6 +425,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
 
     copy_data_to_end:
         task_unlock_2(&tag_task->kobj.lock, &dst_task_obj->kobj.lock, st0, st1);
+    copy_data_to_end2:
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
@@ -524,6 +551,8 @@ static void task_release_stage1(kobject_t *kobj)
             pf_t *cur_pf = ((pf_t *)((char *)restore_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
             cur_pf->regs[5] = (umword_t)(thread_get_bind_task(restore_th)->mm_space.mm_block);
             ref_counter_dec_and_release(&tk->ref_cn, &tk->kobj);
+        } else {
+            break;
         }
     }
 

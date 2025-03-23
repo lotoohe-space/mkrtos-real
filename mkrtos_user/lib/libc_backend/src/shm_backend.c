@@ -22,7 +22,7 @@ static int _be_shm_open_svr(const char *shm_name)
     // const char *cur_path = fs_backend_cur_path();
 
     // u_rel_path_to_abs(cur_path, shm_name, new_src_path);
-    if (ns_query_svr(shm_name, &shm_hd, 1) < 0)
+    if (ns_query_svr(shm_name, &shm_hd) < 0)
     {
         return -ENOENT;
     }
@@ -146,8 +146,6 @@ int be_shmdt(const void *addr)
 int be_shmctl(int id, int cmd, struct shmid_ds *buf)
 {
     fd_map_entry_t u_fd;
-    msg_tag_t tag;
-    umword_t shm_addr;
     int ret;
     
     ret = fd_map_free(id, &u_fd);

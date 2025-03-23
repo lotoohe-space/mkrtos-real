@@ -21,20 +21,11 @@ RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_OPEN, open,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mode)
-sd_t fs_open(const char *path, int flags, int mode)
+int fs_open_raw(obj_handler_t fs_hd, const char *path, int flags, int mode)
 {
-    assert(path);
-    obj_handler_t hd;
-    int ret = ns_query(path, &hd, 0x1);
-
-    if (ret < 0)
-    {
-        return ret;
-    }
-
     rpc_ref_file_array_t rpc_path = {
-        .data = (uint8_t *)(&path[ret]),
-        .len = strlen(&path[ret]) + 1,
+        .data = (uint8_t *)(path),
+        .len = strlen(path) + 1,
     };
     rpc_int_t rpc_flags = {
         .data = flags,
@@ -42,46 +33,53 @@ sd_t fs_open(const char *path, int flags, int mode)
     rpc_int_t rpc_mode = {
         .data = mode,
     };
-    msg_tag_t tag = fs_t_open_call(hd, &rpc_path, &rpc_flags, &rpc_mode);
+    msg_tag_t tag = fs_t_open_call(fs_hd, &rpc_path, &rpc_flags, &rpc_mode);
 
-    if (msg_tag_get_val(tag) < 0)
+    return msg_tag_get_val(tag);
+}
+sd_t fs_open(const char *path, int flags, int mode)
+{
+    assert(path);
+    obj_handler_t hd;
+    int ret = ns_query(path, &hd);
+
+    if (ret < 0)
     {
-        return msg_tag_get_val(tag);
+        return ret;
     }
-
-    return mk_sd_init2(hd, msg_tag_get_val(tag)).raw;
+    ret = fs_open_raw(hd, &path[ret], flags, mode);
+    if (ret < 0)
+    {
+        return ret;
+    }
+    return mk_sd_init2(hd, ret).raw;
 }
 /*close*/
 RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_CLOSE, close,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd)
-int fs_close(sd_t _fd)
+int fs_close_raw(obj_handler_t hd, int fd)
 {
-    obj_handler_t hd = mk_sd_init_raw(_fd).hd;
-    int fd = mk_sd_init_raw(_fd).fd;
-
     rpc_int_t rpc_fd = {
         .data = fd,
     };
     msg_tag_t tag = fs_t_close_call(hd, &rpc_fd);
 
-    if (msg_tag_get_val(tag) < 0)
-    {
-        return msg_tag_get_val(tag);
-    }
-
     return msg_tag_get_val(tag);
+}
+int fs_close(sd_t _fd)
+{
+    obj_handler_t hd = mk_sd_init_raw(_fd).hd;
+    int fd = mk_sd_init_raw(_fd).fd;
+
+    return fs_close_raw(hd, fd);
 }
 /*read*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_READ, read,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
-
-int fs_read(sd_t _fd, void *buf, size_t len)
+int fs_read_raw(obj_handler_t hd, int fd, void *buf, size_t len)
 {
-    obj_handler_t hd = mk_sd_init_raw(_fd).hd;
-    int fd = mk_sd_init_raw(_fd).fd;
-
     rpc_int_t rpc_fd = {
         .data = fd,
     };
@@ -113,6 +111,13 @@ int fs_read(sd_t _fd, void *buf, size_t len)
     }
 
     return rlen;
+}
+int fs_read(sd_t _fd, void *buf, size_t len)
+{
+    obj_handler_t hd = mk_sd_init_raw(_fd).hd;
+    int fd = mk_sd_init_raw(_fd).fd;
+
+    return fs_read_raw(hd, fd, buf, len);
 }
 /*write*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_WRITE, write,
@@ -246,11 +251,8 @@ int fs_ftruncate(sd_t _fd, off_t off)
 RPC_GENERATION_CALL2(fs_t, FS_PROT, FS_FSTAT, fstat,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
                      rpc_kstat_t_t, rpc_kstat_t_t, RPC_DIR_OUT, RPC_TYPE_DATA, statbuf)
-int fs_fstat(sd_t _fd, kstat_t *stat)
+int fs_fstat_raw(obj_handler_t hd, int fd, kstat_t *stat)
 {
-    obj_handler_t hd = mk_sd_init_raw(_fd).hd;
-    int fd = mk_sd_init_raw(_fd).fd;
-
     rpc_int_t rpc_fd = {
         .data = fd,
     };
@@ -270,6 +272,13 @@ int fs_fstat(sd_t _fd, kstat_t *stat)
     *stat = rpc_statbuf.data;
 
     return msg_tag_get_val(tag);
+}
+int fs_fstat(sd_t _fd, kstat_t *stat)
+{
+    obj_handler_t hd = mk_sd_init_raw(_fd).hd;
+    int fd = mk_sd_init_raw(_fd).fd;
+
+    return fs_fstat_raw(hd, fd, stat);
 }
 // int ioctl(int fd, int req, void *arg)
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_IOCTL, ioctl,
@@ -292,10 +301,6 @@ int fs_ioctl(sd_t _fd, int req, void *arg)
     };
     msg_tag_t tag;
 
-    if (!stat)
-    {
-        return -EINVAL;
-    }
     tag = fs_t_ioctl_call(hd, &rpc_fd, &rpc_req, &rpc_arg);
 
     return msg_tag_get_val(tag);
@@ -321,10 +326,6 @@ int fs_fcntl(sd_t _fd, int cmd, void *arg)
     };
     msg_tag_t tag;
 
-    if (!stat)
-    {
-        return -EINVAL;
-    }
     tag = fs_t_fcntl_call(hd, &rpc_fd, &rpc_cmd, &rpc_arg);
 
     return msg_tag_get_val(tag);
@@ -370,13 +371,13 @@ int fs_symlink(const char *src, const char *dst)
     obj_handler_t src_hd;
     obj_handler_t dst_hd;
 
-    int src_ret = ns_query(src, &src_hd, 0x1);
+    int src_ret = ns_query(src, &src_hd);
 
     if (src_ret < 0)
     {
         return src_ret;
     }
-    int dst_ret = ns_query(dst, &dst_hd, 0x1);
+    int dst_ret = ns_query(dst, &dst_hd);
 
     if (dst_ret < 0)
     {
@@ -408,7 +409,7 @@ RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_MKDIR, mkdir,
 int fs_mkdir(char *path)
 {
     obj_handler_t hd;
-    int ret = ns_query(path, &hd, 0x1);
+    int ret = ns_query(path, &hd);
 
     if (ret < 0)
     {
@@ -432,7 +433,7 @@ RPC_GENERATION_CALL1(fs_t, FS_PROT, FS_RMDIR, rmdir,
 int fs_rmdir(char *path)
 {
     obj_handler_t hd;
-    int ret = ns_query(path, &hd, 0x1);
+    int ret = ns_query(path, &hd);
 
     if (ret < 0)
     {
@@ -458,13 +459,13 @@ int fs_rename(char *old, char *new)
     obj_handler_t src_hd;
     obj_handler_t dst_hd;
 
-    int src_ret = ns_query(old, &src_hd, 0x1);
+    int src_ret = ns_query(old, &src_hd);
 
     if (src_ret < 0)
     {
         return src_ret;
     }
-    int dst_ret = ns_query(new, &dst_hd, 0x1);
+    int dst_ret = ns_query(new, &dst_hd);
 
     if (dst_ret < 0)
     {
@@ -501,7 +502,7 @@ int fs_stat(char *path, void *_buf)
     {
         return -EINVAL;
     }
-    int ret = ns_query(path, &hd, 0x0);
+    int ret = ns_query(path, &hd);
 
     if (ret < 0)
     {
@@ -535,7 +536,7 @@ int fs_readlink(const char *path, char *buf, int bufsize)
     {
         return -EINVAL;
     }
-    int ret = ns_query(path, &hd, 0x1);
+    int ret = ns_query(path, &hd);
 
     if (ret < 0)
     {
@@ -546,7 +547,7 @@ int fs_readlink(const char *path, char *buf, int bufsize)
         .len = strlen(&path[ret]) + 1,
     };
     rpc_ref_file_array_t rpc_buf = {
-        .data = buf,
+        .data = (uint8_t *)buf,
         .len = bufsize,
     };
     rpc_int_t rpc_bufsize = {
@@ -570,7 +571,7 @@ int fs_statfs(const char *path, statfs_t *buf)
     {
         return -EINVAL;
     }
-    int ret = ns_query(path, &hd, 0x1);
+    int ret = ns_query(path, &hd);
 
     if (ret < 0)
     {

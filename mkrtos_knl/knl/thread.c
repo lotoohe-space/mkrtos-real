@@ -138,6 +138,7 @@ void thread_init(thread_t *th, ram_limit_t *lim, umword_t flags)
     ref_counter_inc(&th->ref);
     thread_arch_init(th, flags);
 
+    kobject_set_name(&th->kobj, kobject_get_name(&th->kobj));
     slist_init(&th->com->fast_ipc_node);
     stack_init(&th->com->fast_ipc_stack, &th->com->fast_ipc_stack_data,
                ARRARY_LEN(th->com->fast_ipc_stack_data),
@@ -470,176 +471,6 @@ thread_t *thread_create(ram_limit_t *ram, umword_t flags)
     printk("create thread 0x%x\n", th);
     return th;
 }
-#if 0
-/**
- * @brief 线程超时检查
- *
- * @param tick
- */
-void thread_timeout_check(ssize_t tick)
-{
-    thread_wait_entry_t *pos;
-    slist_head_t *head =
-        (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue);
-
-    slist_foreach_not_next(pos, head, node_timeout)
-    {
-        if (pos->th->status != THREAD_SUSPEND)
-        {
-            printk("%s:%d th_name:%s.\n", __func__, __LINE__, pos->th->kobj.dbg.name);
-        }
-        assert(pos->th->status == THREAD_SUSPEND);
-        thread_wait_entry_t *next = slist_next_entry(
-            pos, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
-            node_timeout);
-        if (pos->times > 0)
-        {
-            pos->times -= tick;
-            if (pos->times <= 0)
-            {
-                pos->th->ipc_status = THREAD_TIMEOUT;
-
-                slist_del(&pos->node_timeout);
-                if (slist_in_list(&pos->node))
-                {
-                    slist_del(&pos->node);
-                }
-                // printk("send timeout:0x%lx\n", pos->th);
-                thread_ready(pos->th, TRUE);
-            }
-        }
-        pos = next;
-    }
-
-    thread_wait_entry_t *pos2;
-    slist_foreach_not_next(
-        pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-        node)
-    {
-        assert(pos2->th->status == THREAD_SUSPEND);
-        thread_wait_entry_t *next = slist_next_entry(
-            pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-            node);
-
-        if (pos2->times > 0)
-        {
-            pos2->times -= tick;
-            if (pos2->times <= 0)
-            {
-                pos2->th->ipc_status = THREAD_TIMEOUT;
-                assert(slist_in_list(&pos2->node));
-                slist_del(&pos2->node);
-                // printk("recv timeout:0x%lx\n", pos2->th);
-                thread_ready(pos2->th, TRUE);
-            }
-        }
-        pos2 = next;
-    }
-}
-static void thread_timeout_del_form_send_queue(thread_t *th)
-{
-    thread_wait_entry_t *pos2;
-    assert(th->cpu == arch_get_current_cpu_id());
-
-    slist_foreach_not_next(
-        pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
-        node_timeout)
-    {
-        thread_wait_entry_t *next = slist_next_entry(
-            pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_send_queue),
-            node_timeout);
-
-        if (pos2->th == th)
-        {
-            slist_del(&pos2->node_timeout);
-            if (slist_in_list(&pos2->node))
-            {
-                slist_del(&pos2->node);
-            }
-            break;
-        }
-        pos2 = next;
-    }
-}
-#if IS_ENABLED(CONFIG_SMP)
-static int thread_timeout_del_form_send_queue_handler(ipi_msg_t *msg, bool_t *is_sched)
-{
-    thread_timeout_del_form_send_queue((void *)(msg->msg));
-    thread_ready((void *)(msg->msg), TRUE); //!< 直接唤醒接受者
-    return 0;
-}
-#endif
-void thread_timeout_del_from_send_queue_remote(thread_t *th)
-{
-#if IS_ENABLED(CONFIG_SMP)
-    if (th->cpu == arch_get_current_cpu_id())
-    {
-        thread_timeout_del_form_send_queue(th);
-        thread_ready(th, TRUE); //!< 直接唤醒接受者
-    }
-    else
-    {
-        thread_t *cur_th = thread_get_current();
-        cur_th->ipi_msg_node.msg = (umword_t)th;
-        cur_th->ipi_msg_node.cb = thread_timeout_del_form_send_queue_handler;
-        cpu_ipi_to_msg(1 << th->cpu, &cur_th->ipi_msg_node, IPI_CALL);
-    }
-#else
-    thread_timeout_del_form_send_queue(th);
-    thread_ready(th, TRUE); //!< 直接唤醒接受者
-#endif
-}
-static void thread_timeout_del_recv(thread_t *th)
-{
-    thread_wait_entry_t *pos2;
-    assert(th->cpu == arch_get_current_cpu_id());
-
-    slist_foreach_not_next(
-        pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-        node)
-    {
-        thread_wait_entry_t *next = slist_next_entry(
-            pos2, (slist_head_t *)pre_cpu_get_current_cpu_var(&wait_recv_queue),
-            node);
-
-        if (pos2->th == th)
-        {
-            slist_del(&pos2->node);
-            break;
-        }
-        pos2 = next;
-    }
-}
-#if IS_ENABLED(CONFIG_SMP)
-static int thread_timeout_del_recv_remote_handler(ipi_msg_t *msg, bool_t *is_sched)
-{
-    thread_t *th = (void *)(msg->msg);
-    thread_timeout_del_recv(th);
-    thread_ready(th, TRUE); //!< 直接唤醒接受者
-    return 0;
-}
-#endif
-void thread_timeout_del_recv_remote(thread_t *th, bool_t is_sche)
-{
-#if IS_ENABLED(CONFIG_SMP)
-    if (th->cpu == arch_get_current_cpu_id())
-    {
-        thread_timeout_del_recv(th);
-        thread_ready(th, is_sche); //!< 直接唤醒接受者
-    }
-    else
-    {
-        thread_t *cur_th = thread_get_current();
-        cur_th->ipi_msg_node.msg = (umword_t)th;
-        cur_th->ipi_msg_node.cb = thread_timeout_del_recv_remote_handler;
-        cpu_ipi_to_msg(1 << th->cpu, &cur_th->ipi_msg_node, IPI_CALL);
-    }
-#else
-    thread_timeout_del_recv(th);
-    thread_ready(th, is_sche); //!< 直接唤醒接受者
-#endif
-}
-#endif
 
 static int ipc_dat_copy_raw(obj_space_t *dst_obj, obj_space_t *src_obj, ram_limit_t *lim,
                             ipc_msg_t *dst_ipc, ipc_msg_t *src_ipc, msg_tag_t tag, int is_reply)
@@ -1362,58 +1193,6 @@ msg_tag_t thread_do_ipc(kobject_t *kobj, entry_frame_t *f, umword_t user_id)
         return thread_fast_ipc_call(to_tk, f, user_id);
     }
     break;
-#if 0
-    case IPC_CALL:
-    {
-        msg_tag_t in_tag = msg_tag_init(f->regs[0]);
-        msg_tag_t recv_tag;
-        th_hd = f->regs[2];
-        ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->regs[3]);
-
-        to_th->user_id = user_id;
-        ret = thread_ipc_call(to_th, in_tag, &recv_tag, ipc_tm_out, &f->regs[1],
-                              TRUE);
-        if (ret < 0)
-        {
-            return msg_tag_init4(0, 0, 0, ret);
-        }
-        return recv_tag;
-    }
-    case IPC_REPLY:
-    {
-        msg_tag_t in_tag = msg_tag_init(f->regs[0]);
-
-        ret = thread_ipc_reply(in_tag);
-        return msg_tag_init4(0, 0, 0, ret);
-    }
-    case IPC_RECV:
-    case IPC_WAIT:
-    {
-        msg_tag_t ret_msg;
-        ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->regs[3]);
-        kobject_t *ipc_kobj = obj_space_lookup_kobj_cmp_type(
-            &cur_task->obj_space, f->regs[4], IPC_TYPE);
-
-        int ret = thread_ipc_recv(&ret_msg, ipc_tm_out, &f->regs[1],
-                                  (ipc_t *)ipc_kobj, NULL);
-        if (ret < 0)
-        {
-            return msg_tag_init4(0, 0, 0, ret);
-        }
-        return ret_msg;
-    }
-    case IPC_SEND:
-    {
-        msg_tag_t in_tag = msg_tag_init(f->regs[0]);
-        msg_tag_t recv_tag;
-        // th_hd = f->regs[2];
-        ipc_timeout_t ipc_tm_out = ipc_timeout_create(f->regs[3]);
-
-        to_th->user_id = user_id;
-        ret = thread_ipc_call(to_th, in_tag, NULL, ipc_tm_out, NULL, FALSE);
-        return msg_tag_init4(0, 0, 0, ret);
-    }
-#endif
     default:
         ret = -ENOSYS;
         break;
@@ -1611,6 +1390,7 @@ static void thread_syscall(kobject_t *kobj, syscall_prot_t sys_p,
                 (tge_prio >= PRIO_MAX ? PRIO_MAX - 1 : tge_prio);
             thread_ready(tag_th, TRUE);
         }
+        goto run_thread_end;
 #endif
     run_thread_end:
         cpulock_set(status);

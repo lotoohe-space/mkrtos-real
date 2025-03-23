@@ -56,7 +56,6 @@ static msg_tag_t process_ipc(int j, umword_t obj, long tag)
     rpc_svr_obj_t *svr_obj;
     ipc_msg_t *msg;
     msg_tag_t ret_tag;
-    int ret = 0;
 
     msg = (ipc_msg_t *)(&cons_msg_buf[j * MSG_BUG_LEN]);
     ret_tag = msg_tag_init4(0, 0, 0, -EIO);

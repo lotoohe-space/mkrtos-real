@@ -99,7 +99,6 @@ void *file_desc_free(int fd)
 }
 void file_desc_recycle(pid_t pid)
 {
-    int free_cn = 0;
 
     u_mutex_lock(&fds_lock, 0, NULL);
     for (int i = 0; i < FILE_DESC_NR_OPEN; i++)
@@ -107,7 +106,7 @@ void file_desc_recycle(pid_t pid)
         if (file_desc[i].close != NULL && file_desc[i].pid == pid)
         {
             file_desc[i].close(i);
-            printf("free fd:%d.\n", i);
+            // printf("free fd:%d.\n", i);
         }
     }
     u_mutex_unlock(&fds_lock);

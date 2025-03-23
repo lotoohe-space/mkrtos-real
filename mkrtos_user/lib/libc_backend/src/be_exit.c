@@ -39,7 +39,7 @@ void be_exit(long exit_code)
     {
         if (old_ctid)
         {
-            be_futex(old_ctid, FUTEX_WAKE_CLEAR, 1, 0, 0, 0);
+            be_futex((uint32_t *)old_ctid, FUTEX_WAKE_CLEAR, 1, 0, 0, 0);
         }
         if (pthread_cnt_dec() == 1)
         {

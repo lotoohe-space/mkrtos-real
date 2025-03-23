@@ -22,7 +22,6 @@
                                                                                                                                     \
         int off = 0;                                                                                                                \
         int off_buf = 0;                                                                                                            \
-        int ret = -1;                                                                                                               \
         umword_t op_val = op;                                                                                                       \
         /*拷贝op*/                                                                                                                  \
         rpc_memcpy(msg_ipc->msg_buf, &op_val, __alignof(op_val));                                                                   \
@@ -55,9 +54,9 @@
                                  cli_type2, svr_type2, dir2, rpc_type2, name2)                                     \
     msg_tag_t struct_type##_##func_name##_dispatch(struct_type *obj, msg_tag_t tag, ipc_msg_t *ipc_msg)            \
     {                                                                                                              \
-        svr_type0 var0;                                                                                            \
-        svr_type1 var1;                                                                                            \
-        svr_type2 var2;                                                                                            \
+        svr_type0 var0 = {};                                                                                            \
+        svr_type1 var1 = {};                                                                                            \
+        svr_type2 var2 = {};                                                                                            \
         size_t op_val;                                                                                             \
         uint8_t *value = (uint8_t *)(ipc_msg->msg_buf);                                                            \
         uint8_t *map_value = (uint8_t *)(ipc_msg->map_buf);                                                        \

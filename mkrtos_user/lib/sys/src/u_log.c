@@ -13,7 +13,7 @@ enum log_op
     SET_FLAGS
 };
 MK_SYSCALL
-static msg_tag_t ulog_read_bytes_raw(obj_handler_t obj_inx, umword_t data[5], int len)
+static msg_tag_t ulog_read_bytes_raw(obj_handler_t obj_inx, umword_t data[5], int len, int flags)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     register volatile umword_t r1 asm(ARCH_REG_1);
@@ -24,7 +24,7 @@ static msg_tag_t ulog_read_bytes_raw(obj_handler_t obj_inx, umword_t data[5], in
     mk_syscall(syscall_prot_create(READ_DATA, LOG_PROT, obj_inx).raw,
                msg_tag_init4(0, 0, 0, 0).raw,
                len,
-               0,
+               flags,
                0,
                0,
                0);
@@ -44,11 +44,11 @@ static msg_tag_t ulog_read_bytes_raw(obj_handler_t obj_inx, umword_t data[5], in
     return tag;
 }
 MK_SYSCALL
-int ulog_read_bytes(obj_handler_t obj_inx, uint8_t *data, umword_t len)
+int ulog_read_bytes(obj_handler_t obj_inx, uint8_t *data, umword_t len, int flags)
 {
     umword_t buffer[5];
 
-    msg_tag_t tag = ulog_read_bytes_raw(obj_inx, buffer, len);
+    msg_tag_t tag = ulog_read_bytes_raw(obj_inx, buffer, len, flags);
 
     if (msg_tag_get_val(tag) > 0)
     {

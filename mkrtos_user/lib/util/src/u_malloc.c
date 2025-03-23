@@ -480,7 +480,7 @@ void u__bin_chunk(struct chunk *self)
 
 	/* Replace middle of large chunks with fresh zero pages */
 	if (size > RECLAIM && (size^(size-osize)) > size-osize) {
-		uintptr_t a = (uintptr_t)self + SIZE_ALIGN+PAGE_SIZE-1 & -PAGE_SIZE;
+		uintptr_t a = (((uintptr_t)self + SIZE_ALIGN+PAGE_SIZE-1) & (-PAGE_SIZE));
 		uintptr_t b = (uintptr_t)next - SIZE_ALIGN & -PAGE_SIZE;
 		int e = errno;
 #if 1
