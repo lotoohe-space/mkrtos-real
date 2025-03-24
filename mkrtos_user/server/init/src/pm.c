@@ -23,6 +23,8 @@
 #include "nsfs.h"
 #include "sig_cli.h"
 #include "tty.h"
+#include "u_task.h"
+#include "u_factory.h"
 #include <errno.h>
 #include <malloc.h>
 #include <stdio.h>
@@ -32,9 +34,17 @@ static pm_t pm;
 
 void pm_init(void)
 {
-    pm_svr_obj_init(&pm);
+    assert(pm_svr_obj_init(&pm) >= 0);
     meta_reg_svr_obj(&pm.svr_obj, PM_PROT);
     // printf("pm runing..\n");
+}
+void pm_lock(void)
+{
+    u_mutex_lock(&pm.lock, 0, NULL);
+}
+void pm_unlock(void)
+{
+    u_mutex_unlock(&pm.lock);
 }
 /**
  * @brief pid值是不是一个task
@@ -67,7 +77,7 @@ bool_t pm_pid_is_task(pid_t pid)
  * @param pid
  * @return watch_entry_t*
  */
-watch_entry_t *pm_watch_lookup(pm_t *pm, pid_t src_pid, pid_t listen_pid)
+static watch_entry_t *pm_watch_lookup(pm_t *pm, pid_t src_pid, pid_t listen_pid)
 {
     watch_entry_t *pos;
 
@@ -88,7 +98,7 @@ watch_entry_t *pm_watch_lookup(pm_t *pm, pid_t src_pid, pid_t listen_pid)
  * @param pm
  * @param pid 要删除的pid
  */
-void pm_del_watch_by_pid(pm_t *pm, pid_t pid)
+static void pm_del_watch_by_pid(pm_t *pm, pid_t pid)
 {
     watch_entry_t *pos;
 
@@ -119,8 +129,10 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
     {
         return -EINVAL;
     }
+    pm_lock();
     if (pm_watch_lookup(pm, src_pid, pid))
     {
+        pm_unlock();
         handler_free_umap(sig_rcv_hd);
         return -EEXIST;
     }
@@ -128,6 +140,7 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
 
     if (!entry)
     {
+        pm_unlock();
         handler_free_umap(sig_rcv_hd);
         return -ENOMEM;
     }
@@ -140,6 +153,7 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
     entry->flags = flags;
     slist_init(&entry->node);
     slist_add_append(&pm->watch_head, &entry->node);
+    pm_unlock();
     printf("[pm] watch pid:%d, sig hd:%d.\n", pid, sig_rcv_hd);
     return 0;
 }
@@ -201,6 +215,7 @@ int pm_rpc_kill_task(int src_pid, int pid, int flags, int exit_code)
         printf("pid is error.\n");
         return -EINVAL;
     }
+    pm_lock();
 // ns_node_del_by_pid(pid, flags); TODO:         //!< 从ns中删除
 #if IS_ENABLED(CONFIG_USING_SIG)
     if (src_pid != pid)
@@ -211,11 +226,11 @@ int pm_rpc_kill_task(int src_pid, int pid, int flags, int exit_code)
     pm_send_sig_to_task(&pm, pid, KILL_SIG); //!< 给watch者发送sig
 #endif
     pm_del_watch_by_pid(&pm, pid); //!< 从watch中删除
+    pm_unlock();
     printf("[pm] kill pid:%d code:%d.\n", pid, exit_code);
     return 0;
 }
-#include "u_task.h"
-#include "u_factory.h"
+
 /**
  * @return >0 pid <0 错误码
  */
@@ -349,27 +364,3 @@ int pm_rpc_copy_data(pid_t src_pid, pid_t dst_pid, umword_t src_addr, umword_t d
 
     return msg_tag_get_val(tag);
 }
-#if 0
-/**
- * @brief 等待某个进程死亡
- */
-int pm_waitpid(obj_handler_t sig_rcv_hd, pid_t pid)
-{
-    pid_t src_pid = thread_get_src_pid();
-    watch_entry_t *pos;
-
-    /*TODO:检测sig_rcv_hd的类型*/
-    slist_foreach_not_next(pos, &pm->watch_head, node)
-    {
-        watch_entry_t *next = slist_next_entry(pos, &pm->watch_head, node);
-
-        if (pos->watch_pid == pid && src_pid == pos->src_pid)
-        {
-            pos->notify_sem_hd = sig_rcv_hd;
-            break;
-        }
-        pos = next;
-    }
-    return 0;
-}
-#endif

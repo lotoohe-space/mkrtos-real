@@ -405,10 +405,10 @@ int fs_ns_readdir(int fd, struct dirent *_dir)
     }
     return sizeof(*_dir);
 }
-int fs_ns_mkdir(char *path)
+int fs_ns_mkdir(char *path, int pid)
 {
     int ret;
-    ret = ns_mknode(path, HANDLER_INVALID, NODE_TYPE_DUMMY);
+    ret = ns_mknode(path, HANDLER_INVALID, NODE_TYPE_DUMMY, pid);
     return ret;
 }
 int fs_ns_open_init(void)

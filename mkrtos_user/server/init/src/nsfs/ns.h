@@ -28,12 +28,10 @@ typedef struct ns_node
     node_type_t type;            //!< 节点类型
     struct ns_node *parent;      //!< 父节点
     struct ns_node *next;        //!< 下一个
-    // union
-    // {
-        struct ns_node *sub;  //!< 子树
-        obj_handler_t svr_hd; //!< 服务节点
-    // };
-    int ref; //!< 引用计数
+    struct ns_node *sub;         //!< 子树
+    obj_handler_t svr_hd;        //!< 服务节点
+    int belong_pid;              //!< 属于哪个pid
+    int ref;                     //!< 引用计数
 } ns_node_t;
 #else
 #include <u_types.h>
@@ -47,7 +45,7 @@ ns_node_t *ns_node_find_svr_file(const char *path, int *ret, int *cur_inx);
 int ns_nodes_count(ns_node_t *tree);
 ns_node_t *ns_node_get_inx(ns_node_t *tree, int inx);
 int ns_delnode(const char *path);
-int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type);
+int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type, int pid);
 static inline ns_node_t *ns_node_get_next(ns_node_t *tree_node, ns_node_t *cur_node)
 {
     assert(cur_node);

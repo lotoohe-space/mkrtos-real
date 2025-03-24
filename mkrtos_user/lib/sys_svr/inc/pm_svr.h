@@ -14,6 +14,7 @@
 #include "u_rpc_svr.h"
 #include "u_slist.h"
 #include "u_types.h"
+#include "u_mutex.h"
 typedef struct watch_entry
 {
     pid_t watch_pid;//!<被监控的pid
@@ -30,6 +31,7 @@ typedef struct pm
 {
     rpc_svr_obj_t svr_obj;
     slist_head_t watch_head;
+    u_mutex_t lock;
 } pm_t;
 
 #define PM_CREATE_DUMMY_TASK 0x1
@@ -59,7 +61,7 @@ static inline pm_flags_t pm_flags_init(uint8_t mem_block, uint8_t flags, pid_t p
     };
 }
 
-void pm_svr_obj_init(pm_t *pm);
+int pm_svr_obj_init(pm_t *pm);
 int pm_rpc_run_app(const char *path, pm_flags_t pm_flags, char *params, int params_len_or_app_size, char *env, int envs_len);
 int pm_rpc_kill_task(int src_pid, int pid, int flags, int exit_code);
 

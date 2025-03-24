@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export TOOLCHAIN=/home/zhangzheng/toolchain/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin/
-export TOOLCHAIN_LIB=/home/zhangzheng/toolchain/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp
+export TOOLCHAIN=/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin/
+export TOOLCHAIN_LIB=/home/zhangzheng/toolchain/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp
 
 # export TOOLCHAIN=/Users/zhangzheng/gcc-arm-none-eabi-10.3-2021.10/bin/
 # export TOOLCHAIN_LIB=/Users/zhangzheng/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp

@@ -66,9 +66,10 @@ int main(int argc, char *args[])
     pm_init();
     parse_cfg_init();
 
-    fs_ns_mkdir("/dev");
-    fs_ns_mkdir("/sys");
-    fs_ns_mkdir("/dev/shm");
+    fs_ns_mkdir("/dev", TASK_THIS);
+    fs_ns_mkdir("/sys", TASK_THIS);
+    fs_ns_mkdir("/proc", TASK_THIS);
+    fs_ns_mkdir("/dev/shm", TASK_THIS);
 #if defined(MKRTOS_TEST_MODE)
     printf("test_main..\n");
     test_main();

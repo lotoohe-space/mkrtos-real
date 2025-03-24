@@ -71,9 +71,10 @@ static int fs_svr_unlink(const char *path)
 static int fs_svr_mkdir(char *path)
 {
     int ret;
-    
+    int pid = thread_get_src_pid();
+
     u_mutex_lock(&ns_lock, 0, NULL);
-    ret = fs_ns_mkdir(path);
+    ret = fs_ns_mkdir(path, pid);
     u_mutex_unlock(&ns_lock);
     return ret;
 }
@@ -110,14 +111,14 @@ static int fs_svr_symlink(const char *src, const char *dst)
 int namespace_register(const char *path, obj_handler_t hd, int type)
 {
     int ret;
-
+    int pid = thread_get_src_pid();
     if (path[0] == '\0' || (path[0] == '/' && path[1] == '\0'))
     {
         return -EISDIR;
     }
     
     u_mutex_lock(&ns_lock, 0, NULL);
-    ret = ns_mknode(path, hd, NODE_TYPE_SVR);
+    ret = ns_mknode(path, hd, NODE_TYPE_SVR, pid);
     if (ret < 0)
     {
         handler_free_umap(hd);

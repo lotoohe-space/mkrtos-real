@@ -25,6 +25,8 @@
 #include "sig_svr.h"
 #include "u_sema.h"
 #include "u_task.h"
+#include <ns_cli.h>
+
 #ifdef CONFIG_USING_SIG
 
 static sig_t sig_obj;
@@ -104,5 +106,13 @@ void sig_init(void)
     assert(sema_wait_hd != HANDLER_INVALID);
     tag = facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sema_wait_hd), 0, 1);
     assert(msg_tag_get_val(tag) >= 0);
+
+    char proc_path[20];
+    umword_t pid;
+
+    task_get_pid(TASK_THIS, &pid);
+
+    snprintf(proc_path, sizeof(proc_path), "/proc/%d", pid);
+    assert(ns_register(proc_path, sig_ipc, 0)>=0 && "task proc init failed.\n");
 }
 #endif

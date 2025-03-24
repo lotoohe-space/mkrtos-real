@@ -1,7 +1,7 @@
 cd /mnt
-tcc -nostdinc -nostdlib -c /bin/main.c -o main.o  -pie
-tcc -nostdinc -nostdlib -c /bin/cons.c -o cons.o  -pie
-as -mthumb -mcpu=cortex-m3 /bin/start.S -o start.o  -pie
-as -mthumb -mcpu=cortex-m3 /bin/syscall.S -o syscall.o  -pie
-ld start.o main.o cons.o syscall.o -T/bin/link_pie.lds -o a.out --section-start .text=0x20144000 -pie
+tcc -nostdinc -nostdlib -c /bin/main.c -o main.o
+tcc -nostdinc -nostdlib -c /bin/cons.c -o cons.o
+as -mthumb -mcpu=cortex-m3 /bin/start.S -o start.o
+as -mthumb -mcpu=cortex-m3 /bin/syscall.S -o syscall.o
+ld start.o main.o cons.o syscall.o -T/bin/link_pie.lds -o a.out --section-start .text=0x20144000
 objcopy -O binary -S a.out a.bin

@@ -103,7 +103,7 @@ static int ns_node_del(ns_node_t *tree, ns_node_t *del_node)
     }
     return -1;
 }
-static ns_node_t *node_create(const char *name, node_type_t type)
+static ns_node_t *node_create(const char *name, node_type_t type, int pid)
 {
     ns_node_t *tmp;
 
@@ -119,6 +119,7 @@ static ns_node_t *node_create(const char *name, node_type_t type)
     strncpy(tmp->name, name, NS_NODE_NAME_LEN);
     tmp->name[NS_NODE_NAME_LEN - 1] = 0;
     tmp->type = type;
+    tmp->belong_pid = pid;
     return tmp;
 }
 ns_node_t *ns_node_get_inx(ns_node_t *tree, int inx)
@@ -390,7 +391,7 @@ int ns_find_svr_obj(const char *path, obj_handler_t *svr_hd)
  * 创建一个节点
  * 只能在前置节点全部为dummy的节点里面创建节点
  */
-int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type)
+int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type, int pid)
 {
     ns_node_t *dir_node;
     ns_node_t *new_node;
@@ -418,7 +419,7 @@ int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type)
     
     ns_node_strcpy(name, path + p_inx + 1, NS_NODE_NAME_LEN);
 
-    new_node = node_create(name, NODE_TYPE_DUMMY);
+    new_node = node_create(name, NODE_TYPE_DUMMY, pid);
     if (new_node == NULL)
     {
         return -ENOMEM;

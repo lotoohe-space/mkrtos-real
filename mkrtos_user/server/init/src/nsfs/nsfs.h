@@ -14,6 +14,6 @@ int fs_ns_stat(const char *path, struct kstat *st);
 int fs_ns_close(int fd);
 int fs_ns_remove(const char *name);
 int fs_ns_readdir(int fd, struct dirent *_dir);
-int fs_ns_mkdir(char *path);
+int fs_ns_mkdir(char *path, int pid);
 int fs_ns_rmdir(const char *name);
 int fs_ns_open_init(void);
