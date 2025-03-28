@@ -21,7 +21,7 @@ static void *ipc_execetion_thread_handler(void *arg)
     int ret;
 
     printf("%s:%d\n", __func__, __LINE__);
-    thread_msg_buf_get(pthread_hd_get(pthread_self()), (umword_t *)(&msg), NULL);
+    u_thread_msg_buf_get(pthread_hd_get(pthread_self()), (umword_t *)(&msg), NULL);
     msg->user[3] = (umword_t)(&gos->vcpu);
     while (1)
     {
@@ -51,7 +51,7 @@ int ipc_execetion_create(guest_os_t *gos)
     }
 
     gos->ipa_execption_ipc = pthread_hd_get(gos->ipa_exeception_hd);
-    task_set_obj_name(TASK_THIS, gos->ipa_execption_ipc, "exec_th");
+    u_task_set_obj_name(TASK_THIS, gos->ipa_execption_ipc, "exec_th");
 
     u_sleep_ms(100);
     return 0;

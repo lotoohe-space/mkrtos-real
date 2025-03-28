@@ -8,7 +8,7 @@ typedef unsigned long umword_t;
 #define ROUND(a, b) (((a) / (b)) + (((a) % (b)) ? 1 : 0))          //!< a/b后的值向上取整
 #define ROUND_UP(a, b) ROUND(a, b)                                 //!< a除b向上取整数
 extern int mk_syscall(int nr, ...);
-void ulog_write_bytes(obj_handler_t obj_inx, const uint8_t *data, int len);
+void u_log_write_bytes(obj_handler_t obj_inx, const uint8_t *data, int len);
 
 
 #endif

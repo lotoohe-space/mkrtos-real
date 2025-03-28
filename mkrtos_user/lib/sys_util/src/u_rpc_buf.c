@@ -35,7 +35,7 @@ int rpc_hd_alloc_raw(ipc_msg_t *msg)
         obj_handler_t tmp_hd = buf_hd[i];
         if (handler_is_used(tmp_hd))
         {
-            if (task_obj_valid(TASK_THIS, tmp_hd, 0).prot == 0)
+            if (u_task_obj_valid(TASK_THIS, tmp_hd, 0).prot == 0)
             {
                 alloc_new = FALSE;
             }
@@ -70,7 +70,7 @@ int rpc_hd_alloc(void)
 {
     ipc_msg_t *msg;
     msg_tag_t tag;
-    tag = thread_msg_buf_get(-1, (void *)(&msg), NULL);
+    tag = u_thread_msg_buf_get(-1, (void *)(&msg), NULL);
     if (msg_tag_get_val(tag) < 0)
     {
         return msg_tag_get_val(tag);

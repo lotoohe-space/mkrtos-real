@@ -3,6 +3,10 @@
 #include <dirent.h>
 #include "ns.h"
 #include "kstat.h"
+
+void nsfs_lock(void);
+void nsfs_unlock(void);
+
 int fs_ns_open(const char *name, int flags, int mode);
 int fs_ns_write(int fd, void *data, int len);
 int fs_ns_read(int fd, void *data, int len);
@@ -16,4 +20,5 @@ int fs_ns_remove(const char *name);
 int fs_ns_readdir(int fd, struct dirent *_dir);
 int fs_ns_mkdir(char *path, int pid);
 int fs_ns_rmdir(const char *name);
+void fs_ns_del_file_by_pid(const char *path, pid_t pid);
 int fs_ns_open_init(void);

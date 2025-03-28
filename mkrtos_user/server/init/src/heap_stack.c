@@ -15,7 +15,7 @@
 #define HEAP_SIZE (256 * 1024)
 #define STACK_SIZE (2 * 1024) //(1024 + 256)
 #else
-#define HEAP_SIZE (2 * 1024)
+#define HEAP_SIZE (10 * 1024)
 #define STACK_SIZE (2 * 1024) //(1024 + 256)
 #endif
 

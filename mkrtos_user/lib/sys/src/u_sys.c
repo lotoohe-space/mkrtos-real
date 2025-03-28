@@ -16,7 +16,7 @@ enum sys_op
     DIS_IRQ,
 };
 MK_SYSCALL
-msg_tag_t sys_read_info(obj_handler_t obj, sys_info_t *info, umword_t flags)
+msg_tag_t u_sys_read_info(obj_handler_t obj, sys_info_t *info, umword_t flags)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     register volatile umword_t r1 asm(ARCH_REG_1);
@@ -44,7 +44,7 @@ msg_tag_t sys_read_info(obj_handler_t obj, sys_info_t *info, umword_t flags)
     return msg_tag_init(r0);
 }
 MK_SYSCALL
-msg_tag_t sys_read_info2(obj_handler_t obj, sys_info2_t *info, umword_t flags)
+msg_tag_t u_sys_read_info2(obj_handler_t obj, sys_info2_t *info, umword_t flags)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     register volatile umword_t r1 asm(ARCH_REG_1);
@@ -71,7 +71,7 @@ msg_tag_t sys_read_info2(obj_handler_t obj, sys_info2_t *info, umword_t flags)
     return msg_tag_init(r0);
 }
 MK_SYSCALL
-msg_tag_t sys_reboot(obj_handler_t obj)
+msg_tag_t u_sys_reboot(obj_handler_t obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     register volatile umword_t r1 asm(ARCH_REG_1);
@@ -93,7 +93,7 @@ msg_tag_t sys_reboot(obj_handler_t obj)
     return tag;
 }
 MK_SYSCALL
-msg_tag_t sys_mem_info(obj_handler_t obj, umword_t *total, umword_t *free)
+msg_tag_t u_sys_mem_info(obj_handler_t obj, umword_t *total, umword_t *free)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     register volatile umword_t r1 asm(ARCH_REG_1);
@@ -124,7 +124,7 @@ msg_tag_t sys_mem_info(obj_handler_t obj, umword_t *total, umword_t *free)
     return tag;
 }
 MK_SYSCALL
-msg_tag_t sys_dis_info(obj_handler_t obj, umword_t irq_inx)
+msg_tag_t u_sys_dis_info(obj_handler_t obj, umword_t irq_inx)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 

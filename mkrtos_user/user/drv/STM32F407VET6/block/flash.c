@@ -17,7 +17,7 @@ int flash_get_sector_size(umword_t *mem_addr, int *blk_size, int *blk_nr)
     assert(blk_nr);
     msg_tag_t tag;
 
-    tag = sys_read_info(SYS_PROT, &sys_info, 0);
+    tag = u_sys_read_info(SYS_PROT, &sys_info, 0);
     if (msg_tag_get_val(tag) < 0)
     {
         return -ENOENT;

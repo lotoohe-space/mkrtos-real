@@ -21,7 +21,7 @@ enum irq_sender_op
     ACK_IRQ,    //!< 中断确认
 };
 MK_SYSCALL
-msg_tag_t uirq_bind(obj_handler_t obj_inx, umword_t irq_no, u_irq_prio_t prio_sub_pre)
+msg_tag_t u_irq_bind(obj_handler_t obj_inx, umword_t irq_no, u_irq_prio_t prio_sub_pre)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 
@@ -41,7 +41,7 @@ msg_tag_t uirq_bind(obj_handler_t obj_inx, umword_t irq_no, u_irq_prio_t prio_su
     return tag;
 }
 MK_SYSCALL
-msg_tag_t uirq_wait(obj_handler_t obj_inx, int flags)
+msg_tag_t u_irq_wait(obj_handler_t obj_inx, int flags)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 
@@ -61,7 +61,7 @@ msg_tag_t uirq_wait(obj_handler_t obj_inx, int flags)
     return tag;
 }
 MK_SYSCALL
-msg_tag_t uirq_ack(obj_handler_t obj_inx, umword_t irq_no)
+msg_tag_t u_irq_ack(obj_handler_t obj_inx, umword_t irq_no)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 

@@ -86,7 +86,7 @@ void I2C_Init(I2C_TypeDef *I2Cx, I2C_InitStructure *initStruct)
 			else
 			{
 				#ifdef MKRTOS_DRV
-				sys_dis_info(SYS_PROT, I2C1_IRQn);
+				u_sys_dis_info(SYS_PROT, I2C1_IRQn);
 				#else
 				NVIC_DisableIRQ(I2C1_IRQn);
 				#endif

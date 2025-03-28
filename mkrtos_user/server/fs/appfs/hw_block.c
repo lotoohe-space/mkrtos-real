@@ -80,11 +80,11 @@ static int hw_create_shm_obj(int size, obj_handler_t *shm_obj)
         printf("handler alloc fail.\n");
         return -ENOMEM;
     }
-    tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+    tag = u_facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
                                    SHARE_MEM_CNT_BUDDY_CNT, size);
     if (msg_tag_get_prot(tag) < 0)
     {
-        printf("facotry_create_share_mem fail.\n");
+        printf("u_facotry_create_share_mem fail.\n");
         handler_free(shm_hd);
         return -ENOMEM;
     }
@@ -121,7 +121,7 @@ again:
         printf("shm obj create fail.\n");
         return ret;
     }
-    tag = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &shm_addr, NULL);
+    tag = u_share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &shm_addr, NULL);
     if (msg_tag_get_prot(tag) < 0)
     {
         printf("shm mem map fail.\n");

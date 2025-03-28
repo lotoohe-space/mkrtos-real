@@ -218,7 +218,7 @@ static void cmd_notify_parse(uint8_t *data)
 
         if (node == NULL)
         {
-            ulog_write_str(u_get_global_env()->log_hd, "No nodes are available.\n");
+            u_log_write_str(u_get_global_env()->log_hd, "No nodes are available.\n");
             return;
         }
         memcpy(node->mac, data + 1, 8);
@@ -321,7 +321,7 @@ static void cmd_local_parse(uint8_t *data)
 
             if (node == NULL)
             {
-                ulog_write_str(u_get_global_env()->log_hd, "No nodes are available.\n");
+                u_log_write_str(u_get_global_env()->log_hd, "No nodes are available.\n");
                 return;
             }
             memcpy(node->mac, pack->mac, 8);

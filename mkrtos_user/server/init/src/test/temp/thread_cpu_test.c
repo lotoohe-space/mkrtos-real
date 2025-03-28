@@ -43,7 +43,7 @@ static void thread_test_func(void)
     printf("[u]thread1 run %d cpu.\n", arch_get_current_cpu_id());
     while (1)
     {
-        thread_run_cpu(th1_hd, 2, rand() % (CONFIG_CPU));
+        u_thread_run_cpu(th1_hd, 2, rand() % (CONFIG_CPU));
         u_sleep_ms(5); /*TODO:*/
         printf("[u]thread1 run %d cpu.\n", arch_get_current_cpu_id());
     }
@@ -55,7 +55,7 @@ static void thread_test_func2(void)
     u_sleep_ms(500);
     while (1)
     {
-        thread_run_cpu(th2_hd, 2, rand() % (CONFIG_CPU));
+        u_thread_run_cpu(th2_hd, 2, rand() % (CONFIG_CPU));
         u_sleep_ms(5); /*TODO:*/
         printf("[u]thread2 run %d cpu.\n", arch_get_current_cpu_id());
     }
@@ -69,34 +69,34 @@ void thread_cpu_test(void)
     msg_tag_t tag;
     void *mem;
 
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th1_hd, TASK_THIS);
+    tag = u_thread_bind_task(th1_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE - 8, TASK_RAM_BASE(), 0);
+    tag = u_thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE - 8, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
     tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RW, 0, 0), PAGE_SIZE, 0, (addr_t *)(&mem));
     assert(msg_tag_get_prot(tag) >= 0);
     memset((void *)mem, 0, PAGE_SIZE);
     // 设置msgbuff
-    tag = thread_msg_buf_set(th1_hd, mem);
+    tag = u_thread_msg_buf_set(th1_hd, mem);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run_cpu(th1_hd, 2, 3);
+    tag = u_thread_run_cpu(th1_hd, 2, 3);
 
     th2_hd = handler_alloc();
     assert(th2_hd != HANDLER_INVALID);
 
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th2_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th2_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th2_hd, TASK_THIS);
+    tag = u_thread_bind_task(th2_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th2_hd, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE - 8, TASK_RAM_BASE(), 0);
+    tag = u_thread_exec_regs(th2_hd, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE - 8, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
     tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RW, 0, 0), PAGE_SIZE, 0, (addr_t *)(&mem));
     assert(msg_tag_get_prot(tag) >= 0);
     memset((void *)mem, 0, PAGE_SIZE);
     // 设置msgbuff
-    tag = thread_msg_buf_set(th2_hd, mem);
+    tag = u_thread_msg_buf_set(th2_hd, mem);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run_cpu(th2_hd, 2, 2);
+    tag = u_thread_run_cpu(th2_hd, 2, 2);
 }

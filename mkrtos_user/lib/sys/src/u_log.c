@@ -13,7 +13,7 @@ enum log_op
     SET_FLAGS
 };
 MK_SYSCALL
-static msg_tag_t ulog_read_bytes_raw(obj_handler_t obj_inx, umword_t data[5], int len, int flags)
+static msg_tag_t u_log_read_bytes_raw(obj_handler_t obj_inx, umword_t data[5], int len, int flags)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     register volatile umword_t r1 asm(ARCH_REG_1);
@@ -44,11 +44,11 @@ static msg_tag_t ulog_read_bytes_raw(obj_handler_t obj_inx, umword_t data[5], in
     return tag;
 }
 MK_SYSCALL
-int ulog_read_bytes(obj_handler_t obj_inx, uint8_t *data, umword_t len, int flags)
+int u_log_read_bytes(obj_handler_t obj_inx, uint8_t *data, umword_t len, int flags)
 {
     umword_t buffer[5];
 
-    msg_tag_t tag = ulog_read_bytes_raw(obj_inx, buffer, len, flags);
+    msg_tag_t tag = u_log_read_bytes_raw(obj_inx, buffer, len, flags);
 
     if (msg_tag_get_val(tag) > 0)
     {
@@ -60,7 +60,7 @@ int ulog_read_bytes(obj_handler_t obj_inx, uint8_t *data, umword_t len, int flag
     return msg_tag_get_val(tag);
 }
 MK_SYSCALL
-void ulog_write_bytes(obj_handler_t obj_inx, const uint8_t *data, umword_t len)
+void u_log_write_bytes(obj_handler_t obj_inx, const uint8_t *data, umword_t len)
 {
     uint8_t write_buf[ULOG_RW_MAX_BYTES] = {0};
     umword_t j = 0;
@@ -94,10 +94,10 @@ void ulog_write_bytes(obj_handler_t obj_inx, const uint8_t *data, umword_t len)
     }
 }
 MK_SYSCALL
-void ulog_write_str(obj_handler_t obj_inx, const char *str)
+void u_log_write_str(obj_handler_t obj_inx, const char *str)
 {
     size_t i;
     for (i = 0; str[i]; i++)
         ;
-    ulog_write_bytes(obj_inx, (uint8_t *)str, i + 1);
+    u_log_write_bytes(obj_inx, (uint8_t *)str, i + 1);
 }

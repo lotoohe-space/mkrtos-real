@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
 {
     int fd;
 
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_tst2");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_tst2");
+    u_task_set_obj_name(TASK_THIS, TASK_THIS, "tk_tst2");
+    u_task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_tst2");
     fd = open("/mnt/1.txt", O_RDWR | O_CREAT, 0777);
     if (fd < 0) {
         printf("open faile:%d.\n", fd);

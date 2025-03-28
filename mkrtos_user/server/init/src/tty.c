@@ -24,7 +24,7 @@
 #include "pm.h"
 #include "pm_svr.h"
 #include "u_sig.h"
-#define CONS_STACK_SIZE 1024
+#define CONS_STACK_SIZE 2048
 static ATTR_ALIGN(8) uint8_t cons_stack[CONS_STACK_SIZE];
 static uint8_t cons_ipc_msg[MSG_BUG_LEN];
 static tty_struct_t sys_tty;
@@ -73,13 +73,13 @@ static void console_read_func(void)
         {
             int ret;
 
-            r_len += ulog_read_bytes(LOG_PROT, data + r_len, buf_size, 0);
+            r_len += u_log_read_bytes(LOG_PROT, data + r_len, buf_size, 0);
             buf_size = sizeof(data) - r_len;
             if (buf_size == 0)
             {
                 break;
             }
-            ret = ulog_read_bytes(LOG_PROT, data + r_len, buf_size, O_NONBLOCK);
+            ret = u_log_read_bytes(LOG_PROT, data + r_len, buf_size, O_NONBLOCK);
             if (ret > 0)
             {
                 r_len += ret;
@@ -151,7 +151,7 @@ static int cons_init(void)
     {
         return -1;
     }
-    tag = facotry_create_sema(FACTORY_PROT,
+    tag = u_facotry_create_sema(FACTORY_PROT,
                               vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sem_th), 0, 1);
     if (msg_tag_get_val(tag) < 0)
     {
@@ -159,13 +159,13 @@ static int cons_init(void)
     }
     u_thread_create(&cons_th, (char *)cons_stack + sizeof(cons_stack) - 8, cons_ipc_msg, console_read_func);
     u_thread_run(cons_th, 4);
-    ulog_write_str(LOG_PROT, "cons init...\n");
+    u_log_write_str(LOG_PROT, "cons init...\n");
     return 0;
 }
 static int tty_open(const char *path, int flags, int mode)
 {
 
-    ulog_write_str(LOG_PROT, "tty open..\n");
+    u_log_write_str(LOG_PROT, "tty open..\n");
     sys_tty.fd_flags = flags;//FIXME:修正支持不同fd拥有不同的flags。
     return 0;
 }
@@ -364,7 +364,7 @@ static int tty_def_line_handler(tty_struct_t *tty, uint8_t r)
                     {
                         // 发送给前台进程组的所有进程
                         // inner_set_sig(SIGINT);TODO:
-                        pm_rpc_kill_task(-1, tty->fg_pid, KILL_SIG, 0);
+                        pm_rpc_kill_task(0, tty->fg_pid, KILL_SIG, 0);
                         if (!L_NOFLSH(tty))
                         {
                             q_queue_clear(&tty->w_queue);
@@ -377,7 +377,7 @@ static int tty_def_line_handler(tty_struct_t *tty, uint8_t r)
                     else if (r == QUIT_C(tty))
                     {
                         // inner_set_sig(SIGQUIT);TODO:
-                        // ulog_write_str(LOG_PROT, "Ctrl+C");
+                        // u_log_write_str(LOG_PROT, "Ctrl+C");
                         if (!L_NOFLSH(tty))
                         {
                             q_queue_clear(&tty->w_queue);
@@ -565,7 +565,7 @@ static int tty_ioctl(int fd, int req, void *args)
         return -EINVAL;
     }
 #if 1
-    tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
+    tag = u_task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
     if (msg_tag_get_val(tag) < 0)
     {
         return msg_tag_get_val(tag);

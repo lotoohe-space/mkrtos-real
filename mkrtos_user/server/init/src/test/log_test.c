@@ -7,10 +7,10 @@
 static void ulog_test(CuTest *tc)
 {
     
-    ulog_write_str(LOG_PROT, "Please key..\n");
+    u_log_write_str(LOG_PROT, "Please key..\n");
     #if 0
     uint8_t data[10];
-    int len = ulog_read_bytes(LOG_PROT, data, sizeof(data) - 1);
+    int len = u_log_read_bytes(LOG_PROT, data, sizeof(data) - 1);
     if (len > 0)
     {
         data[len] = 0;

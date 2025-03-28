@@ -38,7 +38,7 @@ void fs_backend_init(void)
     msg_tag_t tag;
     char *pwd;
 
-    tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
+    tag = u_task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
     assert(msg_tag_get_val(tag) >= 0);
     if (cur_pid != 0)
     {
@@ -74,12 +74,12 @@ void fs_cons_unlock(void)
 }
 void fs_cons_write_unlock(void *buf, size_t size)
 {
-    ulog_write_bytes(u_get_global_env()->log_hd, buf, size);
+    u_log_write_bytes(u_get_global_env()->log_hd, buf, size);
 }
 void fs_cons_write(void *buf, size_t size)
 {
     u_mutex_lock(&lock_cons, 0, NULL);
-    ulog_write_bytes(u_get_global_env()->log_hd, buf, size);
+    u_log_write_bytes(u_get_global_env()->log_hd, buf, size);
     u_mutex_unlock(&lock_cons);
 }
 #define SHM_DEV_PATH "/dev/shm/"
@@ -224,7 +224,7 @@ long be_write(long fd, char *buf, long size)
     {
         pid_t pid;
 
-        task_get_pid(TASK_THIS, (umword_t *)(&pid));
+        u_task_get_pid(TASK_THIS, (umword_t *)(&pid));
         if (pid == 0)
         {
             fs_cons_write(buf, size);
@@ -297,7 +297,7 @@ long be_writev(long fd, const struct iovec *iov, long iovcnt)
         {
             pid_t pid;
 
-            task_get_pid(TASK_THIS, (umword_t *)(&pid));
+            u_task_get_pid(TASK_THIS, (umword_t *)(&pid));
             if (pid == 0)
             {
                 fs_cons_write(iov[i].iov_base, iov[i].iov_len);

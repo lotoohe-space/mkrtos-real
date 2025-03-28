@@ -12,7 +12,7 @@ long sys_wait_hd_release(va_list ap)
 
     ARG_1_BE(ap, hd, long);
 
-    while (msg_tag_get_val(task_obj_valid(TASK_THIS, hd, NULL)) == 1)
+    while (msg_tag_get_val(u_task_obj_valid(TASK_THIS, hd, NULL)) == 1)
     {
         u_sleep_ms(1);
     }

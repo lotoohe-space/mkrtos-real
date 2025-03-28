@@ -96,7 +96,7 @@ void LCD_Init(LCD_TypeDef *LCDx, LCD_InitStructure *initStruct)
 
 			assert(u_intr_bind(LCD_IRQn, u_irq_prio_create(0, 0), IRQ_THREAD_PRIO,
 							   stack0 + STACK_SIZE, msg_buf, LCD_Handler, &lcd_irq_obj) >= 0);
-			uirq_ack(lcd_irq_obj, LCD_IRQn);
+			u_irq_ack(lcd_irq_obj, LCD_IRQn);
 
 #else
 			NVIC_EnableIRQ(LCD_IRQn);

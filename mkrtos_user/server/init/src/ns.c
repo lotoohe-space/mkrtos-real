@@ -33,14 +33,11 @@ static ns_t ns;
 static fs_t ns_fs;
 
 static obj_handler_t ns_hd;
-static u_mutex_t ns_lock;
 static int fs_svr_open(const char *path, int flags, int mode)
 {
     int ret;
     
-    u_mutex_lock(&ns_lock, 0, NULL);
     ret = fs_ns_open(path, flags, mode);
-    u_mutex_unlock(&ns_lock);
     return ret;
 }
 
@@ -48,24 +45,18 @@ static int fs_svr_readdir(int fd, dirent_t *dir)
 {
     int ret;
     
-    u_mutex_lock(&ns_lock, 0, NULL);
     ret = fs_ns_readdir(fd, dir);
-    u_mutex_unlock(&ns_lock);
     return ret;
 }
 static void fs_svr_close(int fd)
 {
-    u_mutex_lock(&ns_lock, 0, NULL);
     fs_ns_close(fd);
-    u_mutex_unlock(&ns_lock);
 }
 static int fs_svr_unlink(const char *path)
 {
     int ret;
     
-    u_mutex_lock(&ns_lock, 0, NULL);
     ret = fs_ns_remove(path);
-    u_mutex_unlock(&ns_lock);
     return ret;
 }
 static int fs_svr_mkdir(char *path)
@@ -73,9 +64,7 @@ static int fs_svr_mkdir(char *path)
     int ret;
     int pid = thread_get_src_pid();
 
-    u_mutex_lock(&ns_lock, 0, NULL);
     ret = fs_ns_mkdir(path, pid);
-    u_mutex_unlock(&ns_lock);
     return ret;
 }
 static int fs_svr_stat(const char *path, void *_buf)
@@ -83,9 +72,7 @@ static int fs_svr_stat(const char *path, void *_buf)
     struct kstat *buf = (struct kstat *)_buf;
     int ret;
     
-    u_mutex_lock(&ns_lock, 0, NULL);
     ret = fs_ns_stat(path, buf);
-    u_mutex_unlock(&ns_lock);
     return ret;
 }
 /**
@@ -116,13 +103,14 @@ int namespace_register(const char *path, obj_handler_t hd, int type)
     {
         return -EISDIR;
     }
-    
-    u_mutex_lock(&ns_lock, 0, NULL);
+    nsfs_lock();
     ret = ns_mknode(path, hd, NODE_TYPE_SVR, pid);
     if (ret < 0)
     {
+        printf("register [%s] failed, hd:%d.\n", (char *)(path), hd);fflush(stdout);
         handler_free_umap(hd);
     }
+    printf("register [%s] success, hd:%d.\n", (char *)(path), hd);fflush(stdout);
 #if 0
     if (ret == -EEXIST)
     {
@@ -138,7 +126,7 @@ int namespace_register(const char *path, obj_handler_t hd, int type)
         }
     }
 #endif
-    u_mutex_unlock(&ns_lock);
+    nsfs_unlock();
     return ret;
 }
 /**
@@ -152,9 +140,9 @@ int namespace_query(const char *path, obj_handler_t *hd)
 {
     int ret;
 
-    u_mutex_lock(&ns_lock, 0, NULL);
+    nsfs_lock();
     ret = ns_find_svr_obj(path, hd);
-    u_mutex_unlock(&ns_lock);
+    nsfs_unlock();
     return ret;
 }
 /**
@@ -182,6 +170,5 @@ void namespace_init(obj_handler_t ipc_hd)
     thread_set_src_pid(0);
     ns_hd = ipc_hd;
     ns_root_node_init(ipc_hd);
-    assert(u_mutex_init(&ns_lock, handler_alloc()) >= 0);
     // printf("ns svr init...\n");
 }

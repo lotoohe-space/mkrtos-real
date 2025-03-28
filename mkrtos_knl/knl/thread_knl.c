@@ -103,21 +103,21 @@ static void knl_del_task(void)
                 msg->msg_buf[0] = 1; /*KILL_TASK*/
                 msg->msg_buf[1] = pos->pid;
                 msg->msg_buf[2] = 0;
+                msg->msg_buf[3] = 0;
+                msg->user[2] = -1;
 
-                if (thread_get_ipc_state(init_thread) != THREAD_IPC_ABORT)
-                {
 #define PM_PROT 0x0005
-#define MAGIC_NS_USERPID 0xbabababa
-                    entry_frame_t f;
-                    f.regs[0] = msg_tag_init4(0, 3, 0, PM_PROT).raw;
-                    f.regs[1] = 0;
-                    f.regs[2] = 0x2222; /*传递两个参数，没有用到，暂时用不上*/
-                    f.regs[3] = 0x3333;
-                    tag = thread_fast_ipc_call(init_task, &f, MAGIC_NS_USERPID);
-                    if (msg_tag_get_val(tag) < 0)
-                    {
-                        printk("init thread comm failed, ret:%d\n", __func__, __LINE__, msg_tag_get_val(tag));
-                    }
+#define MAGIC_PM_USERPID 0xbabababa
+                entry_frame_t f;
+
+                f.regs[0] = msg_tag_init4(0, 4 + 1, 0, PM_PROT).raw;
+                f.regs[1] = 0;
+                f.regs[2] = 0x2222; /*传递两个参数，没有用到，暂时用不上*/
+                f.regs[3] = 0x3333;
+                tag = thread_fast_ipc_call(init_task, &f, MAGIC_PM_USERPID);
+                if (msg_tag_get_val(tag) < 0)
+                {
+                    printk("init thread comm failed, ret:%d\n", __func__, __LINE__, msg_tag_get_val(tag));
                 }
             }
         }
@@ -268,6 +268,8 @@ static void knl_init_2(void)
     void *sp_addr = (char *)init_task->mm_space.mm_block + app->i.stack_offset - app->i.data_offset;
     void *sp_addr_top = (char *)sp_addr + app->i.stack_size;
 
+    init_task->text_addr = (void *)ret_addr;
+    init_task->text_size = size;
     thread_set_msg_buf(init_thread, (char *)(init_task->mm_space.mm_block) + app->i.ram_size, (char *)(init_task->mm_space.mm_block) + app->i.ram_size);
     thread_user_pf_set(init_thread, (void *)(app), (void *)((umword_t)sp_addr_top - 8),
                        init_task->mm_space.mm_block);
@@ -324,7 +326,7 @@ bool_t task_knl_kill(thread_t *kill_thread, bool_t is_knl)
         else
         {
             thread_suspend(kill_thread);
-            kill_thread->ipc_status = THREAD_IPC_ABORT;
+            // kill_thread->ipc_status = THREAD_IPC_ABORT;
         }
         slist_add_append(&del_task_head, &task->del_node); // 添加到删除队列中
         spinlock_set(&del_lock, status2);

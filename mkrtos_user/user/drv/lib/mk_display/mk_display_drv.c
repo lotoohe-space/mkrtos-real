@@ -63,7 +63,7 @@ static int mk_display_drv_ioctl(mk_dev_t *_dev, int cmd, umword_t args)
         msg_tag_t tag;
         mk_display_win_t dis_arg;
 
-        tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
+        tag = u_task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
         if (msg_tag_get_val(tag) < 0)
         {
             return msg_tag_get_val(tag);
@@ -92,7 +92,7 @@ static int mk_display_drv_ioctl(mk_dev_t *_dev, int cmd, umword_t args)
         mk_display_cfg_t *arg_cfg = (void *)args;
         msg_tag_t tag;
 
-        tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
+        tag = u_task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
         if (msg_tag_get_val(tag) < 0)
         {
             return msg_tag_get_val(tag);

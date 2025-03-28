@@ -10,7 +10,7 @@ enum share_mem_op
     SHARE_MEM_RESIZE, //!< share mem resize.
 };
 MK_SYSCALL
-msg_tag_t share_mem_map(obj_handler_t obj, vma_addr_t vaddr, umword_t *addr, umword_t *size)
+msg_tag_t u_share_mem_map(obj_handler_t obj, vma_addr_t vaddr, umword_t *addr, umword_t *size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     register volatile umword_t r1 asm(ARCH_REG_1);
@@ -37,7 +37,7 @@ msg_tag_t share_mem_map(obj_handler_t obj, vma_addr_t vaddr, umword_t *addr, umw
     return msg_tag_init(r0);
 }
 MK_SYSCALL
-msg_tag_t share_mem_unmap(obj_handler_t obj)
+msg_tag_t u_share_mem_unmap(obj_handler_t obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     mk_syscall(syscall_prot_create4(SHARE_MEM_UNMAP, SHARE_MEM_PROT, obj, FALSE).raw,
@@ -54,7 +54,7 @@ msg_tag_t share_mem_unmap(obj_handler_t obj)
     return msg_tag_init(r0);
 }
 MK_SYSCALL
-msg_tag_t share_mem_resize(obj_handler_t obj, size_t new_size)
+msg_tag_t u_share_mem_resize(obj_handler_t obj, size_t new_size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
     mk_syscall(syscall_prot_create4(SHARE_MEM_RESIZE, SHARE_MEM_PROT, obj, FALSE).raw,

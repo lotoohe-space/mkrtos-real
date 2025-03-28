@@ -20,14 +20,14 @@ int u_intr_bind(int irq_no, u_irq_prio_t prio, int th_prio,
     {
         return -ENOMEM;
     }
-    tag = factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, irq_obj));
+    tag = u_factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, irq_obj));
 
     if (msg_tag_get_val(tag) < 0)
     {
         handler_free(irq_obj);
         return msg_tag_get_val(tag);
     }
-    tag = uirq_bind(irq_obj, irq_no, prio);
+    tag = u_irq_bind(irq_obj, irq_no, prio);
     if (msg_tag_get_val(tag) < 0)
     {
         handler_free_umap(irq_obj);

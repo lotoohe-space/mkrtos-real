@@ -14,13 +14,13 @@ int u_irq_request(int irq_no, void *stack, void *msg_buf, obj_handler_t *ret_irq
     {
         return -1;
     }
-    msg_tag_t tag = factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, irq_obj));
+    msg_tag_t tag = u_factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, irq_obj));
     if (msg_tag_get_val(tag) < 0)
     {
         handler_free(irq_obj);
         return msg_tag_get_val(tag);
     }
-    tag = uirq_bind(irq_obj, irq_no, prio);
+    tag = u_irq_bind(irq_obj, irq_no, prio);
     if (msg_tag_get_val(tag) < 0)
     {
         handler_free_umap(irq_obj);

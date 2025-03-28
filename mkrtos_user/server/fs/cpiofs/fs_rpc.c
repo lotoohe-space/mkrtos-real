@@ -370,6 +370,6 @@ void fs_svr_init(void)
 
     fs_init(&fs, &ops);
     meta_reg_svr_obj(&fs.svr, FS_PROT);
-    tag = sys_read_info(SYS_PROT, &sys_info, SYS_FLAGS_MAP_CPIO_FS);
+    tag = u_sys_read_info(SYS_PROT, &sys_info, SYS_FLAGS_MAP_CPIO_FS);
     assert(msg_tag_get_val(tag) >= 0);
 }

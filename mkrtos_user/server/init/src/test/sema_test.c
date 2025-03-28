@@ -17,7 +17,7 @@ int u_sema_test(void)
 
     sema_hd = handler_alloc();
     assert(sema_hd != HANDLER_INVALID);
-    tag = facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sema_hd), 0, 1);
+    tag = u_facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sema_hd), 0, 1);
     assert(msg_tag_get_val(tag) >= 0);
 
     u_sema_up(sema_hd);
@@ -91,7 +91,7 @@ static void u_sema_test2(CuTest *tc)
 
     sema_hd2 = handler_alloc();
     CuAssert(tc, "hd alloc fail.\n", sema_hd2 != HANDLER_INVALID);
-    tag = facotry_create_sema(FACTORY_PROT,
+    tag = u_facotry_create_sema(FACTORY_PROT,
                               vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sema_hd2), 0, 1);
     CuAssert(tc, "hd alloc fail.\n", msg_tag_get_val(tag) >= 0);
     CuAssert(tc, "pthread_create fail.\n", pthread_create(&pth1, NULL, thread_th1, NULL) == 0);
@@ -122,7 +122,7 @@ static void u_sema_test3(CuTest *tc)
         sema_hd2 = handler_alloc();
         CuAssert(tc, "hd alloc fail.\n", sema_hd2 != HANDLER_INVALID);
 
-        tag = facotry_create_sema(FACTORY_PROT,
+        tag = u_facotry_create_sema(FACTORY_PROT,
                                   vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sema_hd2), 0, 1);
         CuAssert(tc, "hd alloc fail.\n", msg_tag_get_val(tag) >= 0);
         for (int i = 0; i < 5; i++)

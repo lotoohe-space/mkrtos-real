@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
     int ret;
     char *mount_path = NULL;
 
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_cpio");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_cpio");
+    u_task_set_obj_name(TASK_THIS, TASK_THIS, "tk_cpio");
+    u_task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_cpio");
     for (int i = 0; i < argc; i++) {
         printf("args[%d]:%s\n", i, argv[i]);
     }

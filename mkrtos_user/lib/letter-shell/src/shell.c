@@ -1512,7 +1512,7 @@ void shellExec(Shell *shell)
                 {
                     shell->parser.param[shell->parser.paramCount - 1] = NULL;
                     shell->parser.paramCount--;
-                    task_get_pid(TASK_THIS, (umword_t *)&cur_pid);
+                    u_task_get_pid(TASK_THIS, (umword_t *)&cur_pid);
                     pm_sig_watch(pid, 0);
                     extern void tty_set_raw_mode(void);
                     extern void tty_set_normal_mode(void);

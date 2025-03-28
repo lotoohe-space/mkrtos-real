@@ -53,7 +53,7 @@ void *__aeabi_memset(void *dest, int c, int n)
 
     return dest;
 }
-void ulog_write_bytes(obj_handler_t obj_inx, const uint8_t *data, int len)
+void u_log_write_bytes(obj_handler_t obj_inx, const uint8_t *data, int len)
 {
     uint8_t write_buf[ULOG_RW_MAX_BYTES] = {0};
     int j = 0;

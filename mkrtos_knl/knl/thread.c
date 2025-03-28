@@ -161,17 +161,20 @@ static bool_t thread_put(kobject_t *kobj)
 }
 static void thread_release_stage1_impl(thread_t *th)
 {
-    if (stack_len(&th->com->fast_ipc_stack)==0){
-        //处于ipc通信中，不能直接删除，否者会立刻中断ipc中的执行
+    if (stack_len(&th->com->fast_ipc_stack) == 0)
+    {
+        // 处于ipc通信中，不能直接删除，否者会立刻中断ipc中的执行
         if (th->status == THREAD_READY)
         {
             thread_suspend(th);
         }
-        
+
         thread_sleep_del(th); //!< 从休眠中删除
         thread_unbind(th);
         th->ipc_status = THREAD_IPC_ABORT;
-    } else {
+    }
+    else
+    {
         th->ipc_status = THREAD_IPC_ABORT;
     }
 }
@@ -311,22 +314,6 @@ void thread_suspend(thread_t *th)
 }
 
 /**
- * @brief 线程死亡
- *
- * @param th
- */
-void thread_dead(thread_t *th)
-{
-    if (!slist_in_list(&th->sche.node))
-    {
-        assert(slist_in_list(&th->sche.node));
-    }
-    scheduler_del(&th->sche);
-    th->status = THREAD_DEAD;
-    thread_sched(TRUE);
-}
-
-/**
  * @brief 进行一次调度
  *
  * @param th
@@ -425,19 +412,6 @@ void thread_ready(thread_t *th, bool_t is_sche)
     // printk("ready: th:0x%lx\n", th);
     cpulock_set(status);
 }
-void thread_todead(thread_t *th, bool_t is_sche)
-{
-    // if (!!slist_in_list(&th->sche.node))
-    // {
-    assert(!slist_in_list(&th->sche.node));
-    // }
-    scheduler_add(&th->sche);
-    th->status = THREAD_TODEAD;
-    if (is_sche)
-    {
-        thread_sched(TRUE);
-    }
-}
 /**
  * @brief 创建线程
  *
@@ -510,472 +484,6 @@ static int ipc_dat_copy_raw(obj_space_t *dst_obj, obj_space_t *src_obj, ram_limi
            MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
     return i;
 }
-#if 0
-/**
- * @brief ipc传输时的数据拷贝
- *
- * @param dst_th
- * @param src_th
- * @param tag
- * @return int
- */
-static int ipc_data_copy(thread_t *dst_th, thread_t *src_th, msg_tag_t tag, int is_reply)
-{
-    void *src = thread_get_kmsg_buf(src_th);
-    void *dst = thread_get_kmsg_buf(dst_th);
-    ipc_msg_t *src_ipc;
-    ipc_msg_t *dst_ipc;
-    task_t *src_tk = thread_get_bind_task(src_th);
-    task_t *dst_tk = thread_get_bind_task(dst_th);
-
-    src_ipc = src;
-    dst_ipc = dst;
-
-    ipc_dat_copy_raw(&dst_tk->obj_space, &src_tk->obj_space, dst_tk->lim, dst_ipc, src_ipc, tag, is_reply);
-    dst_ipc->user[2] = task_pid_get(src_tk);
-
-    dst_th->msg.tag = tag;
-    return 0;
-}
-#if IS_ENABLED(CONFIG_SMP)
-static int thread_del_wait_send_handler(ipi_msg_t *msg, bool_t *is_sched)
-{
-    thread_wait_entry_t *wait = (void *)msg->msg;
-    if (slist_in_list(&wait->node_timeout))
-    {
-        slist_del(&wait->node_timeout);
-    }
-    thread_ready(wait->th, TRUE);
-    return 0;
-}
-#endif
-int thread_del_wait_send_remote(thread_wait_entry_t *wait)
-{
-    assert(cpulock_get_status() == TRUE);
-    thread_t *th = wait->th;
-#if IS_ENABLED(CONFIG_SMP)
-    if (th->cpu != arch_get_current_cpu_id())
-    {
-        th->ipi_msg_node.msg = (umword_t)wait;
-        th->ipi_msg_node.cb = thread_del_wait_send_handler;
-        cpu_ipi_to_msg(1 << th->cpu, &th->ipi_msg_node, IPI_CALL);
-    }
-    else
-#endif
-    {
-        if (slist_in_list(&wait->node_timeout))
-        {
-            slist_del(&wait->node_timeout);
-        }
-        thread_ready(th, FALSE);
-    }
-    return 0;
-}
-/**
- * @brief 当前线程接收数据
- *
- * @return int
- */
-static int thread_ipc_recv(msg_tag_t *ret_msg, ipc_timeout_t timeout,
-                           umword_t *ret_user_id, ipc_t *ipc_kobj,
-                           thread_t *recv_obj)
-{
-    assert(ret_msg);
-    assert(ret_user_id);
-    int ret = 0;
-    umword_t lock_status = 0;
-    umword_t lock_status2 = 0;
-    thread_wait_entry_t wait = {0};
-    slist_head_t *ready_head = NULL; //!< 有发送者
-    thread_t *cur_th = thread_get_current();
-
-    assert(cur_th != recv_obj);
-
-    lock_status = cpulock_lock();
-    lock_status2 = spinlock_lock(&cur_th->recv_lock);
-    if (ipc_kobj)
-    {
-        /*IPC对象的引用计数+1*/
-        ref_counter_inc(&ipc_kobj->ref);
-        cur_th->ipc_kobj = &ipc_kobj->kobj;
-    }
-    else
-    {
-        cur_th->ipc_kobj = NULL;
-    }
-#if THREAD_IS_DEBUG
-    dbg_printk(TAG "%s:%d ipc recv start: %s[0x%x] status:%d ipc_status:%d recv_obj:0x%x\n", __func__, __LINE__,
-               kobject_get_name(&cur_th->kobj), cur_th, cur_th->status, cur_th->ipc_status, recv_obj);
-#endif
-
-    if (!slist_is_empty(&cur_th->wait_send_head) && !recv_obj)
-    {
-        ready_head = slist_first(&cur_th->wait_send_head);
-        slist_del(ready_head); //!< 从当前线程中删除唤醒的线程
-        thread_wait_entry_t *wait =
-            container_of(ready_head, thread_wait_entry_t, node);
-        assert(wait->th->status == THREAD_SUSPEND);
-
-        thread_del_wait_send_remote(wait);
-#if THREAD_IS_DEBUG
-        dbg_printk(TAG "%s:%d ipc recv start3: %s[0x%x] status:%d ipc_status:%d wait_th:0x%x\n", __func__, __LINE__,
-                   kobject_get_name(&cur_th->kobj), cur_th, cur_th->status, cur_th->ipc_status, wait->th);
-#endif
-    }
-    else
-    {
-        if (timeout.recv_timeout)
-        {
-            thread_wait_entry_init(&wait, cur_th, timeout.recv_timeout);
-            // printk("add timeout:0x%lx\n", cur_th);
-            slist_add_append(pre_cpu_get_current_cpu_var(&wait_recv_queue),
-                             &wait.node); //!< 放到等待队列中
-#if THREAD_IS_DEBUG
-            dbg_printk(TAG "%s:%d ipc recv app sleep: %s[0x%x] status:%d ipc_status:%d\n", __func__, __LINE__,
-                       kobject_get_name(&cur_th->kobj), cur_th, cur_th->status, cur_th->ipc_status);
-#endif
-        }
-    }
-    if (recv_obj)
-    {
-        thread_timeout_del_recv_remote(recv_obj, TRUE);
-
-#if THREAD_IS_DEBUG
-        dbg_printk(TAG "%s:%d ipc call wake: %s[0x%x] status:%d ipc_status:%d\n", __func__, __LINE__,
-                   kobject_get_name(&recv_obj->kobj), recv_obj, recv_obj->status, recv_obj->ipc_status);
-#endif
-    }
-    // cur_th->has_wait_send_th = FALSE;
-    cur_th->has_wait_send_th = TRUE;
-    thread_set_ipc_state(cur_th, THREAD_RECV);
-    thread_suspend_sw(cur_th, FALSE);
-    spinlock_set(&cur_th->recv_lock, lock_status2);
-    preemption(); //!< 进行调度
-#if THREAD_IS_DEBUG
-    dbg_printk(TAG "%s:%d ipc recv wait: %s[0x%x] status:%d ipc_status:%d recv_obj:0x%x\n", __func__, __LINE__,
-               kobject_get_name(&cur_th->kobj), cur_th, cur_th->status, cur_th->ipc_status, recv_obj);
-#endif
-    assert(cur_th->status == THREAD_READY);
-    // cur_th->has_wait_send_th = FALSE;
-#if THREAD_IS_DEBUG
-    dbg_printk(TAG "%s:%d ipc recv wake: %s[0x%x] recv_obj:0x%x\n", __func__, __LINE__,
-               kobject_get_name(&cur_th->kobj), cur_th, recv_obj);
-#endif
-    if (cur_th->ipc_status == THREAD_IPC_ABORT)
-    {
-        ret = -ESHUTDOWN;
-    }
-    else if (cur_th->ipc_status == THREAD_TIMEOUT)
-    {
-        ret = -ERTIMEDOUT;
-    }
-    else
-    {
-        *ret_msg = cur_th->msg.tag;
-        *ret_user_id = cur_th->user_id;
-    }
-    cur_th->ipc_status = THREAD_NONE;
-    cpulock_set(lock_status);
-
-    return ret;
-}
-static int thread_ipc_reply_inner(thread_t *form, thread_t *to,
-                                  msg_tag_t in_tag)
-{
-again:;
-    mword_t status_lock2 = spinlock_lock(&to->recv_lock);
-    if (to->status != THREAD_SUSPEND || to->ipc_status != THREAD_RECV)
-    {
-        /*TODO:这里应该挂起等待*/
-        if (to->ipc_status == THREAD_IPC_ABORT)
-        {
-            ref_counter_dec_and_release(&to->ref, &to->kobj);
-            spinlock_set(&to->recv_lock, status_lock2);
-            return -ECANCELED;
-        }
-        thread_sched(TRUE);
-        spinlock_set(&to->recv_lock, status_lock2);
-        preemption();
-        goto again;
-    }
-#if THREAD_IS_DEBUG
-    dbg_printk(TAG "%s:%d ipc reply: %s[0x%x]-->%s[0x%x]\n", __func__, __LINE__,
-               kobject_get_name(&form->kobj), form, kobject_get_name(&to->kobj), to);
-#endif
-    //!< 发送数据给上一次的发送者
-    int ret = ipc_data_copy(to, form, in_tag, TRUE); //!< 拷贝数据
-
-    if (ret < 0)
-    {
-        in_tag.prot = ret;
-    }
-    to->msg.tag = in_tag;
-    if (to->ipc_status != THREAD_IPC_ABORT)
-    {
-#if THREAD_IS_DEBUG
-        dbg_printk(TAG "%s:%d ipc reply to:%s[0x%x] status:%d\n", __func__, __LINE__,
-                   kobject_get_name(&to->kobj), to, to->status);
-#endif
-        assert(to->status == THREAD_SUSPEND && to->ipc_status == THREAD_RECV);
-        thread_timeout_del_from_send_queue_remote(to);
-    }
-    ref_counter_dec_and_release(&to->ref, &to->kobj);
-    spinlock_set(&to->recv_lock, status_lock2);
-    return 0;
-}
-#if IS_ENABLED(CONFIG_SMP)
-static int thread_ipc_reply_handler(ipi_msg_t *msg, bool_t *is_sched)
-{
-    thread_t *form;
-    thread_t *to;
-    msg_tag_t in_tag;
-
-    form = (thread_t *)msg->msg;
-    to = (thread_t *)msg->msg2;
-    in_tag = msg_tag_init(msg->msg3);
-
-    return thread_ipc_reply_inner(form, to, in_tag);
-}
-#endif
-int thread_ipc_reply_remote(thread_t *form, thread_t *to, msg_tag_t in_tag)
-{
-#if IS_ENABLED(CONFIG_SMP)
-    if (to->cpu == arch_get_current_cpu_id())
-    {
-        return thread_ipc_reply_inner(form, to, in_tag);
-    }
-    else
-    {
-        to->ipi_msg_node.msg = (umword_t)form;
-        to->ipi_msg_node.msg2 = (umword_t)to;
-        to->ipi_msg_node.msg3 = (umword_t)in_tag.raw;
-        to->ipi_msg_node.cb = thread_ipc_reply_handler;
-        cpu_ipi_to_msg(1 << to->cpu, &to->ipi_msg_node, IPI_CALL);
-
-        return to->ipi_msg_node.ret;
-    }
-#else
-    return thread_ipc_reply_inner(form, to, in_tag);
-#endif
-}
-/**
- * @brief 当前线程回复数据给上一次的发送者，回复完成后则释放上一次的接收者指针
- *
- * @param in_tag
- * @return int
- */
-static int thread_ipc_reply(msg_tag_t in_tag)
-{
-    thread_t *cur_th = thread_get_current();
-    umword_t status;
-    thread_t *last_th;
-    int ret;
-
-    if (cur_th->last_send_th == NULL)
-    {
-        return -1;
-    }
-    status = spinlock_lock(&cur_th->send_lock);
-    if (cur_th->last_send_th == NULL)
-    {
-        spinlock_set(&cur_th->send_lock, status);
-        return -1;
-    }
-    last_th = cur_th->last_send_th;
-    ret = thread_ipc_reply_inner(cur_th, last_th, in_tag);
-    spinlock_set(&cur_th->send_lock, status);
-    return ret;
-}
-#if IS_ENABLED(CONFIG_SMP)
-static int thread_remote_suspend_handler(ipi_msg_t *msg, bool_t *is_sched)
-{
-    thread_t *th = (thread_t *)msg->msg;
-    assert(th);
-    thread_suspend(th);
-    return 0;
-}
-#endif
-int thread_suspend_remote(thread_t *th, bool_t is_sche)
-{
-    assert(cpulock_get_status());
-#if IS_ENABLED(CONFIG_SMP)
-    if (th->cpu != arch_get_current_cpu_id())
-    {
-        th->ipi_msg_node.msg = (umword_t)th;
-        th->ipi_msg_node.cb = thread_remote_suspend_handler;
-        cpu_ipi_to_msg(1 << th->cpu, &th->ipi_msg_node, IPI_CALL);
-    }
-    else
-    {
-        thread_suspend_sw(th, is_sche);
-    }
-#else
-    thread_suspend_sw(th, is_sche);
-#endif
-    return 0;
-}
-
-/**
- * @brief 等待某个线程进入挂起状态
- *
- * @param recv_th
- * @param timeout
- * @return int
- */
-static int thread_wait_recv_thread(thread_t *recv_th, ipc_timeout_t timeout)
-{
-    int ret = 0;
-    assert(cpulock_get_status() == TRUE);
-    thread_t *cur_th = thread_get_current();
-    mword_t lock_status;
-
-again_check:
-    lock_status = spinlock_lock(&recv_th->recv_lock);
-    if ((thread_get_status(recv_th) != THREAD_SUSPEND ||
-         thread_get_ipc_state(recv_th) != THREAD_RECV) ||
-        recv_th->has_wait_send_th == FALSE /*如果已经在有人准备从这个线程获取数据，则当前call者需要挂起*/)
-    {
-        thread_wait_entry_t wait;
-
-        // 初始化等待队列
-        thread_wait_entry_init(&wait, cur_th, timeout.send_timeout);
-#if THREAD_IS_DEBUG
-        dbg_printk(TAG "%s:%d ipc wait for: %s[0x%x]\n", __func__, __LINE__,
-                   kobject_get_name(&recv_th->kobj), recv_th);
-#endif
-        slist_add_append(&recv_th->wait_send_head,
-                         &wait.node); //!< 放到线程的等待队列中
-        slist_add_append(pre_cpu_get_current_cpu_var(&wait_send_queue),
-                         &wait.node_timeout);
-
-        recv_th->has_wait_send_th = TRUE;
-        thread_set_ipc_state(cur_th, THREAD_SEND);
-        thread_suspend_sw(cur_th, FALSE);
-        spinlock_set(&recv_th->recv_lock, lock_status);
-        preemption();
-        if (thread_get_ipc_state(cur_th) == THREAD_IPC_ABORT)
-        {
-            thread_set_state(cur_th, THREAD_NONE);
-            ret = -ESHUTDOWN;
-            goto end;
-        }
-        else if (thread_get_ipc_state(cur_th) == THREAD_TIMEOUT)
-        {
-            thread_set_state(cur_th, THREAD_NONE);
-            ret = -EWTIMEDOUT;
-            goto end;
-        }
-        thread_set_state(cur_th, THREAD_NONE);
-        goto again_check;
-    }
-    else
-    {
-        recv_th->has_wait_send_th = FALSE;
-        spinlock_set(&recv_th->recv_lock, lock_status);
-#if THREAD_IS_DEBUG
-        dbg_printk(TAG "%s:%d ipc wait end: %s[0x%x] status:%d ipc_status:%d\n", __func__,
-                   __LINE__, kobject_get_name(&recv_th->kobj), recv_th, recv_th->status,
-                   recv_th->ipc_status);
-#endif
-    }
-end:
-    assert(recv_th->status == THREAD_SUSPEND && recv_th->ipc_status == THREAD_RECV);
-    return ret;
-}
-//__attribute__((optimize(0)))
-int thread_ipc_call(
-    thread_t *to_th, msg_tag_t in_tag, msg_tag_t *ret_tag, ipc_timeout_t timout,
-    umword_t *ret_user_id, bool_t is_call)
-{
-    int ret = -EINVAL;
-    if (is_call)
-    {
-        assert(is_call && ret_tag);
-    }
-    thread_t *cur_th = thread_get_current();
-    thread_t *recv_kobj = to_th;
-    mword_t lock_stats2;
-
-#if THREAD_IS_DEBUG
-    dbg_printk(TAG "%s:%d ipc call: %s[0x%x]-->%s[0x%x]\n", __func__, __LINE__,
-               kobject_get_name(&cur_th->kobj), cur_th,
-               kobject_get_name(&recv_kobj->kobj), recv_kobj);
-#endif
-    lock_stats2 = spinlock_lock(&cur_th->send_lock);
-again:
-    ret = thread_wait_recv_thread(recv_kobj, timout); //!< 进入接收状态
-    if (ret < 0)
-    {
-        goto end;
-    }
-    // 下面开始数据接收的流程
-    if (thread_get_status(recv_kobj) == THREAD_SUSPEND && thread_get_ipc_state(recv_kobj) == THREAD_RECV)
-    {
-        //!< 开始发送数据
-        ret = ipc_data_copy(recv_kobj, cur_th, in_tag, FALSE); //!< 拷贝数据
-        if (ret < 0)
-        {
-            //!< 拷贝失败
-            goto end;
-        }
-#if THREAD_IS_DEBUG
-        dbg_printk(TAG "%s:%d ipc send data success: %s[0x%x]-->%s[0x%x]\n", __func__,
-                   __LINE__, kobject_get_name(&cur_th->kobj), cur_th,
-                   kobject_get_name(&recv_kobj->kobj), recv_kobj);
-#endif
-        if (is_call)
-        {
-            if (recv_kobj->ipc_kobj)
-            {
-                // 绑定回复的ipc到当前的线程
-                assert(ipc_bind(((ipc_t *)(recv_kobj->ipc_kobj)), -1, 0, cur_th) >= 0);
-                ref_counter_dec_and_release(&((ipc_t *)(recv_kobj->ipc_kobj))->ref,
-                                            recv_kobj->ipc_kobj);
-                recv_kobj->ipc_kobj = NULL;
-                recv_kobj->last_send_th = NULL;
-            }
-            else
-            {
-                ref_counter_inc(&cur_th->ref);    //!< 作为发送者增加一次引用
-                recv_kobj->last_send_th = cur_th; //!< 设置接收者的上一次发送者是谁
-            }
-
-            ret = thread_ipc_recv(ret_tag, timout, ret_user_id, NULL,
-                                  recv_kobj); //!< 当前线程进行接收
-            if (ret < 0)
-            {
-                //!< 接收超时
-                goto end;
-            }
-        }
-        else
-        {
-            thread_timeout_del_recv_remote(recv_kobj, TRUE);
-#if THREAD_IS_DEBUG
-            dbg_printk(TAG "%s:%d ipc call wake: %s[0x%x]\n", __func__, __LINE__,
-                       kobject_get_name(&recv_kobj->kobj), recv_kobj);
-#endif
-        }
-        preemption();
-    }
-    else
-    {
-        printk("recv_kobj->status:%d, recv_kobj->ipc_status:%d", recv_kobj->status,
-               recv_kobj->ipc_status);
-        assert(0);
-        // goto again;
-    }
-    ret = 0;
-end:
-    spinlock_set(&cur_th->send_lock, lock_stats2);
-#if THREAD_IS_DEBUG
-    dbg_printk(TAG "%s:%d ipc call done: %s[0x%x]-->%s[0x%x]\n", __func__, __LINE__,
-               kobject_get_name(&cur_th->kobj), cur_th,
-               kobject_get_name(&recv_kobj->kobj), recv_kobj);
-#endif
-    return ret;
-}
-#endif
 /**
  *  快速ipc call
  * FIXME:以下代码是arch相关的，需要整理
@@ -1098,7 +606,7 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
     if (ret < 0)
     {
         mutex_unlock(&old_task->nofity_lock);
-        in_tag =  msg_tag_init4(0, 0, 0, ret);
+        in_tag = msg_tag_init4(0, 0, 0, ret);
         goto end;
     }
     umword_t cpu_status = cpulock_lock();
@@ -1111,6 +619,7 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
     // if (ret >=0 ) {
     for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
     {
+        // 映射了多少个，则重新填充多少个新的
         if (i < ret)
         {
             src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
@@ -1125,7 +634,6 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
     mutex_unlock(&old_task->nofity_lock);
     if (thread_is_knl(cur_th))
     {
-        //! 吧r4-r11留出来
         cur_th->sp.user_sp = 0x0;
         cur_th->sp.sp_type = 0xfffffff9;
         scheduler_get_current()->sched_reset = 3;
@@ -1147,18 +655,19 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
     if (thread_is_knl(cur_th))
     {
         arch_to_sche();
-        preemption();
     }
 end:
-    if (thread_get_ipc_state(cur_th) == THREAD_IPC_ABORT && stack_len(&cur_th->com->fast_ipc_stack)==0)
+    if (thread_get_ipc_state(cur_th) == THREAD_IPC_ABORT && stack_len(&cur_th->com->fast_ipc_stack) == 0)
     {
-        /*FIXME:这里面没有释放线程的内存*/
+        // 原进程死亡，ipc结束的时候直接回收线程内存
         cpu_status = cpulock_lock();
         thread_unbind(cur_th);
         thread_suspend(cur_th);
         thread_knl_release_helper(cur_th);
         cpulock_set(cpu_status);
-    } else {
+    }
+    else
+    {
         ref_counter_dec_and_release(&cur_th->ref, &cur_th->kobj);
     }
     return in_tag;
@@ -1237,7 +746,9 @@ int thread_set_prio(thread_t *th, int prio)
             thread_suspend(th);
             th->sche.prio = prio;
             thread_ready(th, TRUE);
-        } else {
+        }
+        else
+        {
             th->sche.prio = prio;
         }
     }

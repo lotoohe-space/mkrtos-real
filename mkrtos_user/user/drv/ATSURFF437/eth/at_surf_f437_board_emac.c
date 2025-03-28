@@ -152,7 +152,7 @@ static void EMAC_IRQHandler(void)
 {
   while (1)
   {
-    msg_tag_t tag = uirq_wait(irq_obj, 0);
+    msg_tag_t tag = u_irq_wait(irq_obj, 0);
     if (msg_tag_get_val(tag) >= 0)
     {
       flag_status status;
@@ -173,7 +173,7 @@ static void EMAC_IRQHandler(void)
       emac_dma_flag_clear(EMAC_DMA_RI_FLAG);
       u_sema_up(sem_obj);
 
-      uirq_ack(irq_obj, EMAC_IRQn);
+      u_irq_ack(irq_obj, EMAC_IRQn);
     }
   }
 }
@@ -198,7 +198,7 @@ void emac_nvic_configuration(void)
   {
     return;
   }
-  tag = facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sem_obj), 0, (umword_t)(100000000));
+  tag = u_facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sem_obj), 0, (umword_t)(100000000));
   if (msg_tag_get_val(tag) < 0)
   {
     return;

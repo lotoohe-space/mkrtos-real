@@ -43,7 +43,7 @@ int blk_drv_write(obj_handler_t obj, int len, int inx)
     }
     else
     {
-        tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
+        tag = u_share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
         if (msg_tag_get_val(tag) < 0)
         {
             handler_free_umap(obj);
@@ -65,7 +65,7 @@ int blk_drv_read(obj_handler_t obj, int len, int inx)
     addr_t addr = 0;
     umword_t size = 0;
     uint32_t _err;
-    msg_tag_t tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
+    msg_tag_t tag = u_share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
 
     if (msg_tag_get_val(tag) < 0)
     {
@@ -113,8 +113,8 @@ int main(int argc, char *argv[])
         printf("example:block /block");
         return -1;
     }
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_blk");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_blk");
+    u_task_set_obj_name(TASK_THIS, TASK_THIS, "tk_blk");
+    u_task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_blk");
     printf("%s init..\n", argv[0]);
     fast_ipc_init();
 

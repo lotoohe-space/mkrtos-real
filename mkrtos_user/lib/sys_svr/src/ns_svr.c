@@ -16,14 +16,7 @@ RPC_GENERATION_OP3(ns_t, NS_PROT, NS_REGISTER_OP, register,
     path->data[path->len - 1] = 0;
 
     int ret = namespace_register((char *)(path->data), vpage_create_raw(svr_hd->data).addr, type->data);
-    if (ret >= 0)
-    {
-        printf("register [%s] success.\n", (char *)(path->data));
-    }
-    else
-    {
-        printf("register [%s] fail.\n", (char *)(path->data));
-    }
+
     return ret;
 }
 RPC_GENERATION_DISPATCH3(ns_t, NS_PROT, NS_REGISTER_OP, register,

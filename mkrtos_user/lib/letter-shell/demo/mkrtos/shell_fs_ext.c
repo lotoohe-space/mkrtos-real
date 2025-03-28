@@ -290,7 +290,7 @@ SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), 
 int shell_reboot(int argc, char *argv[])
 {
     printf("sys reboot.\n");
-    sys_reboot(SYS_PROT);
+    u_sys_reboot(SYS_PROT);
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), reboot, shell_reboot, reboot command);
@@ -300,7 +300,7 @@ int shell_mem_info(int argc, char *argv[])
     size_t total;
     size_t free;
 
-    sys_mem_info(SYS_PROT, (umword_t *)&total, (umword_t *)&free);
+    u_sys_mem_info(SYS_PROT, (umword_t *)&total, (umword_t *)&free);
     printf("sys mem:\ntotal:%dB\nfree:%dB\n", total, free);
     return 0;
 }

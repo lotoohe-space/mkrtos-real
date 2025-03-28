@@ -57,9 +57,9 @@ void init_usart3(u32 baudRate)
 
     irq_obj = handler_alloc();
     assert(irq_obj != HANDLER_INVALID);
-    msg_tag_t tag = factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, irq_obj));
+    msg_tag_t tag = u_factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, irq_obj));
     assert(msg_tag_get_val(tag) >= 0);
-    uirq_bind(irq_obj, USART3_IRQn, u_irq_prio_create(1, 1));
+    u_irq_bind(irq_obj, USART3_IRQn, u_irq_prio_create(1, 1));
 
     int ret = thread_create(IRQ_THREAD_PRIO, USART3_IRQHandler, (umword_t)(stack0 + STACK_SIZE), NULL);
     assert(ret >= 0);
@@ -68,7 +68,7 @@ static void *USART3_IRQHandler(void *arg)
 {
     while (1)
     {
-        msg_tag_t tag = uirq_wait(irq_obj, 0);
+        msg_tag_t tag = u_irq_wait(irq_obj, 0);
         if (msg_tag_get_val(tag) >= 0)
         {
             if (USART_GetFlagStatus(USART3, USART_FLAG_ORE) != RESET)
@@ -84,7 +84,7 @@ static void *USART3_IRQHandler(void *arg)
                 queue_push(data);
                 USART_ClearITPendingBit(USART3, USART_IT_RXNE); // 清除中断标志
             }
-            tag = uirq_ack(irq_obj, USART3_IRQn);
+            tag = u_irq_ack(irq_obj, USART3_IRQn);
         }
         // u_sleep_ms(1);
     }

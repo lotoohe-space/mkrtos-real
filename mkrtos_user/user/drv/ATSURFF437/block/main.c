@@ -43,7 +43,7 @@ int blk_drv_write(obj_handler_t obj, int len, int inx)
     }
     else
     {
-        tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
+        tag = u_share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
         if (msg_tag_get_val(tag) < 0)
         {
             handler_free_umap(obj);
@@ -65,7 +65,7 @@ int blk_drv_read(obj_handler_t obj, int len, int inx)
     addr_t addr = 0;
     umword_t size = 0;
     uint32_t _err;
-    msg_tag_t tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
+    msg_tag_t tag = u_share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
 
     if (msg_tag_get_val(tag) < 0)
     {

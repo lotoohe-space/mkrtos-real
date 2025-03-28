@@ -26,7 +26,7 @@ int thread_vcpu_test(void)
     {
         return -ENOENT;
     }
-    tag = factory_create_thread_vcpu(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
+    tag = u_factory_create_thread_vcpu(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
     if (msg_tag_get_prot(tag) < 0)
     {
         handler_free(th1_hd);
@@ -41,7 +41,7 @@ int thread_vcpu_test(void)
     }
     memset((void *)msg_buf_addr, 0, PAGE_SIZE);
 
-    tag = thread_exec_regs(th1_hd, (umword_t)thread_vcpu_test_fn,
+    tag = u_thread_exec_regs(th1_hd, (umword_t)thread_vcpu_test_fn,
                            (umword_t)stack0 + STACK_SIZE - sizeof(void *),
                            TASK_RAM_BASE(), 0);
     if (msg_tag_get_prot(tag) < 0)
@@ -49,12 +49,12 @@ int thread_vcpu_test(void)
         ret = msg_tag_get_prot(tag);
         goto end_free_mm;
     }
-    tag = thread_bind_task(th1_hd, TASK_THIS);
+    tag = u_thread_bind_task(th1_hd, TASK_THIS);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_free_mm;
     }
-    tag = thread_msg_buf_set(th1_hd, (void *)msg_buf_addr);
+    tag = u_thread_msg_buf_set(th1_hd, (void *)msg_buf_addr);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_free_mm;

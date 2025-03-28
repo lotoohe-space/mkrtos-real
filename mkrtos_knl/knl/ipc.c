@@ -22,6 +22,7 @@
 #include "string.h"
 #include "mm_wrap.h"
 #include "map.h"
+#include "sleep.h"
 
 enum ipc_op
 {
@@ -52,7 +53,7 @@ static void ipc_obj_slab_init(void)
 }
 INIT_KOBJ_MEM(ipc_obj_slab_init);
 
-int ipc_bind(ipc_t *ipc, obj_handler_t tk_hd, umword_t user_id, task_t *tk_kobj)
+int u_ipc_bind(ipc_t *ipc, obj_handler_t tk_hd, umword_t user_id, task_t *tk_kobj)
 {
     int ret = -EINVAL;
     task_t *cur_task = thread_get_current_task();
@@ -84,16 +85,17 @@ int ipc_bind(ipc_t *ipc, obj_handler_t tk_hd, umword_t user_id, task_t *tk_kobj)
         ref_counter_inc(&recv_kobj->ref_cn); //!< 绑定后线程的引用计数+1，防止被删除
         ipc->svr_tk = recv_kobj;
         ipc->user_id = user_id;
-        ipc_wait_bind_entry_t *pos;
+        // ipc_wait_bind_entry_t *pos;
 
-        slist_foreach_not_next(pos, &ipc->wait_bind, node) //!< 唤醒所有等待绑定的线程
-        {
-            ipc_wait_bind_entry_t *next = slist_next_entry(pos, &ipc->wait_bind, node);
-            assert(pos->th->status == THREAD_SUSPEND);
-            slist_del(&next->node);
-            thread_ready_remote(pos->th, TRUE);
-            pos = next;
-        }
+        // slist_foreach_not_next(pos, &ipc->wait_bind, node) //!< 唤醒所有等待绑定的线程
+        // {
+        //     ipc_wait_bind_entry_t *next = slist_next_entry(pos, &ipc->wait_bind, node);
+        //     assert(pos->th->status == THREAD_SUSPEND);
+        //     slist_del(&next->node);
+        //     thread_ready_remote(pos->th, TRUE);
+        //     pos = next;
+        // }
+        sema_up(&ipc->wait_bind);
         ret = 0;
     end_bind:
         //!< 先解锁，然后在给task的引用计数-1
@@ -139,7 +141,7 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
             tag = msg_tag_init4(0, 0, 0, -EPROTO);
             break;
         }
-        ret = ipc_bind(ipc, f->regs[0], f->regs[1], NULL);
+        ret = u_ipc_bind(ipc, f->regs[0], f->regs[1], NULL);
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
@@ -154,23 +156,23 @@ static void ipc_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     again:
         if (ipc->svr_tk == NULL)
         {
-            ipc_wait_bind_entry_t entry = {
-                .th = th,
-            };
-            slist_init(&entry.node);
-            mword_t status = spinlock_lock(&ipc->lock);
+            sema_down(&ipc->wait_bind, THREAD_SLEEP_ALWAYS);
+            // ipc_wait_bind_entry_t entry = {
+            //     .th = th,
+            // };
+            // slist_init(&entry.node);
+            // mword_t status = spinlock_lock(&ipc->lock);
 
-            slist_add(&ipc->wait_bind, &entry.node);
-            thread_suspend(th);
-            preemption();
-            slist_del(&entry.node);
-            if (th->ipc_status == THREAD_IPC_ABORT)
-            {
-                th->ipc_status = THREAD_NONE;
-                tag = msg_tag_init4(0, 0, 0, -ENOENT);
-            }
-
-            spinlock_set(&ipc->lock, status);
+            // slist_add(&ipc->wait_bind, &entry.node);
+            // thread_suspend(th);
+            // preemption();
+            // slist_del(&entry.node);
+            // if (th->ipc_status == THREAD_IPC_ABORT)
+            // {
+            //     th->ipc_status = THREAD_NONE;
+            //     tag = msg_tag_init4(0, 0, 0, -ENOENT);
+            // }
+            // spinlock_set(&ipc->lock, status);
             goto again;
         }
         else
@@ -189,14 +191,16 @@ static void ipc_release_stage1(kobject_t *kobj)
     ipc_t *ipc = container_of(kobj, ipc_t, kobj);
 
     kobject_invalidate(kobj);
-    ipc_wait_bind_entry_t *pos;
 
-    slist_foreach(pos, &ipc->wait_bind, node)
-    {
-        assert(pos->th->status == THREAD_SUSPEND);
-        pos->th->ipc_status = THREAD_IPC_ABORT;
-        thread_ready_remote(pos->th, TRUE);
-    }
+    sema_up(&ipc->wait_bind);
+    // ipc_wait_bind_entry_t *pos;
+
+    // slist_foreach(pos, &ipc->wait_bind, node)
+    // {
+    //     assert(pos->th->status == THREAD_SUSPEND);
+    //     pos->th->ipc_status = THREAD_IPC_ABORT;
+    //     thread_ready_remote(pos->th, TRUE);
+    // }
     if (ipc->svr_tk)
     {
         ref_counter_dec_and_release(&ipc->svr_tk->ref_cn, &ipc->svr_tk->kobj);
@@ -223,10 +227,11 @@ static bool_t ipc_put(kobject_t *kobj)
 static void ipc_init(ipc_t *ipc, ram_limit_t *lim)
 {
     kobject_init(&ipc->kobj, IPC_TYPE);
-    slist_init(&ipc->wait_bind);
+    // slist_init(&ipc->wait_bind);
     spinlock_init(&ipc->lock);
     ref_counter_init(&ipc->ref);
     ref_counter_inc(&ipc->ref);
+    sema_init(&ipc->wait_bind, 0, 1);
     ipc->lim = lim;
     ipc->kobj.put_func = ipc_put;
     ipc->kobj.invoke_func = ipc_syscall;

@@ -16,7 +16,7 @@
         void *buf;                                                                                                                  \
         ipc_msg_t *msg_ipc;                                                                                                         \
                                                                                                                                     \
-        thread_msg_buf_get(-1, (umword_t *)(&buf), NULL);                                                                           \
+        u_thread_msg_buf_get(-1, (umword_t *)(&buf), NULL);                                                                           \
         msg_ipc = (ipc_msg_t *)buf;                                                                                                 \
                                                                                                                                     \
         int off = 0;                                                                                                                \
@@ -32,7 +32,7 @@
         PRC_CLI_FILL_MAP_BUF(rpc_type1, cli_type1, var1, dir1, (uint8_t *)msg_ipc->map_buf, off_buf);                               \
         /*msg_tag_t tag = dispatch_test(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), 0), msg_ipc); */ \
         msg_tag_t tag;                                                                                                              \
-        tag = thread_ipc_fast_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), prot),            \
+        tag = u_thread_ipc_fast_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), prot),            \
                                     hd, 1111, 2222, 3333);                                                                       \
         if (msg_tag_get_val(tag) < 0)                                                                                               \
         {                                                                                                                           \

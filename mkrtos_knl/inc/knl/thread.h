@@ -85,20 +85,13 @@ static inline ipc_timeout_t ipc_timeout_create(umword_t raw)
 enum thread_state
 {
     THREAD_IDLE = 0,    //!< 空闲状态
-    THREAD_DEAD = 1,    //!< 死亡状态
-    THREAD_SUSPEND = 2, //!< 只有接收和发送ipc消息时才能挂起
-    THREAD_READY = 3,   //!< 在就绪队列中
-    THREAD_TODEAD = 4,  //!< 该标志标志线程马上要死亡了，执行完必要操作后，进入THREAD_DEAD状态
+    THREAD_SUSPEND = 1, //!< 只有接收和发送ipc消息时才能挂起
+    THREAD_READY = 2,   //!< 在就绪队列中
 };
 enum thread_ipc_state
 {
     THREAD_NONE = 0,
-    // THREAD_SEND = 1,
-    // THREAD_RECV = 2,
-    // THREAD_WAIT = 4,
-    THREAD_TIMEOUT = 1,
-    THREAD_IPC_ABORT = 2,
-    // THREAD_IPC_KILL = 4,
+    THREAD_IPC_ABORT = 1,
 };
 
 typedef struct msg_buf
@@ -146,15 +139,8 @@ typedef struct thread
     bool_t is_vcpu;      //!< 是否是vcpu
 
     msg_buf_t msg; //!< 每个线程独有的消息缓存区
-#if 0
-    slist_head_t wait_send_head; //!< 等待头，那些节点等待给当前线程发送数据
-    spinlock_t recv_lock;        //!< 当前线程接收消息时锁住
-    spinlock_t send_lock;        //!< 当前线程发送消息时锁住
-    bool_t has_wait_send_th;     //!< 有线程等待给当前线程发送消息
-    thread_t *last_send_th; //!< 当前线程上次接收到谁的数据
-    kobject_t *ipc_kobj;    //!< 发送者放到一个ipc对象中
-#endif
     umword_t user_id;       //!< 接收到的user_id
+    umword_t knl_bakup_sp; //!< 内核线程备份的sp
 
     enum thread_state status;         //!< 线程状态
     enum thread_ipc_state ipc_status; //!< ipc状态
@@ -227,7 +213,6 @@ static inline thread_t *thread_get_current(void)
 {
     umword_t sp = arch_get_sp();
     thread_t *th = (thread_t *)(ALIGN_DOWN(sp, CONFIG_THREAD_BLOCK_SIZE));
-    // thread_t *th = (thread_t *)((sp / CONFIG_THREAD_BLOCK_SIZE) * CONFIG_THREAD_BLOCK_SIZE);
 
     return th;
 }
@@ -295,8 +280,6 @@ void thread_send_wait(thread_t *th);
 bool_t thread_sched(bool_t is_sche);
 int thread_suspend_remote(thread_t *th, bool_t is_sche);
 void thread_suspend(thread_t *th);
-void thread_dead(thread_t *th);
-void thread_todead(thread_t *th, bool_t is_sche);
 void thread_ready(thread_t *th, bool_t is_sche);
 void thread_ready_remote(thread_t *th, bool_t is_sche);
 void thread_suspend_sw(thread_t *th, bool_t is_sche);

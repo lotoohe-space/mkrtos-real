@@ -72,9 +72,9 @@ void init_uart4(u32 baudRate)
 
     irq_obj = handler_alloc();
     assert(irq_obj != HANDLER_INVALID);
-    msg_tag_t tag = factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, irq_obj));
+    msg_tag_t tag = u_factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, irq_obj));
     assert(msg_tag_get_val(tag) >= 0);
-    uirq_bind(irq_obj, UART4_IRQn, u_irq_prio_create(1, 1));
+    u_irq_bind(irq_obj, UART4_IRQn, u_irq_prio_create(1, 1));
 
     int ret = thread_create(IRQ_THREAD_PRIO, UART4_IRQHandler, (umword_t)(stack0 + STACK_SIZE), NULL);
     assert(ret >= 0);
@@ -84,7 +84,7 @@ static void *UART4_IRQHandler(void *arg)
 {
     while (1)
     {
-        msg_tag_t tag = uirq_wait(irq_obj, 0);
+        msg_tag_t tag = u_irq_wait(irq_obj, 0);
         if (msg_tag_get_val(tag) >= 0)
         {
             if (USART_GetFlagStatus(UART4, USART_FLAG_RXNE) != RESET)
@@ -107,7 +107,7 @@ static void *UART4_IRQHandler(void *arg)
                 // USART_ClearFlag(USART1, USART_FLAG_ORE); //清除溢出中断,其实没用，因为手册里讲了
                 // 通过读入USART_SR 寄存器，然后读入 USART_DR寄存器来清除标志位
             }
-            uirq_ack(irq_obj, UART4_IRQn);
+            u_irq_ack(irq_obj, UART4_IRQn);
         }
         // u_sleep_ms(1);
     }

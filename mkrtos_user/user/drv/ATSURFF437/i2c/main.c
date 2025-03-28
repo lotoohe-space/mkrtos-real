@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
 {
     obj_handler_t hd;
     int ret;
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_i2c2");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_i2c2");
+    u_task_set_obj_name(TASK_THIS, TASK_THIS, "tk_i2c2");
+    u_task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_i2c2");
     printf("%s init..\n", argv[0]);
     fast_ipc_init();
     // u_sleep_ms(500);

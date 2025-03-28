@@ -280,7 +280,7 @@ int appfs_ioctl(int fd, unsigned long cmd, unsigned long arg)
         msg_tag_t tag;
         appfs_ioctl_arg_t fs_arg_tmp;
         umword_t cur_pid;
-        tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
+        tag = u_task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
         if (msg_tag_get_val(tag) < 0)
         {
             return msg_tag_get_val(tag);

@@ -27,7 +27,7 @@ void GPION_Handler(void)
 {
     while (1)
     {
-        msg_tag_t tag = uirq_wait(irq_obj, 0);
+        msg_tag_t tag = u_irq_wait(irq_obj, 0);
         if (msg_tag_get_val(tag) >= 0)
         {
             if (EXTI_State(TP_GPIO_INT, TP_PIN_INT))
@@ -37,7 +37,7 @@ void GPION_Handler(void)
                 TP_INT_Trigger = 1;
             }
         }
-        uirq_ack(irq_obj, GPION_IRQn);
+        u_irq_ack(irq_obj, GPION_IRQn);
     }
 }
 
@@ -146,7 +146,7 @@ uint8_t touch_ic_init(void)
 
         assert(u_intr_bind(GPION_IRQn, u_irq_prio_create(1, 0), IRQ_THREAD_PRIO,
                            stack0 + STACK_SIZE, msg_buf, GPION_Handler, &irq_obj) >= 0);
-        uirq_ack(irq_obj, GPION_IRQn);
+        u_irq_ack(irq_obj, GPION_IRQn);
         EXTI_Open(TP_GPIO_INT, TP_PIN_INT);
 #endif
     }

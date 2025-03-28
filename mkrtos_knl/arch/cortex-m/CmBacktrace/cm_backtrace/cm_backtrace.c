@@ -704,7 +704,7 @@ static uint32_t statck_del_fpu_regs(uint32_t fault_handler_lr, uint32_t sp)
 void cm_backtrace_fault(uint32_t fault_handler_lr, uint32_t fault_handler_sp)
 {
     uint32_t stack_pointer = fault_handler_sp, saved_regs_addr = stack_pointer, tcb_stack_pointer = 0;
-    const char *regs_name[] = {"R0 ", "R1 ", "R2 ", "R3 ", "R12", "LR ", "PC ", "PSR"};
+    static const char *regs_name[] = {"R0 ", "R1 ", "R2 ", "R3 ", "R12", "LR ", "PC ", "PSR"};
 
 #ifdef CMB_USING_DUMP_STACK_INFO
     uint32_t stack_start_addr = main_stack_start_addr;
@@ -813,4 +813,5 @@ void cm_backtrace_fault(uint32_t fault_handler_lr, uint32_t fault_handler_sp)
 #endif
 
     print_call_stack(stack_pointer);
+    on_fault = false;
 }

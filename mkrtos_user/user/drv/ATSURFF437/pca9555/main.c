@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
 {
     obj_handler_t hd;
     int ret;
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_pca");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_pca");
+    u_task_set_obj_name(TASK_THIS, TASK_THIS, "tk_pca");
+    u_task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_pca");
     printf("%s init..\n", argv[0]);
     fast_ipc_init();
     // u_sleep_ms(1000);

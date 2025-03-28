@@ -119,7 +119,7 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
 
     u_mutex_lock(&cmd_lock, 0, NULL);
 
-    tag = sys_read_info(SYS_PROT, &sys_info, 0);
+    tag = u_sys_read_info(SYS_PROT, &sys_info, 0);
     if (msg_tag_get_val(tag) < 0)
     {
         printf("read info is errno.\n");

@@ -2,6 +2,6 @@
 #include "u_prot.h"
 #include "u_vmam.h"
 
-msg_tag_t share_mem_map(obj_handler_t obj, vma_addr_t vaddr, umword_t *addr, umword_t *size);
-msg_tag_t share_mem_unmap(obj_handler_t obj);
-msg_tag_t share_mem_resize(obj_handler_t obj, size_t new_size);
+msg_tag_t u_share_mem_map(obj_handler_t obj, vma_addr_t vaddr, umword_t *addr, umword_t *size);
+msg_tag_t u_share_mem_unmap(obj_handler_t obj);
+msg_tag_t u_share_mem_resize(obj_handler_t obj, size_t new_size);

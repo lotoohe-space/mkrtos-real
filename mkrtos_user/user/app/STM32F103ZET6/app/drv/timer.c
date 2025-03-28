@@ -20,9 +20,9 @@ void timer_init(void)
 {
     obj = handler_alloc();
     assert(obj != HANDLER_INVALID);
-    msg_tag_t tag = factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, obj));
+    msg_tag_t tag = u_factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, obj));
     assert(msg_tag_get_val(tag) >= 0);
-    uirq_bind(obj, TIM2_IRQn, u_irq_prio_create(1, 1));
+    u_irq_bind(obj, TIM2_IRQn, u_irq_prio_create(1, 1));
 
     int ret = thread_create(IRQ_THREAD_PRIO, TIM2_IRQHandler, (umword_t)(stack0 + STACK_SIZE), NULL);
     assert(ret >= 0);
@@ -46,7 +46,7 @@ static void *TIM2_IRQHandler(void *arg)
 {
     while (1)
     {
-        msg_tag_t tag = uirq_wait(obj, 0);
+        msg_tag_t tag = u_irq_wait(obj, 0);
         if (msg_tag_get_val(tag) >= 0)
         {
             if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) // 检查TIM3更新中断发生否
@@ -54,7 +54,7 @@ static void *TIM2_IRQHandler(void *arg)
 
                 TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
             }
-            uirq_ack(obj, TIM2_IRQn);
+            u_irq_ack(obj, TIM2_IRQn);
         }
     }
     return NULL;

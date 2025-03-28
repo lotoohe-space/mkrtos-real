@@ -7,7 +7,7 @@
 #include "ns.h"
 #ifdef MKRTOS
 #include <u_hd_man.h>
-#include <u_malloc.h>
+#include <malloc.h>
 #include <u_task.h>
 #endif
 // 其他进程可以注册节点进来，并且可以注册子节点进来，子节点可以注册更多的子节点进来。
@@ -54,7 +54,7 @@ static ns_node_t *ns_node_find_sub(ns_node_t *tree, const char *name)
 
     while (cur)
     {
-        if (strcmp(cur->name, name) == 0)
+        if (strncmp(cur->name, name, NS_NODE_NAME_LEN) == 0)
         {
             return cur;
         }
@@ -108,7 +108,7 @@ static ns_node_t *node_create(const char *name, node_type_t type, int pid)
     ns_node_t *tmp;
 
 #ifdef MKRTOS
-    tmp = u_calloc(sizeof(ns_node_t), 1);
+    tmp = calloc(sizeof(ns_node_t), 1);
 #else
     tmp = calloc(sizeof(ns_node_t), 1);
 #endif
@@ -243,12 +243,6 @@ int ns_delnode(const char *path)
         printf("ns node not find.\n");
         return -ENOENT;
     }
-    if (cur_node == NULL)
-    {
-        printf("ns path is error.\n");
-        // 未找到，节点不是dummy节点，路径不是结尾处 则直接退出
-        return -ENOENT;
-    }
     if (cur_node->type == NODE_TYPE_DUMMY && cur_node->ref != 0)
     {
         printf("ns dir is not empty.\n");
@@ -259,13 +253,12 @@ int ns_delnode(const char *path)
     {
 #ifdef MKRTOS
         handler_del_umap(cur_node->svr_hd);
-#else
-        printf("ns del node:0x%lx.\n", cur_node->svr_hd);
 #endif
+        printf("ns del [%s] node hd:%d.\n", path, cur_node->svr_hd);
     }
     cur_node->parent->ref--;
 #ifdef MKRTOS
-    u_free(cur_node);
+    free(cur_node);
 #else
     free(cur_node);
 #endif
@@ -376,7 +369,7 @@ int ns_find_svr_obj(const char *path, obj_handler_t *svr_hd)
 #if 0
     msg_tag_t tag;
 
-    tag = task_obj_valid(TASK_THIS, svr_node->svr_hd, NULL);
+    tag = u_task_obj_valid(TASK_THIS, svr_node->svr_hd, NULL);
     if (msg_tag_get_val(tag) < 0 || msg_tag_get_val(tag) == 0)
     {
         // 节点不存在，直接退出，删除节点

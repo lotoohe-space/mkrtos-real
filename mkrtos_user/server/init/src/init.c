@@ -34,7 +34,7 @@
 #define DEFAULT_INIT_CFG "init.cfg"
 
 #define STACK_NUM 4
-#define STACK_COM_ITME_SIZE 2048
+#define STACK_COM_ITME_SIZE (2048)
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
 static uint8_t msg_buf_coms[MSG_BUG_LEN * STACK_NUM];
@@ -55,10 +55,10 @@ int main(int argc, char *args[])
     uenv_t *env;
 
     fast_ipc_init();
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_init");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_init");
+    u_task_set_obj_name(TASK_THIS, TASK_THIS, "tk_init");
+    u_task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_init");
 
-    ulog_write_str(LOG_PROT, "init..\n");
+    u_log_write_str(LOG_PROT, "init..\n");
     u_env_default_init();
     env = u_get_global_env();
     rpc_meta_init_def(TASK_THIS, &env->ns_hd);
@@ -66,10 +66,10 @@ int main(int argc, char *args[])
     pm_init();
     parse_cfg_init();
 
-    fs_ns_mkdir("/dev", TASK_THIS);
-    fs_ns_mkdir("/sys", TASK_THIS);
-    fs_ns_mkdir("/proc", TASK_THIS);
-    fs_ns_mkdir("/dev/shm", TASK_THIS);
+    fs_ns_mkdir("/dev", 0);
+    fs_ns_mkdir("/sys", 0);
+    fs_ns_mkdir("/proc", 0);
+    fs_ns_mkdir("/dev/shm", 0);
 #if defined(MKRTOS_TEST_MODE)
     printf("test_main..\n");
     test_main();

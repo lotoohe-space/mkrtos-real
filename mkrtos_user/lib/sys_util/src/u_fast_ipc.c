@@ -10,7 +10,7 @@
 #include <u_thread.h>
 #include <u_types.h>
 #include <stdio.h>
-#define MAGIC_NS_USERPID 0xbabababa
+#define MAGIC_PM_USERPID 0xbabababa
 
 int fast_ipc_setsp(int i, void *stack);
 
@@ -43,11 +43,27 @@ static int fast_ipc_dat_copy(ipc_msg_t *dst_ipc, ipc_msg_t *src_ipc, msg_tag_t t
 }
 static void update_map_buf(void)
 {
+    ipc_msg_t *msg = (void *)cons_msg_buf_main;
+    /*对于那些已经使用的map_buf，需要重新设置fd，以便并发通信的时候让其他通信者可以使用，否者可能照成fd覆盖:FIXME:*/
     for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
     {
         if (cons_map_buf[i] == 0)
         {
+            // 在reply的时候被映射使用了
             cons_map_buf[i] = vpage_create_raw3(0, 0, handler_alloc()).raw; /*TODO:申请失败检查*/
+        }
+        else if (handler_is_used(vpage_create_raw(cons_map_buf[i]).addr))
+        {
+            if (u_task_obj_valid(TASK_THIS,  vpage_create_raw(cons_map_buf[i]).addr, NULL).prot == 1)
+            {
+                // client映射obj过来的时候占用了，重新分配一个新的
+                cons_map_buf[i] = vpage_create_raw3(0, 0, handler_alloc()).raw;
+                msg->map_buf[i] =  cons_map_buf[i];
+            }
+        } else {
+            // fd没有申请，则申请一个新的
+            cons_map_buf[i] = vpage_create_raw3(0, 0, handler_alloc()).raw;
+            msg->map_buf[i] =  cons_map_buf[i];
         }
     }
 }
@@ -65,10 +81,10 @@ static msg_tag_t process_ipc(int j, umword_t obj, long tag)
         ret_tag = msg_tag_init4(0, 0, 0, -EACCES);
         goto end;
     }
-    if (svr_obj == (void *)MAGIC_NS_USERPID)
+    if (svr_obj == (void *)MAGIC_PM_USERPID)
     {
         /*获取ns的user id*/
-        svr_obj = meta_find_svr_obj(NS_PROT);
+        svr_obj = meta_find_svr_obj(PM_PROT);
     }
     if (svr_obj == NULL)
     {
@@ -84,15 +100,18 @@ end:
 }
 static void update_map_buf_last(void)
 {
+    // 检查下缓存里面的fd是不是已经被使用了，如果被使用了就需要更新新的。
     for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
     {
         vpage_t vpage = vpage_create_raw(cons_map_buf[i]);
         if (handler_is_used(vpage.addr))
         {
-            if (task_obj_valid(TASK_THIS, vpage.addr, 0).prot == 1)
+            if (u_task_obj_valid(TASK_THIS, vpage.addr, NULL).prot == 1)
             {
                 cons_map_buf[i] = vpage_create_raw3(0, 0, handler_alloc()).raw;
             }
+        } else {
+            cons_map_buf[i] = vpage_create_raw3(0, 0, handler_alloc()).raw;
         }
     }
 }
@@ -102,15 +121,15 @@ static void fast_ipc_goto_process(int j, long tag, umword_t obj, umword_t arg1, 
     ipc_msg_t *msg;
 
     msg = (void *)(&cons_msg_buf[j * MSG_BUG_LEN]);
-    thread_msg_buf_set(-1, msg);
+    u_thread_msg_buf_set(-1, msg);
     update_map_buf();
     msg->user[3] = cons_thread_th[j]; // 设置私有变量，FIXME: 一种更加通用的方法
-    task_com_unlock(TASK_THIS);
+    u_task_com_unlock(TASK_THIS);
     ret_tag = process_ipc(j, obj, tag);
-    task_com_lock(TASK_THIS);
-    update_map_buf_last();
+    u_task_com_lock(TASK_THIS);
+    // update_map_buf_last();
     fast_ipc_dat_copy((void *)cons_msg_buf_main, (void *)(&cons_msg_buf[j * MSG_BUG_LEN]), ret_tag);
-    thread_ipc_fast_replay(ret_tag, -1, j);
+    u_thread_ipc_fast_replay(ret_tag, -1, j);
 }
 static __attribute__((optimize(0))) void fast_ipc_com_point(msg_tag_t tag, umword_t arg0, umword_t arg1, umword_t arg2)
 {
@@ -143,6 +162,7 @@ int u_fast_ipc_init(uint8_t *stack_array, uint8_t *msg_buf_array, int stack_msgb
     ipc_msg_t *msg = (void *)cons_msg_buf_main;
     for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
     {
+        // 预先分配用于在通信时映射的fd
         cons_map_buf[i] = vpage_create_raw3(0, 0, handler_alloc()).raw;
         msg->map_buf[i] = cons_map_buf[i];
     }
@@ -154,7 +174,7 @@ int u_fast_ipc_init(uint8_t *stack_array, uint8_t *msg_buf_array, int stack_msgb
 #endif
     msg->user[0] = (umword_t)((char *)fake_pthread + sizeof(fake_pthread));
 
-    tag = task_set_com_point(TASK_THIS, &fast_ipc_com_point, (addr_t)com_stack,
+    tag = u_task_set_com_point(TASK_THIS, &fast_ipc_com_point, (addr_t)com_stack,
                              sizeof(com_stack), (void *)(&cons_stack_bitmap),
                              stack_msgbuf_array_num, cons_msg_buf_main);
     if (msg_tag_get_val(tag) < 0)

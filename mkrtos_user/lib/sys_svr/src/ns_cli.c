@@ -151,7 +151,7 @@ int ns_query(const char *path, obj_handler_t *svr_hd)
     {
         msg_tag_t tag;
 
-        tag = task_obj_valid(TASK_THIS, newfd, NULL);
+        tag = u_task_obj_valid(TASK_THIS, newfd, NULL);
         if (msg_tag_get_val(tag) < 0 || msg_tag_get_val(tag) == 0)
         {
             // 从缓存中删除

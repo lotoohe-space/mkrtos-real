@@ -47,8 +47,8 @@ int main(int args, char *argv[])
     obj_handler_t sem_hd = HANDLER_INVALID;
     obj_handler_t shm_hd = HANDLER_INVALID;
     int count_net_link = 0;
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_net");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_net");
+    u_task_set_obj_name(TASK_THIS, TASK_THIS, "tk_net");
+    u_task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_net");
     printf("net startup..\n");
     fast_ipc_init();
     ret = rpc_meta_init_def(TASK_THIS, &hd);
@@ -94,14 +94,14 @@ again:
             printf("handler alloc failed.\n");
             return -1;
         }
-        tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+        tag = u_facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
                                        SHARE_MEM_CNT_BUDDY_CNT, 2048);
         if (msg_tag_get_val(tag) < 0)
         {
             printf("share mem create failed.\n");
             return -1;
         }
-        tag = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
+        tag = u_share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
         if (msg_tag_get_val(tag) < 0)
         {
             printf("share mem map failed.\n");

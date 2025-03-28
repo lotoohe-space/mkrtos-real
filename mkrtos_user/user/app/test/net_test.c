@@ -19,7 +19,7 @@ static int tcp_server(void)
     if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         perror("socket creation failed");
-        exit(EXIT_FAILURE);
+         *((char *)0) = 0;exit(EXIT_FAILURE);
     }
     printf("create server socket is success:%d\n", server_socket);
     // 设置服务器地址
@@ -33,7 +33,7 @@ static int tcp_server(void)
     {
         perror("bind failed");
         close(server_socket);
-        exit(EXIT_FAILURE);
+         *((char *)0) = 0;exit(EXIT_FAILURE);
     }
 
     // 监听连接请求
@@ -41,7 +41,7 @@ static int tcp_server(void)
     {
         perror("listen failed");
         close(server_socket);
-        exit(EXIT_FAILURE);
+         *((char *)0) = 0;exit(EXIT_FAILURE);
     }
 
     printf("Server is listening on port %d...\n", PORT);
@@ -53,7 +53,7 @@ static int tcp_server(void)
     {
         perror("accept failed");
         close(server_socket);
-        exit(EXIT_FAILURE);
+         *((char *)0) = 0;exit(EXIT_FAILURE);
     }
 
     printf("Client connected!\n");
@@ -65,7 +65,7 @@ static int tcp_server(void)
         {
             perror("recv failed");
             close(server_socket);
-            exit(EXIT_FAILURE);
+             *((char *)0) = 0;exit(EXIT_FAILURE);
         }
         #if 0
         printf("svr recv: %s, len:%d\n", buffer, bytes_received);
@@ -95,7 +95,7 @@ static int tcp_client(void)
     if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         perror("socket creation failed");
-        exit(EXIT_FAILURE);
+         *((char *)0) = 0;exit(EXIT_FAILURE);
     }
 
     // 设置服务器地址
@@ -109,7 +109,7 @@ static int tcp_client(void)
     {
         perror("connect failed");
         close(server_socket);
-        exit(EXIT_FAILURE);
+         *((char *)0) = 0;exit(EXIT_FAILURE);
     }
 
     printf("Connected to server!\n");

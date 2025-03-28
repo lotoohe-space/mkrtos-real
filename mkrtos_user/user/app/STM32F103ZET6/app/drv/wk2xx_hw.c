@@ -57,9 +57,9 @@ void wk2xx_hw_init(void)
     // NVIC_Init(&NVIC_InitStructure);
     irq_obj = handler_alloc();
     assert(irq_obj != HANDLER_INVALID);
-    msg_tag_t tag = factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, irq_obj));
+    msg_tag_t tag = u_factory_create_irq_sender(FACTORY_PROT, vpage_create_raw3(0, 0, irq_obj));
     assert(msg_tag_get_val(tag) >= 0);
-    uirq_bind(irq_obj, EXTI15_10_IRQn, u_irq_prio_create(0, 1));
+    u_irq_bind(irq_obj, EXTI15_10_IRQn, u_irq_prio_create(0, 1));
 
     int ret = thread_create(IRQ_THREAD_PRIO, exti_12_irq, (umword_t)(stack0 + STACK_SIZE), NULL);
     assert(ret >= 0);
@@ -69,7 +69,7 @@ static void *exti_12_irq(void *arg)
 {
     while (1)
     {
-        msg_tag_t tag = uirq_wait(irq_obj, 0);
+        msg_tag_t tag = u_irq_wait(irq_obj, 0);
         if (msg_tag_get_val(tag) >= 0)
         {
             int recv_len = 0;
@@ -109,7 +109,7 @@ static void *exti_12_irq(void *arg)
                 // 清除中断位
                 EXTI_ClearITPendingBit(EXTI_Line12);
             }
-            uirq_ack(irq_obj, EXTI15_10_IRQn);
+            u_irq_ack(irq_obj, EXTI15_10_IRQn);
         }
     }
 }

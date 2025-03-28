@@ -84,7 +84,7 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
         return -ENOENT;
     }
 
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
     if (msg_tag_get_prot(tag) < 0)
     {
         handler_free(th1_hd);
@@ -113,19 +113,19 @@ int be_clone(int (*func)(void *), void *stack, int flags, void *args, pid_t *pti
     *(--stack_tmp) = (umword_t)0; // 保留
     *(--stack_tmp) = (umword_t)func;
 
-    tag = thread_exec_regs(th1_hd, (umword_t)__pthread_new_thread_entry__,
+    tag = u_thread_exec_regs(th1_hd, (umword_t)__pthread_new_thread_entry__,
                            (umword_t)stack_tmp, TASK_RAM_BASE(), 0);
     if (msg_tag_get_prot(tag) < 0)
     {
         ret = msg_tag_get_prot(tag);
         goto end_free_mm;
     }
-    tag = thread_bind_task(th1_hd, TASK_THIS);
+    tag = u_thread_bind_task(th1_hd, TASK_THIS);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_free_mm;
     }
-    tag = thread_msg_buf_set(th1_hd, (void *)msg_buf_addr);
+    tag = u_thread_msg_buf_set(th1_hd, (void *)msg_buf_addr);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_free_mm;

@@ -108,7 +108,7 @@ DSTATUS disk_initialize(
 			printf("handler alloc failed.\n");
 			return RES_ERROR;
 		}
-		tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+		tag = u_facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
 									   SHARE_MEM_CNT_BUDDY_CNT, blk_info.blk_size);
 		if (msg_tag_get_val(tag) < 0)
 		{
@@ -116,7 +116,7 @@ DSTATUS disk_initialize(
 			printf("share mem create failed.\n");
 			return RES_ERROR;
 		}
-		tag  = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &dev_shm_mem, &dev_shm_size);
+		tag  = u_share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &dev_shm_mem, &dev_shm_size);
 		if (msg_tag_get_val(tag) < 0)
 		{
 			handler_del_umap(shm_hd);

@@ -53,7 +53,7 @@ int blk_drv_write(obj_handler_t obj, int len, int inx)
     }
     else
     {
-        tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
+        tag = u_share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
         if (msg_tag_get_val(tag) < 0)
         {
             handler_free_umap(obj);
@@ -84,7 +84,7 @@ int blk_drv_read(obj_handler_t obj, int len, int inx)
     }
     msg_tag_t tag;
 
-    tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size); /*FIXME:优化*/
+    tag = u_share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size); /*FIXME:优化*/
 
     if (msg_tag_get_val(tag) < 0)
     {

@@ -742,7 +742,7 @@ void LCD_Handler(void)
 {
     while (1)
     {
-        msg_tag_t tag = uirq_wait(lcd_irq_obj, 0);
+        msg_tag_t tag = u_irq_wait(lcd_irq_obj, 0);
         if (msg_tag_get_val(tag) >= 0)
         {
 #if USE_MUTL_LAYER
@@ -752,7 +752,7 @@ void LCD_Handler(void)
             LCD_INTClr(LCD);
             LCD_Start(LCD);
         }
-        uirq_ack(lcd_irq_obj, LCD_IRQn);
+        u_irq_ack(lcd_irq_obj, LCD_IRQn);
     }
 }
 
@@ -762,11 +762,11 @@ void DMA2D_Handler(void)
 {
     while (1)
     {
-        msg_tag_t tag = uirq_wait(dma2d_irq_obj, 0);
+        msg_tag_t tag = u_irq_wait(dma2d_irq_obj, 0);
         if (msg_tag_get_val(tag) >= 0)
         {
             DMA2D_INTClr();
         }
-        uirq_ack(dma2d_irq_obj, DMA2D_IRQn);
+        u_irq_ack(dma2d_irq_obj, DMA2D_IRQn);
     }
 }

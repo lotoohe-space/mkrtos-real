@@ -31,13 +31,13 @@ void *test_func(void *arg)
     msg_tag_t tag;
     ipc_msg_t *msg;
 
-    tag = thread_msg_buf_get(-1, (void *)(&msg), NULL);
+    tag = u_thread_msg_buf_get(-1, (void *)(&msg), NULL);
     strcpy((void *)msg->msg_buf, "hello");
 
     for (int i = 0; i < 10000; i++)
     {
 
-        thread_ipc_fast_call(msg_tag_init4(0, 2, 0, 0), u_get_global_env()->ns_hd, 1111, 2222, 3333);
+        u_thread_ipc_fast_call(msg_tag_init4(0, 2, 0, 0), u_get_global_env()->ns_hd, 1111, 2222, 3333);
         // printf("%s\n", (void *)msg->msg_buf);
     }
     // while (1)

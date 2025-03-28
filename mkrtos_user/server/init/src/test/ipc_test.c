@@ -43,7 +43,7 @@ static void thread_test_func(void)
     umword_t len;
 
     printf("%s:%d thread 0 init.\n", __func__, __LINE__);
-    thread_msg_buf_get(th1_hd, (umword_t *)(&buf), NULL);
+    u_thread_msg_buf_get(th1_hd, (umword_t *)(&buf), NULL);
     while (1)
     {
         thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
@@ -63,7 +63,7 @@ static void thread_test_func(void)
     {
         u_sleep_ms(100000);
     }
-    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th1_hd));
+    u_task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th1_hd));
     printf("Error\n");
 }
 static void thread_test_func2(void)
@@ -72,7 +72,7 @@ static void thread_test_func2(void)
     umword_t len;
 
     printf("%s:%d thread 1 init.\n", __func__, __LINE__);
-    thread_msg_buf_get(th2_hd, (umword_t *)(&buf), NULL);
+    u_thread_msg_buf_get(th2_hd, (umword_t *)(&buf), NULL);
     while (1)
     {
         strcpy(buf, "I am th2.\n");
@@ -88,7 +88,7 @@ static void thread_test_func2(void)
     {
         u_sleep_ms(100000);
     }
-    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
+    u_task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
     printf("Error\n");
 }
 
@@ -98,7 +98,7 @@ static void thread_test_func3(void)
     umword_t len;
 
     printf("%s:%d thread 2 init.\n", __func__, __LINE__);
-    thread_msg_buf_get(th3_hd, (umword_t *)(&buf), &len);
+    u_thread_msg_buf_get(th3_hd, (umword_t *)(&buf), &len);
     memset(buf, 0, len);
     while (1)
     {
@@ -115,7 +115,7 @@ static void thread_test_func3(void)
     {
         u_sleep_ms(100000);
     }
-    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th3_hd));
+    u_task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th3_hd));
     printf("Error\n");
 }
 static void thread_test_func4(void)
@@ -124,7 +124,7 @@ static void thread_test_func4(void)
     umword_t len;
 
     printf("%s:%d thread 3 init.\n", __func__, __LINE__);
-    thread_msg_buf_get(th4_hd, (umword_t *)(&buf), &len);
+    u_thread_msg_buf_get(th4_hd, (umword_t *)(&buf), &len);
     memset(buf, 0, len);
     while (1)
     {
@@ -141,7 +141,7 @@ static void thread_test_func4(void)
     {
         u_sleep_ms(100000);
     }
-    task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th3_hd));
+    u_task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th3_hd));
     printf("Error\n");
 }
 /**
@@ -163,54 +163,54 @@ static void ipc_test(CuTest *cu)
     memset(msg_buf2, 0, sizeof(msg_buf2));
     memset(msg_buf3, 0, sizeof(msg_buf3));
 
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th1_hd, TASK_THIS);
+    tag = u_thread_bind_task(th1_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_msg_buf_set(th1_hd, msg_buf0);
+    tag = u_thread_msg_buf_set(th1_hd, msg_buf0);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, TASK_RAM_BASE(), 0);
-    task_set_obj_name(TASK_THIS, th1_hd, "svr_th");
+    tag = u_thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, TASK_RAM_BASE(), 0);
+    u_task_set_obj_name(TASK_THIS, th1_hd, "svr_th");
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run_cpu(th1_hd, 2, 0);
+    tag = u_thread_run_cpu(th1_hd, 2, 0);
     assert(msg_tag_get_prot(tag) >= 0);
 
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th2_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th2_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th2_hd, TASK_THIS);
+    tag = u_thread_bind_task(th2_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_msg_buf_set(th2_hd, msg_buf1);
+    tag = u_thread_msg_buf_set(th2_hd, msg_buf1);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th2_hd, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE, TASK_RAM_BASE(), 0);
+    tag = u_thread_exec_regs(th2_hd, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
-    task_set_obj_name(TASK_THIS, th2_hd, "cli0_th");
+    u_task_set_obj_name(TASK_THIS, th2_hd, "cli0_th");
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run_cpu(th2_hd, 2, 0);
+    tag = u_thread_run_cpu(th2_hd, 2, 0);
 
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th3_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th3_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th3_hd, TASK_THIS);
+    tag = u_thread_bind_task(th3_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_msg_buf_set(th3_hd, msg_buf2);
+    tag = u_thread_msg_buf_set(th3_hd, msg_buf2);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th3_hd, (umword_t)thread_test_func3, (umword_t)stack2 + STACK_SIZE, TASK_RAM_BASE(), 0);
+    tag = u_thread_exec_regs(th3_hd, (umword_t)thread_test_func3, (umword_t)stack2 + STACK_SIZE, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
-    task_set_obj_name(TASK_THIS, th3_hd, "cli1_th");
+    u_task_set_obj_name(TASK_THIS, th3_hd, "cli1_th");
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run_cpu(th3_hd, 2, 0);
+    tag = u_thread_run_cpu(th3_hd, 2, 0);
 
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th4_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th4_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th4_hd, TASK_THIS);
+    tag = u_thread_bind_task(th4_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_msg_buf_set(th4_hd, msg_buf3);
+    tag = u_thread_msg_buf_set(th4_hd, msg_buf3);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th4_hd, (umword_t)thread_test_func4, (umword_t)stack3 + STACK_SIZE, TASK_RAM_BASE(), 0);
+    tag = u_thread_exec_regs(th4_hd, (umword_t)thread_test_func4, (umword_t)stack3 + STACK_SIZE, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
-    task_set_obj_name(TASK_THIS, th4_hd, "cli2_th");
+    u_task_set_obj_name(TASK_THIS, th4_hd, "cli2_th");
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run_cpu(th4_hd, 2, 0);
+    tag = u_thread_run_cpu(th4_hd, 2, 0);
 
     while (test_cn < 1000)
     {

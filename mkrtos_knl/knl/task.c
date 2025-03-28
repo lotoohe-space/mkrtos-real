@@ -191,7 +191,7 @@ static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
  * @param pid 任务的pid
  * @return int
  */
-int task_set_pid(task_t *task, pid_t pid)
+int u_task_set_pid(task_t *task, pid_t pid)
 {
     task_t *cur_task = thread_get_current_task();
 
@@ -367,7 +367,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     }
     case TASK_SET_PID: //!< 设置pid
     {
-        tag = msg_tag_init4(0, 0, 0, task_set_pid(tag_task, f->regs[0]));
+        tag = msg_tag_init4(0, 0, 0, u_task_set_pid(tag_task, f->regs[0]));
     }
     break;
     case TASK_GET_PID: //!< 获取pid

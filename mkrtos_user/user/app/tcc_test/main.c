@@ -8,7 +8,7 @@ int _start_c(void)
     b = 2;
     while(a++ < 100)
     {
-        ulog_write_bytes(4, "tcc test\n", 9);
+        u_log_write_bytes(4, "tcc test\n", 9);
     }
    
     return a+b;
