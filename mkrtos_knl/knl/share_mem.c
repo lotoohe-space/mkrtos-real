@@ -177,6 +177,7 @@ end:
 }
 static int share_mem_free_pmem(share_mem_t *obj)
 {
+    task_t *cur_task = thread_get_current_task();
     assert(obj);
     switch (obj->mem_type)
     {
@@ -189,7 +190,7 @@ static int share_mem_free_pmem(share_mem_t *obj)
 #if IS_ENABLED(CONFIG_MMU)
         mm_limit_free_buddy(obj->lim, obj->mem, obj->size);
 #else
-        mm_limit_free_align(obj->lim, obj->mem, obj->size);
+        mm_limit_free_align_raw(cur_task->mm_space.mem_block_inx, obj->lim, obj->mem, obj->size);
 #endif
         break;
     case SHARE_MEM_CNT_DPD:
@@ -221,6 +222,7 @@ static int share_mem_free_pmem(share_mem_t *obj)
 static int share_mem_alloc_pmem(share_mem_t *obj)
 {
     int align_size = 0;
+    task_t *cur_task = thread_get_current_task();
 
     assert(obj);
     if (obj->mem)
@@ -260,7 +262,7 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
         align_size = sizeof(void *);
 #endif
 
-        obj->mem = mm_limit_alloc_align(obj->lim, obj->size, align_size);
+        obj->mem = mm_limit_alloc_align_raw(cur_task->mm_space.mem_block_inx, obj->lim, obj->size, align_size);
 #endif
         if (obj->mem == NULL)
         {
@@ -309,6 +311,8 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
 static int share_mem_pmem_resize(share_mem_t *obj, size_t new_size)
 {
     int ret;
+    task_t *cur_task = thread_get_current_task();
+
     if (obj->mem)
     {
         return 0;
@@ -324,7 +328,7 @@ static int share_mem_pmem_resize(share_mem_t *obj, size_t new_size)
 #if IS_ENABLED(CONFIG_MMU)
         mm_limit_free_buddy(obj->lim, obj->mem, ojb->size);
 #else
-        mm_limit_free_align(obj->lim, obj->mem, obj->size);
+        mm_limit_free_align_raw(cur_task->mm_space.mem_block_inx, obj->lim, obj->mem, obj->size);
 #endif
         obj->mem = NULL;
         break;
@@ -541,14 +545,14 @@ static void share_mem_release_stage1(kobject_t *kobj)
 static void share_mem_release_stage2(kobject_t *kobj)
 {
     share_mem_t *sm = container_of(kobj, share_mem_t, kobj);
-
+    task_t *cur_task = thread_get_current_task();
     assert(dlist_is_empty(&sm->task_head));
 
 #if IS_ENABLED(CONFIG_MMU)
     share_mem_free_pmem(sm);
     mm_limit_free_slab(share_mem_slab, sm->lim, sm);
 #else
-    mm_limit_free_align(sm->lim, sm->mem, sm->size);
+    mm_limit_free_align_raw(cur_task->mm_space.mem_block_inx, sm->lim, sm->mem, sm->size);
     mm_limit_free(sm->lim, sm);
 #endif
     printk("share mem 0x%x free.\n", sm);

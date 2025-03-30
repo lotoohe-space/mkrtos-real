@@ -10,6 +10,7 @@
 #include "spinlock.h"
 #include "thread.h"
 #include "types.h"
+#include <assert.h>
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
 #include <slab.h>
 static slab_t *sema_slab;
@@ -77,7 +78,7 @@ void sema_up(sema_t *obj)
             }
             if (obj->max_cnt == 1 && obj->hold_th == &th->kobj)
             {
-                //还原优先级
+                // 还原优先级
                 thread_set_prio(th, obj->hold_th_prio);
                 obj->hold_th = NULL;
             }
@@ -116,10 +117,10 @@ again:
         slist_add_append(&obj->suspend_head, &wait_item.node);
         if (obj->max_cnt == 1 && obj->hold_th)
         {
-            if (thread_get_prio(th) > thread_get_prio((thread_t*)(obj->hold_th)))
+            if (thread_get_prio(th) > thread_get_prio((thread_t *)(obj->hold_th)))
             {
-                //执行优先级继承
-                thread_set_prio(((thread_t*)(obj->hold_th)), thread_get_prio(th));
+                // 执行优先级继承
+                thread_set_prio(((thread_t *)(obj->hold_th)), thread_get_prio(th));
             }
         }
         remain_sleep = thread_sleep(ticks);
@@ -211,7 +212,7 @@ static void sema_release_stage1(kobject_t *kobj)
 {
     sema_t *obj = container_of(kobj, sema_t, kobj);
     kobject_invalidate(kobj);
-    #if 1
+#if 1
     umword_t status;
     status = spinlock_lock(&obj->lock);
     sema_wait_item_t *wait_item;
@@ -232,7 +233,7 @@ static void sema_release_stage1(kobject_t *kobj)
         wait_item = next;
     }
     spinlock_set(&obj->lock, status);
-    #endif
+#endif
 }
 static bool_t sema_put(kobject_t *kobj)
 {

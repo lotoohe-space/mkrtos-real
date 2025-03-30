@@ -19,7 +19,7 @@
 #include "u_sig.h"
 #include "pm.h"
 #include "parse_cfg.h"
-#include "malloc.h"
+#include "u_malloc.h"
 #include "nsfs.h"
 #include "sig_cli.h"
 #include "tty.h"
@@ -133,7 +133,7 @@ static void pm_del_watch_by_pid(pm_t *pm, pid_t pid)
         {
             slist_del(&pos->node);
             handler_free_umap(pos->sig_hd);
-            free(pos);
+            u_free(pos);
         }
         pos = next;
     }
@@ -162,7 +162,7 @@ int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags)
         fflush(stdout);
         return -EEXIST;
     }
-    watch_entry_t *entry = (watch_entry_t *)malloc(sizeof(watch_entry_t));
+    watch_entry_t *entry = (watch_entry_t *)u_malloc(sizeof(watch_entry_t));
 
     if (!entry)
     {
@@ -220,7 +220,7 @@ static void pm_send_sig_to_task(pm_t *pm, pid_t pid, umword_t sig_val)
             slist_del(&pos->node);
             handler_free_umap(pos->sig_hd); //!< 删除信号通知的ipc
             // handler_free_umap(pos->watch_pid); //!< 删除被watch的进程
-            free(pos);
+            u_free(pos);
         }
         pos = next;
     }

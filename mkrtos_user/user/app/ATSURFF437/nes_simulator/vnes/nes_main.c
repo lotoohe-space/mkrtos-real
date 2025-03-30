@@ -526,14 +526,20 @@ void nes_emulate_frame(void)
 		extern bool_t print_fps;
 		int32_t used_tick = sys_read_tick() - st_tick;
 
-		// if (1000 / 60 >= used_tick)
-		// {
-		// 	usleep((1000 / 60 - used_tick) * 1000);
-		// }
+		if (1000 / 60 >= used_tick)
+		{
+			usleep((1000 / 60 - used_tick) * 1000);
+		}
 		used_tick = sys_read_tick() - st_tick;
 		if (print_fps)
 		{
-			printf("fps:%d\n", 1000 / used_tick);
+			static int i = 0;
+
+			i++;
+			if (i % 30 == 0)
+			{
+				printf("fps:%d\n", 1000 / used_tick);
+			}
 		}
 #endif
 	}

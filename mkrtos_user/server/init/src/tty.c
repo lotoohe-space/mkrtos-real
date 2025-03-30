@@ -24,7 +24,7 @@
 #include "pm.h"
 #include "pm_svr.h"
 #include "u_sig.h"
-#define CONS_STACK_SIZE 2048
+#define CONS_STACK_SIZE (1024+512)
 static ATTR_ALIGN(8) uint8_t cons_stack[CONS_STACK_SIZE];
 static uint8_t cons_ipc_msg[MSG_BUG_LEN];
 static tty_struct_t sys_tty;

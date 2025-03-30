@@ -1473,7 +1473,7 @@ void shellExec(Shell *shell)
             }
             if (shell->parser.param[shell->parser.paramCount - 1][0] == '@')
             {
-                // 指定启动的mem，参数少一个
+                // 指定启动的pid
                 pid = atoi(&(shell->parser.param[shell->parser.paramCount - 1][1]));
                 shell->parser.paramCount--;
             }

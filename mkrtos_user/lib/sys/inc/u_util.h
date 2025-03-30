@@ -39,6 +39,30 @@
 
 #define IS_ENABLED(option) __or(IS_BUILTIN(option), IS_MODULE(option))
 
+static unsigned int mk_ffs(unsigned int x)
+{
+    unsigned int ret;
+
+    __asm__ volatile("clz\t%0, %1"
+                     : "=r"(ret)
+                     : "r"(x)
+                     : "cc");
+    ret = (sizeof(void *) * 8 - 1) - ret;
+    return ret;
+}
+static inline unsigned long is_power_of_2(unsigned long num)
+{
+    return (num & (num - 1)) == 0;
+}
+static inline unsigned long align_power_of_2(unsigned long num)
+{
+    if (is_power_of_2(num))
+    {
+        return num;
+    }
+    return (1 << (mk_ffs(num) + 1));
+}
+
 /* Import a binary file */
 #define IMPORT_BIN(sect, file, sym) asm (\
     ".section " #sect "\n"                  /* Change section */\

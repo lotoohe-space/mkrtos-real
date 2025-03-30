@@ -7,7 +7,7 @@
 #include "ns.h"
 #ifdef MKRTOS
 #include <u_hd_man.h>
-#include <malloc.h>
+#include <u_malloc.h>
 #include <u_task.h>
 #endif
 // 其他进程可以注册节点进来，并且可以注册子节点进来，子节点可以注册更多的子节点进来。
@@ -108,7 +108,7 @@ static ns_node_t *node_create(const char *name, node_type_t type, int pid)
     ns_node_t *tmp;
 
 #ifdef MKRTOS
-    tmp = calloc(sizeof(ns_node_t), 1);
+    tmp = u_calloc(sizeof(ns_node_t), 1);
 #else
     tmp = calloc(sizeof(ns_node_t), 1);
 #endif
@@ -258,7 +258,7 @@ int ns_delnode(const char *path)
     }
     cur_node->parent->ref--;
 #ifdef MKRTOS
-    free(cur_node);
+    u_free(cur_node);
 #else
     free(cur_node);
 #endif

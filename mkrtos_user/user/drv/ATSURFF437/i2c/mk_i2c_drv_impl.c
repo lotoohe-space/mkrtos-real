@@ -144,6 +144,7 @@ again:
         /* config i2c */
         i2c_init(hi2c->i2cx, 0x0F, PCA_I2C_CLKCTRL_400K);
     }
+    return 0;
 }
 static int i2c_bus_configure(mk_i2c_t *drv, umword_t freq)
 {

@@ -75,11 +75,11 @@ int ls(int argc, char *agrv[])
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), ls, ls, ls command);
 int cp(int argc, char *argv[])
 {
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 1024
 
     int source_fd, target_fd;
     ssize_t bytes_read, bytes_written;
-    char buffer[BUFFER_SIZE];
+    char *buffer;
     int ret;
 
     // 检查参数数量
@@ -88,12 +88,19 @@ int cp(int argc, char *argv[])
         fprintf(stderr, "example: %s /bin/a.bin /mnt/a.bin\n", argv[0]);
         return -1;
     }
-
+    // 分配缓冲区
+    buffer = (char *)u_malloc(BUFFER_SIZE);
+    if (buffer == NULL)
+    {
+        perror("malloc buffer is error.\n");
+        return -1;
+    }
     // 打开源文件
     source_fd = open(argv[1], O_RDONLY);
     if (source_fd == -1)
     {
         perror("can not open src file.\n");
+        u_free(buffer);
         return -1;
     }
     struct stat st = {0};
@@ -106,11 +113,13 @@ int cp(int argc, char *argv[])
     {
         perror("can not open dest file.");
         close(source_fd);
+        u_free(buffer);
         return -1;
     }
     if (ftruncate(target_fd, st.st_size) < 0)
     {
         printf("to set fiel size is error.\n");
+        u_free(buffer);
         return -1;
     }
 
@@ -123,6 +132,7 @@ int cp(int argc, char *argv[])
             perror("write file is error.\n");
             close(source_fd);
             close(target_fd);
+            u_free(buffer);
             return -1;
         }
     }
@@ -135,7 +145,7 @@ int cp(int argc, char *argv[])
     // 关闭文件
     close(source_fd);
     close(target_fd);
-
+    u_free(buffer);
     printf("cp file is success.\n");
 
     return 0;

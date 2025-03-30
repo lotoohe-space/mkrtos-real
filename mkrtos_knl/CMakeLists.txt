@@ -8,6 +8,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Wno-builtin-declaration-mismatch \
 ")
 
+# -O1 \
 # -Ofast \
 # message(编译参数：${CMAKE_C_FLAGS})
 

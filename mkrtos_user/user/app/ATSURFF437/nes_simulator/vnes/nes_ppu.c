@@ -5,7 +5,7 @@
  * @version     V1.1
  * @date        2022-05-31
  * @brief       NES PPU ????
- *              ???????????????ye781205??NES?????????, ????§Ý!
+ *              ???????????????ye781205??NES?????????, ????ï¿½ï¿½!
  * @license     Copyright (c) 2020-2032, ??????????????????????
  ****************************************************************************************************
  * @attention
@@ -116,8 +116,8 @@ uint32 VRAM_accessible()
 //  uint8* get_VROM_tiles() { return VROM_tiles;  }
 
 // #define MASK_BANK(bank,mask) (bank) = ((bank) & (mask))
-// #define VALIDATE_VROM_BANK(bank) \
-//    MASK_BANK(bank,VROM_mask); \
+// #define VALIDATE_VROM_BANK(bank) 
+//    MASK_BANK(bank,VROM_mask); 
 //    if((bank) >= (RomHeader->num_8k_vrom_banks * 8)) return;
 
 //****************************************************************************************************
@@ -410,7 +410,7 @@ void do_scanline_and_draw(uint8 *buf)
         }
         else
         {
-            // clear out solid buffer??????½¨????
+            // clear out solid buffer??????ï¿½ï¿½????
             memset(ppu->solid_buf, 0x00, sizeof(ppu->solid_buf));
         }
 
@@ -595,7 +595,7 @@ void write_2007(uint8 data)
 
     if (addr < 0x2000)
     {
-#if	NES_RAM_SPEED==1  //1:??????§³ 0:????	  
+#if	NES_RAM_SPEED==1  //1:??????ï¿½ï¿½ 0:????	  
 
         *(TILE(addr) + (addr & 0xf )) = data;//************************
 #else
@@ -833,7 +833,7 @@ void  PPU_WriteToPort(uint8 data, uint16 addr )
         uint32 attrib_addr;
         uint32 attrib_bits;
 
-        #if	NES_RAM_SPEED==1  //1:??????§³ 0:????
+        #if	NES_RAM_SPEED==1  //1:??????ï¿½ï¿½ 0:????
         uint8 pattern_lo;
     uint8 pattern_hi;
     uint8 pattern_mask;
@@ -872,7 +872,7 @@ void  PPU_WriteToPort(uint8 data, uint16 addr )
 
             //   CHECK_MMC2(pattern_addr);//*******************************************************
 
-            #if	NES_RAM_SPEED==1  //1:??????§³ 0:????
+            #if	NES_RAM_SPEED==1  //1:??????ï¿½ï¿½ 0:????
             data = TILE(pattern_addr) + line;
 
             pattern_lo = *data;
@@ -980,7 +980,7 @@ void  PPU_WriteToPort(uint8 data, uint16 addr )
 
         uint32 spr_height;
 
-        #if	NES_RAM_SPEED==1  //1:??????§³ 0:????
+        #if	NES_RAM_SPEED==1  //1:??????ï¿½ï¿½ 0:????
 
         uint8 pattern_lo;
     uint8 pattern_hi;
@@ -1078,7 +1078,7 @@ void  PPU_WriteToPort(uint8 data, uint16 addr )
                 tile_addr += ppu->spr_pattern_table_addr;
             }
 
-            #if	NES_RAM_SPEED==1  //1:??????§³ 0:????
+            #if	NES_RAM_SPEED==1  //1:??????ï¿½ï¿½ 0:????
             t = TILE(tile_addr) + line;
 
             pattern_lo = *t;
@@ -1095,11 +1095,11 @@ void  PPU_WriteToPort(uint8 data, uint16 addr )
             {
                 //uint8 col = 0x00;
 
-                // if a sprite has drawn on this pixel, don't draw anything??????????????????????,?????¦Ê¦Æ???
+                // if a sprite has drawn on this pixel, don't draw anything??????????????????????,?????ï¿½Ê¦ï¿½???
                 if (!((*solid) & SPR_WRITTEN_FLAG))
                 {
 
-                    #if	NES_RAM_SPEED==1  //1:??????§³ 0:????
+                    #if	NES_RAM_SPEED==1  //1:??????ï¿½ï¿½ 0:????
 
                     col = ((pattern_hi >> (7 - x) << 1) & 2) | ((pattern_lo >> (7 - x)) & 1);
                     #else

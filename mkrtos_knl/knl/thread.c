@@ -335,11 +335,7 @@ bool_t thread_sched(bool_t is_sche)
     if (is_sche)
     {
         // 立刻进行切换
-#if IS_ENABLED(CONFIG_MMU)
-        sche_arch_sw_context();
-#else
         arch_to_sche();
-#endif
     }
     // printk("sched: cpu:%d sp:0x%lx\n", arch_get_current_cpu_id(), th->sp.sp);
     cpulock_set(status);
@@ -407,9 +403,7 @@ void thread_ready(thread_t *th, bool_t is_sche)
     else
     {
         thread_sched(FALSE);
-        arch_to_sche();
     }
-    // printk("ready: th:0x%lx\n", th);
     cpulock_set(status);
 }
 /**

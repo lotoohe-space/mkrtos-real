@@ -46,6 +46,10 @@ void put_bytes(const uint8_t *data, size_t len)
 
     for (int i = 0; i < len; i++)
     {
+        if (data[i] == '\n')
+        {
+           uart_putc(uart_get_global(), '\r');
+        }
         uart_putc(uart_get_global(), data[i]);
     }
 

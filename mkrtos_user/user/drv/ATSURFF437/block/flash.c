@@ -77,7 +77,7 @@ int flash_write_sector(uint32_t sector_inx, uint32_t *p_buffer, uint16_t num_wri
     }
 
     flash_unlock();
-    status = flash_sector_erase(sector_inx * SECTOR_SIZE + sys_info.bootfs_start_addr);
+    status = flash_sector_erase(write_addr);
     if (status != FLASH_OPERATE_DONE)
     {
         flash_lock();
@@ -109,8 +109,8 @@ int flash_init(void)
         return msg_tag_get_val(tag);
     }
 
-    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_PAGE_FAULT_SIM, 0),
-                       32 * 1024 * 1024 /*TODO:*/, 0x8000000, &vaddr);
+    tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, VMA_ADDR_PAGE_FAULT_SIM, 0),
+                       align_power_of_2(CONFIG_SYS_TEXT_SIZE), CONFIG_SYS_TEXT_ADDR, &vaddr);
     if (msg_tag_get_val(tag) < 0)
     {
         return msg_tag_get_val(tag);

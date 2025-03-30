@@ -92,6 +92,7 @@ int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size, int mem_block
     }
     memset(ram, 0, size + THREAD_MSG_BUG_LEN);
     mm_space_set_ram_block(&tk->mm_space, ram, size + THREAD_MSG_BUG_LEN);
+    tk->mm_space.mem_block_inx = mem_block;
     printk("task alloc [0x%x - 0x%x]\n", ram, (umword_t)ram + size + THREAD_MSG_BUG_LEN - 1);
     return 0;
 }
@@ -125,7 +126,9 @@ static void task_unlock_2(spinlock_t *sp0, spinlock_t *sp1, int status0, int sta
     {
         spinlock_set(sp0, status0);
         spinlock_set(sp1, status1);
-    } else {
+    }
+    else
+    {
         spinlock_set(sp0, status0);
     }
 }
@@ -173,7 +176,9 @@ static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
         }
         *st0 = status1;
         *st1 = status0;
-    } else {
+    }
+    else
+    {
         status0 = spinlock_lock(sp0);
         if (status0 < 0)
         {
@@ -334,7 +339,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        mm_space_get_ram_block(&tag_task->mm_space, (void**)(&f->regs[1]), (size_t *)(&f->regs[2]));
+        mm_space_get_ram_block(&tag_task->mm_space, (void **)(&f->regs[1]), (size_t *)(&f->regs[2]));
         spinlock_set(&tag_task->kobj.lock, status);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
@@ -405,13 +410,13 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        #if 0/*TODO: 需要检查动态申请的内存*/
+#if 0 /*TODO: 需要检查动态申请的内存*/
         if (!is_rw_access(tag_task, (void *)src_addr, copy_len, FALSE))
         {
             ret = -EPERM;
             goto copy_data_to_end;
         }
-        #endif
+#endif
         if (!is_rw_access(dst_task_obj, (void *)dst_addr, copy_len, FALSE))
         {
             ret = -EPERM;
@@ -551,7 +556,9 @@ static void task_release_stage1(kobject_t *kobj)
             pf_t *cur_pf = ((pf_t *)((char *)restore_th + CONFIG_THREAD_BLOCK_SIZE + 8)) - 1;
             cur_pf->regs[5] = (umword_t)(thread_get_bind_task(restore_th)->mm_space.mm_block);
             ref_counter_dec_and_release(&tk->ref_cn, &tk->kobj);
-        } else {
+        }
+        else
+        {
             break;
         }
     }
@@ -570,9 +577,10 @@ static void task_release_stage2(kobject_t *kobj)
     if (tk->mm_space.mm_block)
     {
 #if CONFIG_MPU
-        mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
+        mm_limit_free_align_raw(tk->mm_space.mem_block_inx, tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
+
 #else
-        mm_limit_free(tk->lim, tk->mm_space.mm_block);
+        mm_limit_free_raw(tk->mm_space.mem_block_inx, tk->lim, tk->mm_space.mm_block);
 #endif
     }
 #endif

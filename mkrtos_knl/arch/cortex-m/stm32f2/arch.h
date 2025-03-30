@@ -99,9 +99,9 @@ static inline umword_t arch_get_isr_no(void)
     return num;
 }
 __attribute__( (always_inline) ) static __inline uint32_t cmb_get_lr(void) {
-uint32_t result;
-__asm volatile ("mov %0, lr" : "=r" (result) );
-return (result);
+    uint32_t result;
+    __asm volatile ("mov %0, lr" : "=r" (result) );
+    return (result);
 }
 static inline void arch_set_knl_sp(umword_t sp)
 {

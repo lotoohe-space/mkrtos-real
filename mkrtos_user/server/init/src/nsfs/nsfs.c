@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <dirent.h>
-#include <malloc.h>
+#include <u_malloc.h>
 #include <u_mutex.h>
 #include <u_hd_man.h>
 #include "ns.h"
@@ -498,7 +498,7 @@ void fs_ns_del_file_by_pid(const char *path, pid_t pid)
     int path_len;
 
     path_len = strlen(path) + 64;
-    new_path = malloc(path_len);
+    new_path = u_malloc(path_len);
     if (new_path == NULL)
     {
         return;
@@ -507,7 +507,7 @@ void fs_ns_del_file_by_pid(const char *path, pid_t pid)
     fd = fs_ns_open(path, O_RDONLY, 0);
     if (fd < 0)
     {
-        free(new_path);
+        u_free(new_path);
         return;
     }
     while (1)
@@ -540,6 +540,6 @@ void fs_ns_del_file_by_pid(const char *path, pid_t pid)
             fs_ns_remove(new_path);
         }
     }
-    free(new_path);
+    u_free(new_path);
     fs_ns_close(fd);
 }
