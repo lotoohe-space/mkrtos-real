@@ -5,8 +5,11 @@
 #include "u_hd_man.h"
 #include "u_rpc.h"
 #include "u_rpc_svr.h"
+#include "u_share_mem.h"
 #include <stdio.h>
 #include <sys/stat.h>
+#include "assert.h"
+
 typedef struct kstat kstat_t;
 RPC_TYPE_DEF_ALL(kstat_t)
 /*open*/
@@ -42,47 +45,75 @@ RPC_GENERATION_OP1(fs_t, FS_PROT, FS_CLOSE, close,
 
 RPC_GENERATION_DISPATCH1(fs_t, FS_PROT, FS_CLOSE, close,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd)
-
 /*read*/
 RPC_GENERATION_OP3(fs_t, FS_PROT, FS_READ, read,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                   rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
+                   rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, buf,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 {
     if (!obj->op->fs_svr_read)
     {
         return -ENOSYS;
     }
-    int ret = obj->op->fs_svr_read(fd->data, buf->data, len->data);
+    umword_t addr;
+    umword_t size;
+    msg_tag_t tag;
+    obj_handler_t hd_mem;
 
-    if (ret >= 0)
+    hd_mem = vpage_create_raw(buf->data).addr;
+
+    tag = u_share_mem_map(hd_mem,
+                          vma_addr_create(VPAGE_PROT_RW, 0, 0),
+                          &addr, &size);
+    if (msg_tag_get_val(tag) < 0)
     {
-        buf->len = ret;
+        handler_free_umap(hd_mem);
+        return msg_tag_get_val(tag);
     }
+    int ret = obj->op->fs_svr_read(fd->data, (void *)addr, len->data);
+
+    u_share_mem_unmap(hd_mem);
+    handler_free_umap(hd_mem);
     return ret;
 }
 
 RPC_GENERATION_DISPATCH3(fs_t, FS_PROT, FS_READ, read,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                         rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
+                         rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, buf,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
-
 /*write*/
 RPC_GENERATION_OP3(fs_t, FS_PROT, FS_WRITE, write,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                   rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, buf,
+                   rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, buf,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 {
     if (!obj->op->fs_svr_write)
     {
         return -ENOSYS;
     }
-    int ret = obj->op->fs_svr_write(fd->data, buf->data, len->data);
+    umword_t addr;
+    umword_t size;
+    msg_tag_t tag;
+    obj_handler_t hd_mem;
+
+    hd_mem = vpage_create_raw(buf->data).addr;
+    assert(hd_mem !=0 && "share mem hd is error.\n");
+    tag = u_share_mem_map(hd_mem,
+                          vma_addr_create(VPAGE_PROT_RW, 0, 0),
+                          &addr, &size);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        handler_free_umap(hd_mem);
+        return msg_tag_get_val(tag);
+    }
+    int ret = obj->op->fs_svr_write(fd->data, (void *)addr, len->data);
+    u_share_mem_unmap(hd_mem);
+    handler_free_umap(hd_mem);
     return ret;
 }
 RPC_GENERATION_DISPATCH3(fs_t, FS_PROT, FS_WRITE, write,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                         rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, buf,
+                         rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, buf,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 
 /*readdir*/

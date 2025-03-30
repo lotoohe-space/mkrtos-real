@@ -29,6 +29,8 @@ ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
 static uint8_t msg_buf_coms[MSG_BUG_LEN * STACK_NUM];
 static obj_handler_t com_th_obj[STACK_NUM];
+static umword_t cons_map_buf[STACK_NUM][CONFIG_THREAD_MAP_BUF_LEN];
+
 static void fast_ipc_init(void)
 {
     for (int i = 0; i < STACK_NUM; i++)
@@ -37,7 +39,7 @@ static void fast_ipc_init(void)
         assert(com_th_obj[i] != HANDLER_INVALID);
     }
     u_fast_ipc_init(stack_coms,
-                    msg_buf_coms, STACK_NUM, STACK_COM_ITME_SIZE, com_th_obj);
+                    msg_buf_coms, STACK_NUM, STACK_COM_ITME_SIZE, com_th_obj, cons_map_buf);
 }
 int main(int args, char *argv[])
 {
@@ -94,8 +96,8 @@ again:
             printf("handler alloc failed.\n");
             return -1;
         }
-        tag = u_facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
-                                       SHARE_MEM_CNT_BUDDY_CNT, 2048);
+        tag = u_factory_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+                                         SHARE_MEM_CNT_BUDDY_CNT, 2048);
         if (msg_tag_get_val(tag) < 0)
         {
             printf("share mem create failed.\n");

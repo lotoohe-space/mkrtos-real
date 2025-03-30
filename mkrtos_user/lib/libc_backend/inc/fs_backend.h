@@ -15,3 +15,6 @@ long sys_be_ftruncate(va_list ap);
 long sys_be_getdents(va_list ap);
 long sys_be_lseek(va_list ap);
 long sys_be_ioctl(va_list ap);
+
+
+void fs_cons_write_str(const char *buf);

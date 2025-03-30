@@ -75,7 +75,7 @@ static int _be_shm_open(const char *shm_name, int flag, mode_t mode, size_t size
         {
             return -ENOMEM;
         }
-        tag = u_facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+        tag = u_factory_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
                                     SHARE_MEM_CNT_BUDDY_CNT, size);
         if (msg_tag_get_val(tag) < 0)
         {

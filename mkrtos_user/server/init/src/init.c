@@ -39,6 +39,8 @@ ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE * STACK_NUM];
 static uint8_t msg_buf_coms[MSG_BUG_LEN * STACK_NUM];
 static obj_handler_t com_th_obj[STACK_NUM];
+static umword_t cons_map_buf[STACK_NUM][CONFIG_THREAD_MAP_BUF_LEN];
+
 static void fast_ipc_init(void)
 {
     for (int i = 0; i < STACK_NUM; i++)
@@ -47,7 +49,7 @@ static void fast_ipc_init(void)
         assert(com_th_obj[i] != HANDLER_INVALID);
     }
     u_fast_ipc_init(stack_coms,
-                    msg_buf_coms, STACK_NUM, STACK_COM_ITME_SIZE, com_th_obj);
+                    msg_buf_coms, STACK_NUM, STACK_COM_ITME_SIZE, com_th_obj, cons_map_buf);
 }
 int main(int argc, char *args[])
 {

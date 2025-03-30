@@ -7,6 +7,17 @@ enum obj_attrs
     KOBJ_DELETE_RIGHT = 1,
     KOBJ_ALL_RIGHTS = 3,
 };
+typedef struct
+{
+    void *com_point_func;
+    addr_t stack;
+    umword_t stack_size;
+    void *bitmap;
+    int bitmap_len;
+    void *msg_buf;
+    umword_t (*map_buf)[CONFIG_THREAD_MAP_BUF_LEN];
+} fast_ipc_info_t;
+
 msg_tag_t u_task_set_obj_name(obj_handler_t dst_task, obj_handler_t obj, const char *name);
 msg_tag_t u_task_set_pid(obj_handler_t dst_task, umword_t pid);
 msg_tag_t u_task_get_pid(obj_handler_t dst_task, umword_t *data);
@@ -18,9 +29,6 @@ msg_tag_t u_task_alloc_ram_base(obj_handler_t task_han, umword_t size, addr_t *a
 msg_tag_t u_task_alloc_get_ram_info(obj_handler_t task_han, addr_t *ram_addr, size_t *size);
 msg_tag_t u_task_copy_data(obj_handler_t task_obj, void *st_addr, umword_t size);
 msg_tag_t u_task_copy_data_to(obj_handler_t task_obj, obj_handler_t dst_task_obj, void *st_addr, void *dst_addr, umword_t size);
-msg_tag_t u_task_set_com_point(obj_handler_t task_obj, void *com_point_func,
-                             addr_t stack, umword_t stack_size,
-                             void *bitmap, int bitmap_len,
-                             void *msg_buf);
+msg_tag_t u_task_set_com_point(obj_handler_t task_obj, fast_ipc_info_t *fipc_info);
 msg_tag_t u_task_com_unlock(obj_handler_t task_obj);
 msg_tag_t u_task_com_lock(obj_handler_t task_obj);

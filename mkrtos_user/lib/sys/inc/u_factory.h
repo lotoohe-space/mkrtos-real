@@ -17,5 +17,5 @@ msg_tag_t u_factory_create_ipc(obj_handler_t obj, vpage_t vpage);
 msg_tag_t u_factory_create_thread(obj_handler_t obj, vpage_t vpage);
 msg_tag_t u_factory_create_thread_vcpu(obj_handler_t obj, vpage_t vpage);
 msg_tag_t u_factory_create_task(obj_handler_t obj, vpage_t vpage);
-msg_tag_t u_facotry_create_share_mem(obj_handler_t obj, vpage_t vpage, share_mem_type_t mem_type, umword_t size);
+msg_tag_t u_factory_create_share_mem(obj_handler_t obj, vpage_t vpage, share_mem_type_t mem_type, umword_t size);
 msg_tag_t u_facotry_create_sema(obj_handler_t obj, vpage_t vpage, int cnt, int max);

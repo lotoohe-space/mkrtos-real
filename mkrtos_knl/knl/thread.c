@@ -478,6 +478,22 @@ static int ipc_dat_copy_raw(obj_space_t *dst_obj, obj_space_t *src_obj, ram_limi
            MIN(tag.msg_buf_len * WORD_BYTES, IPC_MSG_SIZE));
     return i;
 }
+static inline int fipc_alloc_channle(task_t *tk)
+{
+    for (int i = 0; i < tk->nofity_bitmap_len; i++)
+    {
+        if (((*tk->nofity_bitmap) & (0x1 << i)) == 0)
+        {
+            *tk->nofity_bitmap |= 0x1 << i;
+            return i;
+        }
+    }
+    return -1;
+}
+static inline void fipc_free_channle(task_t *tk, int inx)
+{
+    *(tk->nofity_bitmap) &= ~(1 << MIN(inx, tk->nofity_bitmap_len)); //!< 解锁bitmap
+}
 /**
  *  快速ipc call
  * FIXME:以下代码是arch相关的，需要整理
@@ -509,11 +525,16 @@ msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_
     assert(cur_th->magic == THREAD_MAGIC);
 
     ref_counter_inc((&to_task->ref_cn));
+    int fipc_channel;
+
+    fipc_channel = fipc_alloc_channle(to_task); //!< 分配一个通道
+    assert(fipc_channel >= 0);                  //!< 不可能失败
+
     //!< 执行目标线程时用的是当前线程的资源，这里还需要备份当前线程的上下文。
     ret = thread_fast_ipc_save(cur_th, to_task, (void *)(to_task->nofity_stack - 4 * 8 /*FIXME:改成宏*/)); //!< 备份栈和usp
     if (ret >= 0)
     {
-        ipc_msg_t *dst_ipc = (void *)to_task->nofity_msg_buf;
+        ipc_msg_t *dst_ipc = (void *)(to_task->nofity_msg_buf + fipc_channel * THREAD_MSG_BUG_LEN);
         ipc_msg_t *src_ipc = (void *)cur_th->msg.msg;
         ret = ipc_dat_copy_raw(&to_task->obj_space, &cur_task->obj_space, to_task->lim,
                                dst_ipc, src_ipc, in_tag, FALSE);
@@ -530,7 +551,7 @@ msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_
                                                 (void *)to_task->nofity_stack, (void *)to_task->mm_space.mm_block);
                 usr_stask_point->rg0[0] = in_tag.raw;
                 usr_stask_point->rg0[1] = user_id;
-                usr_stask_point->rg0[2] = f->regs[2];
+                usr_stask_point->rg0[2] = fipc_channel;
                 usr_stask_point->rg0[3] = f->regs[3];
 
                 scheduler_get_current()->sched_reset = 2;
@@ -551,7 +572,7 @@ msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_
                 //! 寄存器传参数
                 f->regs[0] = in_tag.raw;
                 f->regs[1] = user_id;
-                f->regs[2] = f->regs[2];
+                f->regs[2] = fipc_channel;
                 f->regs[3] = f->regs[3];
             }
             // 切换mpu
@@ -581,9 +602,10 @@ msg_tag_t thread_fast_ipc_call(task_t *to_task, entry_frame_t *f, umword_t user_
         mutex_unlock(&to_task->nofity_lock);
         sema_up(&to_task->notify_sema);
     }
-   
+
     return msg_tag_init4(0, 0, 0, ret);
 }
+
 msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
 {
     task_t *cur_task = thread_get_current_task();
@@ -591,10 +613,16 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
     msg_tag_t in_tag = msg_tag_init(f->regs[0]);
     task_t *old_task = thread_get_bind_task(cur_th);
     int ret;
+    int fipc_channel = f->regs[2];
+
+    if (fipc_channel < 0 || fipc_channel >= old_task->nofity_bitmap_len)
+    {
+        /*FIXME:应该在内核里面存这个值fipc_channel */
+        printk("panic : %s:%d fipc_channel:%d\n", __func__, __LINE__, fipc_channel);
+        return msg_tag_init4(0, 0, 0, -EINVAL);
+    }
 
     assert(cur_th->magic == THREAD_MAGIC);
-    *(cur_task->nofity_bitmap) &= ~(1 << MIN(f->regs[2], cur_task->nofity_bitmap_len)); //!< 解锁bitmap
-    slist_del(&cur_th->com->fast_ipc_node);                                             // 从链表中删除
 
     ret = thread_fast_ipc_restore(cur_th); // 还原栈和usp
     if (ret < 0)
@@ -607,21 +635,26 @@ msg_tag_t thread_fast_ipc_replay(entry_frame_t *f)
 
     cur_task = thread_get_current_task();
     ipc_msg_t *dst_ipc = (void *)cur_th->msg.msg;
-    ipc_msg_t *src_ipc = (void *)old_task->nofity_msg_buf;
+    ipc_msg_t *src_ipc = (void *)(old_task->nofity_msg_buf + fipc_channel * THREAD_MSG_BUG_LEN);
     ret = ipc_dat_copy_raw(&cur_task->obj_space, &old_task->obj_space, cur_task->lim,
                            dst_ipc, src_ipc, in_tag, TRUE); // copy数据
+
+    fipc_free_channle(old_task, fipc_channel);
+    slist_del(&cur_th->com->fast_ipc_node);                                               //!< 从链表中删除
+
     // if (ret >=0 ) {
     for (int i = 0; i < CONFIG_THREAD_MAP_BUF_LEN; i++)
     {
         // 映射了多少个，则重新填充多少个新的
         if (i < ret)
         {
-            src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
-            old_task->nofity_map_buf[i] = 0;
+            src_ipc->map_buf[i] = old_task->nofity_map_buf[fipc_channel][i];
+            /*FIXME: 这里暂时倒序赋值，因为用第一个值，可能存在nofity_map_buf设置成0时，另一个线程回复的时候会把这个0值用上 */
+            old_task->nofity_map_buf[fipc_channel][i] = 0;
         }
         else
         {
-            src_ipc->map_buf[i] = old_task->nofity_map_buf[i];
+            src_ipc->map_buf[i] = old_task->nofity_map_buf[fipc_channel][i];
         }
     }
     // }

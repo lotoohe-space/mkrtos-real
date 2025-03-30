@@ -60,14 +60,14 @@ typedef struct share_mem
     size_t size;               //!< Memory size, (depending on arch, size may be limited to, for example: n^2）
     dlist_head_t task_head;    //!< Which tasks use the shared memory
     share_mem_type_t mem_type; //!< memory type
-    ram_limit_t *lim;          //!< memory limit 
+    ram_limit_t *lim;          //!< memory limit
     ref_counter_t ref;         //!< Reference count must be zero to free kobj memory
 } share_mem_t;
 
 enum share_mem_op
 {
-    SHARE_MEM_MAP, //!<share mem map to task.
-    SHARE_MEM_UNMAP, //!< share mem unmap to task.
+    SHARE_MEM_MAP,    //!< share mem map to task.
+    SHARE_MEM_UNMAP,  //!< share mem unmap to task.
     SHARE_MEM_RESIZE, //!< share mem resize.
 };
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
@@ -379,7 +379,7 @@ static ssize_t share_mem_map(share_mem_t *obj, vma_addr_t addr, vaddr_t *ret_vad
 #if IS_ENABLED(CONFIG_MMU)
     vaddr_t ret_addr;
 
-    addr.flags |= VMA_ADDR_RESV;                                                  
+    addr.flags |= VMA_ADDR_RESV;
     //!< Set to reserve memory, physical memory that reserves memory and does not apply for it in the kernel
     ret = task_vma_alloc(&task->mm_space.mem_vma, addr, obj->size, 0, &ret_addr); //!< Apply for virtual memory
     if (ret < 0)
@@ -428,8 +428,10 @@ static ssize_t share_mem_map(share_mem_t *obj, vma_addr_t addr, vaddr_t *ret_vad
                          (vaddr_t)(obj->mem), ret_vaddr);
     if (ret < 0)
     {
+        printk("share mem task map failed, pmem:0x%x vmem:0x%x.\n", obj->mem, *ret_vaddr);
         return ret;
     }
+    // printk("share mem task map, pmem:0x%x vmem:0x%x.\n", obj->mem, *ret_vaddr);
     map_size = obj->size;
     // *ret_vaddr = (vaddr_t)(obj->mem);
 #endif
@@ -453,6 +455,7 @@ static void share_mem_unmap_op(task_t *tk, share_mem_t *sm)
         share_mem_unmap(sm, addr);
         ref_counter_dec_and_release(&tk->ref_cn, &tk->kobj);
         ref_counter_dec_and_release(&sm->ref, &sm->kobj);
+        // printk("share mem task unmap, pmem:0x%x vmem:0x%x.\n", sm->mem, addr);
     }
 }
 static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
@@ -523,7 +526,7 @@ static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             ret = share_mem_pmem_resize(sm, f->regs[0]);
         }
         spinlock_set(&sm->kobj.lock, status);
-resize_end:
+    resize_end:
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     }

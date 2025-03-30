@@ -5,10 +5,20 @@
 #include "u_vmam.h"
 enum share_mem_op
 {
-    SHARE_MEM_MAP, //!<share mem map to task.
-    SHARE_MEM_UNMAP, //!< share mem unmap to task.
+    SHARE_MEM_MAP,    //!< share mem map to task.
+    SHARE_MEM_UNMAP,  //!< share mem unmap to task.
     SHARE_MEM_RESIZE, //!< share mem resize.
 };
+
+/**
+ * @brief   Shared memory mapping operation
+ *  在cortex-m等处理器上，会自动加上 VMA_ADDR_RESV | VMA_ADDR_PAGE_FAULT_SIM 标志
+ * @param obj
+ * @param vaddr
+ * @param addr
+ * @param size
+ * @return MK_SYSCALL
+ */
 MK_SYSCALL
 msg_tag_t u_share_mem_map(obj_handler_t obj, vma_addr_t vaddr, umword_t *addr, umword_t *size)
 {
@@ -70,4 +80,3 @@ msg_tag_t u_share_mem_resize(obj_handler_t obj, size_t new_size)
                      : ARCH_REG_0);
     return msg_tag_init(r0);
 }
-

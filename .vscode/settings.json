@@ -222,7 +222,8 @@
         "ipc.h": "c",
         "stdarg.h": "c",
         "ipcstat.h": "c",
-        "fs_cli.h": "c"
+        "fs_cli.h": "c",
+        "fs_backend.h": "c"
     },
     "cortex-debug.showRTOS": false,
     "cortex-debug.variableUseNaturalFormat": true,

@@ -436,36 +436,49 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     break;
     case TASK_SET_COM_POINT: //!< 设置通信点
     {
-        if (!is_rw_access(tag_task, (void *)(f->regs[1]), f->regs[2], FALSE))
+        fast_ipc_info_t *fipc_info = (fast_ipc_info_t *)(f->regs[0]);
+
+        if (!is_rw_access(tag_task, (void *)(fipc_info), sizeof(*fipc_info), FALSE))
         {
+            printk("%s:%d fipc_info is not rw access\n", __func__, __LINE__);
             tag = msg_tag_init4(0, 0, 0, -EPERM);
             break;
         }
-        if (f->regs[4] >= WORD_BITS)
+
+        if (!is_rw_access(tag_task, (void *)(fipc_info->stack), fipc_info->stack_size, FALSE))
         {
+            printk("%s:%d fipc_info is not rw access\n", __func__, __LINE__);
+
+            tag = msg_tag_init4(0, 0, 0, -EPERM);
+            break;
+        }
+        if (fipc_info->bitmap_len >= WORD_BITS)
+        {
+            printk("%s:%d fipc_info stack_len is to long\n", __func__, __LINE__);
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        if (!is_rw_access(tag_task, (void *)(f->regs[3]),
-                          ROUND_UP(f->regs[4], 8), FALSE))
+        if (!is_rw_access(tag_task, (void *)(fipc_info->bitmap),
+                          ROUND_UP(fipc_info->bitmap_len, 8), FALSE))
         {
+            printk("%s:%d fipc_info is not rw access\n", __func__, __LINE__);
             tag = msg_tag_init4(0, 0, 0, -EPERM);
             break;
         }
-        if (!is_rw_access(tag_task, (void *)(f->regs[5]),
-                          THREAD_MSG_BUG_LEN + CONFIG_THREAD_MAP_BUF_LEN * WORD_BYTES, FALSE))
+        if (!is_rw_access(tag_task, (void *)(fipc_info->msg_buf),
+                          THREAD_MSG_BUG_LEN * fipc_info->bitmap_len, FALSE))
         {
+            printk("%s:%d fipc_info is not rw access\n", __func__, __LINE__);
             tag = msg_tag_init4(0, 0, 0, -EPERM);
             break;
         }
-        int stack_size = f->regs[2];
 
-        tag_task->notify_point = (void *)(f->regs[0]);
-        tag_task->nofity_stack = (addr_t)(f->regs[1] + stack_size);
-        tag_task->nofity_bitmap = (void *)(f->regs[3]);
-        tag_task->nofity_bitmap_len = (f->regs[4]);
-        tag_task->nofity_msg_buf = (addr_t)f->regs[5];
-        tag_task->nofity_map_buf = (umword_t *)((addr_t)f->regs[5] + THREAD_MSG_BUG_LEN);
+        tag_task->notify_point = (void *)(fipc_info->com_point_func);
+        tag_task->nofity_stack = (addr_t)(fipc_info->stack + fipc_info->stack_size);
+        tag_task->nofity_bitmap = (void *)(fipc_info->bitmap);
+        tag_task->nofity_bitmap_len = (fipc_info->bitmap_len);
+        tag_task->nofity_msg_buf = (addr_t)fipc_info->msg_buf;
+        tag_task->nofity_map_buf = fipc_info->map_buf;
         sema_init(&tag_task->notify_sema, tag_task->nofity_bitmap_len, tag_task->nofity_bitmap_len);
         tag = msg_tag_init4(0, 0, 0, 0);
     }

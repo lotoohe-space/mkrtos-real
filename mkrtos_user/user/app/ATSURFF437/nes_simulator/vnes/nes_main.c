@@ -571,7 +571,7 @@ again:
 	}
 	shm_hd = handler_alloc();
 	assert(shm_hd != HANDLER_INVALID);
-	tag = u_facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+	tag = u_factory_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
 								   SHARE_MEM_CNT_BUDDY_CNT, 2048);
 	assert(msg_tag_get_prot(tag) >= 0);
 	tag = u_share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);

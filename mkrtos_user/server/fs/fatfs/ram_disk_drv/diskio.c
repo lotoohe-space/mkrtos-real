@@ -108,7 +108,7 @@ DSTATUS disk_initialize(
 			printf("handler alloc failed.\n");
 			return RES_ERROR;
 		}
-		tag = u_facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+		tag = u_factory_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
 									   SHARE_MEM_CNT_BUDDY_CNT, blk_info.blk_size);
 		if (msg_tag_get_val(tag) < 0)
 		{

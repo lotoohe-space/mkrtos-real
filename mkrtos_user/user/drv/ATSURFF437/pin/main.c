@@ -20,12 +20,13 @@ ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];
 static obj_handler_t com_th_obj;
+static umword_t cons_map_buf[1][CONFIG_THREAD_MAP_BUF_LEN];
 
 void fast_ipc_init(void)
 {
     com_th_obj = handler_alloc();
     assert(com_th_obj != HANDLER_INVALID);
-    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj, cons_map_buf);
 }
 int main(int argc, char *argv[])
 {

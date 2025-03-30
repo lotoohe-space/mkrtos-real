@@ -1,8 +1,11 @@
+#include "u_mutex.h"
 #include "u_rpc.h"
 #include "u_rpc_svr.h"
 #include "ns_types.h"
 #include "rpc_prot.h"
 #include "u_env.h"
+#include "u_factory.h"
+#include "u_sema.h"
 #include "u_prot.h"
 #include "u_hd_man.h"
 #include "ns_cli.h"
@@ -14,8 +17,125 @@
 #include <sys/stat.h>
 #include <poll.h>
 #include "kstat.h"
+#include "u_vmam.h"
+#include "u_share_mem.h"
+
 typedef struct kstat kstat_t;
 RPC_TYPE_DEF_ALL(kstat_t)
+
+typedef struct share_mem_mng
+{
+    obj_handler_t hd_mem;
+    size_t size;
+    bool_t used;
+} share_mem_mng_t;
+
+#define SHARE_MEM_MAX_SIZE 2048 //!< <max> 2K
+#define SHARE_MEM_MNG_MAX 4     //!< <max> 4 share memory management
+static share_mem_mng_t mem_mng[SHARE_MEM_MNG_MAX];
+static u_mutex_t mem_mng_mutex;          //!< <mutex> 共享内存管理的互斥锁
+static obj_handler_t mem_mng_avail_smea; // 统计还有多少的可用的共享内存
+
+AUTO_CALL(101)
+static void share_mem_mng_init(void)
+{
+    memset(mem_mng, 0, sizeof(mem_mng));
+    u_mutex_init(&mem_mng_mutex, handler_alloc());
+    msg_tag_t tag;
+
+    mem_mng_avail_smea = handler_alloc();
+    assert(mem_mng_avail_smea != HANDLER_INVALID);
+    tag = u_facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, mem_mng_avail_smea),
+                                0, SHARE_MEM_MNG_MAX);
+    assert(msg_tag_get_val(tag) >= 0);
+}
+
+static int share_mem_mng_alloc(size_t size)
+{
+    int i;
+
+    if (size >= SHARE_MEM_MAX_SIZE)
+    {
+        size = SHARE_MEM_MAX_SIZE;
+    }
+    if (size < PAGE_SIZE)
+    {
+        size = PAGE_SIZE;
+    }
+
+    for (i = 0; i < SHARE_MEM_MNG_MAX; i++)
+    {
+        if (mem_mng[i].hd_mem == 0)
+        {
+            break;
+        }
+    }
+    if (i >= SHARE_MEM_MNG_MAX)
+    {
+        return -ENOMEM;
+    }
+    obj_handler_t hd_mem = handler_alloc();
+
+    if (hd_mem == HANDLER_INVALID)
+    {
+        return -ENOMEM;
+    }
+    msg_tag_t tag;
+
+    tag = u_factory_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_mem),
+                                     SHARE_MEM_CNT_BUDDY_CNT, size);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        handler_free(hd_mem);
+        return msg_tag_get_val(tag);
+    }
+    mem_mng[i].hd_mem = hd_mem; /*FIXME:按序插入*/
+    mem_mng[i].size = size;
+    u_sema_up(mem_mng_avail_smea);
+    return 0;
+}
+static int share_mem_mng_get(obj_handler_t *hd_mem, size_t size)
+{
+    int i;
+
+again:
+    u_mutex_lock(&mem_mng_mutex, 0, NULL);
+    for (i = 0; i < SHARE_MEM_MNG_MAX; i++)
+    {
+        if (mem_mng[i].used == FALSE && size <= mem_mng[i].size)
+        {
+            break;
+        }
+    }
+    if (i >= SHARE_MEM_MNG_MAX)
+    {
+        share_mem_mng_alloc(size); //!< 无论这里是否失败，下面都需要等待获取资源
+        u_mutex_unlock(&mem_mng_mutex);
+        u_sema_down(mem_mng_avail_smea, 0, NULL);
+        goto again;
+    }
+    *hd_mem = mem_mng[i].hd_mem;
+    mem_mng[i].used = TRUE;
+    u_mutex_unlock(&mem_mng_mutex);
+    return 0;
+}
+static int share_mem_mng_put(obj_handler_t hd_mem)
+{
+    int i;
+    u_mutex_lock(&mem_mng_mutex, 0, NULL);
+    for (i = 0; i < SHARE_MEM_MNG_MAX; i++)
+    {
+        if (mem_mng[i].hd_mem == hd_mem)
+        {
+            mem_mng[i].used = FALSE;
+            break;
+        }
+    }
+    u_mutex_unlock(&mem_mng_mutex);
+    u_sema_up(mem_mng_avail_smea);
+    return 0;
+}
+
 /*open*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_OPEN, open,
                      rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
@@ -73,26 +193,41 @@ int fs_close(sd_t _fd)
 
     return fs_close_raw(hd, fd);
 }
+
 /*read*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_READ, read,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
+                     rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, buf,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 int fs_read_raw(obj_handler_t hd, int fd, void *buf, size_t len)
 {
+    int ret;
+
     rpc_int_t rpc_fd = {
         .data = fd,
     };
+    obj_handler_t mem_hd;
+    umword_t addr;
+    umword_t size;
+    msg_tag_t tag;
+
+    share_mem_mng_get(&mem_hd, align_power_of_2(len)); //!< 获取共享内存
+    tag = u_share_mem_map(mem_hd, vma_addr_create(VPAGE_PROT_RW, 0, 0), &addr, &size);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        share_mem_mng_put(mem_hd);
+        return msg_tag_get_val(tag);
+    }
 
     int rlen = 0;
     while (rlen < len)
     {
         int r_once_len = 0;
 
-        r_once_len = MIN(FS_RPC_BUF_LEN, len - rlen);
-        rpc_ref_file_array_t rpc_buf = {
-            .data = buf + rlen,
-            .len = r_once_len,
+        r_once_len = MIN(size, len - rlen);
+
+        rpc_obj_handler_t_t rpc_buf = {
+            .data = mem_hd,
         };
         rpc_int_t rpc_len = {
             .data = r_once_len,
@@ -101,15 +236,19 @@ int fs_read_raw(obj_handler_t hd, int fd, void *buf, size_t len)
 
         if (msg_tag_get_val(tag) < 0)
         {
+            u_share_mem_unmap(mem_hd);
+            share_mem_mng_put(mem_hd);
             return msg_tag_get_val(tag);
         }
+        memcpy(buf + rlen, (char *)addr + rlen, MIN(r_once_len, msg_tag_get_val(tag)));
         rlen += msg_tag_get_val(tag);
         if (msg_tag_get_val(tag) != r_once_len)
         {
             break;
         }
     }
-
+    u_share_mem_unmap(mem_hd);
+    share_mem_mng_put(mem_hd);
     return rlen;
 }
 int fs_read(sd_t _fd, void *buf, size_t len)
@@ -122,14 +261,26 @@ int fs_read(sd_t _fd, void *buf, size_t len)
 /*write*/
 RPC_GENERATION_CALL3(fs_t, FS_PROT, FS_WRITE, write,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                     rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, buf,
+                     rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, buf,
                      rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 
 int fs_write(sd_t _fd, void *buf, size_t len)
 {
     obj_handler_t hd = mk_sd_init_raw(_fd).hd;
     int fd = mk_sd_init_raw(_fd).fd;
+    int ret;
+    obj_handler_t mem_hd;
+    umword_t addr;
+    umword_t size;
+    msg_tag_t tag;
 
+    share_mem_mng_get(&mem_hd, align_power_of_2(len)); //!< 获取共享内存
+    tag = u_share_mem_map(mem_hd, vma_addr_create(VPAGE_PROT_RW, 0, 0), &addr, &size);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        share_mem_mng_put(mem_hd);
+        return msg_tag_get_val(tag);
+    }
     rpc_int_t rpc_fd = {
         .data = fd,
     };
@@ -138,20 +289,23 @@ int fs_write(sd_t _fd, void *buf, size_t len)
     {
         int w_once_len = 0;
 
-        w_once_len = MIN(FS_RPC_BUF_LEN, len - wlen);
-        rpc_ref_file_array_t rpc_buf = {
-            .data = buf + wlen,
-            .len = w_once_len,
+        w_once_len = MIN(size, len - wlen);
+        rpc_obj_handler_t_t rpc_buf = {
+            .data = mem_hd,
         };
         rpc_int_t rpc_len = {
             .data = w_once_len,
         };
+        memcpy((char *)addr + wlen,buf + wlen,  w_once_len);
         msg_tag_t tag = fs_t_write_call(hd, &rpc_fd, &rpc_buf, &rpc_len);
 
         if (msg_tag_get_val(tag) < 0)
         {
+            u_share_mem_unmap(mem_hd);
+            share_mem_mng_put(mem_hd);
             return msg_tag_get_val(tag);
         }
+
         wlen += msg_tag_get_val(tag);
         if (msg_tag_get_val(tag) != w_once_len)
         {
@@ -162,7 +316,8 @@ int fs_write(sd_t _fd, void *buf, size_t len)
             break;
         }
     }
-
+    u_share_mem_unmap(mem_hd);
+    share_mem_mng_put(mem_hd);
     return wlen;
 }
 /*readdir*/

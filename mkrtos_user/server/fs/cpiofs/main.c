@@ -18,12 +18,14 @@ ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];
 static obj_handler_t com_th_obj;
+static umword_t cons_map_buf[1][CONFIG_THREAD_MAP_BUF_LEN];
 
 void fast_ipc_init(void)
 {
     com_th_obj = handler_alloc();
     assert(com_th_obj != HANDLER_INVALID);
-    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE,
+                    &com_th_obj, cons_map_buf);
 }
 int main(int argc, char *argv[])
 {
@@ -33,14 +35,17 @@ int main(int argc, char *argv[])
 
     u_task_set_obj_name(TASK_THIS, TASK_THIS, "tk_cpio");
     u_task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_cpio");
-    for (int i = 0; i < argc; i++) {
+    for (int i = 0; i < argc; i++)
+    {
         printf("args[%d]:%s\n", i, argv[i]);
     }
     fast_ipc_init();
     int o;
     const char *optstring = "m:"; // 有三个选项-abc，其中c选项后有冒号，所以后面必须有参数
-    while ((o = getopt(argc, argv, optstring)) != -1) {
-        switch (o) {
+    while ((o = getopt(argc, argv, optstring)) != -1)
+    {
+        switch (o)
+        {
         case 'm':
             printf("mount path:%s\n", optarg);
             mount_path = optarg;

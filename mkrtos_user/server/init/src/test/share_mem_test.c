@@ -19,7 +19,7 @@ static void sharea_mem_test(CuTest *cu)
     umword_t size;
     obj_handler_t hd = handler_alloc();
     assert(hd != HANDLER_INVALID);
-    msg_tag_t tag = u_facotry_create_share_mem(FACTORY_PROT,
+    msg_tag_t tag = u_factory_create_share_mem(FACTORY_PROT,
                                              vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd),
                                              SHARE_MEM_CNT_BUDDY_CNT,
                                              TEST_MEM_SIZE);
@@ -37,7 +37,7 @@ static void sharea_mem_test(CuTest *cu)
 #if IS_ENABLED(CONFIG_MMU)
     hd = handler_alloc();
     assert(hd != HANDLER_INVALID);
-    tag = u_facotry_create_share_mem(FACTORY_PROT,
+    tag = u_factory_create_share_mem(FACTORY_PROT,
                                    vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd),
                                    SHARE_MEM_CNT_DPD,
                                    TEST_MEM_SIZE);

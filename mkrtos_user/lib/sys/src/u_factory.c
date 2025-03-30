@@ -92,7 +92,7 @@ msg_tag_t u_factory_create_ipc(obj_handler_t obj, vpage_t vpage)
     return tag;
 }
 MK_SYSCALL
-msg_tag_t u_facotry_create_share_mem(obj_handler_t obj, vpage_t vpage, share_mem_type_t mem_type, umword_t size)
+msg_tag_t u_factory_create_share_mem(obj_handler_t obj, vpage_t vpage, share_mem_type_t mem_type, umword_t size)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 

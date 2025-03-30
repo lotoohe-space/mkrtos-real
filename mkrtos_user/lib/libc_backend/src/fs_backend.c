@@ -82,6 +82,12 @@ void fs_cons_write(void *buf, size_t size)
     u_log_write_bytes(u_get_global_env()->log_hd, buf, size);
     u_mutex_unlock(&lock_cons);
 }
+void fs_cons_write_str(const char *buf)
+{
+    u_mutex_lock(&lock_cons, 0, NULL);
+    u_log_write_str(u_get_global_env()->log_hd, buf);
+    u_mutex_unlock(&lock_cons);
+}
 #define SHM_DEV_PATH "/dev/shm/"
 enum path_type
 {

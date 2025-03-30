@@ -20,12 +20,13 @@ ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE];
 static uint8_t msg_buf_coms[MSG_BUG_LEN];
 static obj_handler_t com_th_obj;
+static umword_t cons_map_buf[1][CONFIG_THREAD_MAP_BUF_LEN];
 
 static void fast_ipc_init(void)
 {
     com_th_obj = handler_alloc();
     assert(com_th_obj != HANDLER_INVALID);
-    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj, cons_map_buf);
 }
 
 static FATFS fs;
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
             break;
         }
     }
-   
+
     if (mount_path == NULL || dev_path == NULL)
     {
         printf("example:fatfs -m /mnt -d /dev/ram_block\n");

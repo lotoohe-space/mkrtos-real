@@ -236,17 +236,17 @@ msg_tag_t u_task_copy_data_to(obj_handler_t task_obj, obj_handler_t dst_task_obj
     return msg_tag_init(r0);
 }
 MK_SYSCALL
-msg_tag_t u_task_set_com_point(obj_handler_t task_obj, void *com_point_func, addr_t stack, umword_t stack_size, void *bitmap, int bitmap_len, void *msg_buf)
+msg_tag_t u_task_set_com_point(obj_handler_t task_obj, fast_ipc_info_t *fipc_info)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 
     mk_syscall(syscall_prot_create(TASK_SET_COM_POINT, TASK_PROT, task_obj).raw,
-               com_point_func,
-               stack,
-               stack_size,
-               bitmap,
-               bitmap_len,
-               msg_buf);
+               fipc_info,
+               0,
+               0,
+               0,
+               0,
+               0);
     asm __volatile__(""
                      :
                      :

@@ -9,6 +9,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 -Wno-unused-variable \
 -Wno-deprecated \
 -Wno-unused-but-set-variable \
+-Os \
 ")
 
 include_directories(${CMAKE_SOURCE_DIR}/)

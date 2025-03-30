@@ -80,11 +80,13 @@ int u_ipc_bind(ipc_t *ipc, obj_handler_t tk_hd, umword_t user_id, task_t *tk_kob
         if (!recv_kobj)
         {
             ret = -ENOENT;
-            goto end_bind;
+            spinlock_set(&cur_task->kobj.lock, status);
+            return ret;
         }
         ref_counter_inc(&recv_kobj->ref_cn); //!< 绑定后线程的引用计数+1，防止被删除
         ipc->svr_tk = recv_kobj;
         ipc->user_id = user_id;
+        spinlock_set(&cur_task->kobj.lock, status);
         // ipc_wait_bind_entry_t *pos;
 
         // slist_foreach_not_next(pos, &ipc->wait_bind, node) //!< 唤醒所有等待绑定的线程
@@ -97,10 +99,6 @@ int u_ipc_bind(ipc_t *ipc, obj_handler_t tk_hd, umword_t user_id, task_t *tk_kob
         // }
         sema_up(&ipc->wait_bind);
         ret = 0;
-    end_bind:
-        //!< 先解锁，然后在给task的引用计数-1
-        spinlock_set(&cur_task->kobj.lock, status);
-        // ref_counter_dec_and_release(&cur_task->ref_cn, &cur_task->kobj);
     }
     else
     {
