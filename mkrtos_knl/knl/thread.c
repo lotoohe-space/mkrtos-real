@@ -1039,6 +1039,18 @@ task_t *thread_get_current_task(void)
     }
     return container_of(kobj, task_t, kobj);
 }
+const char *thread_get_current_task_name(void)
+{
+    task_t *tk;
+
+    tk = thread_get_current_task();
+    if (tk == NULL)
+    {
+        static const char tmp[KOBJ_NAME_SIZE] = "";
+        return tmp;
+    }
+    return kobject_get_name(&tk->kobj);
+}
 task_t *thread_get_task(thread_t *th)
 {
     return container_of(th->task, task_t, kobj);

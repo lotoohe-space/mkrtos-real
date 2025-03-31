@@ -216,6 +216,10 @@ static inline thread_t *thread_get_current(void)
 
     return th;
 }
+static inline const char *thread_current_get_name(void)
+{
+    return kobject_get_name(&(thread_get_current()->kobj));
+}
 static inline int thread_fast_ipc_save(thread_t *th, task_t *tk, void *usp)
 {
     int ret;
@@ -263,6 +267,7 @@ static inline int thread_fast_ipc_pop(thread_t *th, thread_fast_ipc_item_t *item
     return ret;
 }
 task_t *thread_get_current_task(void);
+const char *thread_get_current_task_name(void);
 task_t *thread_get_task(thread_t *th);
 task_t *thread_get_bind_task(thread_t *th);
 int thread_set_prio(thread_t *th, int prio);

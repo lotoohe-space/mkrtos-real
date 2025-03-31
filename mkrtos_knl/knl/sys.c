@@ -121,7 +121,7 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
 
             printk("================================mem:[%d]=============================\n", i);
             mm_info_raw(i, &item_total, &item_free);
-            printk("total:0x%x free:0x%x\n", item_total, item_free);
+            printk("total:%d free:%d\n", item_total, item_free);
             printk("=====================================================================\n\n", i);
             total += item_total;
             free += item_free;

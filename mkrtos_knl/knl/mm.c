@@ -9,7 +9,8 @@
  *
  */
 #include "mm.h"
-
+#include "thread.h"
+#include "string.h"
 void mem_init(mem_t *_this)
 {
     spinlock_init(&_this->lock);
@@ -80,9 +81,6 @@ void mem_free(mem_t *_this, void *mem)
     {
         return;
     }
-    // #if MEM_TRACE
-    //		mem_trace(_this);
-    // #endif
     umword_t status = spinlock_lock(&_this->lock);
     m_mem = (struct mem_heap *)((ptr_t)mem - MEM_HEAP_STRUCT_SIZE);
     assert(m_mem->magic == MAGIC_NUM);
@@ -92,11 +90,9 @@ void mem_free(mem_t *_this, void *mem)
         return;
     }
     m_mem->used = 0;
+    m_mem->name[0] = '\0';
     mem_merge(_this, m_mem);
     spinlock_set(&_this->lock, status);
-    // #if MEM_TRACE
-    // mem_trace(_this);
-    // #endif
 }
 /**
  * @brief 划分内存
@@ -124,11 +120,14 @@ void *mem_split(mem_t *_this, void *mem, uint32_t size)
     r_mem->next = t_mem->next;
     r_mem->prev = t_mem;
     r_mem->magic = MAGIC_NUM;
+    memcpy(r_mem->name, thread_get_current_task_name(), MEM_HEAP_NAME);
 
     t_mem->next->prev = r_mem;
     t_mem->next = r_mem;
     t_mem->used = 1;
     t_mem->size = size - MEM_HEAP_STRUCT_SIZE;
+
+    memcpy(t_mem->name, thread_get_current_task_name(), MEM_HEAP_NAME);
     spinlock_set(&_this->lock, status);
     // mem_trace(_this);
 
@@ -207,15 +206,9 @@ void mem_free_align(mem_t *_this, void *f_mem)
     {
         real_mem = (umword_t *)(*(((umword_t *)(f_mem)) - 1));
         mem_free(_this, real_mem);
-        // #if MEM_TRACE
-        //		mem_trace(_this);
-        // #endif
         return;
     }
     mem_free(_this, f_mem);
-    // #if MEM_TRACE
-    //	mem_trace(_this);
-    // #endif
 }
 /**
  * @brief 申请内存
@@ -247,15 +240,16 @@ void *mem_alloc(mem_t *_this, uint32_t size)
                 mem->used = 1;
                 mem->next->prev = mem_temp;
                 mem->next = mem_temp;
+
+                memcpy(mem->name, thread_get_current_task_name(), MEM_HEAP_NAME);
                 spinlock_set(&_this->lock, status);
-                // mem_trace(_this);
                 return (void *)((ptr_t)mem + MEM_HEAP_STRUCT_SIZE);
             }
             else
             {
                 mem->used = 1;
+                memcpy(mem->name, thread_get_current_task_name(), MEM_HEAP_NAME);
                 spinlock_set(&_this->lock, status);
-                // mem_trace(_this);
                 return (void *)((ptr_t)mem + MEM_HEAP_STRUCT_SIZE);
             }
         }
@@ -276,10 +270,7 @@ int mem_heap_add(mem_t *_this, void *mem, uint32_t size)
 
     printk("total mem size:%d.\n", size);
 
-    // ((struct mem_heap *)mem)->name[0] = ' ';
-    // ((struct mem_heap *)mem)->name[1] = ' ';
-    // ((struct mem_heap *)mem)->name[2] = ' ';
-    // ((struct mem_heap *)mem)->name[3] = ' ';
+    ((struct mem_heap *)mem)->name[0] = '\0';
     ((struct mem_heap *)mem)->used = 0;
     umword_t status = spinlock_lock(&_this->lock);
     if (!_this->heap_start)
@@ -386,7 +377,7 @@ void mem_trace(mem_t *_this)
     for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next)
     {
         assert(mem->magic == MAGIC_NUM);
-        printk("%d [0x%x-] %dB\n", mem->used, mem, mem->size);
+        printk("%d [0x%x-] %7dB %s\n", mem->used, mem, mem->size, mem->name);
         total += mem->size + MEM_HEAP_STRUCT_SIZE;
     }
     spinlock_set(&_this->lock, status);
@@ -408,7 +399,7 @@ void mem_info(mem_t *_this, size_t *total, size_t *free)
 
     for (mem = _this->heap_start; mem != _this->heap_end; mem = mem->next)
     {
-        printk("%d [0x%x-] %dB\n", mem->used, mem, mem->size);
+        printk("%d [0x%x-] %7dB %s\n", mem->used, mem, mem->size, mem->name);
         total_ += mem->size + MEM_HEAP_STRUCT_SIZE;
         if (mem->used == 0)
         {

@@ -4,16 +4,13 @@
 #include "util.h"
 #include "assert.h"
 #include "spinlock.h"
-
+#include "kobject.h"
 #define MAGIC_NUM 0xFEDCBA98 //!< mm的幻数
-#define MEM_HEAP_NAME 4      //!< 名字长度
+#define MEM_HEAP_NAME KOBJ_NAME_SIZE      //!< 名字长度
 
 typedef struct mem_heap
 {
-    // union
-    // {
-    //     char name[MEM_HEAP_NAME];
-    // };
+    char name[MEM_HEAP_NAME];
     struct mem_heap *next;
     struct mem_heap *prev;
     umword_t size; // 可用的大小
