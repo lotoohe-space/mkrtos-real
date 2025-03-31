@@ -41,7 +41,7 @@ long be_set_thread_area(void *p)
     umword_t len;
     ipc_msg_t *i_msg;
 
-    thread_msg_buf_get(-1, &msg, &len);
+    u_thread_msg_buf_get(-1, &msg, &len);
     i_msg = (ipc_msg_t *)msg;
     if (!i_msg)
     {
@@ -64,7 +64,7 @@ unsigned long get_thread_area(void)
     umword_t len;
     ipc_msg_t *i_msg;
 
-    thread_msg_buf_get(-1, &msg, &len);
+    u_thread_msg_buf_get(-1, &msg, &len);
     i_msg = (ipc_msg_t *)msg;
     if (i_msg->user[0] == 0)
     {
@@ -138,7 +138,7 @@ long be_clock_gettime(clockid_t clk_id, struct timespec *tp)
         return -ENODEV;
     }
     sys_info_t info;
-    sys_read_info(SYS_PROT, &info, 0);
+    u_sys_read_info(SYS_PROT, &info, 0);
 
     unsigned long ts = info.sys_tick;
 

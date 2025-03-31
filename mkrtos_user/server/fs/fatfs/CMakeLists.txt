@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_STDPERIPH_DRIVER=1 -DSTM32F10X_XL ")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_STDPERIPH_DRIVER=1 -DSTM32F10X_XL ")
 
 file(
     GLOB deps  
     ff15/source/*.c  
     # ext_disk_drv/*.c 
     ram_disk_drv/*.c
+    # static_ram_disk_drv/*.c
     *.c
 )
 

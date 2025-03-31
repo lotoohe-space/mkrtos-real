@@ -22,7 +22,7 @@ static int _be_shm_open_svr(const char *shm_name)
     // const char *cur_path = fs_backend_cur_path();
 
     // u_rel_path_to_abs(cur_path, shm_name, new_src_path);
-    if (ns_query_svr(shm_name, &shm_hd, 1) < 0)
+    if (ns_query_svr(shm_name, &shm_hd) < 0)
     {
         return -ENOENT;
     }
@@ -75,7 +75,7 @@ static int _be_shm_open(const char *shm_name, int flag, mode_t mode, size_t size
         {
             return -ENOMEM;
         }
-        tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+        tag = u_factory_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
                                     SHARE_MEM_CNT_BUDDY_CNT, size);
         if (msg_tag_get_val(tag) < 0)
         {
@@ -131,7 +131,7 @@ void *be_shmat(int id, const void *addr, int flag)
     // int fd = mk_sd_init_raw(u_fd.priv_fd).fd;
 
     /*FIXME: 缓存addr与fd的关系，在unmap时解除映射*/
-    tag = share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, 0, (umword_t)addr), &shm_addr, NULL);
+    tag = u_share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, 0, (umword_t)addr), &shm_addr, NULL);
     if (msg_tag_get_prot(tag) < 0)
     {
         return (void *)((umword_t)msg_tag_get_prot(tag));
@@ -146,8 +146,6 @@ int be_shmdt(const void *addr)
 int be_shmctl(int id, int cmd, struct shmid_ds *buf)
 {
     fd_map_entry_t u_fd;
-    msg_tag_t tag;
-    umword_t shm_addr;
     int ret;
     
     ret = fd_map_free(id, &u_fd);
@@ -184,7 +182,7 @@ int be_inner_shm_ftruncate(sd_t fd, size_t size)
     msg_tag_t tag;
     obj_handler_t hd = mk_sd_init_raw(fd).hd;
     // int fd = mk_sd_init_raw(u_fd.priv_fd).fd;
-    tag = share_mem_resize(hd, size);
+    tag = u_share_mem_resize(hd, size);
     return msg_tag_get_val(tag);
 }
 #if 0
@@ -206,7 +204,7 @@ long be_shm_mmap(void *start,
 
     // int fd = mk_sd_init_raw(u_fd.priv_fd).fd;
     /*FIXME: 缓存addr与fd的关系，在unmap时解除映射*/
-    tag = share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, 0, (umword_t)start), &shm_addr, NULL);
+    tag = u_share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, 0, (umword_t)start), &shm_addr, NULL);
     if (msg_tag_get_prot(tag) < 0)
     {
         return (long)msg_tag_get_prot(tag);

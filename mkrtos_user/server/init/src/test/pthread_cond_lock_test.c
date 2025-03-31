@@ -23,6 +23,7 @@ static void *thread_signal(void *arg)
         pthread_mutex_unlock(&mutex);
         sleep(1);
     }
+    return NULL;
 }
 
 static void *thread_wait(void *arg)
@@ -41,6 +42,7 @@ static void *thread_wait(void *arg)
         pthread_mutex_unlock(&mutex);
         sleep(1);
     }
+    return NULL;
 }
 
 static pthread_t tid1;

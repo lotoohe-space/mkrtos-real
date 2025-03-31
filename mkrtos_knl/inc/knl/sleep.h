@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 
 #include "thread.h"
 typedef struct thread_wait_entry
@@ -8,6 +8,9 @@ typedef struct thread_wait_entry
     umword_t times;
     // umword_t times_debug;
 } thread_wait_entry_t;
+
+#define THREAD_SLEEP_ALWAYS 0
+
 void thread_check_timeout(void);
 thread_wait_entry_t *thread_sleep_del(thread_t *th);
 void thread_sleep_del_and_wakeup(thread_t *th);

@@ -38,7 +38,7 @@ void fs_backend_init(void)
     msg_tag_t tag;
     char *pwd;
 
-    tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
+    tag = u_task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
     assert(msg_tag_get_val(tag) >= 0);
     if (cur_pid != 0)
     {
@@ -64,10 +64,28 @@ const char *fs_backend_cur_path(void)
 {
     return cur_path;
 }
+void fs_cons_lock(void)
+{
+    u_mutex_lock(&lock_cons, 0, NULL);
+}
+void fs_cons_unlock(void)
+{
+    u_mutex_unlock(&lock_cons);
+}
+void fs_cons_write_unlock(void *buf, size_t size)
+{
+    u_log_write_bytes(u_get_global_env()->log_hd, buf, size);
+}
 void fs_cons_write(void *buf, size_t size)
 {
     u_mutex_lock(&lock_cons, 0, NULL);
-    ulog_write_bytes(u_get_global_env()->log_hd, buf, size);
+    u_log_write_bytes(u_get_global_env()->log_hd, buf, size);
+    u_mutex_unlock(&lock_cons);
+}
+void fs_cons_write_str(const char *buf)
+{
+    u_mutex_lock(&lock_cons, 0, NULL);
+    u_log_write_str(u_get_global_env()->log_hd, buf);
     u_mutex_unlock(&lock_cons);
 }
 #define SHM_DEV_PATH "/dev/shm/"
@@ -212,7 +230,7 @@ long be_write(long fd, char *buf, long size)
     {
         pid_t pid;
 
-        task_get_pid(TASK_THIS, (umword_t *)(&pid));
+        u_task_get_pid(TASK_THIS, (umword_t *)(&pid));
         if (pid == 0)
         {
             fs_cons_write(buf, size);
@@ -269,22 +287,23 @@ long be_readv(long fd, const struct iovec *iov, long iovcnt)
 long be_writev(long fd, const struct iovec *iov, long iovcnt)
 {
     long wlen = 0;
+    fd_map_entry_t u_fd;
+    int ret;
+
+    ret = fd_map_get(fd, &u_fd);
+    if (ret < 0)
+    {
+        return -EBADF;
+    }
     for (int i = 0; i < iovcnt; i++)
     {
-        fd_map_entry_t u_fd;
-        int ret = fd_map_get(fd, &u_fd);
-
-        if (ret < 0)
-        {
-            return -EBADF;
-        }
         switch (u_fd.type)
         {
         case FD_TTY:
         {
             pid_t pid;
 
-            task_get_pid(TASK_THIS, (umword_t *)(&pid));
+            u_task_get_pid(TASK_THIS, (umword_t *)(&pid));
             if (pid == 0)
             {
                 fs_cons_write(iov[i].iov_base, iov[i].iov_len);
@@ -500,7 +519,7 @@ long be_unlink(const char *path)
         *parent_last_path = '\0';
     }
     obj_handler_t hd;
-    int ret = ns_query(new_src_path, &hd, 0);
+    int ret = ns_query(new_src_path, &hd);
 
     if (ret < 0)
     {
@@ -509,7 +528,7 @@ long be_unlink(const char *path)
     *parent_last_path = '/';
     return fs_unlink(hd, ret == 0 ? new_src_path : parent_last_path);
 }
-long be_poll(struct pollfd *fds, nfds_t n, int timeout)
+long be_poll(struct pollfd *fds, uint32_t n, int timeout)
 {
     for (int i = 0; i < n; i++)
     {
@@ -521,7 +540,7 @@ long be_poll(struct pollfd *fds, nfds_t n, int timeout)
         /*FIXME:性能优化*/
         if (fds[0].events & POLLIN)
         {
-            char buf;
+            // char buf;
             int len;
             int ret;
             int time = 0;

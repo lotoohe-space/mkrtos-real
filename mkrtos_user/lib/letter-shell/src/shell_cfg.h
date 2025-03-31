@@ -147,14 +147,14 @@
  *        开启后会默认定义一个`RETVAL`变量，会保存上一次命令执行的返回值，可以在随后的命令中进行调用
  *        如果命令的`SHELL_CMD_DISABLE_RETURN`标志被设置，则该命令不会更新`RETVAL`
  */
-#define     SHELL_KEEP_RETURN_VALUE     0
+#define     SHELL_KEEP_RETURN_VALUE     1
 #endif /** SHELL_KEEP_RETURN_VALUE */
 
 #ifndef SHELL_MAX_NUMBER
 /**
  * @brief 管理的最大shell数量
  */
-#define     SHELL_MAX_NUMBER            5
+#define     SHELL_MAX_NUMBER            2
 #endif /** SHELL_MAX_NUMBER */
 
 #ifndef SHELL_PRINT_BUFFER

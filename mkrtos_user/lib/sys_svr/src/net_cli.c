@@ -334,7 +334,6 @@ int net_recv(int s, void *mem, size_t len, int flags)
     rpc_int_t rpc_flags = {
         .data = flags,
     };
-    msg_tag_t tag;
 
     int rlen = 0;
     int r_once_len = 0;
@@ -404,7 +403,6 @@ int net_recvfrom(int s, void *mem, size_t len, int flags,
     {
         rpc_fromlen.data = *fromlen;
     }
-    msg_tag_t tag;
 
     int rlen = 0;
     int r_once_len = 0;
@@ -457,7 +455,6 @@ int net_send(int s, const void *dataptr, size_t size, int flags)
         .data = flags,
     };
 
-    msg_tag_t tag;
 
     int rlen = 0;
     int w_once_len = 0;
@@ -524,7 +521,6 @@ int net_sendto(int s, const void *dataptr, size_t size, int flags,
     rpc_socklen_t_t rpc_tolen = {
         .data = tolen,
     };
-    msg_tag_t tag;
 
     int rlen = 0;
     int w_once_len = 0;
@@ -566,7 +562,7 @@ int net_socket(int domain, int type, int protocol)
     {
     case AF_INET:
     case AF_INET6:
-        ret = ns_query_svr("/sys/net" /*FIXME:更改为宏*/, &hd, 1);
+        ret = ns_query_svr("/sys/net" /*FIXME:更改为宏*/, &hd);
         break;
     default:
         return -ENOSYS;

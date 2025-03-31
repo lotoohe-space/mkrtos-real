@@ -10,7 +10,7 @@
 int fs_test(void)
 {
     int fd;
-    int ret;
+    int ret = 0;
     printf("%s start\n", __func__);
 
     fd = open("/mnt/1.txt", O_RDWR | O_CREAT, 0777);
@@ -63,7 +63,7 @@ static uint8_t buf[512];
 int fs_test2(void)
 {
     int fd;
-    int ret;
+    int ret = -1;
 
     printf("%s start\n", __func__);
     for (int i = 0; i < 512; i++)

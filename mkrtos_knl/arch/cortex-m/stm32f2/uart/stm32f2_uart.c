@@ -132,7 +132,7 @@ uart_t *uart_get_global(void)
 {
     return &uart;
 }
-#define QUEUE_LEN 129
+#define QUEUE_LEN 257
 static queue_t queue;
 static uint8_t queue_data[QUEUE_LEN];
 #if 0

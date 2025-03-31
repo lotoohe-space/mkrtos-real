@@ -18,12 +18,10 @@ typedef struct ns_node
     node_type_t type;            //!< 节点类型
     struct ns_node *parent;      //!< 父节点
     struct ns_node *next;        //!< 下一个
-    // union
-    // {
-        struct ns_node *sub;  //!< 子树
-        obj_handler_t svr_hd; //!< 服务节点
-    // };
-    int ref; //!< 引用计数
+    struct ns_node *sub;         //!< 子树
+    obj_handler_t svr_hd;        //!< 服务节点
+    int belong_pid;              //!< 属于哪个pid
+    int ref;                     //!< 引用计数
 } ns_node_t;
 typedef struct ns
 {

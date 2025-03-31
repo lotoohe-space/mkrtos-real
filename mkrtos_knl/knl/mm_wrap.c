@@ -127,9 +127,17 @@ void mm_trace(void)
 {
     mem_trace(&mem_manage[0]);
 }
+void mm_info_raw(int mem_inx, size_t *total, size_t *free)
+{
+    if (mem_inx >= MEM_NODES_NUM)
+    {
+        return;
+    }
+    mem_info(&mem_manage[mem_inx], total, free);
+}
 void mm_info(size_t *total, size_t *free)
 {
-    mem_info(&mem_manage[0], total, free);
+    mm_info_raw(0, total, free);
 }
 void *mm_limit_alloc_align_raw(int mem_inx, ram_limit_t *limit, size_t size, size_t align)
 {

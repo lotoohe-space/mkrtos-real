@@ -10,7 +10,7 @@ enum ipc_op
     IPC_DO = 6,
 };
 MK_SYSCALL
-msg_tag_t ipc_bind(obj_handler_t obj, obj_handler_t tk_obj, umword_t user_obj)
+msg_tag_t u_ipc_bind(obj_handler_t obj, obj_handler_t tk_obj, umword_t user_obj)
 {
     register volatile umword_t r0 asm(ARCH_REG_0);
 

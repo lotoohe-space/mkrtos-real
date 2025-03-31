@@ -74,7 +74,7 @@ static int mk_snd_drv_ioctl(mk_dev_t *pin, int cmd, umword_t args)
     {
         mk_ioctl_set_info_t info;
 
-        tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
+        tag = u_task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
         if (msg_tag_get_val(tag) < 0)
         {
             return msg_tag_get_val(tag);

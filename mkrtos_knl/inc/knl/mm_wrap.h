@@ -18,6 +18,7 @@ void *mm_limit_alloc_align(ram_limit_t *limit, size_t size, size_t align);
 void *mm_limit_alloc_align_raw(int mem_inx, ram_limit_t *limit, size_t size, size_t align);
 void mm_limit_free_align(ram_limit_t *limit, void *mem, size_t size);
 void mm_limit_free_align_raw(int mem_inx, ram_limit_t *limit, void *mem, size_t size);
+void mm_info_raw(int mem_inx, size_t *total, size_t *free);
 void mm_info(size_t *total, size_t *free);
 void *mm_limit_alloc_raw(int mem_inx, ram_limit_t *limit, size_t size);
 

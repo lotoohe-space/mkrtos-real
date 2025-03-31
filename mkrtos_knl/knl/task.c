@@ -35,6 +35,7 @@ enum task_op_code
     TASK_OBJ_MAP,        //!< 进行映射操作
     TASK_OBJ_UNMAP,      //!< 进行解除映射操作
     TASK_ALLOC_RAM_BASE, //!< 分配task的基础内存
+    TASK_GET_RAM_INFO,   //!< 获取task的ram信息
     TASK_OBJ_VALID,      //!< 判断一个对象是否有效
     TASK_SET_PID,        //!< 设置task的pid
     TASK_GET_PID,        //!< 获取task的pid
@@ -91,6 +92,7 @@ int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size, int mem_block
     }
     memset(ram, 0, size + THREAD_MSG_BUG_LEN);
     mm_space_set_ram_block(&tk->mm_space, ram, size + THREAD_MSG_BUG_LEN);
+    tk->mm_space.mem_block_inx = mem_block;
     printk("task alloc [0x%x - 0x%x]\n", ram, (umword_t)ram + size + THREAD_MSG_BUG_LEN - 1);
     return 0;
 }
@@ -120,10 +122,14 @@ static void task_unlock_2(spinlock_t *sp0, spinlock_t *sp1, int status0, int sta
         spinlock_set(sp1, status1);
         spinlock_set(sp0, status0);
     }
-    else
+    else if (sp0 > sp1)
     {
         spinlock_set(sp0, status0);
         spinlock_set(sp1, status1);
+    }
+    else
+    {
+        spinlock_set(sp0, status0);
     }
 }
 /**
@@ -155,7 +161,7 @@ static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
         *st0 = status0;
         *st1 = status1;
     }
-    else
+    else if (sp0 > sp1)
     {
         status0 = spinlock_lock(sp1);
         if (status0 < 0)
@@ -171,6 +177,16 @@ static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
         *st0 = status1;
         *st1 = status0;
     }
+    else
+    {
+        status0 = spinlock_lock(sp0);
+        if (status0 < 0)
+        {
+            return FALSE;
+        }
+        *st0 = status0;
+        *st1 = status0;
+    }
     return TRUE;
 }
 /**
@@ -180,7 +196,7 @@ static int task_lock_2(spinlock_t *sp0, spinlock_t *sp1, int *st0, int *st1)
  * @param pid 任务的pid
  * @return int
  */
-int task_set_pid(task_t *task, pid_t pid)
+int u_task_set_pid(task_t *task, pid_t pid)
 {
     task_t *cur_task = thread_get_current_task();
 
@@ -315,6 +331,19 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         spinlock_set(&tag_task->kobj.lock, status);
     }
     break;
+    case TASK_GET_RAM_INFO:
+    {
+        mword_t status = spinlock_lock(&tag_task->kobj.lock);
+        if (status < 0)
+        {
+            tag = msg_tag_init4(0, 0, 0, -EINVAL);
+            break;
+        }
+        mm_space_get_ram_block(&tag_task->mm_space, (void **)(&f->regs[1]), (size_t *)(&f->regs[2]));
+        spinlock_set(&tag_task->kobj.lock, status);
+        tag = msg_tag_init4(0, 0, 0, 0);
+    }
+    break;
 #endif
     case TASK_COPY_DATA: //!< 拷贝数据到task的内存区域
     {
@@ -343,7 +372,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
     }
     case TASK_SET_PID: //!< 设置pid
     {
-        tag = msg_tag_init4(0, 0, 0, task_set_pid(tag_task, f->regs[0]));
+        tag = msg_tag_init4(0, 0, 0, u_task_set_pid(tag_task, f->regs[0]));
     }
     break;
     case TASK_GET_PID: //!< 获取pid
@@ -371,7 +400,7 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
         if (!source_kobj)
         {
             ret = -EINVAL;
-            goto copy_data_to_end;
+            goto copy_data_to_end2;
         }
         task_t *dst_task_obj = container_of(source_kobj, task_t, kobj);
 
@@ -381,11 +410,13 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
+#if 0 /*TODO: 需要检查动态申请的内存*/
         if (!is_rw_access(tag_task, (void *)src_addr, copy_len, FALSE))
         {
             ret = -EPERM;
             goto copy_data_to_end;
         }
+#endif
         if (!is_rw_access(dst_task_obj, (void *)dst_addr, copy_len, FALSE))
         {
             ret = -EPERM;
@@ -399,41 +430,55 @@ static void task_syscall_func(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
 
     copy_data_to_end:
         task_unlock_2(&tag_task->kobj.lock, &dst_task_obj->kobj.lock, st0, st1);
+    copy_data_to_end2:
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     break;
     case TASK_SET_COM_POINT: //!< 设置通信点
     {
-        if (!is_rw_access(tag_task, (void *)(f->regs[1]), f->regs[2], FALSE))
+        fast_ipc_info_t *fipc_info = (fast_ipc_info_t *)(f->regs[0]);
+
+        if (!is_rw_access(tag_task, (void *)(fipc_info), sizeof(*fipc_info), FALSE))
         {
+            printk("%s:%d fipc_info is not rw access\n", __func__, __LINE__);
             tag = msg_tag_init4(0, 0, 0, -EPERM);
             break;
         }
-        if (f->regs[4] >= WORD_BITS)
+
+        if (!is_rw_access(tag_task, (void *)(fipc_info->stack), fipc_info->stack_size, FALSE))
         {
+            printk("%s:%d fipc_info is not rw access\n", __func__, __LINE__);
+
+            tag = msg_tag_init4(0, 0, 0, -EPERM);
+            break;
+        }
+        if (fipc_info->bitmap_len >= WORD_BITS)
+        {
+            printk("%s:%d fipc_info stack_len is to long\n", __func__, __LINE__);
             tag = msg_tag_init4(0, 0, 0, -EINVAL);
             break;
         }
-        if (!is_rw_access(tag_task, (void *)(f->regs[3]),
-                          ROUND_UP(f->regs[4], 8), FALSE))
+        if (!is_rw_access(tag_task, (void *)(fipc_info->bitmap),
+                          ROUND_UP(fipc_info->bitmap_len, 8), FALSE))
         {
+            printk("%s:%d fipc_info is not rw access\n", __func__, __LINE__);
             tag = msg_tag_init4(0, 0, 0, -EPERM);
             break;
         }
-        if (!is_rw_access(tag_task, (void *)(f->regs[5]),
-                          THREAD_MSG_BUG_LEN + CONFIG_THREAD_MAP_BUF_LEN * WORD_BYTES, FALSE))
+        if (!is_rw_access(tag_task, (void *)(fipc_info->msg_buf),
+                          THREAD_MSG_BUG_LEN * fipc_info->bitmap_len, FALSE))
         {
+            printk("%s:%d fipc_info is not rw access\n", __func__, __LINE__);
             tag = msg_tag_init4(0, 0, 0, -EPERM);
             break;
         }
-        int stack_size = f->regs[2];
 
-        tag_task->notify_point = (void *)(f->regs[0]);
-        tag_task->nofity_stack = (addr_t)(f->regs[1] + stack_size);
-        tag_task->nofity_bitmap = (void *)(f->regs[3]);
-        tag_task->nofity_bitmap_len = (f->regs[4]);
-        tag_task->nofity_msg_buf = (addr_t)f->regs[5];
-        tag_task->nofity_map_buf = (umword_t *)((addr_t)f->regs[5] + THREAD_MSG_BUG_LEN);
+        tag_task->notify_point = (void *)(fipc_info->com_point_func);
+        tag_task->nofity_stack = (addr_t)(fipc_info->stack + fipc_info->stack_size);
+        tag_task->nofity_bitmap = (void *)(fipc_info->bitmap);
+        tag_task->nofity_bitmap_len = (fipc_info->bitmap_len);
+        tag_task->nofity_msg_buf = (addr_t)fipc_info->msg_buf;
+        tag_task->nofity_map_buf = fipc_info->map_buf;
         sema_init(&tag_task->notify_sema, tag_task->nofity_bitmap_len, tag_task->nofity_bitmap_len);
         tag = msg_tag_init4(0, 0, 0, 0);
     }
@@ -525,6 +570,10 @@ static void task_release_stage1(kobject_t *kobj)
             cur_pf->regs[5] = (umword_t)(thread_get_bind_task(restore_th)->mm_space.mm_block);
             ref_counter_dec_and_release(&tk->ref_cn, &tk->kobj);
         }
+        else
+        {
+            break;
+        }
     }
 
     task_vma_clean(&tk->mm_space.mem_vma);
@@ -541,9 +590,10 @@ static void task_release_stage2(kobject_t *kobj)
     if (tk->mm_space.mm_block)
     {
 #if CONFIG_MPU
-        mm_limit_free_align(tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
+        mm_limit_free_align_raw(tk->mm_space.mem_block_inx, tk->lim, tk->mm_space.mm_block, tk->mm_space.mm_block_size);
+
 #else
-        mm_limit_free(tk->lim, tk->mm_space.mm_block);
+        mm_limit_free_raw(tk->mm_space.mem_block_inx, tk->lim, tk->mm_space.mm_block);
 #endif
     }
 #endif

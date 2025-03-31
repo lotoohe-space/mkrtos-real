@@ -24,8 +24,6 @@
 
 static obj_handler_t shm_hd;
 
-static int block_mem_addr = -1;
-static int block_nr = -1;
 static uint8_t *block_buf; //!< 块缓冲区
 static obj_handler_t blk_drv_hd;
 static blk_drv_info_t blk_info;
@@ -82,11 +80,11 @@ static int hw_create_shm_obj(int size, obj_handler_t *shm_obj)
         printf("handler alloc fail.\n");
         return -ENOMEM;
     }
-    tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+    tag = u_factory_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
                                    SHARE_MEM_CNT_BUDDY_CNT, size);
     if (msg_tag_get_prot(tag) < 0)
     {
-        printf("facotry_create_share_mem fail.\n");
+        printf("u_factory_create_share_mem fail.\n");
         handler_free(shm_hd);
         return -ENOMEM;
     }
@@ -105,7 +103,7 @@ int hw_init_block(fs_info_t *fs, const char *dev_path)
     fs->cb.hw_write_and_erase_block = hw_write_and_erase_block;
 
 again:
-    ret = ns_query_svr(dev_path, &blk_drv_hd, 0x1);
+    ret = ns_query_svr(dev_path, &blk_drv_hd);
     if (ret < 0)
     {
         u_sleep_ms(50);
@@ -114,7 +112,7 @@ again:
     ret = blk_drv_cli_info(blk_drv_hd, &blk_info);
     if (ret < 0)
     {
-        printf("blk info get fail.\n");
+        printf("blk info get fail. err:%d.\n", ret);
         return ret;
     }
     ret = hw_create_shm_obj(blk_info.blk_size, &shm_hd);
@@ -123,7 +121,7 @@ again:
         printf("shm obj create fail.\n");
         return ret;
     }
-    tag = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &shm_addr, NULL);
+    tag = u_share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &shm_addr, NULL);
     if (msg_tag_get_prot(tag) < 0)
     {
         printf("shm mem map fail.\n");
@@ -131,7 +129,7 @@ again:
         return -ENOMEM;
     }
     block_buf = (void *)shm_addr;
-    printf("block_buf addr:0x%x\n", block_buf);
+    printf("block_buf addr:0x%x fs_base_addr: 0x%x\n", block_buf, blk_info.blk_start_addr);
     // printf("img size is %d, block nr is %d.\n", block_mem_size, block_nr);
     return 0;
 }

@@ -19,7 +19,7 @@ int u_mutex_init(u_mutex_t *lock, obj_handler_t sema_hd)
     {
         return -1;
     }
-    tag = facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sema_hd), 1, 1);
+    tag = u_facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sema_hd), 1, 1);
     if (msg_tag_get_val(tag) < 0)
     {
         return msg_tag_get_val(tag);

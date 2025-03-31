@@ -27,6 +27,7 @@
 * [ ] posix sig支持
 * [ ] posix shm支持
 * [ ] posix sema支持
+* [ ] posix 信号支持
 * [ ] 几大组件稳定性测试
 * [ ] 内核代码review
 ### mid prio

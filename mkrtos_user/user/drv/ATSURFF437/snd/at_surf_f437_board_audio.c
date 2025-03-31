@@ -595,7 +595,7 @@ void DMA1_Channel3_IRQHandler(void)
 {
   while (1)
   {
-    msg_tag_t tag = uirq_wait(i2s_dma_tx_intr_obj, 0);
+    msg_tag_t tag = u_irq_wait(i2s_dma_tx_intr_obj, 0);
     if (msg_tag_get_val(tag) >= 0)
     {
       if (dma_interrupt_flag_get(I2S_DMA_TX_HDT_FLAG) == SET)
@@ -609,7 +609,7 @@ void DMA1_Channel3_IRQHandler(void)
         i2s_dma_tx_end = 1;
         dma_flag_clear(I2S_DMA_TX_FDT_FLAG);
       }
-      uirq_ack(i2s_dma_tx_intr_obj, I2S_DMA_TX_IRQn);
+      u_irq_ack(i2s_dma_tx_intr_obj, I2S_DMA_TX_IRQn);
     }
   }
 }
@@ -623,7 +623,7 @@ void DMA1_Channel4_IRQHandler(void)
 {
   while (1)
   {
-    msg_tag_t tag = uirq_wait(i2s_dma_rx_intr_obj, 0);
+    msg_tag_t tag = u_irq_wait(i2s_dma_rx_intr_obj, 0);
     if (msg_tag_get_val(tag) >= 0)
     {
       if (dma_interrupt_flag_get(I2S_DMA_RX_HDT_FLAG) == SET)
@@ -634,7 +634,7 @@ void DMA1_Channel4_IRQHandler(void)
       {
         dma_flag_clear(I2S_DMA_RX_FDT_FLAG);
       }
-      uirq_ack(i2s_dma_rx_intr_obj, I2S_DMA_RX_IRQn);
+      u_irq_ack(i2s_dma_rx_intr_obj, I2S_DMA_RX_IRQn);
     }
   }
 }

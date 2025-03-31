@@ -22,7 +22,8 @@ enum STATE
     END,
     STOP
 };
-#define PRINTF
+#define YM_DEBUG 0
+#define PRINTF 
 static char buf[150] = {0};
 
 /**
@@ -76,9 +77,9 @@ static inline uint16_t cal_CRC16(const uint8_t *data, uint32_t size)
     return (crc & 0xffffu);
 }
 
-int ymodem_receive(const char *path, int fd)
+int ymodem_receive(int fd)
 {
-    int fd_file;
+    int fd_file = -1;
     char start_char, tmp_char;
     int state, len, i;
     int trans_end = 0;
@@ -156,11 +157,14 @@ int ymodem_receive(const char *path, int fd)
                     state = RECEIVE_DATA;
                 }
                 // to get name and file size
+                #if YM_DEBUG
                 PRINTF("receive file name: %s, length :%d\n", buf, strlen(buf));
+                #endif
                 file_size = atoi((buf + strlen(buf) + 1));
+                #if YM_DEBUG
                 PRINTF("file size: %d\n", file_size);
-
-                fd_file = open(path, O_RDWR | O_CREAT | O_TRUNC, 0777);
+                #endif
+                fd_file = open(buf, O_RDWR | O_CREAT | O_TRUNC, 0777);
                 if (fd_file < 0)
                 {
                     perror("open() file");
@@ -227,7 +231,7 @@ int ymodem_receive(const char *path, int fd)
                 }
                 r_b += ret;
             }
-            crc = cal_CRC16(buf, PACKET_SIZE);
+            crc = cal_CRC16((uint8_t *)buf, PACKET_SIZE);
             // crc
             recv_crc = get_char(fd) << 8;
             recv_crc |= get_char(fd);
@@ -315,9 +319,9 @@ int main(int argc, char **argv)
     //     return -1;
     // }
     // char *path = argv[1];
-    char *path = "/mnt/1.txt";
+    // char *path = "/mnt/1.txt";
     ret = 0;
-    printf("recv file is %.\n", path);
+    // printf("recv file is %.\n", path);
     fd = open("/dev/tty", O_RDWR | O_NONBLOCK);
     if (fd < 0)
     {
@@ -327,15 +331,19 @@ int main(int argc, char **argv)
 
     if (set_serial(fd) < 0)
     {
+        #if YM_DEBUG
         PRINTF("set_serial() failed!\n");
+        #endif
         close(fd);
         return -1;
     }
 
-    ret = ymodem_receive(path, fd);
+    ret = ymodem_receive(fd);
     if (ret < 0)
     {
+        #if YM_DEBUG
         PRINTF("ymodem_receive() error\n");
+        #endif
         return -1;
     }
 

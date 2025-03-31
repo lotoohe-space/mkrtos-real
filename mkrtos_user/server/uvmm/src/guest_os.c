@@ -56,14 +56,14 @@ int guest_os_create(guest_os_t *gos, char *cfg, addr_t st_addr, void *entry, voi
     {
         return -ENOENT;
     }
-    tag = factory_create_thread_vcpu(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
+    tag = u_factory_create_thread_vcpu(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
     if (msg_tag_get_prot(tag) < 0)
     {
         handler_free(th1_hd);
         return msg_tag_get_prot(tag);
     }
     gos->os_mem = NULL;
-    task_set_obj_name(TASK_THIS, th1_hd, "vcpu_th");
+    u_task_set_obj_name(TASK_THIS, th1_hd, "vcpu_th");
     tag = u_vmam_alloc(VMA_PROT, vma_addr_create(VPAGE_PROT_RWX, 0, st_addr),
                        mem_size, 0, (addr_t *)(&gos->os_mem));
     if (msg_tag_get_val(tag) < 0)
@@ -89,19 +89,19 @@ int guest_os_create(guest_os_t *gos, char *cfg, addr_t st_addr, void *entry, voi
     }
     memset((void *)msg_buf_addr, 0, PAGE_SIZE);
 
-    tag = thread_exec_regs(th1_hd, (umword_t)gos->os_mem,
+    tag = u_thread_exec_regs(th1_hd, (umword_t)gos->os_mem,
                            0, TASK_RAM_BASE(), 0);
     if (msg_tag_get_prot(tag) < 0)
     {
         ret = msg_tag_get_prot(tag);
         goto end_free_mm;
     }
-    tag = thread_bind_task(th1_hd, TASK_THIS);
+    tag = u_thread_bind_task(th1_hd, TASK_THIS);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_free_mm;
     }
-    tag = thread_msg_buf_set(th1_hd, (void *)msg_buf_addr);
+    tag = u_thread_msg_buf_set(th1_hd, (void *)msg_buf_addr);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_free_mm;
@@ -111,7 +111,7 @@ int guest_os_create(guest_os_t *gos, char *cfg, addr_t st_addr, void *entry, voi
     {
         goto end_free_mm;
     }
-    thread_set_exec(th1_hd, gos->ipa_execption_ipc);
+    u_thread_set_exec(th1_hd, gos->ipa_execption_ipc);
     gos->msg_buf = (void *)msg_buf_addr;
     gos->prio = VCPU_DEFAULT_PRIO;
     gos->vcpu.vcpu_id = 0; // TODO:需要设置内核的寄存器

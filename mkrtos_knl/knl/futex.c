@@ -518,7 +518,7 @@ static int futex_lock_pi(thread_t *cur_th, futex_t *fst, uint32_t *uaddr, uint32
         spinlock_set(&fst->kobj.lock, status);
         return -EACCES;
     }
-    if (*paddr = 0)
+    if ((*paddr) == 0)
     {
         *paddr = tid;
     }

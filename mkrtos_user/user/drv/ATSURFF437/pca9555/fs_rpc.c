@@ -149,7 +149,7 @@ int fs_svr_open(const char *path, int flags, int mode)
 
 int fs_svr_read(int fd, void *buf, size_t len)
 {
-    int ret;
+    int ret = -ENOSYS;
     file_desc_t *fdp = fd_get(thread_get_src_pid(), fd);
 
     if (!fdp)
@@ -171,7 +171,7 @@ int fs_svr_read(int fd, void *buf, size_t len)
 }
 int fs_svr_write(int fd, void *buf, size_t len)
 {
-    int ret;
+    int ret = -ENOSYS;
     file_desc_t *fdp = fd_get(thread_get_src_pid(), fd);
 
     if (!fdp)
@@ -188,6 +188,7 @@ int fs_svr_write(int fd, void *buf, size_t len)
     {
         ret = char_dev->ops->write(char_dev->dev, buf, len, &fdp->offset);
     }
+    return ret;
 }
 void fs_svr_close(int fd)
 {

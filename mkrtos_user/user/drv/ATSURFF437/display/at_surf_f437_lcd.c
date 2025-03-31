@@ -873,7 +873,7 @@ void lcd_color_fill(uint16_t sx, uint16_t sy, uint16_t ex, uint16_t ey, uint16_t
  */
 void lcd_num_show(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t size, int32_t num, uint8_t num_bit)
 {
-    uint8_t i, buf[12], start;
+    uint8_t i, buf[12], start = 0;
 
     buf[11] = 0;
 

@@ -18,18 +18,18 @@
 
 RPC_GENERATION_OP2(sig_t, SIG_PORT, SIG_KILL, kill,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, resv)
+                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, pid)
 {
     if (!obj->op->kill)
     {
         return -ENOSYS;
     }
-    return obj->op->kill(flags->data, resv->data);
+    return obj->op->kill(flags->data, pid->data);
 }
 
 RPC_GENERATION_DISPATCH2(sig_t, SIG_PORT, SIG_KILL, kill,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,
-                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, resv)
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, pid)
 
 RPC_GENERATION_OP2(sig_t, SIG_PORT, SIG_TOKILL, to_kill,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags,

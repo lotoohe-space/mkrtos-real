@@ -110,8 +110,8 @@ get_monotonic_time(struct timespec *ts)
 
 #if SYS_LIGHTWEIGHT_PROT
 static u_mutex_t lwprot_mutex;
-static umword_t lwprot_thread = (umword_t)0xDEAD;
-static int lwprot_count = 0;
+// static umword_t lwprot_thread = (umword_t)0xDEAD;
+// static int lwprot_count = 0;
 #endif /* SYS_LIGHTWEIGHT_PROT */
 
 #if !NO_SYS
@@ -177,7 +177,7 @@ static void sys_thread_set_private_data(obj_handler_t th)
     ipc_msg_t *msg;
     msg_tag_t tag;
 
-    tag = thread_msg_buf_get(th, (void *)&msg, NULL);
+    tag = u_thread_msg_buf_get(th, (void *)&msg, NULL);
     assert(msg_tag_get_val(tag) >= 0);
     msg->user[3] = (umword_t)th;
 }
@@ -186,7 +186,7 @@ static umword_t sys_thread_get_private_data_self(void)
     ipc_msg_t *msg;
     msg_tag_t tag;
 
-    tag = thread_msg_buf_get(-1, (void *)&msg, NULL);
+    tag = u_thread_msg_buf_get(-1, (void *)&msg, NULL);
     assert(msg_tag_get_val(tag) >= 0);
     return msg->user[3];
 }
@@ -478,6 +478,10 @@ u32_t sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
 
     while (mbox->first == mbox->last)
     {
+        if (!mbox->mutex)
+        {
+            return SYS_ARCH_TIMEOUT;
+        }
         sys_sem_signal(&mbox->mutex);
 
         /* We block while waiting for a mail to arrive in the mailbox. We
@@ -552,7 +556,7 @@ sys_sem_new_internal(u8_t count)
         }
         msg_tag_t tag;
 
-        tag = facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sem->sem), count, INT_MAX);
+        tag = u_facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sem->sem), count, INT_MAX);
         if (msg_tag_get_val(tag) < 0)
         {
             handler_free(sem->sem);
@@ -584,7 +588,10 @@ u32_t sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
     sem = *s;
 
     tag = u_sema_down(sem->sem, timeout, &time_needed);
-    assert(msg_tag_get_val(tag) >= 0);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        return SYS_ARCH_TIMEOUT;
+    }
 
     if (time_needed == 0 && timeout != 0)
     {
@@ -602,7 +609,7 @@ void sys_sem_signal(struct sys_sem **s)
     sem = *s;
 
     tag = u_sema_up(sem->sem);
-    assert(msg_tag_get_val(tag) >= 0);
+    // assert(msg_tag_get_val(tag) >= 0);
 }
 
 static void

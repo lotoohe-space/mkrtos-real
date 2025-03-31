@@ -15,6 +15,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
+#include <u_sleep.h>
 int ls(int argc, char *agrv[])
 {
     DIR *dir;
@@ -38,14 +40,14 @@ int ls(int argc, char *agrv[])
     {
         return -ENOMEM;
     }
-    ret = getcwd(path, PAGE_SIZE);
-    if (ret < 0) 
+    path = getcwd(path, PAGE_SIZE);
+    if (path == NULL)
     {
         u_free(path);
         return ret;
     }
     ret = chdir(in_path);
-    if (ret < 0) 
+    if (ret < 0)
     {
         u_free(path);
         return ret;
@@ -71,7 +73,84 @@ int ls(int argc, char *agrv[])
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), ls, ls, ls command);
+int cp(int argc, char *argv[])
+{
+#define BUFFER_SIZE 1024
 
+    int source_fd, target_fd;
+    ssize_t bytes_read, bytes_written;
+    char *buffer;
+    int ret;
+
+    // 检查参数数量
+    if (argc != 3)
+    {
+        fprintf(stderr, "example: %s /bin/a.bin /mnt/a.bin\n", argv[0]);
+        return -1;
+    }
+    // 分配缓冲区
+    buffer = (char *)u_malloc(BUFFER_SIZE);
+    if (buffer == NULL)
+    {
+        perror("malloc buffer is error.\n");
+        return -1;
+    }
+    // 打开源文件
+    source_fd = open(argv[1], O_RDONLY);
+    if (source_fd == -1)
+    {
+        perror("can not open src file.\n");
+        u_free(buffer);
+        return -1;
+    }
+    struct stat st = {0};
+
+    ret = stat(argv[1], &st);
+
+    // 打开目标文件（如果不存在则创建，如果存在则截断）
+    target_fd = open(argv[2], O_WRONLY | O_CREAT, 0644);
+    if (target_fd == -1)
+    {
+        perror("can not open dest file.");
+        close(source_fd);
+        u_free(buffer);
+        return -1;
+    }
+    if (ftruncate(target_fd, st.st_size) < 0)
+    {
+        printf("to set fiel size is error.\n");
+        u_free(buffer);
+        return -1;
+    }
+
+    // 复制文件内容
+    while ((bytes_read = read(source_fd, buffer, BUFFER_SIZE)) > 0)
+    {
+        bytes_written = write(target_fd, buffer, bytes_read);
+        if (bytes_written != bytes_read)
+        {
+            perror("write file is error.\n");
+            close(source_fd);
+            close(target_fd);
+            u_free(buffer);
+            return -1;
+        }
+    }
+
+    if (bytes_read == -1)
+    {
+        perror("read src file is error.\n");
+    }
+
+    // 关闭文件
+    close(source_fd);
+    close(target_fd);
+    u_free(buffer);
+    printf("cp file is success.\n");
+
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), cp, cp, cp command);
 int rm(int argc, char *agrv[])
 {
     int ret;
@@ -221,7 +300,7 @@ SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), 
 int shell_reboot(int argc, char *argv[])
 {
     printf("sys reboot.\n");
-    sys_reboot(SYS_PROT);
+    u_sys_reboot(SYS_PROT);
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), reboot, shell_reboot, reboot command);
@@ -231,7 +310,7 @@ int shell_mem_info(int argc, char *argv[])
     size_t total;
     size_t free;
 
-    sys_mem_info(SYS_PROT, (umword_t *)&total, (umword_t *)&free);
+    u_sys_mem_info(SYS_PROT, (umword_t *)&total, (umword_t *)&free);
     printf("sys mem:\ntotal:%dB\nfree:%dB\n", total, free);
     return 0;
 }
@@ -253,4 +332,14 @@ int shell_exit(int argc, char *argv[])
     exit(0);
     return 0;
 }
-SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), exit, exit, exit command);
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), exit, shell_exit, exit command);
+int shell_sleep(int argc, char *argv[])
+{
+    if (argc < 1)
+    {
+        return -1;
+    }
+    u_sleep_ms(1000 * atol(argv[1]));
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), sleep, shell_sleep, sleep command);

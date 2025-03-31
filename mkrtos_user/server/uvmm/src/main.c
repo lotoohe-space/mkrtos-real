@@ -16,8 +16,8 @@ extern umword_t uvmm_dev_json;
 static guest_os_t gos;
 int main(int argc, char *args[])
 {
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_hello");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_hello");
+    u_task_set_obj_name(TASK_THIS, TASK_THIS, "tk_hello");
+    u_task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_hello");
 
     uvmm_dev_simul_init();
 

@@ -54,7 +54,7 @@ static ns_node_t *ns_node_find_sub(ns_node_t *tree, const char *name)
 
     while (cur)
     {
-        if (strcmp(cur->name, name) == 0)
+        if (strncmp(cur->name, name, NS_NODE_NAME_LEN) == 0)
         {
             return cur;
         }
@@ -103,7 +103,7 @@ static int ns_node_del(ns_node_t *tree, ns_node_t *del_node)
     }
     return -1;
 }
-static ns_node_t *node_create(const char *name, node_type_t type)
+static ns_node_t *node_create(const char *name, node_type_t type, int pid)
 {
     ns_node_t *tmp;
 
@@ -119,6 +119,7 @@ static ns_node_t *node_create(const char *name, node_type_t type)
     strncpy(tmp->name, name, NS_NODE_NAME_LEN);
     tmp->name[NS_NODE_NAME_LEN - 1] = 0;
     tmp->type = type;
+    tmp->belong_pid = pid;
     return tmp;
 }
 ns_node_t *ns_node_get_inx(ns_node_t *tree, int inx)
@@ -242,12 +243,6 @@ int ns_delnode(const char *path)
         printf("ns node not find.\n");
         return -ENOENT;
     }
-    if (cur_node == NULL)
-    {
-        printf("ns path is error.\n");
-        // 未找到，节点不是dummy节点，路径不是结尾处 则直接退出
-        return -ENOENT;
-    }
     if (cur_node->type == NODE_TYPE_DUMMY && cur_node->ref != 0)
     {
         printf("ns dir is not empty.\n");
@@ -258,9 +253,8 @@ int ns_delnode(const char *path)
     {
 #ifdef MKRTOS
         handler_del_umap(cur_node->svr_hd);
-#else
-        printf("ns del node:0x%lx.\n", cur_node->svr_hd);
 #endif
+        printf("ns del [%s] node hd:%d.\n", path, cur_node->svr_hd);
     }
     cur_node->parent->ref--;
 #ifdef MKRTOS
@@ -375,7 +369,7 @@ int ns_find_svr_obj(const char *path, obj_handler_t *svr_hd)
 #if 0
     msg_tag_t tag;
 
-    tag = task_obj_valid(TASK_THIS, svr_node->svr_hd, NULL);
+    tag = u_task_obj_valid(TASK_THIS, svr_node->svr_hd, NULL);
     if (msg_tag_get_val(tag) < 0 || msg_tag_get_val(tag) == 0)
     {
         // 节点不存在，直接退出，删除节点
@@ -390,7 +384,7 @@ int ns_find_svr_obj(const char *path, obj_handler_t *svr_hd)
  * 创建一个节点
  * 只能在前置节点全部为dummy的节点里面创建节点
  */
-int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type)
+int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type, int pid)
 {
     ns_node_t *dir_node;
     ns_node_t *new_node;
@@ -414,9 +408,11 @@ int ns_mknode(const char *path, obj_handler_t svr_hd, node_type_t type)
         return -ENOENT;
     }
     // 获得节点的名字
-    int name_len = ns_node_strcpy(name, path + p_inx + 1, NS_NODE_NAME_LEN);
+    // int name_len = 0;
+    
+    ns_node_strcpy(name, path + p_inx + 1, NS_NODE_NAME_LEN);
 
-    new_node = node_create(name, NODE_TYPE_DUMMY);
+    new_node = node_create(name, NODE_TYPE_DUMMY, pid);
     if (new_node == NULL)
     {
         return -ENOMEM;

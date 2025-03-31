@@ -55,31 +55,31 @@ static inline ipc_timeout_t ipc_timeout_create2(uhmword_t send_timeout, uhmword_
 #define EWTIMEDOUT 131 /* Connection timed out */
 #define ERTIMEDOUT 132 /* Connection timed out */
 
-msg_tag_t thread_yield(obj_handler_t obj);
-msg_tag_t thread_msg_buf_set(obj_handler_t obj, void *msg);
-msg_tag_t thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len);
-msg_tag_t thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t ram, umword_t cp_stack);
-msg_tag_t thread_run_cpu(obj_handler_t obj, uint8_t prio, umword_t cpu);
+msg_tag_t u_thread_yield(obj_handler_t obj);
+msg_tag_t u_thread_msg_buf_set(obj_handler_t obj, void *msg);
+msg_tag_t u_thread_msg_buf_get(obj_handler_t obj, umword_t *msg, umword_t *len);
+msg_tag_t u_thread_exec_regs(obj_handler_t obj, umword_t pc, umword_t sp, umword_t ram, umword_t cp_stack);
+msg_tag_t u_thread_run_cpu(obj_handler_t obj, uint8_t prio, umword_t cpu);
 static inline msg_tag_t thread_run(obj_handler_t obj, uint8_t prio)
 {
-    return thread_run_cpu(obj, prio, -1);
+    return u_thread_run_cpu(obj, prio, -1);
 }
-msg_tag_t thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj);
-msg_tag_t thread_set_exec(obj_handler_t obj, obj_handler_t exec_th);
+msg_tag_t u_thread_bind_task(obj_handler_t obj, obj_handler_t tk_obj);
+msg_tag_t u_thread_set_exec(obj_handler_t obj, obj_handler_t exec_th);
 #if 0
 msg_tag_t thread_ipc_wait(ipc_timeout_t timeout, umword_t *obj, obj_handler_t ipc_obj);
 msg_tag_t thread_ipc_reply(msg_tag_t in_tag, ipc_timeout_t timeout);
 msg_tag_t thread_ipc_send(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
 msg_tag_t thread_ipc_call(msg_tag_t in_tag, obj_handler_t target_th_obj, ipc_timeout_t timeout);
 #endif
-msg_tag_t thread_sleep(umword_t ticks);
-msg_tag_t thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj, umword_t arg0, umword_t arg1, umword_t arg2);
-msg_tag_t thread_ipc_fast_replay(msg_tag_t in_tag, obj_handler_t target_obj, int unlock_bitmap);
+msg_tag_t u_thread_sleep(umword_t ticks);
+msg_tag_t u_thread_ipc_fast_call(msg_tag_t in_tag, obj_handler_t target_obj, umword_t arg0, umword_t arg1, umword_t arg2);
+msg_tag_t u_thread_ipc_fast_replay(msg_tag_t in_tag, obj_handler_t target_obj, int unlock_bitmap);
 
 static inline ipc_msg_t *thread_get_cur_ipc_msg(void)
 {
     umword_t buf;
-    thread_msg_buf_get(-1, &buf, NULL);
+    u_thread_msg_buf_get(-1, &buf, NULL);
     return (ipc_msg_t *)buf;
 }
 

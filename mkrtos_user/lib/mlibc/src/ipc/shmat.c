@@ -21,6 +21,6 @@ void *shmat(int id, const void *addr, int flag)
 #else
 void *shmat(int id, const void *addr, int flag)
 {
-	return (void *)__syscall_ret(be_shmat(id, addr, flag));
+	return (void *)__syscall_ret((long)be_shmat(id, addr, flag));
 }
 #endif

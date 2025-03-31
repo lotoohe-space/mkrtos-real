@@ -56,19 +56,10 @@ static void log_reg(void)
 INIT_KOBJ(log_reg);
 static msg_tag_t log_write_data(log_t *log, const char *data, int len)
 {
-    for (int i = 0; i < len && data[i]; i++)
-    {
-#if 1
-        if (data[i] == '\n')
-        {
-            putc('\r');
-        }
-#endif
-        putc(data[i]);
-    }
+    put_bytes((const uint8_t *)data, len);
     return msg_tag_init(0);
 }
-static int log_read_data(log_t *log, uint8_t *data, int len)
+static int log_read_data(log_t *log, uint8_t *data, int len, int flags)
 {
     for (int i = 0; i < len; i++)
     {
@@ -77,7 +68,7 @@ static int log_read_data(log_t *log, uint8_t *data, int len)
 
         if (c < 0 && i == 0)
         {
-            int ret = irq_sender_wait(&log->kobj, thread_get_current(), 0);
+            int ret = irq_sender_wait(&log->kobj, thread_get_current(), flags);
             if (ret < 0)
             {
                 return ret;
@@ -108,7 +99,7 @@ log_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame
             break;
         case READ_DATA:
         {
-            int ret = log_read_data((log_t *)kobj, (uint8_t *)(&f->regs[1]), MIN(f->regs[1], WORD_BYTES * 3));
+            int ret = log_read_data((log_t *)kobj, (uint8_t *)(&f->regs[1]), MIN(f->regs[1], WORD_BYTES * 3), f->regs[2]);
             tag = msg_tag_init4(0, 0, 0, ret);
         }
         break;

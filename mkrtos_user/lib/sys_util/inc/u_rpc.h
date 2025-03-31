@@ -24,7 +24,7 @@
 #include <sys/statfs.h>
 
 typedef struct stat stat_t;
-// typedef struct kstat kstat_t;
+typedef struct kstat kstat_t;
 typedef struct statfs statfs_t;
 typedef struct dirent dirent_t;
 

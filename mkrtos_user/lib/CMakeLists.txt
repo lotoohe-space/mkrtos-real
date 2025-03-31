@@ -24,3 +24,43 @@ add_subdirectory(cJSON)
 add_subdirectory(cutest)
 add_subdirectory(fd)
 
+
+# add_custom_target(
+#     mkrtos_static_libc ALL
+#     #以下命令用于生成binutils链接需要的库
+#     COMMAND
+#     cd ${CMAKE_SOURCE_DIR}/build
+#     COMMAND
+#     rm -f -r usr_lib
+#     COMMAND
+#     mkdir -p usr_lib
+#     COMMAND
+#     find mkrtos_user -name "*.a" | xargs cp -t usr_lib
+#     COMMAND
+#     cd usr_lib
+#     COMMAND
+#     ${CMAKE_AR} x libmuslc.a 
+#     COMMAND
+#     ${CMAKE_AR} x liblibc_be.a 
+#     COMMAND
+#     ${CMAKE_AR} x libsys.a 
+#     COMMAND
+#     ${CMAKE_AR} x libsys_svr.a 
+#     COMMAND
+#     ${CMAKE_AR} x libsys_util.a 
+#     COMMAND
+#     ${CMAKE_AR} x libutil.a 
+#     COMMAND
+#     ${CMAKE_AR} cr libnewc.a *.obj
+#     COMMAND
+#     rm *.obj
+# )
+# add_dependencies(
+#     mkrtos_static_libc
+#     muslc
+#     libc_be
+#     sys
+#     sys_svr
+#     sys_util
+#     util
+# )

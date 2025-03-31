@@ -27,19 +27,20 @@ ATTR_ALIGN(8)
 uint8_t stack_coms[STACK_COM_ITME_SIZE];
 uint8_t msg_buf_coms[MSG_BUG_LEN];
 static obj_handler_t com_th_obj;
+static umword_t cons_map_buf[1][CONFIG_THREAD_MAP_BUF_LEN];
 
 void fast_ipc_init(void)
 {
     com_th_obj = handler_alloc();
     assert(com_th_obj != HANDLER_INVALID);
-    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj, cons_map_buf);
 }
 int blk_drv_write(obj_handler_t obj, int len, int inx)
 {
     int ret = -1;
     addr_t addr = 0;
     umword_t size = 0;
-    msg_tag_t tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
+    msg_tag_t tag = u_share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
 
     if (msg_tag_get_val(tag) < 0)
     {
@@ -58,7 +59,7 @@ int blk_drv_read(obj_handler_t obj, int len, int inx)
     int ret = -1;
     addr_t addr = 0;
     umword_t size = 0;
-    msg_tag_t tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
+    msg_tag_t tag = u_share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
     uint32_t _err;
 
     // ret = emac_read_packet((uint8_t *)addr, size);
@@ -77,8 +78,8 @@ int main(int argc, char *argv[])
 {
     obj_handler_t hd;
     int ret;
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_snd");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_snd");
+    u_task_set_obj_name(TASK_THIS, TASK_THIS, "tk_snd");
+    u_task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_snd");
     printf("%s init..\n", argv[0]);
     fast_ipc_init();
     mk_drv_init();

@@ -24,5 +24,5 @@ void u_sleep_ms(size_t ms)
 {
     umword_t sleep_tick = ROUND_UP(ms, (1000 / CONFIG_SYS_SCHE_HZ));
     // thread_ipc_wait(ipc_timeout_create2(0, sleep_tick), NULL, -1);
-    thread_sleep(sleep_tick);
+    u_thread_sleep(sleep_tick);
 }

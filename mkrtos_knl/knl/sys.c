@@ -111,10 +111,21 @@ static void sys_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag,
     break;
     case MEM_INFO:
     {
-        size_t total;
-        size_t free;
+        size_t total = 0;
+        size_t free = 0;
 
-        mm_info(&total, &free);
+        for (int i = 0; i < arch_get_boot_info()->mem.mem_num; i++)
+        {
+            size_t item_total;
+            size_t item_free;
+
+            printk("================================mem:[%d]=============================\n", i);
+            mm_info_raw(i, &item_total, &item_free);
+            printk("total:%d free:%d\n", item_total, item_free);
+            printk("=====================================================================\n\n", i);
+            total += item_total;
+            free += item_free;
+        }
         f->regs[1] = total;
         f->regs[2] = free;
         tag = msg_tag_init4(0, 0, 0, 0);

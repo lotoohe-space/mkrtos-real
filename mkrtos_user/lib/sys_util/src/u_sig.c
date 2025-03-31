@@ -25,6 +25,8 @@
 #include "sig_svr.h"
 #include "u_sema.h"
 #include "u_task.h"
+#include <ns_cli.h>
+
 #ifdef CONFIG_USING_SIG
 
 static sig_t sig_obj;
@@ -50,13 +52,28 @@ int pm_sig_del_watch(pid_t pid, int flags)
  */
 int pm_waitpid(pid_t pid, umword_t *status)
 {
-    msg_tag_t tag;
-
+    printf("++++ %d wait pid:%d\n", __LINE__, pid);
     wait_pid = pid;
-    pm_sig_watch(pid, 0);
+    if (pm_sig_watch(pid, 0) >= 0)
+    {
+        char proc_path[20] = {"/proc/"};
+        obj_handler_t hd;
+
+        snprintf(proc_path + 6, sizeof(proc_path) - 6, "%d", pid);
+        if (ns_query_svr(proc_path, &hd) < 0)
+        {
+            printf("++++ %d wait pid:%d\n", __LINE__, pid);
+            pm_sig_del_watch(pid, 0);
+            return -ENOENT;
+        }
+        printf("++++ %d wait pid:%d\n", __LINE__, pid);
+    }
+    printf("++++ %d wait pid:%d\n", __LINE__, pid);
     u_sema_down(sema_wait_hd, 0, NULL);
-    if (status) {
-        *status = 0;/*FIXME:*/
+    printf("++++ %d wait pid:%d\n", __LINE__, pid);
+    if (status)
+    {
+        *status = 0; /*FIXME:*/
     }
     return 0;
 }
@@ -72,7 +89,7 @@ static int kill(int flags, int pid)
 {
     int ret = -EINVAL;
 
-        printf("kill pid:%d, flags:0x%x\n", pid ,flags);
+    printf("[u_sig] kill pid:%d, flags:0x%x\n", pid, flags);
     if (wait_pid == pid || wait_pid == -1)
     {
         u_sema_up(sema_wait_hd);
@@ -103,7 +120,15 @@ void sig_init(void)
     meta_reg_svr_obj(&sig_obj.svr_obj, SIG_PORT);
     sema_wait_hd = handler_alloc();
     assert(sema_wait_hd != HANDLER_INVALID);
-    tag = facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sema_wait_hd), 0, 1);
+    tag = u_facotry_create_sema(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sema_wait_hd), 0, 1);
     assert(msg_tag_get_val(tag) >= 0);
+
+    char proc_path[20];
+    umword_t pid;
+
+    u_task_get_pid(TASK_THIS, &pid);
+
+    snprintf(proc_path, sizeof(proc_path), "/proc/%d", pid);
+    assert(ns_register(proc_path, sig_ipc, 0) >= 0 && "task proc init failed.\n");
 }
 #endif

@@ -14,17 +14,17 @@ int nsfs_mkdir_test(void)
 {
     int ret;
 
-    ret = fs_ns_mkdir("/bin/tst/");
+    ret = fs_ns_mkdir("/bin/tst/", 1);
     assert(ret < 0);
-    ret = fs_ns_mkdir("/bin/");
+    ret = fs_ns_mkdir("/bin/", 1);
     assert(ret >= 0);
-    ret = fs_ns_mkdir("/bin2");
+    ret = fs_ns_mkdir("/bin2", 1);
     assert(ret >= 0);
-    ret = fs_ns_mkdir("/bin/tst/");
+    ret = fs_ns_mkdir("/bin/tst/", 1);
     assert(ret >= 0);
-    ret = fs_ns_remove("/bin/tst");
+    ret = fs_ns_remove("/bin/tst", 1);
     assert(ret < 0);
-    ret = fs_ns_rmdir("/bin/tst");
+    ret = fs_ns_rmdir("/bin/tst", 1);
     assert(ret >= 0);
     return 0;
 }
@@ -33,7 +33,7 @@ int nsfs_scan_dir_test(void)
 {
 #define TEST_CN 10
     int ret;
-    ret = fs_ns_mkdir("/bin/");
+    ret = fs_ns_mkdir("/bin/", 1);
     assert(ret >= 0);
 
     for (int i = 0; i < TEST_CN; i++)
@@ -41,7 +41,7 @@ int nsfs_scan_dir_test(void)
         char dir_name[32];
 
         snprintf(dir_name, sizeof(dir_name), "/bin/tst%d", i);
-        ret = fs_ns_mkdir(dir_name);
+        ret = fs_ns_mkdir(dir_name, 1);
         assert(ret >= 0);
     }
     int fd;
@@ -103,9 +103,9 @@ int nsfs_mksvr_node(void)
     int ret;
     struct dirent dir;
 
-    ret = fs_ns_mkdir("/bin/");
+    ret = fs_ns_mkdir("/bin/", 1);
     assert(ret >= 0);
-    ret = ns_mknode("/bin/tst1", 10, NODE_TYPE_SVR);
+    ret = ns_mknode("/bin/tst1", 10, NODE_TYPE_SVR, 1);
     assert(ret >= 0);
     int fd;
 
@@ -128,7 +128,7 @@ int nsfs_mksvr_node(void)
 int nsfs_query_svr_node(void)
 {
     int ret;
-    ret = fs_ns_mkdir("/bin/");
+    ret = fs_ns_mkdir("/bin/", 1);
     assert(ret >= 0);
     ns_node_t *node;
     ns_node_t *pnode;
@@ -139,7 +139,7 @@ int nsfs_query_svr_node(void)
     assert(node == NULL && ret < 0);
 
 #define SVR_NODE "/svr_tst"
-    ret = ns_mknode(SVR_NODE, 10, NODE_TYPE_SVR);
+    ret = ns_mknode(SVR_NODE, 10, NODE_TYPE_SVR, 1);
     assert(ret >= 0);
 
     node = ns_node_find_full_file(SVR_NODE, &ret, &cur_inx);
@@ -150,13 +150,13 @@ int nsfs_query_svr_node(void)
     assert(node != NULL && ret >= 0);
     assert(cur_inx == strlen(SVR_NODE) + 1);
 
-    ret = fs_ns_mkdir(SVR_NODE "/1");
+    ret = fs_ns_mkdir(SVR_NODE "/1", 1);
     assert(ret < 0);
 #undef SVR_NODE
     ret = fs_ns_remove("/svr_tst");
     assert(ret >= 0);
 #define SVR_NODE "/bin/svr_tst"
-    ret = ns_mknode(SVR_NODE, 10, NODE_TYPE_SVR);
+    ret = ns_mknode(SVR_NODE, 10, NODE_TYPE_SVR, 1);
     assert(ret >= 0);
     node = ns_node_find_full_file(SVR_NODE, &ret, &cur_inx);
     assert(node != NULL && ret >= 0);
@@ -180,7 +180,7 @@ int nsfs_stat_test(void)
     struct stat fst;
     int fd;
 
-    ret = fs_ns_mkdir("/tstdir/");
+    ret = fs_ns_mkdir("/tstdir/", 1);
     assert(ret >= 0);
     fd = fs_ns_open("/tstdir/", O_RDWR, 0777);
     assert(fd >= 0);

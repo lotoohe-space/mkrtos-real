@@ -5,14 +5,18 @@
 #include <poll.h>
 #include <u_types.h>
 #include <u_rpc.h>
+int fs_open_raw(obj_handler_t fs_hd, const char *path, int flags, int mode);
 sd_t fs_open(const char *path, int flags, int mode);
+int fs_close_raw(obj_handler_t hd, int fd);
 int fs_close(sd_t _fd);
+int fs_read_raw(obj_handler_t hd, int fd, void *buf, size_t len);
 int fs_read(sd_t _fd, void *buf, size_t len);
 int fs_write(sd_t _fd, void *buf, size_t len);
 int fs_readdir(sd_t _fd, dirent_t *dirent);
 int fs_lseek(sd_t _fd, int offs, int whence);
 int fs_ftruncate(sd_t _fd, off_t off);
-int fs_fstat(sd_t _fd, stat_t *stat);
+int fs_fstat_raw(obj_handler_t hd, int fd, kstat_t *stat);
+int fs_fstat(sd_t _fd, kstat_t *stat);
 int fs_ioctl(sd_t _fd, int req, void *arg);
 int fs_fcntl(sd_t _fd, int cmd, void *arg);
 int fs_fsync(sd_t _fd);

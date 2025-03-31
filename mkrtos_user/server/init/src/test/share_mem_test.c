@@ -19,37 +19,37 @@ static void sharea_mem_test(CuTest *cu)
     umword_t size;
     obj_handler_t hd = handler_alloc();
     assert(hd != HANDLER_INVALID);
-    msg_tag_t tag = facotry_create_share_mem(FACTORY_PROT,
+    msg_tag_t tag = u_factory_create_share_mem(FACTORY_PROT,
                                              vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd),
                                              SHARE_MEM_CNT_BUDDY_CNT,
                                              TEST_MEM_SIZE);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
+    tag = u_share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
     assert(msg_tag_get_prot(tag) >= 0);
     memset((void *)addr, 0, size);
-    share_mem_unmap(hd);
-    tag = share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
+    u_share_mem_unmap(hd);
+    tag = u_share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
     assert(msg_tag_get_prot(tag) >= 0);
     memset((void *)addr, 0, size);
-    share_mem_unmap(hd);
+    u_share_mem_unmap(hd);
     handler_free_umap(hd);
 
 #if IS_ENABLED(CONFIG_MMU)
     hd = handler_alloc();
     assert(hd != HANDLER_INVALID);
-    tag = facotry_create_share_mem(FACTORY_PROT,
+    tag = u_factory_create_share_mem(FACTORY_PROT,
                                    vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd),
                                    SHARE_MEM_CNT_DPD,
                                    TEST_MEM_SIZE);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
+    tag = u_share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
     assert(msg_tag_get_prot(tag) >= 0);
     memset((void *)addr, 0, size);
-    share_mem_unmap(hd);
-    tag = share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
+    u_share_mem_unmap(hd);
+    tag = u_share_mem_map(hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
     assert(msg_tag_get_prot(tag) >= 0);
     memset((void *)addr, 0, size);
-    share_mem_unmap(hd);
+    u_share_mem_unmap(hd);
     handler_free_umap(hd);
 #endif
 #undef TEST_MEM_SIZE

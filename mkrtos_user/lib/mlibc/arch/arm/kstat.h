@@ -19,4 +19,7 @@ struct kstat {
 	long st_ctime_sec;
 	long st_ctime_nsec;
 	long st_ino;
+	#ifdef MKRTOS
+	int pid;
+	#endif
 };

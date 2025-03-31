@@ -39,6 +39,22 @@ void putc(int c)
 {
     uart_putc(uart_get_global(), c);
 }
+void put_bytes(const uint8_t *data, size_t len)
+{
+    umword_t state = 0;
+    state = spinlock_lock(&lock);
+
+    for (int i = 0; i < len; i++)
+    {
+        if (data[i] == '\n')
+        {
+           uart_putc(uart_get_global(), '\r');
+        }
+        uart_putc(uart_get_global(), data[i]);
+    }
+
+    spinlock_set(&lock, state);
+}
 int getc(void)
 {
     return uart_getc(uart_get_global());

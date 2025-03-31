@@ -46,7 +46,7 @@ void thread_check_timeout(void)
         node)
     {
         thread_wait_entry_t *next = slist_next_entry(
-            pos, (slist_head_t *)wait_list,
+            pos, (slist_head_t *)&wait_list,
             node);
         if (pos->times != 0)
         {
@@ -55,7 +55,7 @@ void thread_check_timeout(void)
             {
                 assert(pos->th->status == THREAD_SUSPEND);
                 slist_del(&pos->node);
-                if (thread_get_ipc_state(pos->th) != THREAD_IPC_ABORT)
+                // if (thread_get_ipc_state(pos->th) != THREAD_IPC_ABORT)
                 {
                     thread_ready(pos->th, TRUE);
                 }
@@ -80,7 +80,7 @@ thread_wait_entry_t *thread_sleep_del(thread_t *th)
     {
         // assert(pos->th->status == THREAD_SUSPEND);
         thread_wait_entry_t *next = slist_next_entry(
-            pos, (slist_head_t *)wait_list,
+            pos, (slist_head_t *)&wait_list,
             node);
         if (pos->th == th)
         {

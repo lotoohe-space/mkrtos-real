@@ -18,6 +18,7 @@ typedef struct mm_space
 #else
     void *mm_block;       //!< task 的私有内存块
     size_t mm_block_size; //!< 私有内存块的大小
+    int mem_block_inx;    //!< 内存块号
 #endif
     task_vma_t mem_vma; //!< 虚拟内存区域
 } mm_space_t;

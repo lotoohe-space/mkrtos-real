@@ -26,6 +26,7 @@ static obj_handler_t shm_hd;
 static addr_t dev_shm_mem;
 static addr_t dev_shm_size;
 static blk_drv_info_t blk_info;
+static int ram_block_inited;
 int disk_set_dev_path(int pdrv, const char *dev)
 {
 	int ret;
@@ -35,7 +36,7 @@ int disk_set_dev_path(int pdrv, const char *dev)
 	{
 		int try_cn = 0;
 	again:
-		ret = ns_query_svr(dev, &dev_hd, 1);
+		ret = ns_query_svr(dev, &dev_hd);
 		if (ret < 0)
 		{
 			try_cn++;
@@ -90,12 +91,15 @@ DSTATUS disk_initialize(
 )
 {
 	DSTATUS stat;
-	int result;
 
 	switch (pdrv)
 	{
 	case DEV_MK_BLOCK:
 	{
+		if (ram_block_inited)
+		{
+			return RES_OK;
+		}
 		msg_tag_t tag;
 
 		shm_hd = handler_alloc();
@@ -104,7 +108,7 @@ DSTATUS disk_initialize(
 			printf("handler alloc failed.\n");
 			return RES_ERROR;
 		}
-		tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+		tag = u_factory_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
 									   SHARE_MEM_CNT_BUDDY_CNT, blk_info.blk_size);
 		if (msg_tag_get_val(tag) < 0)
 		{
@@ -112,7 +116,7 @@ DSTATUS disk_initialize(
 			printf("share mem create failed.\n");
 			return RES_ERROR;
 		}
-		tag  = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &dev_shm_mem, &dev_shm_size);
+		tag  = u_share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &dev_shm_mem, &dev_shm_size);
 		if (msg_tag_get_val(tag) < 0)
 		{
 			handler_del_umap(shm_hd);
@@ -120,6 +124,7 @@ DSTATUS disk_initialize(
 			return RES_ERROR;
 		}
 		stat = RES_OK;
+		ram_block_inited = 1;
 		// translate the reslut code here
 		return stat;
 	}
@@ -138,7 +143,6 @@ DRESULT disk_read(
 	UINT count	  /* Number of sectors to read */
 )
 {
-	DRESULT res;
 
 	switch (pdrv)
 	{
@@ -171,7 +175,6 @@ DRESULT disk_write(
 	UINT count		  /* Number of sectors to write */
 )
 {
-	int result;
 
 	switch (pdrv)
 	{
@@ -203,8 +206,6 @@ DRESULT disk_ioctl(
 	void *buff /* Buffer to send/receive control data */
 )
 {
-	DRESULT res;
-	int result;
 
 	switch (pdrv)
 	{
@@ -216,7 +217,7 @@ DRESULT disk_ioctl(
 			*(DWORD *)buff = blk_info.blk_nr;
 			return RES_OK;
 		case GET_SECTOR_SIZE: // sector size, 传入block size(SD),单位bytes
-			*(DWORD *)buff = blk_info.blk_size;
+			*(WORD *)buff = blk_info.blk_size;
 			return RES_OK;
 		case GET_BLOCK_SIZE:	// block size, 由上文可得，对于SD2.0卡最大8192，最小 1
 			*(DWORD *)buff = 1; // 单位为 sector(FatFs)

@@ -96,13 +96,13 @@ static mk_ldso_t ldso;
 static void so_parse(app_info_t *app)
 {
     // 遍历动态段
-    Elf32_Dyn *dyn = (char *)app + app->i.dyn_start;
+    Elf32_Dyn *dyn = (Elf32_Dyn *)((char *)app + app->i.dyn_start);
 
     for (int i = 0; i < dyn[i].d_tag != DT_NULL; i++)
     {
         if (dyn[i].d_tag == DT_SYMTAB)
         {
-            Elf32_Sym *symtab = (char *)app + dyn[i].d_un.d_val;
+            Elf32_Sym *symtab = (Elf32_Sym *)((char *)app + dyn[i].d_un.d_val);
             ldso.syms = symtab;
         }
         else if (dyn[i].d_tag == DT_STRTAB)

@@ -59,7 +59,7 @@ static void *app_stack_push_umword(obj_handler_t task_obj, umword_t **stack, umw
     (*stack)--;
 
     msg->msg_buf[0] = val;
-    task_copy_data(task_obj, *stack, sizeof(umword_t));
+    u_task_copy_data(task_obj, *stack, sizeof(umword_t));
 
     return *stack;
 }
@@ -82,7 +82,7 @@ static void *app_stack_push_str(obj_handler_t task_obj, umword_t **stack, const 
     memcpy(cp_data, str, len);
     cp_data[len - 1] = 0;
 
-    task_copy_data(task_obj, *stack, len);
+    u_task_copy_data(task_obj, *stack, len);
 
     return *stack;
 }
@@ -106,185 +106,324 @@ static void *app_stack_push_array(obj_handler_t task_obj, umword_t **stack, uint
     memcpy(cp_data, arr, len);
     cp_data[len - 1] = 0;
 
-    task_copy_data(task_obj, *stack, len);
+    u_task_copy_data(task_obj, *stack, len);
 
     return *stack;
 }
+#if 1
+struct kstat
+{
+    long st_dev;
+    int __st_dev_padding;
+    long __st_ino_truncated;
+    mode_t st_mode;
+    nlink_t st_nlink;
+    uid_t st_uid;
+    gid_t st_gid;
+    long st_rdev;
+    int __st_rdev_padding;
+    long st_size;
+    blksize_t st_blksize;
+    long st_blocks;
+    long st_atime_sec;
+    long st_atime_nsec;
+    long st_mtime_sec;
+    long st_mtime_nsec;
+    long st_ctime_sec;
+    long st_ctime_nsec;
+    long st_ino;
+};
+typedef struct kstat kstat_t;
 
+#include "u_malloc.h"
+#include "fs_cli.h"
+// #include "ns.h"
+#include <fcntl.h>
+
+static int app_file_ram_copy_to_task(obj_handler_t task_hd, void *file_ram, size_t size)
+{
+    msg_tag_t tag;
+    addr_t ram_addr;
+    size_t ram_size;
+    tag = u_task_alloc_get_ram_info(task_hd, &ram_addr, &ram_size);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        u_free(file_ram);
+        return msg_tag_get_val(tag);
+    }
+    tag = u_task_copy_data_to(TASK_THIS, task_hd, (void *)file_ram, (void *)ram_addr, size);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        u_free(file_ram);
+        return msg_tag_get_val(tag);
+    }
+    u_free(file_ram);
+    return 0;
+}
+/**
+ * load app and get addr.
+ */
+static int app_file_load(const char *name, obj_handler_t task_hd, addr_t *start_addr, size_t *total_size, bool_t load_to_ram)
+{
+    msg_tag_t tag;
+    sys_info_t sys_info;
+    umword_t addr;
+    int ret = 0;
+    unsigned long size;
+
+    tag = u_sys_read_info(SYS_PROT, &sys_info, 0);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        return -ENOENT;
+    }
+    if (load_to_ram)
+    {
+        // read form file.
+        void *file_ram = NULL;
+        kstat_t stat;
+        obj_handler_t hd;
+        int fd;
+        extern int namespace_query(const char *path, obj_handler_t *hd);
+        ret = namespace_query(name, &hd);
+        if (ret < 0)
+        {
+            return ret;
+        }
+        fd = fs_open_raw(hd, name + ret, O_RDWR, 0777);
+        if (fd < 0)
+        {
+            return fd;
+        }
+        ret = fs_fstat_raw(hd, fd, &stat);
+        if (ret < 0)
+        {
+            fs_close_raw(hd, fd);
+            return ret;
+        }
+        file_ram = u_malloc(stat.st_size);
+        if (!file_ram)
+        {
+            fs_close_raw(hd, fd);
+            return -ENOMEM;
+        }
+        ret = fs_read_raw(hd, fd, file_ram, stat.st_size);
+        if (ret != stat.st_size)
+        {
+            fs_close_raw(hd, fd);
+            u_free(file_ram);
+            return -EIO;
+        }
+        fs_close_raw(hd, fd);
+        // addr_t ram_addr;
+        // size_t ram_size;
+        // tag = u_task_alloc_get_ram_info(task_hd, &ram_addr, &ram_size);
+        // if (msg_tag_get_val(tag) < 0)
+        // {
+        //     u_free(file_ram);
+        //     return msg_tag_get_val(tag);
+        // }
+        *start_addr = (addr_t)file_ram;
+        *total_size = stat.st_size;
+        return 0;
+    }
+    else
+    {
+#if IS_ENABLED(CONFIG_CPIO_SUPPORT)
+        ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL, &type, &addr);
+        if (ret < 0 || type == 1)
+        {
+            return -ENOENT;
+        }
+#else
+        addr = (umword_t)appfs_tiny_find_file_addr_by_name(appfs_tiny_get_form_addr((void *)sys_info.bootfs_start_addr), name, &size);
+        if (addr == 0)
+        {
+            ret = -ENOENT;
+        }
+        *start_addr = addr;
+        *total_size = size;
+#endif
+    }
+    return ret;
+}
+#endif
 /**
  * @brief 加载并执行一个app
  *
  * @param name app的名字
  * @return int
  */
-int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
+int app_load(const char *name,
+             uenv_t *cur_env, pid_t *pid,
              char *argv[], int arg_cn,
              char *envp[], int envp_cn,
-             int mem_block)
+             int mem_block, bool_t load_to_ram)
 {
-    msg_tag_t tag;
-    sys_info_t sys_info;
+    assert(name);
+    assert(cur_env);
+    assert(pid);
+    umword_t ram_base;
 
-    tag = sys_read_info(SYS_PROT, &sys_info, 0);
-    if (msg_tag_get_val(tag) < 0)
-    {
-        return -ENOENT;
-    }
-    int type;
+    msg_tag_t tag;
+    bool_t is_ext_hd_task = FALSE;
+
+    is_ext_hd_task = *pid != HANDLER_INVALID ? TRUE : FALSE;
     umword_t addr;
     int ret = 0;
-    unsigned long size;
+    size_t size;
 
-#if IS_ENABLED(CONFIG_CPIO_SUPPORT)
-    ret = cpio_find_file((umword_t)sys_info.bootfs_start_addr, (umword_t)(-1), name, NULL, &type, &addr);
-#else
-    type = 0;
-    addr = (umword_t)appfs_tiny_find_file_addr_by_name(appfs_tiny_get_form_addr((void *)sys_info.bootfs_start_addr), name, &size);
+    ret = app_file_load(name, *pid, &addr, &size, load_to_ram);
+    if (ret < 0)
+    {
+        return ret;
+    }
     if (addr == 0)
     {
-        ret = -ENOENT;
+        return -1;
     }
-#endif
-    if (ret < 0 || (ret >= 0 && type == 1))
-    {
-        return -ENOENT;
-    }
-    addr_t entry_addr;
     app_info_t *app = app_info_get((void *)addr);
-    addr_t at_base = addr;
+
     if (app == NULL)
     {
-        addr_t text_addr;
-        ret = elf32_load((umword_t)addr, 0 /*TODO:*/,
-                         &entry_addr, 0, &text_addr);
-        if (ret < 0)
-        {
-            printf("app format is error.\n");
-            return -1;
-        }
-
-        addr = entry_addr + text_addr;
-        app = app_info_get((void *)addr);
-        if (app == NULL)
-        {
-            printf("app format is error.\n");
-            return -1;
-        }
-        printf("%s text addr is [0x%x]\n", name, text_addr);
-        printf("entry addr is [0x%x]\n", addr);
+        printf("app format is error.\n");
+        return -ENOENT;
     }
     else
     {
         printf("%s addr is [0x%x]\n", name, app);
     }
-    umword_t ram_base;
-    obj_handler_t hd_task = handler_alloc();
-    obj_handler_t hd_thread = handler_alloc();
+    obj_handler_t hd_task;
+    obj_handler_t hd_thread = HANDLER_INVALID;
 
-    if (hd_task == HANDLER_INVALID)
+    if (is_ext_hd_task)
     {
-        goto end;
+        hd_task = *pid; /*FIXME:*/
     }
+    else
+    {
+        hd_task = handler_alloc();
+        if (hd_task == HANDLER_INVALID)
+        {
+            goto end;
+        }
+    }
+    hd_thread = handler_alloc();
+
     if (hd_thread == HANDLER_INVALID)
     {
         goto end;
     }
-    tag = factory_create_task(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_task));
+    if (!is_ext_hd_task)
+    {
+        tag = u_factory_create_task(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_task));
+        if (msg_tag_get_prot(tag) < 0)
+        {
+            goto end_del_obj;
+        }
+    }
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_thread));
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_thread));
-    if (msg_tag_get_prot(tag) < 0)
+    if (!is_ext_hd_task)
     {
-        goto end_del_obj;
-    }
-    tag = task_alloc_ram_base(hd_task, app ? app->i.ram_size : 100 * 1024 /*TODO:*/,
-                              &ram_base, mem_block, (addr_t)addr, size);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    tag = task_map(hd_task, hd_task, TASK_PROT, 0);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    tag = task_map(hd_task, cur_env->ns_hd, LOG_PROT, KOBJ_DELETE_RIGHT);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    tag = task_map(hd_task, SYS_PROT, SYS_PROT, KOBJ_DELETE_RIGHT);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    tag = task_map(hd_task, FUTEX_PROT, FUTEX_PROT, KOBJ_DELETE_RIGHT);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    tag = task_map(hd_task, hd_thread, THREAD_MAIN, 0);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    tag = task_map(hd_task, FACTORY_PROT, FACTORY_PROT, KOBJ_DELETE_RIGHT);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    tag = task_map(hd_task, VMA_PROT, VMA_PROT, KOBJ_DELETE_RIGHT);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    tag = task_map(hd_task, cur_env->ns_hd, cur_env->ns_hd, KOBJ_DELETE_RIGHT);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    tag = thread_bind_task(hd_thread, hd_task);
-    if (msg_tag_get_prot(tag) < 0)
-    {
-        goto end_del_obj;
-    }
-    if (app)
-    {
-        tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + app->i.ram_size));
+        tag = u_task_alloc_ram_base(hd_task, app->i.ram_size,
+                                  &ram_base, mem_block, (addr_t)addr, size);
+        if (msg_tag_get_prot(tag) < 0)
+        {
+            goto end_del_obj;
+        }
     }
     else
     {
-        /*TODO:*/
-        tag = thread_msg_buf_set(hd_thread, (void *)(ram_base + 100 * 1024 - 2048 - MSG_BUG_LEN));
+        tag = u_task_alloc_get_ram_info(hd_task, &ram_base, &size);
+        if (msg_tag_get_prot(tag) < 0)
+        {
+            goto end_del_obj;
+        }
     }
+    tag = u_task_map(hd_task, hd_task, TASK_PROT, 0);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = task_set_pid(hd_task, hd_task); //!< 设置进程的pid就是进程hd号码
+#if 1
+    tag = u_task_map(hd_task, LOG_PROT, LOG_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    if (pid)
+#endif
+    tag = u_task_map(hd_task, SYS_PROT, SYS_PROT, KOBJ_DELETE_RIGHT);
+    if (msg_tag_get_prot(tag) < 0)
     {
-        *pid = hd_task;
+        goto end_del_obj;
     }
+    tag = u_task_map(hd_task, FUTEX_PROT, FUTEX_PROT, KOBJ_DELETE_RIGHT);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
+    tag = u_task_map(hd_task, hd_thread, THREAD_MAIN, 0);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
+    tag = u_task_map(hd_task, FACTORY_PROT, FACTORY_PROT, KOBJ_DELETE_RIGHT);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
+    tag = u_task_map(hd_task, VMA_PROT, VMA_PROT, KOBJ_DELETE_RIGHT);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
+    tag = u_task_map(hd_task, cur_env->ns_hd, cur_env->ns_hd, KOBJ_DELETE_RIGHT);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
+    tag = u_thread_bind_task(hd_thread, hd_task);
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
+    tag = u_thread_msg_buf_set(hd_thread, (void *)(ram_base + app->i.ram_size));
+    if (msg_tag_get_prot(tag) < 0)
+    {
+        goto end_del_obj;
+    }
+    if (!is_ext_hd_task)
+    {
+        tag = u_task_set_pid(hd_task, hd_task); //!< 设置进程的pid就是进程hd号码
+        if (msg_tag_get_prot(tag) < 0)
+        {
+            goto end_del_obj;
+        }
+    }
+    *pid = hd_task;
     void *sp_addr;
     void *sp_addr_top;
-    if (app)
+
+    if (load_to_ram)
+    {
+        if (app_file_ram_copy_to_task(hd_task, (void *)addr, size) < 0)
+        {
+            goto end_del_obj;
+        }
+        sp_addr = (char *)ram_base + app->i.stack_offset;
+        sp_addr_top = (char *)sp_addr + app->i.stack_size;
+        addr = ram_base;
+    }
+    else
     {
         sp_addr = (char *)ram_base + app->i.stack_offset - app->i.data_offset;
         sp_addr_top = (char *)sp_addr + app->i.stack_size;
-        printf("stack:0x%x size:%d.\n", sp_addr, app->i.stack_size);
     }
-    else
-    {
-        sp_addr = (char *)ram_base;
-        sp_addr_top = (char *)sp_addr + 100 * 1024 - 2048; /*TODO:*/
-    }
+    printf("stack:0x%x size:%d.\n", sp_addr, app->i.stack_size);
+
     umword_t *usp_top = (umword_t *)((umword_t)((umword_t)sp_addr_top - 8) & ~0x7UL);
     uenv_t uenv = {
         .log_hd = cur_env->ns_hd,
@@ -322,8 +461,8 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     app_stack_push_umword(hd_task, &usp_top, (umword_t)app_env);
     app_stack_push_umword(hd_task, &usp_top, 0xfe);
 
-    app_stack_push_umword(hd_task, &usp_top, at_base);
-    app_stack_push_umword(hd_task, &usp_top, (umword_t)AT_BASE);
+    // app_stack_push_umword(hd_task, &usp_top, at_base);
+    // app_stack_push_umword(hd_task, &usp_top, (umword_t)AT_BASE);
 
     app_stack_push_umword(hd_task, &usp_top, MK_PAGE_SIZE);
     app_stack_push_umword(hd_task, &usp_top, (umword_t)AT_PAGESZ);
@@ -342,29 +481,35 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid,
     app_stack_push_umword(hd_task, &usp_top, arg_cn);
 
     printf("pid:%d stack:%p\n", hd_task, usp_top);
-    tag = thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)usp_top,
+    tag = u_thread_exec_regs(hd_thread, (umword_t)addr, (umword_t)usp_top,
                            ram_base, 0);
     assert(msg_tag_get_prot(tag) >= 0);
 
     /*启动线程运行*/
     tag = thread_run(hd_thread, 3);
     assert(msg_tag_get_prot(tag) >= 0);
-    task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_thread));
+    u_task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_thread));
     handler_free(hd_thread);
     return 0;
 end_del_obj:
     if (hd_thread != HANDLER_INVALID)
     {
-        task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_thread));
+        u_task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_thread));
     }
-    if (hd_task != HANDLER_INVALID)
+    if (!is_ext_hd_task)
     {
-        task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_task));
+        if (hd_task != HANDLER_INVALID)
+        {
+            u_task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_task));
+        }
     }
 end:
-    if (hd_task != HANDLER_INVALID)
+    if (!is_ext_hd_task)
     {
-        handler_free(hd_task);
+        if (hd_task != HANDLER_INVALID)
+        {
+            handler_free(hd_task);
+        }
     }
     if (hd_thread != HANDLER_INVALID)
     {

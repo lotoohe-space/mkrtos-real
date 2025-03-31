@@ -526,14 +526,20 @@ void nes_emulate_frame(void)
 		extern bool_t print_fps;
 		int32_t used_tick = sys_read_tick() - st_tick;
 
-		// if (1000 / 60 >= used_tick)
-		// {
-		// 	usleep((1000 / 60 - used_tick) * 1000);
-		// }
+		if (1000 / 60 >= used_tick)
+		{
+			usleep((1000 / 60 - used_tick) * 1000);
+		}
 		used_tick = sys_read_tick() - st_tick;
 		if (print_fps)
 		{
-			printf("fps:%d\n", 1000 / used_tick);
+			static int i = 0;
+
+			i++;
+			if (i % 30 == 0)
+			{
+				printf("fps:%d\n", 1000 / used_tick);
+			}
 		}
 #endif
 	}
@@ -557,7 +563,7 @@ int nes_sound_open(int samples_per_sync, int sample_rate)
 	int ret;
 	msg_tag_t tag;
 again:
-	ret = ns_query_svr("/snd", &snd_drv_hd, 0x1);
+	ret = ns_query_svr("/snd", &snd_drv_hd);
 	if (ret < 0)
 	{
 		u_sleep_ms(50);
@@ -565,10 +571,10 @@ again:
 	}
 	shm_hd = handler_alloc();
 	assert(shm_hd != HANDLER_INVALID);
-	tag = facotry_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
+	tag = u_factory_create_share_mem(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, shm_hd),
 								   SHARE_MEM_CNT_BUDDY_CNT, 2048);
 	assert(msg_tag_get_prot(tag) >= 0);
-	tag = share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
+	tag = u_share_mem_map(shm_hd, vma_addr_create(VPAGE_PROT_RW, VMA_ADDR_RESV, 0), &addr, &size);
 	assert(msg_tag_get_prot(tag) >= 0);
 
 	// f1c100s_audio_config(1,16,sample_rate);

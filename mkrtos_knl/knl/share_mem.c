@@ -60,14 +60,14 @@ typedef struct share_mem
     size_t size;               //!< Memory size, (depending on arch, size may be limited to, for example: n^2）
     dlist_head_t task_head;    //!< Which tasks use the shared memory
     share_mem_type_t mem_type; //!< memory type
-    ram_limit_t *lim;          //!< memory limit 
+    ram_limit_t *lim;          //!< memory limit
     ref_counter_t ref;         //!< Reference count must be zero to free kobj memory
 } share_mem_t;
 
 enum share_mem_op
 {
-    SHARE_MEM_MAP, //!<share mem map to task.
-    SHARE_MEM_UNMAP, //!< share mem unmap to task.
+    SHARE_MEM_MAP,    //!< share mem map to task.
+    SHARE_MEM_UNMAP,  //!< share mem unmap to task.
     SHARE_MEM_RESIZE, //!< share mem resize.
 };
 #if IS_ENABLED(CONFIG_BUDDY_SLAB)
@@ -177,6 +177,7 @@ end:
 }
 static int share_mem_free_pmem(share_mem_t *obj)
 {
+    task_t *cur_task = thread_get_current_task();
     assert(obj);
     switch (obj->mem_type)
     {
@@ -189,7 +190,7 @@ static int share_mem_free_pmem(share_mem_t *obj)
 #if IS_ENABLED(CONFIG_MMU)
         mm_limit_free_buddy(obj->lim, obj->mem, obj->size);
 #else
-        mm_limit_free_align(obj->lim, obj->mem, obj->size);
+        mm_limit_free_align_raw(cur_task->mm_space.mem_block_inx, obj->lim, obj->mem, obj->size);
 #endif
         break;
     case SHARE_MEM_CNT_DPD:
@@ -221,6 +222,7 @@ static int share_mem_free_pmem(share_mem_t *obj)
 static int share_mem_alloc_pmem(share_mem_t *obj)
 {
     int align_size = 0;
+    task_t *cur_task = thread_get_current_task();
 
     assert(obj);
     if (obj->mem)
@@ -260,7 +262,7 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
         align_size = sizeof(void *);
 #endif
 
-        obj->mem = mm_limit_alloc_align(obj->lim, obj->size, align_size);
+        obj->mem = mm_limit_alloc_align_raw(cur_task->mm_space.mem_block_inx, obj->lim, obj->size, align_size);
 #endif
         if (obj->mem == NULL)
         {
@@ -309,6 +311,8 @@ static int share_mem_alloc_pmem(share_mem_t *obj)
 static int share_mem_pmem_resize(share_mem_t *obj, size_t new_size)
 {
     int ret;
+    task_t *cur_task = thread_get_current_task();
+
     if (obj->mem)
     {
         return 0;
@@ -324,7 +328,7 @@ static int share_mem_pmem_resize(share_mem_t *obj, size_t new_size)
 #if IS_ENABLED(CONFIG_MMU)
         mm_limit_free_buddy(obj->lim, obj->mem, ojb->size);
 #else
-        mm_limit_free_align(obj->lim, obj->mem, obj->size);
+        mm_limit_free_align_raw(cur_task->mm_space.mem_block_inx, obj->lim, obj->mem, obj->size);
 #endif
         obj->mem = NULL;
         break;
@@ -375,7 +379,7 @@ static ssize_t share_mem_map(share_mem_t *obj, vma_addr_t addr, vaddr_t *ret_vad
 #if IS_ENABLED(CONFIG_MMU)
     vaddr_t ret_addr;
 
-    addr.flags |= VMA_ADDR_RESV;                                                  
+    addr.flags |= VMA_ADDR_RESV;
     //!< Set to reserve memory, physical memory that reserves memory and does not apply for it in the kernel
     ret = task_vma_alloc(&task->mm_space.mem_vma, addr, obj->size, 0, &ret_addr); //!< Apply for virtual memory
     if (ret < 0)
@@ -424,8 +428,10 @@ static ssize_t share_mem_map(share_mem_t *obj, vma_addr_t addr, vaddr_t *ret_vad
                          (vaddr_t)(obj->mem), ret_vaddr);
     if (ret < 0)
     {
+        printk("share mem task map failed, pmem:0x%x vmem:0x%x.\n", obj->mem, *ret_vaddr);
         return ret;
     }
+    // printk("share mem task map, pmem:0x%x vmem:0x%x.\n", obj->mem, *ret_vaddr);
     map_size = obj->size;
     // *ret_vaddr = (vaddr_t)(obj->mem);
 #endif
@@ -449,11 +455,12 @@ static void share_mem_unmap_op(task_t *tk, share_mem_t *sm)
         share_mem_unmap(sm, addr);
         ref_counter_dec_and_release(&tk->ref_cn, &tk->kobj);
         ref_counter_dec_and_release(&sm->ref, &sm->kobj);
+        // printk("share mem task unmap, pmem:0x%x vmem:0x%x.\n", sm->mem, addr);
     }
 }
 static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t in_tag, entry_frame_t *f)
 {
-    ssize_t ret;
+    ssize_t ret = 0;
     msg_tag_t tag = msg_tag_init4(0, 0, 0, -EINVAL);
     task_t *task = thread_get_current_task();
     share_mem_t *sm = container_of(kobj, share_mem_t, kobj);
@@ -519,7 +526,7 @@ static void share_mem_syscall(kobject_t *kobj, syscall_prot_t sys_p, msg_tag_t i
             ret = share_mem_pmem_resize(sm, f->regs[0]);
         }
         spinlock_set(&sm->kobj.lock, status);
-resize_end:
+    resize_end:
         tag = msg_tag_init4(0, 0, 0, ret);
     }
     }
@@ -541,14 +548,14 @@ static void share_mem_release_stage1(kobject_t *kobj)
 static void share_mem_release_stage2(kobject_t *kobj)
 {
     share_mem_t *sm = container_of(kobj, share_mem_t, kobj);
-
+    task_t *cur_task = thread_get_current_task();
     assert(dlist_is_empty(&sm->task_head));
 
 #if IS_ENABLED(CONFIG_MMU)
     share_mem_free_pmem(sm);
     mm_limit_free_slab(share_mem_slab, sm->lim, sm);
 #else
-    mm_limit_free_align(sm->lim, sm->mem, sm->size);
+    mm_limit_free_align_raw(cur_task->mm_space.mem_block_inx, sm->lim, sm->mem, sm->size);
     mm_limit_free(sm->lim, sm);
 #endif
     printk("share mem 0x%x free.\n", sm);

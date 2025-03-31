@@ -29,9 +29,9 @@ static void thread_test_func(void)
 {
     char *buf;
     umword_t len;
-    thread_msg_buf_get(th1_hd, (umword_t *)(&buf), NULL);
+    u_thread_msg_buf_get(th1_hd, (umword_t *)(&buf), NULL);
     printf("thread_test_func.\n");
-    // task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th1_hd));
+    // u_task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th1_hd));
     handler_free_umap(th1_hd);
     printf("Error\n");
 }
@@ -39,9 +39,9 @@ static void thread_test_func2(void)
 {
     char *buf;
     umword_t len;
-    thread_msg_buf_get(th2_hd, (umword_t *)(&buf), NULL);
+    u_thread_msg_buf_get(th2_hd, (umword_t *)(&buf), NULL);
     printf("thread_test_func2.\n");
-    // task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
+    // u_task_unmap(TASK_PROT, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
     handler_free_umap(th2_hd);
     printf("Error\n");
 }
@@ -59,26 +59,26 @@ void thread_exit_test(void)
     ipc_hd = handler_alloc();
     assert(ipc_hd != HANDLER_INVALID);
 
-    msg_tag_t tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, ipc_hd));
+    msg_tag_t tag = u_factory_create_ipc(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, ipc_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_msg_buf_set(th1_hd, msg_buf0);
+    tag = u_thread_msg_buf_set(th1_hd, msg_buf0);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, TASK_RAM_BASE(), 0);
+    tag = u_thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th1_hd, TASK_THIS);
+    tag = u_thread_bind_task(th1_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_run(th1_hd, 2);
 
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th2_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th2_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_msg_buf_set(th2_hd, msg_buf1);
+    tag = u_thread_msg_buf_set(th2_hd, msg_buf1);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th2_hd, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE, TASK_RAM_BASE(), 0);
+    tag = u_thread_exec_regs(th2_hd, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th2_hd, TASK_THIS);
+    tag = u_thread_bind_task(th2_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
     tag = thread_run(th2_hd, 2);
     assert(msg_tag_get_prot(tag) >= 0);

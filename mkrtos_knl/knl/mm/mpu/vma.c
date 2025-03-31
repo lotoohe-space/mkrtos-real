@@ -40,8 +40,9 @@ static region_info_t *vma_alloc_pt_region(task_vma_t *vma)
 {
     assert(vma != NULL);
     mword_t status = task_vma_lock(vma);
-    for (int i = 0; i < CONFIG_REGION_NUM; i++)
+    for (int i = CONFIG_REGION_NUM - 1; i >= 0 ; i--)
     {
+        /* 从最后一个开始分配，让用户使用的有更高的优先级 */
         if (vma->pt_regions[i].region_inx < 0)
         {
             vma->pt_regions[i].region_inx = (int16_t)i;
@@ -294,6 +295,7 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
     int ret = 0;
     size_t mem_align_size;
     bool_t is_alloc_mem = FALSE;
+    mword_t status = -1;
 
     pt_task = container_of(
         container_of(task_vma, mm_space_t, mem_vma),
@@ -321,12 +323,12 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
         ret = -EINVAL;
         goto err_end;
     }
-    mword_t status = task_vma_lock(task_vma);
+    status = task_vma_lock(task_vma);
 
     if (paddr == 0)
     {
         // 未设置物理内存，则自动申请一个
-        vma_addr = (addr_t)mm_limit_alloc_align(pt_task->lim, size, mem_align_size);
+        vma_addr = (addr_t)mm_limit_alloc_align_raw(pt_task->mm_space.mem_block_inx, pt_task->lim, size, mem_align_size);
         assert(((vma_addr & (mem_align_size - 1))) == 0);
         is_alloc_mem = TRUE;
     }
@@ -407,10 +409,13 @@ int task_vma_alloc(task_vma_t *task_vma, vma_addr_t vaddr, size_t size,
 err_end:
     if (is_alloc_mem)
     {
-        mm_limit_free_align(pt_task->lim, (void *)vma_addr, mem_align_size);
+        mm_limit_free_align_raw(pt_task->mm_space.mem_block_inx, pt_task->lim, (void *)vma_addr, mem_align_size);
     }
 end:
-    task_vma_unlock(task_vma, status);
+    if (status >= 0)
+    {
+        task_vma_unlock(task_vma, status);
+    }
     return ret;
 }
 /**
@@ -455,9 +460,6 @@ static int vma_idl_tree_eq_cmp_handler(const void *key, const void *data)
     {
         return 1;
     }
-}
-static inline int task_vma_addr_check(vaddr_t addr, size_t size)
-{
 }
 static int task_vma_free_inner(task_vma_t *task_vma, vaddr_t vaddr, size_t size, bool_t is_free_mem)
 {
@@ -527,7 +529,7 @@ static int task_vma_free_inner(task_vma_t *task_vma, vaddr_t vaddr, size_t size,
 
     if (is_free_mem)
     {
-        mm_limit_free_align(pt_task->lim, (void *)vma_addr, size);
+        mm_limit_free_align_raw(pt_task->mm_space.mem_block_inx, pt_task->lim, (void *)vma_addr, size);
     }
 end:
     if (pt_task == thread_get_current_task())
@@ -535,7 +537,7 @@ end:
         mpu_switch_to_task(pt_task);
     }
     task_vma_unlock(task_vma, status);
-    return 0;
+    return ret;
 }
 /**
  * @brief 释放申请的虚拟内存，并释放已经申请的物理内存
@@ -665,6 +667,7 @@ typedef struct vma_clean_params
 {
     mln_rbtree_t *tree;
     ram_limit_t *lim;
+    task_t *pt_task;
 } vma_clean_params_t;
 static int rbtree_iterate_handler_delete(mln_rbtree_node_t *node, void *udata)
 {
@@ -673,7 +676,8 @@ static int rbtree_iterate_handler_delete(mln_rbtree_node_t *node, void *udata)
 
     if (!(vma_addr_get_flags(vma_data->vaddr) & VMA_ADDR_RESV))
     {
-        mm_limit_free_align(params->lim, (void *)vma_node_get_paddr(vma_data), vma_data->size);
+        vma_t *vma_data = mln_rbtree_node_data_get(node);
+        mm_limit_free_align_raw(params->pt_task->mm_space.mem_block_inx, params->lim, (void *)vma_node_get_paddr(vma_data), vma_data->size);
     }
 
     mln_rbtree_delete(params->tree, node);
@@ -698,9 +702,10 @@ int task_vma_clean(task_vma_t *task_vma)
     vma_clean_params_t params = {
         .lim = pt_task->lim,
         .tree = &task_vma->alloc_tree,
+        .pt_task = pt_task,
     }; // 删除所有的节点
     ret = mln_rbtree_iterate(&task_vma->alloc_tree, rbtree_iterate_handler_delete, &params);
-    return 0;
+    return ret;
 }
 
 #if IS_ENABLED(CONFIG_MPU)
@@ -830,12 +835,12 @@ void *mpu_ram_alloc(mm_space_t *ms, ram_limit_t *r_limit, size_t ram_size, int m
 #if CONFIG_MPU_VERSION == 1
     umword_t pre_alloc_addr;
     struct mem_heap *heap = NULL;
-    umword_t status = cpulock_lock();
+    // umword_t status = cpulock_lock();
 again_alloc:
     heap = mm_get_free_raw(mem_block, heap, ram_size, &pre_alloc_addr);
     if (!heap)
     {
-        cpulock_set(status);
+        // cpulock_set(status);
         printk("The system is low on memory.\n");
         // mm_trace();
         return NULL;
@@ -847,7 +852,7 @@ again_alloc:
     if (mpu_calc(ms, pre_alloc_addr, ram_size,
                  &need_align, &alloc_addr) == FALSE)
     {
-        cpulock_set(status);
+        // cpulock_set(status);
         printk("The MPU area is exhausted.");
         return NULL;
     }
@@ -855,7 +860,7 @@ again_alloc:
     void *ram = mm_limit_alloc_align_raw(mem_block, r_limit, ram_size, need_align);
     if (!ram)
     {
-        cpulock_set(status);
+        // cpulock_set(status);
         printk("The system is low on memory.\n");
         return NULL;
     }
@@ -863,13 +868,13 @@ again_alloc:
     //!< 申请的地址与预分配的地址不同
     if (ram != (void *)alloc_addr)
     {
-        cpulock_set(status);
+        // cpulock_set(status);
         printk("Again.\n");
         mm_limit_free_align_raw(mem_block, r_limit, ram, need_align);
         heap = heap->next;
         goto again_alloc;
     }
-    cpulock_set(status);
+    // cpulock_set(status);
     return ram;
 #elif CONFIG_MPU_VERSION == 2
     region_info_t *region;

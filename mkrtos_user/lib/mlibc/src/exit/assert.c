@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <cons_cli.h>
+#include "fs_backend.h"
 static char *itoa(char *p, unsigned x) {
 	p += 3*sizeof(int);
 	*--p = 0;
@@ -14,12 +14,12 @@ _Noreturn void __assert_fail(const char *expr, const char *file, int line, const
 {
 	char data[12];
 	// fprintf(stderr, "Assertion failed: %s (%s: %s: %d)\n", expr, file, func, line);
-	cons_write_str("Assertion failed:");
-	cons_write_str(expr);
-	cons_write_str(file);
-	cons_write_str(func);
+	fs_cons_write_str("Assertion failed:");
+	fs_cons_write_str(expr);
+	fs_cons_write_str(file);
+	fs_cons_write_str(func);
 	itoa(data, line);
-	cons_write_str(data);
-	cons_write_str("\n");
+	fs_cons_write_str(data);
+	fs_cons_write_str("\n");
 	abort();
 }

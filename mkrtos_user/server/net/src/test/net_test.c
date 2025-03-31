@@ -152,7 +152,7 @@ int net_test(void)
         return -1;
     }
     sleep(1);
-    if (pthread_create(&net_server_pt, NULL, net_client_func, NULL))
+    if (pthread_create(&net_client_pt, NULL, net_client_func, NULL))
     {
         printf("net server pthread create failed.\n");
         return -1;

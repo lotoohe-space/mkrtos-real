@@ -18,6 +18,7 @@
 #include "u_sig.h"
 #include <termios.h>
 #include <unistd.h>
+#include <stdlib.h>
 #if SHELL_USING_CMD_EXPORT == 1
 /**
  * @brief 默认用户
@@ -1455,42 +1456,50 @@ void shellExec(Shell *shell)
         }
         else
         {
-            uint8_t params[96/*FIXME:数组溢出*/];
-            uint8_t envs[64/*FIXME:*/];
+            uint8_t params[96 /*FIXME:数组溢出*/];
+            uint8_t envs[64 /*FIXME:*/];
             int params_len = 0;
             int envs_len = 0;
-            int pid;
+            int pid = -1;
             bool_t bg_run = FALSE;
             int task_mem_blk = 0;
 
+
+            if (shell->parser.param[shell->parser.paramCount - 1][0] == '~')
+            {
+                // 指定启动的mem，参数少一个
+                task_mem_blk = atoi(&(shell->parser.param[shell->parser.paramCount - 1][1]));
+                shell->parser.paramCount--;
+            }
+            if (shell->parser.param[shell->parser.paramCount - 1][0] == '@')
+            {
+                // 指定启动的pid
+                pid = atoi(&(shell->parser.param[shell->parser.paramCount - 1][1]));
+                shell->parser.paramCount--;
+            }
+            if (strcmp(shell->parser.param[shell->parser.paramCount - 1], "&") == 0)
+            {
+                // 后台启动，参数少一个
+                shell->parser.param[shell->parser.paramCount - 1] = NULL;
+                shell->parser.paramCount--;
+                bg_run = TRUE;
+            }
             // 处理params
             for (int i = 1; i < shell->parser.paramCount; i++)
             {
                 memcpy(&params[params_len], shell->parser.param[i], strlen(shell->parser.param[i]) + 1); // copy the string
                 params_len += strlen(shell->parser.param[i]) + 1;
             }
-            if (shell->parser.param[shell->parser.paramCount - 1][0] == '~')
-            {
-                //指定启动的mem，参数少一个
-                task_mem_blk = atoi(&(shell->parser.param[shell->parser.paramCount - 1][1]));
-                shell->parser.paramCount--;
-            }
-            if (strcmp(shell->parser.param[shell->parser.paramCount - 1], "&") == 0)
-            {
-                //后台启动，参数少一个
-                shell->parser.param[shell->parser.paramCount - 1] = NULL;
-                shell->parser.paramCount--;
-                bg_run = TRUE;
-            }
             // 处理envs
             for (char **e = __environ; *e; e++)
             {
                 memcpy(&envs[envs_len], *e, strlen(*e) + 1);
-                envs_len+= strlen(*e)+1;
+                envs_len += strlen(*e) + 1;
             }
 
             //!< 内建命令中未找到，则执行应用
-            pid = pm_run_app(shell->parser.param[0], task_mem_blk, params, params_len, envs, envs_len);
+            pid = pm_run_app(shell->parser.param[0], task_mem_blk, pid != -1 ? PM_USE_LOAD_TO_RAM : 0, /*pid*/ pid,
+                             params, params_len, envs, envs_len);
             if (pid < 0)
             {
                 shellWriteString(shell, shellText[SHELL_TEXT_CMD_NOT_FOUND]);
@@ -1503,15 +1512,22 @@ void shellExec(Shell *shell)
                 {
                     shell->parser.param[shell->parser.paramCount - 1] = NULL;
                     shell->parser.paramCount--;
-                    task_get_pid(TASK_THIS, &cur_pid);
+                    u_task_get_pid(TASK_THIS, (umword_t *)&cur_pid);
                     pm_sig_watch(pid, 0);
                     extern void tty_set_raw_mode(void);
                     extern void tty_set_normal_mode(void);
+                    extern int script_sh_fd;
 
                     tty_set_normal_mode();
-                    tcsetpgrp(STDIN_FILENO, pid);
+                    if (script_sh_fd == STDIN_FILENO)
+                    {
+                        tcsetpgrp(script_sh_fd, pid);
+                    }
                     pm_waitpid(pid, NULL);
-                    tcsetpgrp(STDIN_FILENO, cur_pid);
+                    if (script_sh_fd == STDIN_FILENO)
+                    {
+                        tcsetpgrp(script_sh_fd, cur_pid);
+                    }
                     tty_set_raw_mode();
                 }
             }

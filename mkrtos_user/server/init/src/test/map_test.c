@@ -37,13 +37,13 @@ static void *thread_test_func(void *arg)
     umword_t len;
     ipc_msg_t *ipc_msg;
     obj_handler_t log_hd = handler_alloc();
-    thread_msg_buf_get(-1, (umword_t *)(&buf), NULL);
+    u_thread_msg_buf_get(-1, (umword_t *)(&buf), NULL);
     ipc_msg = (ipc_msg_t *)buf;
     ipc_msg->map_buf[0] = vpage_create_raw3(0, 0, log_hd).raw;
     thread_ipc_wait(ipc_timeout_create2(0, 0), NULL, -1);
     printf("srv recv:%s", buf);
     assert(strcmp(TEST_STR, buf) == 0);
-    ulog_write_str(log_hd, "map test success.\n");
+    u_log_write_str(log_hd, "map test success.\n");
     hard_sleep();
     printf("thread_test_func.\n");
     thread_ipc_reply(msg_tag_init4(0, ROUND_UP(strlen(buf), WORD_BYTES), 0, 0), ipc_timeout_create2(0, 0));
@@ -56,7 +56,7 @@ static void *thread_test_func2(void *arg)
     umword_t len;
     ipc_msg_t *ipc_msg;
 
-    thread_msg_buf_get(-1, (umword_t *)(&buf), NULL);
+    u_thread_msg_buf_get(-1, (umword_t *)(&buf), NULL);
     ipc_msg = (ipc_msg_t *)buf;
     strcpy((char *)(ipc_msg->msg_buf), TEST_STR);
     ipc_msg->map_buf[0] = vpage_create_raw3(KOBJ_DELETE_RIGHT, VPAGE_FLAGS_MAP, LOG_PROT).raw;

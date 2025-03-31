@@ -14,6 +14,7 @@
 #include "u_rpc_svr.h"
 #include "u_slist.h"
 #include "u_types.h"
+#include "u_mutex.h"
 typedef struct watch_entry
 {
     pid_t watch_pid;//!<被监控的pid
@@ -30,12 +31,38 @@ typedef struct pm
 {
     rpc_svr_obj_t svr_obj;
     slist_head_t watch_head;
+    u_mutex_t lock;
 } pm_t;
 
-#define PM_APP_BG_RUN 0x1
+#define PM_CREATE_DUMMY_TASK 0x1
+// #define PM_USE_EXIST_DUMMY_TASK 0x2
+#define PM_USE_LOAD_TO_RAM 0x2
+typedef union pm_flags
+{
+    umword_t raw;
+    struct {
+        uint8_t mem_block;
+        uint8_t flags;//@see PM_CREATE_DUMMY_TASK
+        hmword_t pid;
+    };
+} pm_flags_t;
+static inline pm_flags_t pm_flags_init_raw(umword_t raw)
+{
+    return (pm_flags_t) {
+        .raw = raw,
+    };
+}
+static inline pm_flags_t pm_flags_init(uint8_t mem_block, uint8_t flags, pid_t pid)
+{
+    return (pm_flags_t) {
+        .mem_block = mem_block,
+        .flags = flags,
+        .pid = pid,
+    };
+}
 
-void pm_svr_obj_init(pm_t *pm);
-int pm_rpc_run_app(const char *path, int mem_block, char *params, int params_len, char *env, int envs_len);
+int pm_svr_obj_init(pm_t *pm);
+int pm_rpc_run_app(const char *path, pm_flags_t pm_flags, char *params, int params_len_or_app_size, char *env, int envs_len);
 int pm_rpc_kill_task(int src_pid, int pid, int flags, int exit_code);
 
 int pm_rpc_watch_pid(pm_t *pm, obj_handler_t sig_rcv_hd, pid_t pid, int flags);

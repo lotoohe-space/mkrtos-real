@@ -98,8 +98,6 @@ int cpio_find_next(umword_t st, const char *pre_name,
 }
 int cpio_find_file(umword_t st, umword_t en, const char *name, umword_t *size, int *type, umword_t *addr)
 {
-    uint8_t rByte;
-    int32_t bk_inx;
     cpio_fs_t *file_info;
     uint32_t mode;
 

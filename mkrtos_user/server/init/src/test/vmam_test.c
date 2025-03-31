@@ -137,7 +137,7 @@ static void mem_sim_thread(void)
     while (1)
     {
         memset(data, 0, 512);
-        ulog_write_str(LOG_PROT, "i am live.\n");
+        u_log_write_str(LOG_PROT, "i am live.\n");
         u_sleep_ms(1000);
         i++;
         if (i >= 40)

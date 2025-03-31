@@ -34,8 +34,10 @@ sp_info_t *schde_to(void *usp, void *ksp, umword_t sp_type)
     else if (sche->sched_reset == 2)
     {
         cur_th->sp.knl_sp = ksp;
-        // cur_th->sp.user_sp = usp;
-        // cur_th->sp.sp_type = sp_type;
+        cur_th->knl_bakup_sp = (umword_t)ksp;
+    } else if (sche->sched_reset == 3)
+    {
+        cur_th->sp.knl_sp = (void *)cur_th->knl_bakup_sp;
     }
     atomic_inc(&cur_th->time_count);
 

@@ -24,7 +24,7 @@
 #include "pm.h"
 #include "pm_svr.h"
 #include "u_sig.h"
-#define CONS_STACK_SIZE 1024
+#define CONS_STACK_SIZE (1024+512)
 static ATTR_ALIGN(8) uint8_t cons_stack[CONS_STACK_SIZE];
 static uint8_t cons_ipc_msg[MSG_BUG_LEN];
 static tty_struct_t sys_tty;
@@ -62,12 +62,32 @@ static inline void cons_read_unlock(void)
 
 static void console_read_func(void)
 {
-    uint8_t data[12];
+    uint8_t data[64];
 
     while (1)
     {
-        int r_len = ulog_read_bytes(LOG_PROT, data, sizeof(data));
+        int r_len = 0;
+        int buf_size = sizeof(data); 
+        
+        do
+        {
+            int ret;
 
+            r_len += u_log_read_bytes(LOG_PROT, data + r_len, buf_size, 0);
+            buf_size = sizeof(data) - r_len;
+            if (buf_size == 0)
+            {
+                break;
+            }
+            ret = u_log_read_bytes(LOG_PROT, data + r_len, buf_size, O_NONBLOCK);
+            if (ret > 0)
+            {
+                r_len += ret;
+            } else {
+                break;
+            }
+            buf_size = sizeof(data) - r_len;
+        } while (buf_size != 0);
         if (r_len > 0)
         {
             cons_read_lock();
@@ -131,7 +151,7 @@ static int cons_init(void)
     {
         return -1;
     }
-    tag = facotry_create_sema(FACTORY_PROT,
+    tag = u_facotry_create_sema(FACTORY_PROT,
                               vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, sem_th), 0, 1);
     if (msg_tag_get_val(tag) < 0)
     {
@@ -139,13 +159,13 @@ static int cons_init(void)
     }
     u_thread_create(&cons_th, (char *)cons_stack + sizeof(cons_stack) - 8, cons_ipc_msg, console_read_func);
     u_thread_run(cons_th, 4);
-    ulog_write_str(LOG_PROT, "cons init...\n");
+    u_log_write_str(LOG_PROT, "cons init...\n");
     return 0;
 }
 static int tty_open(const char *path, int flags, int mode)
 {
 
-    ulog_write_str(LOG_PROT, "tty open..\n");
+    u_log_write_str(LOG_PROT, "tty open..\n");
     sys_tty.fd_flags = flags;//FIXME:修正支持不同fd拥有不同的flags。
     return 0;
 }
@@ -191,7 +211,7 @@ static int erase_c(tty_struct_t *tty)
     char r_tmp;
 
     // 如果最后一个字符是换行符号，则不能在进行擦除了。
-    if (q_get_tail(&tty->pre_queue, &r_tmp) < 0)
+    if (q_get_tail(&tty->pre_queue, (uint8_t *)&r_tmp) < 0)
     {
         return -1;
     }
@@ -199,7 +219,7 @@ static int erase_c(tty_struct_t *tty)
     {
         return 0;
     }
-    if (q_dequeue_tail(&tty->pre_queue, &r_tmp) >= 0)
+    if (q_dequeue_tail(&tty->pre_queue, (uint8_t *)&r_tmp) >= 0)
     {
         // 刪除上次写的两个字符
         // 如果在标准模式下设定了ECHOE标志，则当收到一个ERASE控制符时将删除前一个显示字符。
@@ -344,7 +364,7 @@ static int tty_def_line_handler(tty_struct_t *tty, uint8_t r)
                     {
                         // 发送给前台进程组的所有进程
                         // inner_set_sig(SIGINT);TODO:
-                        pm_rpc_kill_task(-1, tty->fg_pid, KILL_SIG, 0);
+                        pm_rpc_kill_task(0, tty->fg_pid, KILL_SIG, 0);
                         if (!L_NOFLSH(tty))
                         {
                             q_queue_clear(&tty->w_queue);
@@ -357,7 +377,7 @@ static int tty_def_line_handler(tty_struct_t *tty, uint8_t r)
                     else if (r == QUIT_C(tty))
                     {
                         // inner_set_sig(SIGQUIT);TODO:
-                        // ulog_write_str(LOG_PROT, "Ctrl+C");
+                        // u_log_write_str(LOG_PROT, "Ctrl+C");
                         if (!L_NOFLSH(tty))
                         {
                             q_queue_clear(&tty->w_queue);
@@ -444,9 +464,12 @@ static int tty_def_line_handler(tty_struct_t *tty, uint8_t r)
             q_enqueue(&tty->pre_queue, r);
         }
     }
-end:
     return ret;
 }
+// fs_backend.c
+extern void fs_cons_write(void *buf, size_t size);
+extern void fs_cons_lock(void);
+extern void fs_cons_unlock(void);
 static int tty_write_hw(tty_struct_t *tty)
 {
     uint8_t r;
@@ -457,11 +480,13 @@ static int tty_write_hw(tty_struct_t *tty)
     {
         return w_len;
     }
+    fs_cons_lock();
     while ((res = q_dequeue(&tty->w_queue, &r)) >= 0)
     {
-        tty_write_data(&r, 1);
+        fs_cons_write(&r, 1);
         w_len++;
     }
+    fs_cons_unlock();
     return w_len;
 }
 static int tty_read(int fd, void *buf, size_t len)
@@ -482,7 +507,6 @@ static int tty_read(int fd, void *buf, size_t len)
         }
         u_sema_down(sem_th, 0, NULL);
     }
-again:
     cons_read_lock();
     if (q_queue_len(&sys_tty.pre_queue) == 0)
     {
@@ -504,16 +528,16 @@ again:
     tty_write_hw(&sys_tty);
     return i;
 }
+
 void tty_write_data(void *buf, size_t len)
 {
-    extern void fs_cons_write(void *buf, size_t size);
     fs_cons_write(buf, len);
 }
 static int tty_write(int fd, void *buf, size_t len)
 {
+#if 0
     int i;
     uint8_t r;
-#if 0
     int ret;
     uint8_t *tmp_buf = buf;
     for (i = 0; i < len; i++)
@@ -541,7 +565,7 @@ static int tty_ioctl(int fd, int req, void *args)
         return -EINVAL;
     }
 #if 1
-    tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
+    tag = u_task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
     if (msg_tag_get_val(tag) < 0)
     {
         return msg_tag_get_val(tag);

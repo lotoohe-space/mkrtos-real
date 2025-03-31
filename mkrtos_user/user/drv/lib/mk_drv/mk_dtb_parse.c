@@ -87,8 +87,6 @@ int dtb_parse_init(void)
 {
     printf("init dts parsing.\n");
 
-    addr_t entry;
-    size_t size;
     void *fdt;
 
     fdt = (void *)sys_read_dtbo();

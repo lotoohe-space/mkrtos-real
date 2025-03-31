@@ -69,7 +69,7 @@ static void thread_test_func(void)
         to_cpu[0] = rand() % 4;
 
         printf("thread 0 to %d cpu.\n", to_cpu[0]);
-        thread_run_cpu(th1_hd, 2, to_cpu[0]);
+        u_thread_run_cpu(th1_hd, 2, to_cpu[0]);
         assert(to_cpu[0] == get_cpu_id());
 
         test_cn++;
@@ -86,7 +86,7 @@ static void thread_test_func2(void)
         to_cpu[1] = rand() % 4;
 
         printf("thread 1 to %d cpu.\n", to_cpu[1]);
-        thread_run_cpu(th2_hd, 2, to_cpu[1]);
+        u_thread_run_cpu(th2_hd, 2, to_cpu[1]);
         assert(to_cpu[1] == get_cpu_id());
 
         test_cn++;
@@ -103,7 +103,7 @@ static void thread_test_func3(void)
         to_cpu[2] = rand() % 4;
 
         printf("thread 2 to %d cpu.\n", to_cpu[2]);
-        thread_run_cpu(th3_hd, 2, to_cpu[2]);
+        u_thread_run_cpu(th3_hd, 2, to_cpu[2]);
         assert(to_cpu[2] == get_cpu_id());
 
         test_cn++;
@@ -119,7 +119,7 @@ static void thread_test_func4(void)
         to_cpu[3] = rand() % 4;
 
         printf("thread 3 to %d cpu.\n", to_cpu[3]);
-        thread_run_cpu(th4_hd, 2, to_cpu[3]);
+        u_thread_run_cpu(th4_hd, 2, to_cpu[3]);
         assert(to_cpu[3] == get_cpu_id());
 
         test_cn++;
@@ -145,60 +145,60 @@ void ipi_test(void)
     memset(msg_buf2, 0, sizeof(msg_buf2));
     memset(msg_buf3, 0, sizeof(msg_buf3));
 
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th1_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th1_hd, TASK_THIS);
+    tag = u_thread_bind_task(th1_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_msg_buf_set(th1_hd, msg_buf0);
+    tag = u_thread_msg_buf_set(th1_hd, msg_buf0);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, TASK_RAM_BASE(), 0);
-    task_set_obj_name(TASK_THIS, th1_hd, "cli_th");
+    tag = u_thread_exec_regs(th1_hd, (umword_t)thread_test_func, (umword_t)stack0 + STACK_SIZE, TASK_RAM_BASE(), 0);
+    u_task_set_obj_name(TASK_THIS, th1_hd, "cli_th");
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run_cpu(th1_hd, 2, 0);
+    tag = u_thread_run_cpu(th1_hd, 2, 0);
     assert(msg_tag_get_prot(tag) >= 0);
 
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th2_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th2_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th2_hd, TASK_THIS);
+    tag = u_thread_bind_task(th2_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_msg_buf_set(th2_hd, msg_buf1);
+    tag = u_thread_msg_buf_set(th2_hd, msg_buf1);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th2_hd, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE, TASK_RAM_BASE(), 0);
+    tag = u_thread_exec_regs(th2_hd, (umword_t)thread_test_func2, (umword_t)stack1 + STACK_SIZE, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
-    task_set_obj_name(TASK_THIS, th2_hd, "cli0_th");
+    u_task_set_obj_name(TASK_THIS, th2_hd, "cli0_th");
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run_cpu(th2_hd, 2, 0);
+    tag = u_thread_run_cpu(th2_hd, 2, 0);
 
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th3_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th3_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th3_hd, TASK_THIS);
+    tag = u_thread_bind_task(th3_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_msg_buf_set(th3_hd, msg_buf2);
+    tag = u_thread_msg_buf_set(th3_hd, msg_buf2);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th3_hd, (umword_t)thread_test_func3, (umword_t)stack2 + STACK_SIZE, TASK_RAM_BASE(), 0);
+    tag = u_thread_exec_regs(th3_hd, (umword_t)thread_test_func3, (umword_t)stack2 + STACK_SIZE, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
-    task_set_obj_name(TASK_THIS, th3_hd, "cli1_th");
+    u_task_set_obj_name(TASK_THIS, th3_hd, "cli1_th");
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run_cpu(th3_hd, 2, 0);
+    tag = u_thread_run_cpu(th3_hd, 2, 0);
 
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th4_hd));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, th4_hd));
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_bind_task(th4_hd, TASK_THIS);
+    tag = u_thread_bind_task(th4_hd, TASK_THIS);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_msg_buf_set(th4_hd, msg_buf3);
+    tag = u_thread_msg_buf_set(th4_hd, msg_buf3);
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_exec_regs(th4_hd, (umword_t)thread_test_func4, (umword_t)stack3 + STACK_SIZE, TASK_RAM_BASE(), 0);
+    tag = u_thread_exec_regs(th4_hd, (umword_t)thread_test_func4, (umword_t)stack3 + STACK_SIZE, TASK_RAM_BASE(), 0);
     assert(msg_tag_get_prot(tag) >= 0);
-    task_set_obj_name(TASK_THIS, th4_hd, "cli2_th");
+    u_task_set_obj_name(TASK_THIS, th4_hd, "cli2_th");
     assert(msg_tag_get_prot(tag) >= 0);
-    tag = thread_run_cpu(th4_hd, 2, 0);
+    tag = u_thread_run_cpu(th4_hd, 2, 0);
 
     while (test_cn < 1000)
         ;
-    // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th1_hd));
-    // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
-    // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th3_hd));
-    // task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th4_hd));
+    // u_task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th1_hd));
+    // u_task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th2_hd));
+    // u_task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th3_hd));
+    // u_task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, th4_hd));
     
 }

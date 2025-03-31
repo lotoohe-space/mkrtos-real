@@ -102,7 +102,7 @@ void handler_free(obj_handler_t hd_inx)
 void handler_free_umap(obj_handler_t hd_inx)
 {
     handler_free(hd_inx);
-    task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_inx));
+    u_task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_inx));
 }
 /**
  * @brief 删除用户态的hd，并从内核中删除
@@ -112,5 +112,5 @@ void handler_free_umap(obj_handler_t hd_inx)
 void handler_del_umap(obj_handler_t hd_inx)
 {
     handler_free(hd_inx);
-    task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_inx));
+    u_task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_inx));
 }

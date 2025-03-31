@@ -499,7 +499,7 @@ void EXTI15_10_IRQHandler(void)
 {
 	while (1)
 	{
-		msg_tag_t tag = uirq_wait(irq_obj, 0);
+		msg_tag_t tag = u_irq_wait(irq_obj, 0);
 		if (msg_tag_get_val(tag) >= 0)
 		{
 			if (EXTI_GetITStatus(EXTI_Line11) != RESET)
@@ -511,6 +511,6 @@ void EXTI15_10_IRQHandler(void)
 				}
 			}
 		}
-		uirq_ack(irq_obj, EXTI15_10_IRQn);
+		u_irq_ack(irq_obj, EXTI15_10_IRQn);
 	}
 }

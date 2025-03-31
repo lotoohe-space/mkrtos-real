@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
         printf("nes rom is NULL.\n");
         return -1;
     }
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_nes");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_nes");
+    u_task_set_obj_name(TASK_THIS, TASK_THIS, "tk_nes");
+    u_task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_nes");
     if (new_rom_get(argv[1]) < 0)
     {
         printf("rom don't finded.\n");

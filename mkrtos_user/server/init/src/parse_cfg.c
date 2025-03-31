@@ -26,7 +26,7 @@
 #include <parse_cfg.h>
 #include <appfs_tiny.h>
 static char cmd_line[CMD_LEN];                              //!< 命令行
-static char cmd_params[CMD_PARAMS_CN][CMD_PARAMS_ITEM_LEN]; //!< 参数数组
+// static char cmd_params[CMD_PARAMS_CN][CMD_PARAMS_ITEM_LEN]; //!< 参数数组
 static int cmd_params_off[CMD_PARAMS_CN];                   //!< 参数偏移量
 static int cmd_params_num = 0;                              //!< 参数个数
 static u_mutex_t cmd_lock;                                  //!< 命令行锁
@@ -119,7 +119,7 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
 
     u_mutex_lock(&cmd_lock, 0, NULL);
 
-    tag = sys_read_info(SYS_PROT, &sys_info, 0);
+    tag = u_sys_read_info(SYS_PROT, &sys_info, 0);
     if (msg_tag_get_val(tag) < 0)
     {
         printf("read info is errno.\n");
@@ -163,8 +163,8 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
                 {
                     cmd_line[MIN(line_inx, sizeof(cmd_line)) - 1] = 0;
                 }
-                pid_t pid;
-                int params_cn = 0;
+                pid_t pid = HANDLER_INVALID;
+                // int params_cn = 0;
                 char *args[CMD_PARAMS_CN] = {
                     NULL,
                 };
@@ -182,7 +182,7 @@ int parse_cfg(const char *parse_cfg_file_name, uenv_t *env)
                 printf("parse_cfg cmd_params_num:%d\n", cmd_params_num);
                 #endif
                 int ret = app_load(cmd_line, env, &pid, args, cmd_params_num,
-                                   NULL, 0, mem_block);
+                                   NULL, 0, mem_block, FALSE);
                 if (ret < 0)
                 {
                     printf("%s load fail, 0x%x\n", cmd_line, ret);

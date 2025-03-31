@@ -109,7 +109,7 @@ static int thread_set_msg_buf(obj_handler_t hd_task, obj_handler_t hd_thread)
         return msg_tag_get_val(tag);
     }
     // 设置msgbuff
-    tag = thread_msg_buf_set(hd_thread, (void *)(CONFIG_MSG_BUF_VADDR));
+    tag = u_thread_msg_buf_set(hd_thread, (void *)(CONFIG_MSG_BUF_VADDR));
     if (msg_tag_get_val(tag) < 0)
     {
         return msg_tag_get_val(tag);
@@ -128,7 +128,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     sys_info_t sys_info;
     int ret;
 
-    tag = sys_read_info(SYS_PROT, &sys_info, 0);
+    tag = u_sys_read_info(SYS_PROT, &sys_info, 0);
     if (msg_tag_get_val(tag) < 0)
     {
         return -ENOENT;
@@ -157,7 +157,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
         goto end;
     }
 
-    tag = factory_create_task(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_task));
+    tag = u_factory_create_task(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_task));
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
@@ -169,57 +169,57 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
         goto end_del_obj;
     }
 
-    tag = factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_thread));
+    tag = u_factory_create_thread(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd_thread));
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    // tag = task_alloc_ram_base(hd_task, app->i.ram_size, &ram_base);
+    // tag = u_task_alloc_ram_base(hd_task, app->i.ram_size, &ram_base);
     // if (msg_tag_get_prot(tag) < 0)
     // {
     //     goto end_del_obj;
     // }
-    tag = task_map(hd_task, hd_task, TASK_PROT, 0);
+    tag = u_task_map(hd_task, hd_task, TASK_PROT, 0);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, cur_env->ns_hd, LOG_PROT, KOBJ_DELETE_RIGHT);
+    tag = u_task_map(hd_task, cur_env->ns_hd, LOG_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, SYS_PROT, SYS_PROT, KOBJ_DELETE_RIGHT);
+    tag = u_task_map(hd_task, SYS_PROT, SYS_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, FUTEX_PROT, FUTEX_PROT, KOBJ_DELETE_RIGHT);
+    tag = u_task_map(hd_task, FUTEX_PROT, FUTEX_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, hd_thread, THREAD_MAIN, 0);
+    tag = u_task_map(hd_task, hd_thread, THREAD_MAIN, 0);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, FACTORY_PROT, FACTORY_PROT, KOBJ_DELETE_RIGHT);
+    tag = u_task_map(hd_task, FACTORY_PROT, FACTORY_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, VMA_PROT, VMA_PROT, KOBJ_DELETE_RIGHT);
+    tag = u_task_map(hd_task, VMA_PROT, VMA_PROT, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = task_map(hd_task, cur_env->ns_hd, cur_env->ns_hd, KOBJ_DELETE_RIGHT);
+    tag = u_task_map(hd_task, cur_env->ns_hd, cur_env->ns_hd, KOBJ_DELETE_RIGHT);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
     }
-    tag = thread_bind_task(hd_thread, hd_task);
+    tag = u_thread_bind_task(hd_thread, hd_task);
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
@@ -229,7 +229,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     {
         goto end_del_obj;
     }
-    tag = task_set_pid(hd_task, hd_task); //!< 设置进程的pid就是进程hd号码
+    tag = u_task_set_pid(hd_task, hd_task); //!< 设置进程的pid就是进程hd号码
     if (msg_tag_get_prot(tag) < 0)
     {
         goto end_del_obj;
@@ -299,7 +299,7 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     app_stack_push_umword(hd_task, &usp_top, arg_cn);
 
     printf("pid:%d stack:%p\n", hd_task, usp_top);
-    tag = thread_exec_regs(hd_thread, (umword_t)entry_addr, (umword_t)usp_top - (addr_t)sp_addr + 0x8000000, 0, 0);
+    tag = u_thread_exec_regs(hd_thread, (umword_t)entry_addr, (umword_t)usp_top - (addr_t)sp_addr + 0x8000000, 0, 0);
     assert(msg_tag_get_prot(tag) >= 0);
 
     tag = u_vmam_grant(VMA_PROT, hd_task, (addr_t)sp_addr, 0x8000000, MAIN_THREAD_STACK_SIZE);
@@ -309,9 +309,9 @@ int app_load(const char *name, uenv_t *cur_env, pid_t *pid, char *argv[], int ar
     }
 
     /*启动线程运行*/
-    tag = thread_run_cpu(hd_thread, 2, -1);
+    tag = u_thread_run_cpu(hd_thread, 2, -1);
     assert(msg_tag_get_prot(tag) >= 0);
-    task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_thread));
+    u_task_unmap(TASK_THIS, vpage_create_raw3(0, 0, hd_thread));
     handler_free(hd_thread);
     return 0;
 
@@ -323,11 +323,11 @@ free_data:
 end_del_obj:
     if (hd_thread != HANDLER_INVALID)
     {
-        task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_thread));
+        u_task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_thread));
     }
     if (hd_task != HANDLER_INVALID)
     {
-        task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_task));
+        u_task_unmap(TASK_THIS, vpage_create_raw3(KOBJ_DELETE_RIGHT, 0, hd_task));
     }
 end:
     if (hd_task != HANDLER_INVALID)

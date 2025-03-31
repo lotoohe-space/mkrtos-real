@@ -17,12 +17,11 @@
         void *buf;                                                                                                                  \
         ipc_msg_t *msg_ipc;                                                                                                         \
                                                                                                                                     \
-        thread_msg_buf_get(-1, (umword_t *)(&buf), NULL);                                                                           \
+        u_thread_msg_buf_get(-1, (umword_t *)(&buf), NULL);                                                                           \
         msg_ipc = (ipc_msg_t *)buf;                                                                                                 \
                                                                                                                                     \
         int off = 0;                                                                                                                \
         int off_buf = 0;                                                                                                            \
-        int ret = -1;                                                                                                               \
         umword_t op_val = op;                                                                                                       \
         /*拷贝op*/                                                                                                                  \
         rpc_memcpy(msg_ipc->msg_buf, &op_val, __alignof(op_val));                                                                   \
@@ -36,7 +35,7 @@
         PRC_CLI_FILL_MAP_BUF(rpc_type2, cli_type2, var2, dir2, (uint8_t *)msg_ipc->map_buf, off_buf);                               \
         /*msg_tag_t tag = dispatch_test(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), 0), msg_ipc); */ \
         msg_tag_t tag;                                                                                                              \
-        tag = thread_ipc_fast_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), prot),            \
+        tag = u_thread_ipc_fast_call(msg_tag_init4(0, ROUND_UP(off, WORD_BYTES), ROUND_UP(off_buf, WORD_BYTES), prot),            \
                                     hd, 1111, 2222, 3333);                                                                       \
         if (msg_tag_get_val(tag) < 0)                                                                                               \
         {                                                                                                                           \
@@ -55,9 +54,9 @@
                                  cli_type2, svr_type2, dir2, rpc_type2, name2)                                     \
     msg_tag_t struct_type##_##func_name##_dispatch(struct_type *obj, msg_tag_t tag, ipc_msg_t *ipc_msg)            \
     {                                                                                                              \
-        svr_type0 var0;                                                                                            \
-        svr_type1 var1;                                                                                            \
-        svr_type2 var2;                                                                                            \
+        svr_type0 var0 = {};                                                                                            \
+        svr_type1 var1 = {};                                                                                            \
+        svr_type2 var2 = {};                                                                                            \
         size_t op_val;                                                                                             \
         uint8_t *value = (uint8_t *)(ipc_msg->msg_buf);                                                            \
         uint8_t *map_value = (uint8_t *)(ipc_msg->map_buf);                                                        \

@@ -34,7 +34,7 @@ typedef struct task
     mutex_t nofity_lock;
     sema_t notify_sema;    //!< sema
     addr_t nofity_msg_buf; //!<
-    umword_t *nofity_map_buf;
+    obj_handler_t (*nofity_map_buf)[CONFIG_THREAD_MAP_BUF_LEN];
     umword_t *nofity_bitmap; //!<
     int nofity_bitmap_len;   //!< max is WORD_BITS
     slist_head_t nofity_theads_head;
@@ -43,7 +43,16 @@ typedef struct task
     size_t text_size;
     pid_t pid; //!< task pid.
 } task_t;
-
+typedef struct
+{
+    void *com_point_func;
+    addr_t stack;
+    umword_t stack_size;
+    void *bitmap;
+    int bitmap_len;
+    void *msg_buf;
+    obj_handler_t (*map_buf)[CONFIG_THREAD_MAP_BUF_LEN];
+} fast_ipc_info_t;
 static inline pid_t task_pid_get(task_t *task)
 {
     return task->pid;
@@ -52,4 +61,4 @@ void task_init(task_t *task, ram_limit_t *ram, int is_knl);
 task_t *task_create(ram_limit_t *lim, int is_knl);
 int task_alloc_base_ram(task_t *tk, ram_limit_t *lim, size_t size, int mem_block);
 void task_kill(task_t *tk);
-int task_set_pid(task_t *task, pid_t pid);
+int u_task_set_pid(task_t *task, pid_t pid);

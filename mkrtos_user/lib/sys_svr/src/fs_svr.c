@@ -5,8 +5,11 @@
 #include "u_hd_man.h"
 #include "u_rpc.h"
 #include "u_rpc_svr.h"
+#include "u_share_mem.h"
 #include <stdio.h>
 #include <sys/stat.h>
+#include "assert.h"
+
 typedef struct kstat kstat_t;
 RPC_TYPE_DEF_ALL(kstat_t)
 /*open*/
@@ -42,47 +45,75 @@ RPC_GENERATION_OP1(fs_t, FS_PROT, FS_CLOSE, close,
 
 RPC_GENERATION_DISPATCH1(fs_t, FS_PROT, FS_CLOSE, close,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd)
-
 /*read*/
 RPC_GENERATION_OP3(fs_t, FS_PROT, FS_READ, read,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                   rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
+                   rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, buf,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 {
     if (!obj->op->fs_svr_read)
     {
         return -ENOSYS;
     }
-    int ret = obj->op->fs_svr_read(fd->data, buf->data, len->data);
+    umword_t addr;
+    umword_t size;
+    msg_tag_t tag;
+    obj_handler_t hd_mem;
 
-    if (ret >= 0)
+    hd_mem = vpage_create_raw(buf->data).addr;
+
+    tag = u_share_mem_map(hd_mem,
+                          vma_addr_create(VPAGE_PROT_RW, 0, 0),
+                          &addr, &size);
+    if (msg_tag_get_val(tag) < 0)
     {
-        buf->len = ret;
+        handler_free_umap(hd_mem);
+        return msg_tag_get_val(tag);
     }
+    int ret = obj->op->fs_svr_read(fd->data, (void *)addr, len->data);
+
+    u_share_mem_unmap(hd_mem);
+    handler_free_umap(hd_mem);
     return ret;
 }
 
 RPC_GENERATION_DISPATCH3(fs_t, FS_PROT, FS_READ, read,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                         rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_OUT, RPC_TYPE_DATA, buf,
+                         rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, buf,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
-
 /*write*/
 RPC_GENERATION_OP3(fs_t, FS_PROT, FS_WRITE, write,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                   rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, buf,
+                   rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, buf,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 {
     if (!obj->op->fs_svr_write)
     {
         return -ENOSYS;
     }
-    int ret = obj->op->fs_svr_write(fd->data, buf->data, len->data);
+    umword_t addr;
+    umword_t size;
+    msg_tag_t tag;
+    obj_handler_t hd_mem;
+
+    hd_mem = vpage_create_raw(buf->data).addr;
+    assert(hd_mem !=0 && "share mem hd is error.\n");
+    tag = u_share_mem_map(hd_mem,
+                          vma_addr_create(VPAGE_PROT_RW, 0, 0),
+                          &addr, &size);
+    if (msg_tag_get_val(tag) < 0)
+    {
+        handler_free_umap(hd_mem);
+        return msg_tag_get_val(tag);
+    }
+    int ret = obj->op->fs_svr_write(fd->data, (void *)addr, len->data);
+    u_share_mem_unmap(hd_mem);
+    handler_free_umap(hd_mem);
     return ret;
 }
 RPC_GENERATION_DISPATCH3(fs_t, FS_PROT, FS_WRITE, write,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, fd,
-                         rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, buf,
+                         rpc_obj_handler_t_t, rpc_obj_handler_t_t, RPC_DIR_IN, RPC_TYPE_BUF, buf,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, len)
 
 /*readdir*/
@@ -218,7 +249,7 @@ RPC_GENERATION_OP1(fs_t, FS_PROT, FS_UNLINK, unlink,
         return -ENOSYS;
     }
     path->data[path->len - 1] = 0;
-    return obj->op->fs_svr_unlink(path->data);
+    return obj->op->fs_svr_unlink((char *)path->data);
 }
 RPC_GENERATION_DISPATCH1(fs_t, FS_PROT, FS_UNLINK, unlink,
                          rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path)
@@ -234,7 +265,7 @@ RPC_GENERATION_OP2(fs_t, FS_PROT, FS_SYMLINK, symlink,
     src->data[src->len - 1] = 0;
     dst->data[dst->len - 1] = 0;
 
-    return obj->op->fs_svr_symlink(src->data, src->data);
+    return obj->op->fs_svr_symlink((char *)src->data, (char *)src->data);
 }
 RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_SYMLINK, symlink,
                          rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, src,
@@ -249,7 +280,7 @@ RPC_GENERATION_OP1(fs_t, FS_PROT, FS_MKDIR, mkdir,
         return -ENOSYS;
     }
     dir->data[dir->len - 1] = 0;
-    return obj->op->fs_svr_mkdir(dir->data);
+    return obj->op->fs_svr_mkdir((char *)dir->data);
 }
 RPC_GENERATION_DISPATCH1(fs_t, FS_PROT, FS_MKDIR, mkdir,
                          rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, dir)
@@ -262,7 +293,7 @@ RPC_GENERATION_OP1(fs_t, FS_PROT, FS_RMDIR, rmdir,
         return -ENOSYS;
     }
     dir->data[dir->len - 1] = 0;
-    return obj->op->fs_svr_rmdir(dir->data);
+    return obj->op->fs_svr_rmdir((char *)dir->data);
 }
 RPC_GENERATION_DISPATCH1(fs_t, FS_PROT, FS_RMDIR, rmdir,
                          rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, dir)
@@ -279,7 +310,7 @@ RPC_GENERATION_OP2(fs_t, FS_PROT, FS_RENAME, rename,
     old->data[old->len - 1] = 0;
     new->data[new->len - 1] = 0;
 
-    return obj->op->fs_svr_rename(old->data, new->data);
+    return obj->op->fs_svr_rename((char *)old->data, (char *)new->data);
 }
 RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_RENAME, rename,
                          rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, old,
@@ -295,7 +326,7 @@ RPC_GENERATION_OP2(fs_t, FS_PROT, FS_STAT, stat,
         return -ENOSYS;
     }
     path->data[path->len - 1] = 0;
-    return obj->op->fs_svr_stat(path->data, &buf->data);
+    return obj->op->fs_svr_stat((char *)path->data, &buf->data);
 }
 RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_STAT, stat,
                          rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
@@ -314,7 +345,7 @@ RPC_GENERATION_OP3(fs_t, FS_PROT, FS_READLINK, readlink,
     path->data[path->len - 1] = 0;
     // buf->data[buf->len - 1] = 0;
 
-    return obj->op->fs_svr_readlink(path->data, buf->data, MIN(bufsize->data, buf->len));
+    return obj->op->fs_svr_readlink((char *)path->data, (char *)buf->data, MIN(bufsize->data, buf->len));
 }
 RPC_GENERATION_DISPATCH3(fs_t, FS_PROT, FS_READLINK, readlink,
                          rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
@@ -331,7 +362,7 @@ RPC_GENERATION_OP2(fs_t, FS_PROT, FS_STATFS, statfs,
         return -ENOSYS;
     }
     path->data[path->len - 1] = 0;
-    return obj->op->fs_svr_statfs(path->data, &buf->data);
+    return obj->op->fs_svr_statfs((char *)(path->data), &buf->data);
 }
 RPC_GENERATION_DISPATCH2(fs_t, FS_PROT, FS_STATFS, statfs,
                          rpc_ref_file_array_t, rpc_file_array_t, RPC_DIR_IN, RPC_TYPE_DATA, path,

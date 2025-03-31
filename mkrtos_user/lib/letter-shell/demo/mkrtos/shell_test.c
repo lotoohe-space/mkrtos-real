@@ -1,7 +1,7 @@
 #include "shell.h"
 #include "cons_cli.h"
 #include "u_sig.h"
-#include "cons_cli.h"
+#include "pm_cli.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <dirent.h>
@@ -41,18 +41,32 @@ SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), 
 int shell_float_test(int argc, char *argv[])
 {
     float a = 1.1, b = 1.2;
-     
+
     printf("%f\n", a + b);
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), ftest, shell_float_test, ftest command);
 int shell_div0(int argc, char *argv[])
 {
-    int a=1,b=0;
-     
+    int a = 1, b = 0;
+
     *((char *)(0)) = 0;
-    printf("%d\n", a/b);
+    printf("%d\n", a / b);
     return 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), div0, shell_div0, div0 command);
+
+int shell_fapp(int argc, char *argv[])
+{
+    int ret;
+    if (argc < 2)
+    {
+        printf("example: fapp 2048\n");
+        return -1;
+    }
+    ret = pm_run_app(NULL, 0, 0x1 /*FIXME:*/, -1,
+                     NULL, atol(argv[1]), NULL, 0); //!< 创建一个dummy task
+    return ret;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), fapp, shell_fapp, fapp command);
 #endif

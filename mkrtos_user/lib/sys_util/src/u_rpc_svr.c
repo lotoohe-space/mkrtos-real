@@ -110,7 +110,7 @@ static msg_tag_t rpc_meta_t_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, 
 
     if (msg_tag_get_prot(in_tag) == META_PROT)
     {
-#if 0
+#if 1
         cons_write_str("unknow prot.\n"); //FIXME:
 #endif
         return msg_tag_init4(0, 0, 0, -EPROTO);
@@ -122,8 +122,8 @@ static msg_tag_t rpc_meta_t_dispatch(struct rpc_svr_obj *obj, msg_tag_t in_tag, 
 
         if (svr_obj == NULL)
         {
-#if 0
-        cons_write_str("unknow prot.\n"); //FIXME:
+#if 1
+            cons_write_str("unknow prot.\n"); // FIXME:
 #endif
             return msg_tag_init4(0, 0, 0, -EPROTO);
         }
@@ -178,12 +178,12 @@ int rpc_creaite_bind_ipc(obj_handler_t tk, void *obj, obj_handler_t *ret_ipc_hd)
     {
         return -ENOENT;
     }
-    tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(0, 0, ipc_hd));
+    tag = u_factory_create_ipc(FACTORY_PROT, vpage_create_raw3(0, 0, ipc_hd));
     if (msg_tag_get_val(tag) < 0)
     {
         return msg_tag_get_val(tag);
     }
-    tag = ipc_bind(ipc_hd, tk, (umword_t)obj);
+    tag = u_ipc_bind(ipc_hd, tk, (umword_t)obj);
     if (msg_tag_get_val(tag) < 0)
     {
         handler_free_umap(ipc_hd);

@@ -2,6 +2,7 @@
 #include "types.h"
 #include "ref.h"
 #include "task.h"
+#include "sema.h"
 struct ipc;
 typedef struct ipc ipc_t;
 struct thread;
@@ -16,7 +17,8 @@ typedef struct ipc
     spinlock_t lock; //!< 操作的锁
     // thread_t *svr_th;       //!< 绑定的服务端线程
     task_t *svr_tk;         //!< 绑定的task进程
-    slist_head_t wait_bind; //!<
+    // slist_head_t wait_bind; //!<
+    sema_t wait_bind;
     ram_limit_t *lim;       //!< 内存限额
     umword_t user_id;       //!< 服务端绑定的数据
     ref_counter_t ref;      //!< 引用计数

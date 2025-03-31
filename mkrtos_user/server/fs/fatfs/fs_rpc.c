@@ -253,7 +253,6 @@ int fs_svr_readdir(int fd, dirent_t *dir)
 }
 int fs_svr_lseek(int fd, int offs, int whence)
 {
-    UINT bw;
     file_desc_t *file = file_desc_get(fd);
     file_desc_priv_t *file_priv = NULL;
 

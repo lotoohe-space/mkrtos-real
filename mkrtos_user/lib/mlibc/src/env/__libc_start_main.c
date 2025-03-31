@@ -155,8 +155,8 @@ static int libc_start_main_stage2(int (*main)(int, char **, char **), int argc, 
 	ipc_init();
 	if (argv && argv[0])
 	{
-		task_set_obj_name(TASK_THIS, TASK_THIS, argv[0]);
-		task_set_obj_name(TASK_THIS, THREAD_MAIN, argv[0]);
+		u_task_set_obj_name(TASK_THIS, TASK_THIS, argv[0]);
+		u_task_set_obj_name(TASK_THIS, THREAD_MAIN, argv[0]);
 	}
 	#endif
 	__libc_start_init();

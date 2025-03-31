@@ -66,6 +66,7 @@ int obj_map_src_dst(obj_space_t *dst_space, obj_space_t *src_space,
     if (obj_space_lookup_kobj(dst_space, dst_inx))
     { //!< 已经存在则解除注释
         obj_unmap(dst_space, vpage_create3(0, 0, dst_inx), del_list);
+        printk("unmap:%d \n", dst_inx);
     }
 
     return obj_map(dst_space, dst_inx, obj_map_entry_kobj_get(entry_obj),

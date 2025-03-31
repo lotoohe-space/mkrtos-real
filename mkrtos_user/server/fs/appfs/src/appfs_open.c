@@ -92,10 +92,10 @@ void appfs_task_free(int pid)
 {
     for (int i = 0; i < DIR_INFO_NR; i++)
     {
-        if (appfs_files[i].dir_info_fd != -1)
+        if (appfs_files[i].dir_info_fd != -1 && appfs_files[i].pid == pid)
         {
             appfs_close(i);
-            printf("free fd:%d\n", i);
+            printf("appfs free fd:%d\n", i);
         }
     }
 }
@@ -151,7 +151,7 @@ int appfs_open(const char *name, int flags, int mode)
 #else
     int pid = 0;
 #endif
-    int ret;
+    int ret = 0;
     const dir_info_t *file;
     int fd;
     enum appfs_type type;
@@ -280,7 +280,7 @@ int appfs_ioctl(int fd, unsigned long cmd, unsigned long arg)
         msg_tag_t tag;
         appfs_ioctl_arg_t fs_arg_tmp;
         umword_t cur_pid;
-        tag = task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
+        tag = u_task_get_pid(TASK_THIS, (umword_t *)(&cur_pid));
         if (msg_tag_get_val(tag) < 0)
         {
             return msg_tag_get_val(tag);

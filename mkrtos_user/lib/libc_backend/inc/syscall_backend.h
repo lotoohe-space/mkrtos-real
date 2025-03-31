@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <sys/ipc.h>
 #include "sys/shm.h"
+#include <poll.h>
 // typedef int key_t;
 
 #define ARG_1_BE(ap, arg0, type0)       \
@@ -110,6 +111,10 @@ umword_t be_mmap(void *start,
 int be_fcntl(int fd, int cmd, void *arg);
 long be_chdir(const char *path);
 long be_ftruncate(int fd, off_t off);
+long be_poll(struct pollfd *fds, uint32_t n, int timeout);
+long be_fstat(int fd, void *_buf);
+long be_getcwd(char *path, size_t size);
+int be_access(const char *filename, int amode);
 // net api
 int be_accept(int s, struct sockaddr *addr, socklen_t *addrlen);
 int be_bind(int s, const struct sockaddr *name, socklen_t namelen);

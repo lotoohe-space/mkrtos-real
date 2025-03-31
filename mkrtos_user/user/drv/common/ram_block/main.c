@@ -19,17 +19,18 @@
 #include <string.h>
 #include "u_hd_man.h"
 #include "u_vmam.h"
-#define STACK_COM_ITME_SIZE (1024 + 512)
+#define STACK_COM_ITME_SIZE (2048)
 ATTR_ALIGN(8)
 static uint8_t stack_coms[STACK_COM_ITME_SIZE];
 static uint8_t msg_buf_coms[MSG_BUG_LEN];
 static obj_handler_t com_th_obj;
+static umword_t cons_map_buf[1][CONFIG_THREAD_MAP_BUF_LEN];
 
 static void fast_ipc_init(void)
 {
     com_th_obj = handler_alloc();
     assert(com_th_obj != HANDLER_INVALID);
-    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj);
+    u_fast_ipc_init(stack_coms, msg_buf_coms, 1, STACK_COM_ITME_SIZE, &com_th_obj, cons_map_buf);
 }
 
 static blk_drv_t blk_drv;
@@ -39,36 +40,41 @@ static size_t blk_size;
 
 int blk_drv_write(obj_handler_t obj, int len, int inx)
 {
-    int ret = -1;
     addr_t addr = 0;
     umword_t size = 0;
     msg_tag_t tag;
 
+    if (inx >= blk_nr)
+    {
+        return -EINVAL;
+    }
     if (len == 0)
     {
         memset(blk_data + inx * blk_size, 0xff, len);
     }
     else
     {
-        tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
+        tag = u_share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size);
         if (msg_tag_get_val(tag) < 0)
         {
             handler_free_umap(obj);
             printf("net write error.\n");
             return msg_tag_get_val(tag);
         }
-        memcpy(blk_data + inx * blk_size, (void *)addr, len);
+        memcpy(blk_data + inx * blk_size, (void *)addr, MIN(len, blk_size));
         handler_free_umap(obj);
     }
     return MIN(len, size);
 }
 int blk_drv_read(obj_handler_t obj, int len, int inx)
 {
-    int ret = -1;
     addr_t addr = 0;
     umword_t size = 0;
-    uint32_t _err;
 
+    if (inx >= blk_nr)
+    {
+        return -EINVAL;
+    }
     if (len % blk_size)
     {
         return -EINVAL;
@@ -79,7 +85,7 @@ int blk_drv_read(obj_handler_t obj, int len, int inx)
     }
     msg_tag_t tag;
 
-    tag = share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size); /*FIXME:优化*/
+    tag = u_share_mem_map(obj, vma_addr_create(VPAGE_PROT_RWX, 0, 0), &addr, &size); /*FIXME:优化*/
 
     if (msg_tag_get_val(tag) < 0)
     {
@@ -124,6 +130,7 @@ int main(int argc, char *argv[])
             break;
         case 'p':
             dev_path = optarg;
+            printf("dev path %s\n", dev_path);
         default:
             break;
         }
@@ -145,17 +152,15 @@ int main(int argc, char *argv[])
         printf("sys not have memory.\n");
         return -1;
     }
-
-    task_set_obj_name(TASK_THIS, TASK_THIS, "tk_blk");
-    task_set_obj_name(TASK_THIS, THREAD_MAIN, "th_blk");
     printf("%s init..\n", argv[0]);
+    printf("ram block base addr:[0x%x 0x%x] \n", blk_data, blk_data + blk_nr* blk_size);
     fast_ipc_init();
 
     blk_drv_init(&blk_drv);
     ret = rpc_meta_init_def(TASK_THIS, &hd);
     assert(ret >= 0);
-    ns_register(dev_path, hd, 0);
     meta_reg_svr_obj(&blk_drv.svr, BLK_DRV_PROT);
+    ns_register(dev_path, hd, 0);
 
     while (1)
     {

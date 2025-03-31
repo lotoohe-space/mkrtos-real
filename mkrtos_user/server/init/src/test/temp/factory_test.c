@@ -10,7 +10,7 @@ void factory_test(void)
 {
     obj_handler_t hd = handler_alloc();
     assert(hd != HANDLER_INVALID);
-    msg_tag_t tag = factory_create_ipc(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd));
+    msg_tag_t tag = u_factory_create_ipc(FACTORY_PROT, vpage_create_raw3(KOBJ_ALL_RIGHTS, 0, hd));
     assert(msg_tag_get_prot(tag) >= 0);
     handler_free_umap(hd);
 }

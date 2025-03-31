@@ -24,27 +24,30 @@
  */
 RPC_GENERATION_OP6(pm_t, PM_PROT, PM_RUN_APP, run_app,
                    rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mem_block,
-                   rpc_ref_array_uint32_t_uint8_t_96_t, rpc_array_uint32_t_uint8_t_96_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len,
-                   rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, envs,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, envs_len
-                   )
-{
-    int16_t ret = -1;
-
-    path->data[path->len - 1] = 0;
-    ret = pm_rpc_run_app(path->data, mem_block->data, params->data, params_len->data, envs->data, envs_len->data);
-    return ret;
-}
-
-RPC_GENERATION_DISPATCH6(pm_t, PM_PROT, PM_RUN_APP, run_app,
-                   rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
-                   rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, mem_block,
+                   rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, pm_flags,
                    rpc_ref_array_uint32_t_uint8_t_96_t, rpc_array_uint32_t_uint8_t_96_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len,
                    rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, envs,
                    rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, envs_len)
+{
+    int16_t ret = -1;
+
+    if (path->len)
+    {
+        path->data[path->len - 1] = 0;
+    }
+    ret = pm_rpc_run_app((char *)path->data, pm_flags_init_raw(pm_flags->data),
+                         (char *)params->data, params_len->data, (char *)envs->data, envs_len->data);
+    return ret;
+}
+
+RPC_GENERATION_DISPATCH6(pm_t, PM_PROT, PM_RUN_APP, run_app,
+                         rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, path,
+                         rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, pm_flags,
+                         rpc_ref_array_uint32_t_uint8_t_96_t, rpc_array_uint32_t_uint8_t_96_t, RPC_DIR_IN, RPC_TYPE_DATA, params,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, params_len,
+                         rpc_ref_array_uint32_t_uint8_t_64_t, rpc_array_uint32_t_uint8_t_64_t, RPC_DIR_IN, RPC_TYPE_DATA, envs,
+                         rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, envs_len)
 
 /*kill_task*/
 RPC_GENERATION_OP3(pm_t, PM_PROT, PM_KILL_TASK, kill_task,
@@ -110,6 +113,7 @@ RPC_GENERATION_OP2(pm_t, PM_PROT, PM_WATCH_PID, del_watch_pid,
 RPC_GENERATION_DISPATCH2(pm_t, PM_PROT, PM_WATCH_PID, del_watch_pid,
                          rpc_umword_t_t, rpc_umword_t_t, RPC_DIR_IN, RPC_TYPE_DATA, pid,
                          rpc_int_t, rpc_int_t, RPC_DIR_IN, RPC_TYPE_DATA, flags)
+
 /*dispatch*/
 RPC_DISPATCH4(pm_t, PM_PROT, typeof(PM_RUN_APP),
               PM_RUN_APP, run_app,
@@ -117,8 +121,13 @@ RPC_DISPATCH4(pm_t, PM_PROT, typeof(PM_RUN_APP),
               PM_WATCH_PID, watch_pid,
               PM_COPY_DATA, copy_data)
 
-void pm_svr_obj_init(pm_t *pm)
+int pm_svr_obj_init(pm_t *pm)
 {
+    int ret;
+
     rpc_svr_obj_init(&pm->svr_obj, rpc_pm_t_dispatch, PM_PROT);
     slist_init(&pm->watch_head);
+    ret = u_mutex_init(&pm->lock, handler_alloc());
+
+    return ret;
 }

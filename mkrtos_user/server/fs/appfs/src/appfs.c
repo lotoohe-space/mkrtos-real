@@ -12,11 +12,12 @@
 
 int appfs_init(fs_info_t *fs)
 {
-    int ret;
+    int ret = 0;
     assert(fs);
     fs->cb.hw_init_fs_for_block(fs);
     fs_info_t *fs_info = (fs_info_t *)fs->mem_addr;
 
+    printf("fs->mem_addr:0x%x\n", fs->mem_addr);
     // ret = fs->cb.hw_read_block(fs, 0, fs->buf, fs->save.block_size);
     // if (ret >= 0)
     // {
@@ -576,7 +577,6 @@ const dir_info_t *appfs_dir_info_get_next(fs_info_t *info, const dir_info_t *cur
 {
     assert(info);
     assert(cur);
-    int ret = 0;
 
     for (const dir_info_t *cur_dir = (const dir_info_t *)cur + 1;
          (unsigned long)cur_dir < info->mem_addr + (info->save.dirinfo_inx + info->save.dirinfo_nr) * info->save.block_size;
@@ -922,7 +922,6 @@ int appfs_file_resize(fs_info_t *info, const char *name, int size)
 {
     assert(info);
 
-    int ret = 0;
     const dir_info_t *dir_info = NULL;
 
     // 通过文件名查找文件
@@ -946,7 +945,6 @@ int appfs_file_resize(fs_info_t *info, const char *name, int size)
 int appfs_arrange_files(fs_info_t *info)
 {
     int last_idle_block_inx = -1;
-    int status = 0;
     assert(info);
     for (int i = 0; i < info->save.blockinfo_nr; i++)
     {
